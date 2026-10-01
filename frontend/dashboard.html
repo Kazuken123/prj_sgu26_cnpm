@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>Quản lý Địa điểm ẩm thực</title>
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+  </head>
+
+  <body class="bg-gray-100 min-h-screen">
+    <!-- =====================================================
+         HEADER
+    ====================================================== -->
+
+    <header class="bg-white shadow">
+      <div
+        class="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between"
+      >
+        <div>
+          <h1 class="text-2xl font-bold text-gray-800">
+            Quản lý Địa điểm ẩm thực
+          </h1>
+
+          <p class="text-sm text-gray-500">Hệ thống Du lịch Ẩm thực</p>
+        </div>
+
+        <button
+          onclick="logout()"
+          class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+        >
+          Đăng xuất
+        </button>
+      </div>
+    </header>
+
+    <!-- =====================================================
+         MAIN
+    ====================================================== -->
+
+    <main class="max-w-7xl mx-auto px-6 py-8">
+      <!-- Toolbar -->
+
+      <div class="flex justify-between items-center mb-6">
+        <div>
+          <h2 class="text-xl font-semibold text-gray-800">
+            Danh sách địa điểm
+          </h2>
+
+          <p class="text-sm text-gray-500">
+            Quản lý các địa điểm ẩm thực trong hệ thống
+          </p>
+        </div>
+
+        <button
+          onclick="openModal()"
+          class="px-5 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition"
+        >
+          + Thêm mới
+        </button>
+      </div>
+
+      <!-- =====================================================
+             TABLE
+        ====================================================== -->
+
+      <div class="bg-white rounded-xl shadow overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b">
+            <tr>
+              <th
+                class="px-6 py-4 text-left text-sm font-semibold text-gray-600"
+              >
+                ID
+              </th>
+
+              <th
+                class="px-6 py-4 text-left text-sm font-semibold text-gray-600"
+              >
+                Tên địa điểm
+              </th>
+
+              <th
+                class="px-6 py-4 text-left text-sm font-semibold text-gray-600"
+              >
+                Mô tả
+              </th>
+
+              <th
+                class="px-6 py-4 text-center text-sm font-semibold text-gray-600"
+              >
+                Hành động
+              </th>
+            </tr>
+          </thead>
+
+          <!-- Dữ liệu sẽ được JS đưa vào đây -->
+
+          <tbody id="placeTableBody" class="divide-y">
+            <tr>
+              <td colspan="4" class="px-6 py-8 text-center text-gray-500">
+                Đang tải dữ liệu...
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </main>
+
+    <!-- =====================================================
+         MODAL THÊM MỚI
+    ====================================================== -->
+
+    <div
+      id="modal"
+      class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center px-4"
+    >
+      <div class="bg-white w-full max-w-lg rounded-xl shadow-xl p-6">
+        <!-- Modal Header -->
+
+        <div class="flex justify-between items-center mb-6">
+          <h2 class="text-xl font-bold text-gray-800">Thêm địa điểm mới</h2>
+
+          <button
+            onclick="closeModal()"
+            class="text-gray-500 text-2xl hover:text-gray-800"
+          >
+            &times;
+          </button>
+        </div>
+
+        <!-- Form -->
+
+        <form id="placeForm" class="space-y-5">
+          <!-- Tên -->
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Tên địa điểm
+            </label>
+
+            <input
+              type="text"
+              id="placeName"
+              required
+              placeholder="Ví dụ: Bánh xèo Ngọc Lan"
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+
+          <!-- Mô tả -->
+
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">
+              Mô tả
+            </label>
+
+            <textarea
+              id="placeDescription"
+              rows="4"
+              placeholder="Nhập mô tả địa điểm..."
+              class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            ></textarea>
+          </div>
+
+          <!-- Buttons -->
+
+          <div class="flex justify-end gap-3 pt-2">
+            <button
+              type="button"
+              onclick="closeModal()"
+              class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300"
+            >
+              Hủy
+            </button>
+
+            <button
+              type="submit"
+              class="px-5 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Lưu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script>
+      // =====================================================
+      // API CONFIG
+      // =====================================================
+
+      const API_URL = "http://localhost:3000/api";
+
+      /*
+            Backend hiện tại:
+
+            GET    http://localhost:3000/api/places
+            POST   http://localhost:3000/api/places
+            DELETE http://localhost:3000/api/places/{id}
+
+            Khi backend thay đổi URL,
+            chỉ cần sửa API_URL hoặc endpoint bên dưới.
+        */
+
+      // =====================================================
+      // GET - Lấy danh sách địa điểm
+      // =====================================================
+
+      async function loadPlaces() {
+        console.log("========== GET PLACES ==========");
+
+        try {
+          console.log("Đang gọi API:", `${API_URL}/places`);
+
+          const response = await fetch(`${API_URL}/places`);
+
+          if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          console.log("GET places thành công!");
+
+          console.log("Response:", data);
+
+          /*
+                    Backend có thể trả:
+
+                    [
+                        {
+                            id: 1,
+                            name: "Bánh xèo Ngọc Lan",
+                            description: "Quán bánh xèo..."
+                        }
+                    ]
+
+                    hoặc:
+
+                    {
+                        data: [...]
+                    }
+
+                    Nếu backend trả { data: [...] }
+                    thì đổi thành:
+
+                    const places = data.data;
+                */
+
+          const places = Array.isArray(data) ? data : data.data;
+
+          renderTable(places);
+        } catch (error) {
+          console.error("❌ Lỗi GET places:", error);
+
+          document.getElementById("placeTableBody").innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            class="px-6 py-8 text-center text-red-500"
+                        >
+                            Không thể tải dữ liệu.
+                        </td>
+
+                    </tr>
+
+                `;
+        }
+      }
+
+      // =====================================================
+      // RENDER TABLE
+      // =====================================================
+
+      function renderTable(places) {
+        const tableBody = document.getElementById("placeTableBody");
+
+        tableBody.innerHTML = "";
+
+        if (!places || places.length === 0) {
+          tableBody.innerHTML = `
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            class="px-6 py-8 text-center text-gray-500"
+                        >
+                            Chưa có dữ liệu.
+                        </td>
+
+                    </tr>
+
+                `;
+
+          return;
+        }
+
+        places.forEach(function (place) {
+          const row = document.createElement("tr");
+
+          row.className = "hover:bg-gray-50";
+
+          row.innerHTML = `
+
+                    <td class="px-6 py-4 text-sm text-gray-700">
+                        ${place.id}
+                    </td>
+
+
+                    <td class="px-6 py-4">
+
+                        <div class="font-medium text-gray-800">
+                            ${place.name}
+                        </div>
+
+                    </td>
+
+
+                    <td class="px-6 py-4 text-sm text-gray-600">
+
+                        ${place.description || "Không có mô tả"}
+
+                    </td>
+
+
+                    <td class="px-6 py-4">
+
+                        <div class="flex justify-center gap-2">
+
+                            <button
+                                onclick="deletePlace(${place.id})"
+                                class="px-3 py-2 bg-red-500
+                                       text-white rounded-lg
+                                       text-sm hover:bg-red-600"
+                            >
+                                Xóa
+                            </button>
+
+                        </div>
+
+                    </td>
+
+                `;
+
+          tableBody.appendChild(row);
+        });
+      }
+
+      // =====================================================
+      // POST - Thêm địa điểm
+      // =====================================================
+
+      async function createPlace(event) {
+        event.preventDefault();
+
+        const name = document.getElementById("placeName").value;
+
+        const description = document.getElementById("placeDescription").value;
+
+        console.log("========== CREATE PLACE ==========");
+
+        console.log("Data gửi:", {
+          name: name,
+          description: description,
+        });
+
+        try {
+          console.log("Đang gọi API:", `${API_URL}/places`);
+
+          const response = await fetch(`${API_URL}/places`, {
+            method: "POST",
+
+            headers: {
+              "Content-Type": "application/json",
+            },
+
+            body: JSON.stringify({
+              name: name,
+
+              description: description,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+          }
+
+          const data = await response.json();
+
+          console.log("POST places thành công!");
+
+          console.log("Response:", data);
+
+          // Đóng modal
+          closeModal();
+
+          // Reset form
+          document.getElementById("placeForm").reset();
+
+          // Load lại bảng
+          loadPlaces();
+        } catch (error) {
+          console.error("❌ Lỗi POST places:", error);
+
+          alert("Thêm địa điểm thất bại. Kiểm tra Console.");
+        }
+      }
+
+      // =====================================================
+      // DELETE - Xóa địa điểm
+      // =====================================================
+
+      async function deletePlace(id) {
+        console.log("========== DELETE PLACE ==========");
+
+        console.log("ID cần xóa:", id);
+
+        if (!confirm("Bạn có chắc muốn xóa địa điểm này?")) {
+          return;
+        }
+
+        try {
+          console.log("Đang gọi API:", `${API_URL}/places/${id}`);
+
+          const response = await fetch(`${API_URL}/places/${id}`, {
+            method: "DELETE",
+          });
+
+          if (!response.ok) {
+            throw new Error(`HTTP Error: ${response.status}`);
+          }
+
+          console.log("DELETE places thành công!");
+
+          /*
+                    Một số API DELETE trả về JSON,
+                    một số API trả về 204 No Content.
+
+                    Vì vậy ở đây không bắt buộc
+                    response.json().
+                */
+
+          // Load lại bảng
+          loadPlaces();
+        } catch (error) {
+          console.error("❌ Lỗi DELETE places:", error);
+
+          alert("Xóa thất bại. Kiểm tra Console.");
+        }
+      }
+
+      // =====================================================
+      // MODAL
+      // =====================================================
+
+      function openModal() {
+        document.getElementById("modal").classList.remove("hidden");
+      }
+
+      function closeModal() {
+        document.getElementById("modal").classList.add("hidden");
+      }
+
+      // =====================================================
+      // LOGOUT
+      // =====================================================
+
+      function logout() {
+        localStorage.removeItem("token");
+
+        localStorage.removeItem("user");
+
+        window.location.href = "index.html";
+      }
+
+      // =====================================================
+      // FORM SUBMIT
+      // =====================================================
+
+      document
+        .getElementById("placeForm")
+        .addEventListener("submit", createPlace);
+
+      // =====================================================
+      // LOAD DATA KHI MỞ DASHBOARD
+      // =====================================================
+
+      loadPlaces();
+    </script>
+  </body>
+</html>
