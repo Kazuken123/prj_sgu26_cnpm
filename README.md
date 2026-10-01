@@ -1,8 +1,6 @@
 # prj_sgu26_cnpm
-<<<<<<< HEAD
+Hệ Thống Du Lịch Ẩm Thực Có Thuyết Minh Đa Ngôn Ngữ
 
-=======
->>>>>>> bc6cd87756b1d4297ee37806d3b7f33a09bc69e7
 PRD : Plan
 -User story (Activity)
 -Component
