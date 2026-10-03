@@ -2,31 +2,34 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
 
-// Kích hoạt kết nối cơ sở dữ liệu
+// Kich hoat ket noi co so du lieu
 require("./config/database");
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Đường dẫn kiểm tra trạng thái máy chủ
+// KẾT NỐI ROUTER ĐĂNG KÝ/ĐĂNG NHẬP VÀO ĐÂY (US-01)
+app.use("/api/auth", require("./routers/auth.router"));
+
+// Duong dan kiem tra trang thai may chu
 app.get("/", (req, res) => {
-  res.send("API Hệ Thống Du Lịch Ẩm Thực đang hoạt động...");
+  res.send("API He Thong Du Lich Am Thuc dang hoat dong...");
 });
 
 app.get("/health", (req, res) => {
   res.status(200).json({
     status: "ok",
     service: "food-tour-api",
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
   });
 });
 
-// Chỉ mở cổng khi chạy trực tiếp, hỗ trợ decoupling phục vụ testing
+// Chi mo cong khi chay truc tiep, ho tro decoupling phuc vu testing
 if (require.main === module) {
   const PORT = process.env.PORT || 3000;
   app.listen(PORT, () => {
-    console.log(`Server Backend đang chạy tại http://localhost:${PORT}`);
+    console.log(`Server Backend dang chay tai http://localhost:${PORT}`);
   });
 }
 
