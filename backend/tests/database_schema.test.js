@@ -7,12 +7,19 @@ describe("Database Schema SQL File Validation Test Suite", () => {
   const sqlPath = path.resolve(__dirname, "../../database/init_db.sql");
 
   it("File init_db.sql ton tai va khong bi rong", () => {
-    assert.strictEqual(fs.existsSync(sqlPath), true, "File init_db.sql phai ton tai");
+    assert.strictEqual(
+      fs.existsSync(sqlPath),
+      true,
+      "File init_db.sql phai ton tai",
+    );
     const content = fs.readFileSync(sqlPath, "utf-8");
-    assert.ok(content.length > 500, "File init_db.sql phai chua noi dung khoi tao");
+    assert.ok(
+      content.length > 500,
+      "File init_db.sql phai chua noi dung khoi tao",
+    );
   });
 
-  it("File init_db.sql khai bao du 13 bang theo dac ta ERD", () => {
+  it("File init_db.sql khai bao du 14 bang theo dac ta ERD", () => {
     const content = fs.readFileSync(sqlPath, "utf-8");
     const requiredTables = [
       "LANGUAGES",
@@ -24,15 +31,19 @@ describe("Database Schema SQL File Validation Test Suite", () => {
       "POI_CATEGORIES",
       "DISHES",
       "POI_IMAGES",
+      "POI_EDIT_REQUESTS",
       "POI_TRANSLATIONS",
       "DISH_TRANSLATIONS",
       "AUDIOS",
-      "REVIEWS"
+      "REVIEWS",
     ];
 
     for (const table of requiredTables) {
       const regex = new RegExp(`CREATE\\s+TABLE\\s+${table}\\b`, "i");
-      assert.ok(regex.test(content), `Thieu lenh CREATE TABLE cho bang ${table}`);
+      assert.ok(
+        regex.test(content),
+        `Thieu lenh CREATE TABLE cho bang ${table}`,
+      );
     }
   });
 

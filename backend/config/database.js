@@ -16,10 +16,10 @@ if (process.env.NODE_ENV !== "test") {
   pool
     .getConnection()
     .then((conn) => {
-      console.log("✅ Kết nối Database MySQL thành công!");
+      console.log(" Kết nối Database MySQL thành công!");
       conn.release();
     })
-    .catch((err) => console.error("❌ Lỗi kết nối DB:", err.message));
+    .catch((err) => console.error(" Lỗi kết nối DB:", err.message));
 }
 
 module.exports = pool;

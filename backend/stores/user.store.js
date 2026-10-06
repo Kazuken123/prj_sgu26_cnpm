@@ -7,14 +7,23 @@ class UserStore {
     return rows[0];
   }
 
-  static async createUser(email, passwordHash, fullName, phoneNumber) {
-    const sql = `INSERT INTO USERS (email, password_hash, full_name, phone_number, role) 
-                     VALUES (?, ?, ?, ?, 'TOURIST')`;
+  static async createUser(
+    email,
+    passwordHash,
+    fullName,
+    phoneNumber,
+    role = "TOURIST",
+    status = "ACTIVE",
+  ) {
+    const sql = `INSERT INTO USERS (email, password_hash, full_name, phone_number, role, status) 
+                     VALUES (?, ?, ?, ?, ?, ?)`;
     const [result] = await db.query(sql, [
       email,
       passwordHash,
       fullName,
       phoneNumber,
+      role,
+      status,
     ]);
     return result.insertId;
   }
@@ -24,7 +33,6 @@ class UserStore {
     let sql = `UPDATE USERS SET failed_login_count = ? WHERE user_id = ?`;
     let params = [newCount, userId];
 
-    // Khóa 15 phút nếu sai từ 5 lần trở lên
     if (newCount >= 5) {
       sql = `UPDATE USERS SET failed_login_count = ?, locked_until = DATE_ADD(NOW(), INTERVAL 15 MINUTE) WHERE user_id = ?`;
     }
