@@ -1,0 +1,9 @@
+.git
+**/node_modules
+**/.env
+**/.env.*
+**/*.log
+backend/tests
+bao_cao_cnmp.docx
+.agents
+.codex

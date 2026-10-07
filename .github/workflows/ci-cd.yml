@@ -1,20 +1,18 @@
-name: CI/CD Pipeline - He Thong Du Lich Am Thuc
+name: CI and Release Smoke Test - Backend 3 Layers
 
 on:
   push:
-    branches: [main, master]
   pull_request:
     branches: [main, master]
   workflow_dispatch:
 
-jobs:
-  # =========================================================
-  # GIAI DOAN 1: CI (Continuous Integration) - KIEM TRA DATABASE
-  # =========================================================
-  ci-database:
-    name: CI - Kiem tra Database Schema (MySQL 8.0)
-    runs-on: ubuntu-latest
+permissions:
+  contents: read
 
+jobs:
+  ci-database:
+    name: CI - Database Schema (MySQL 8.0)
+    runs-on: ubuntu-latest
     services:
       mysql:
         image: mysql:8.0
@@ -23,178 +21,125 @@ jobs:
           MYSQL_DATABASE: food_tour_db
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
-
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
-      - name: Checkout ma nguon
-        uses: actions/checkout@v4
-
-      - name: Khoi tao du lieu mau tu file init_db.sql
+      - uses: actions/checkout@v4
+      - name: Initialize disposable CI database
+        env:
+          MYSQL_PWD: root
+        run: mysql -h 127.0.0.1 -u root food_tour_db < database/init_db.sql
+      - name: Check exact table count
+        env:
+          MYSQL_PWD: root
         run: |
-          mysql -h 127.0.0.1 -u root -proot food_tour_db < database/init_db.sql
+          TABLE_COUNT=$(mysql -h 127.0.0.1 -u root -s -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='food_tour_db';")
+          test "$TABLE_COUNT" -eq 15
 
-      - name: Kiem tra su ton tai cua 13 bang trong CSDL
-        run: |
-          TABLE_COUNT=$(mysql -h 127.0.0.1 -u root -proot -s -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='food_tour_db';")
-          echo "So luong bang duoc tao thanh cong: $TABLE_COUNT"
-          if [ "$TABLE_COUNT" -lt 13 ]; then
-            echo "Loi: Thieu bang trong CSDL, yeu cau toi thieu 13 bang!"
-            exit 1
-          fi
-
-  # =========================================================
-  # GIAI DOAN 1: CI (Continuous Integration) - BACKEND TEST
-  # =========================================================
   ci-backend:
-    name: CI - Backend Test (Node ${{ matrix.node-version }})
+    name: CI - Backend (Node ${{ matrix.node-version }})
     runs-on: ubuntu-latest
     strategy:
       matrix:
         node-version: [20.x, 22.x]
-
     services:
       mysql:
         image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: root
-          MYSQL_DATABASE: food_tour_db
         ports:
           - 3306:3306
-        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=5
-
+        options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=10
     steps:
-      - name: Checkout ma nguon
-        uses: actions/checkout@v4
-
-      - name: Cai dat Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
-          cache: "npm"
+          cache: npm
           cache-dependency-path: backend/package-lock.json
-
-      - name: Cai dat thu vien phu thuoc (npm ci)
-        working-directory: ./backend
+      - name: Install dependencies
+        working-directory: backend
         run: npm ci
-
-      - name: Kiem tra cu phap va loi tinh (Lint)
-        working-directory: ./backend
+      - name: Check syntax and layer dependencies
+        working-directory: backend
         run: npm run lint
-
-      - name: Nap schema CSDL MySQL
-        run: |
-          mysql -h 127.0.0.1 -u root -proot food_tour_db < database/init_db.sql
-
-      - name: Chay bo kiem thu tu dong (Unit Test & Integration Test)
-        working-directory: ./backend
+      - name: Unit, HTTP and real MySQL integration tests
+        working-directory: backend
         env:
           NODE_ENV: test
+          RUN_DB_TESTS: "1"
           DB_HOST: 127.0.0.1
           DB_USER: root
           DB_PASSWORD: root
           DB_NAME: food_tour_db
+          JWT_SECRET: ci-test-only-secret-at-least-32-bytes
         run: npm test
 
-  # =========================================================
-  # GIAI DOAN 2: REVIEW - KIEM TRA DECOUPLING & MODULE HOA
-  # =========================================================
   review-decoupling:
-    name: Review - Kiem tra Decoupling & Kien truc
+    name: Review - Layer Boundaries and Environment Files
     needs: [ci-database, ci-backend]
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout ma nguon
-        uses: actions/checkout@v4
-
-      - name: Kiem tra Decoupling server.js
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+      - name: Verify imports follow Router -> Service -> Store
+        working-directory: backend
+        run: npm run lint
+      - name: Verify environment files are not tracked
         run: |
-          grep -q "module.exports = app" backend/server.js || { echo "Loi: server.js chua export app de phuc vu testing va decoupling"; exit 1; }
-          echo "server.js da tach rieng khoi listener, dam bao tinh decoupling."
-
-      - name: Kiem tra Decoupling database.js
-        run: |
-          grep -q "module.exports = pool" backend/config/database.js || { echo "Loi: database.js chua export pool"; exit 1; }
-          echo "database.js da module hoa thanh cong."
-
-      - name: Kiem tra an toan bao mat khong commit file .env
-        run: |
-          if git ls-files --error-unmatch backend/.env 2>/dev/null; then
-            echo "Loi bao mat: File .env khong duoc commit len Git!"
+          if [ -n "$(git ls-files .env backend/.env)" ]; then
+            echo "Runtime environment files must not be committed."
             exit 1
           fi
-          echo "Kiem tra bao mat file moi truong dat tieu chuan."
 
-  # =========================================================
-  # GIAI DOAN 3: CD (Continuous Delivery) - DOCKER BUILD & DONG GOI
-  # =========================================================
   cd-build-and-deliver:
-    name: CD - Build Docker Image & Dong goi Artifact
+    name: Release - Build and Package
     needs: review-decoupling
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
     steps:
-      - name: Checkout ma nguon
-        uses: actions/checkout@v4
-
-      - name: Thiet lap Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Build Docker Image Backend
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build runtime image
+        run: docker build -f backend/Dockerfile -t food-tour-backend:${{ github.sha }} .
+      - name: Package complete release source
         run: |
-          docker build -t food-tour-backend:${{ github.sha }} -t food-tour-backend:latest ./backend
-
-      - name: Dong goi goi phat hanh (Deploy Bundle)
-        run: |
-          tar -czvf deploy-bundle-${{ github.sha }}.tar.gz \
-            backend/server.js \
-            backend/package*.json \
-            backend/config/ \
-            backend/Dockerfile \
-            frontend/ \
-            database/init_db.sql \
-            docker-compose.yml
-
-      - name: Luu tru Artifact phat hanh
-        uses: actions/upload-artifact@v4
+          tar --exclude='backend/node_modules' --exclude='backend/.env' --exclude='backend/.env.*' --exclude='backend/tests' \
+            -czf deploy-bundle-${{ github.sha }}.tar.gz \
+            backend frontend database docker-compose.yml .env.example .dockerignore
+          for file in backend/routers/auth.router.js backend/services/auth.service.js backend/stores/auth.store.js backend/middlewares/auth.middleware.js; do
+            tar -tzf deploy-bundle-${{ github.sha }}.tar.gz | grep -Fx "$file"
+          done
+      - uses: actions/upload-artifact@v4
         with:
           name: deploy-bundle-${{ github.sha }}
           path: deploy-bundle-${{ github.sha }}.tar.gz
           retention-days: 7
 
-  # =========================================================
-  # GIAI DOAN 4: CD (Continuous Deployment) - TEST KHOI CHAY MOI TRUONG
-  # =========================================================
-  cd-deploy-test:
-    name: CD - Kiem tra Khoi chay He thong (Health Check)
+  release-smoke-test:
+    name: Release - Test the Published Bundle (not staging)
     needs: cd-build-and-deliver
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-
+    env:
+      MYSQL_ROOT_PASSWORD: ci-disposable-root-password
+      DB_USER: food_tour_app
+      DB_PASSWORD: ci-disposable-app-password
+      JWT_SECRET: ci-disposable-secret-at-least-32-bytes
     steps:
-      - name: Checkout ma nguon
-        uses: actions/checkout@v4
-
-      - name: Khoi chay toan bo he thong bang Docker Compose
-        run: |
-          docker compose up -d --build
-
-      - name: Kiem tra suc khoe API Backend tren container
-        run: |
-          for i in {1..30}; do
-            if curl -s http://localhost:3000/health | grep '"status":"ok"'; then
-              echo "API Backend khoi chay va phan hoi thanh cong!"
-              exit 0
-            fi
-            echo "Dang cho he thong khoi dong... ($i/30)"
-            sleep 2
-          done
-          echo "Loi: Backend khong vuot qua kiem tra health check!"
-          docker compose logs
-          exit 1
-
-      - name: Don dep container sau khi kiem tra
+      - uses: actions/download-artifact@v4
+        with:
+          name: deploy-bundle-${{ github.sha }}
+      - name: Unpack the exact release artifact
+        run: tar -xzf deploy-bundle-${{ github.sha }}.tar.gz
+      - name: Start release containers
+        run: docker compose up -d --build --wait --wait-timeout 120
+      - name: Smoke test readiness and the auth lifecycle
+        run: node backend/scripts/smoke-auth.js
+      - name: Container logs on failure
+        if: failure()
+        run: docker compose logs
+      - name: Remove disposable CI containers
         if: always()
-        run: |
-          docker compose down -v
+        run: docker compose down -v

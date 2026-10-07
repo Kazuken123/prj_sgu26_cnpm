@@ -1,36 +1,39 @@
 const express = require("express");
 const cors = require("cors");
-require("dotenv").config();
+require("dotenv").config({ quiet: true });
+const { createAuthRouter } = require("./routers/auth.router");
+const defaultAuthService = require("./services/auth.service");
+const defaultHealthService = require("./services/health.service");
+const errorHandler = require("./middlewares/error.middleware");
+const { getAuthConfig } = require("./config/auth");
+const path = require("node:path");
 
-// Kich hoat ket noi co so du lieu
-require("./config/database");
-
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-// KẾT NỐI ROUTER ĐĂNG KÝ/ĐĂNG NHẬP VÀO ĐÂY (US-01)
-app.use("/api/auth", require("./routers/auth.router"));
-
-// Duong dan kiem tra trang thai may chu
-app.get("/", (req, res) => {
-  res.send("API He Thong Du Lich Am Thuc dang hoat dong...");
-});
-
-app.get("/health", (req, res) => {
-  res.status(200).json({
-    status: "ok",
-    service: "food-tour-api",
-    timestamp: new Date().toISOString(),
+function createApp({ authService = defaultAuthService, healthService = defaultHealthService } = {}) {
+  const app = express();
+  app.disable("x-powered-by");
+  const origins = (process.env.CORS_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500").split(",").map(value => value.trim());
+  app.use(cors({ origin: origins }));
+  app.use(express.json({ limit: "32kb" }));
+  app.use("/api/auth", createAuthRouter(authService));
+  app.get("/", (req, res) => res.send("API He Thong Du Lich Am Thuc dang hoat dong..."));
+  app.get("/health", (req, res) => res.json({ status: "ok", service: "food-tour-api", timestamp: new Date().toISOString() }));
+  app.get("/health/ready", async (req, res, next) => {
+    try { res.json(await healthService.ready()); } catch (error) { next(error); }
   });
-});
-
-// Chi mo cong khi chay truc tiep, ho tro decoupling phuc vu testing
-if (require.main === module) {
-  const PORT = process.env.PORT || 3000;
-  app.listen(PORT, () => {
-    console.log(`Server Backend dang chay tai http://localhost:${PORT}`);
-  });
+  app.use("/demo", express.static(path.join(__dirname, "../frontend")));
+  app.use(errorHandler);
+  return app;
 }
-
+const app = createApp();
+if (require.main === module) {
+  try {
+    getAuthConfig();
+    const port = process.env.PORT || 3000;
+    app.listen(port, () => console.log(`Backend đang chạy tại http://localhost:${port}`));
+  } catch (error) {
+    console.error(error.message);
+    process.exitCode = 1;
+  }
+}
 module.exports = app;
+module.exports.createApp = createApp;

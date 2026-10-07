@@ -18,13 +18,14 @@ DROP TABLE IF EXISTS POIS;
 DROP TABLE IF EXISTS CATEGORIES;
 DROP TABLE IF EXISTS AUDIT_LOGS;
 DROP TABLE IF EXISTS OWNER_REQUESTS;
+DROP TABLE IF EXISTS REFRESH_TOKENS;
 DROP TABLE IF EXISTS USERS;
 DROP TABLE IF EXISTS LANGUAGES;
 
 SET FOREIGN_KEY_CHECKS = 1; -- Bật lại kiểm tra khóa ngoại
 
 
--- 1. Bảng Ngôn ngữ 
+-- 1. Bảng Ngôn ngữ
 CREATE TABLE LANGUAGES (
     code VARCHAR(10) PRIMARY KEY,
     name VARCHAR(50) NOT NULL,
@@ -46,6 +47,19 @@ CREATE TABLE USERS (
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (preferred_language) REFERENCES LANGUAGES(code)
+);
+
+-- Phiên đăng nhập: chỉ lưu hash của refresh token.
+CREATE TABLE REFRESH_TOKENS (
+    token_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    session_id CHAR(36) UNIQUE NOT NULL,
+    user_id INT NOT NULL,
+    token_hash CHAR(64) UNIQUE NOT NULL,
+    expires_at DATETIME(3) NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
+    INDEX idx_refresh_tokens_expiry (expires_at),
+    INDEX idx_refresh_tokens_user (user_id)
 );
 
 -- 3. Bảng Yêu cầu trở thành Chủ quán
@@ -224,8 +238,8 @@ INSERT INTO LANGUAGES (code, name, is_active) VALUES
     ('vi', 'Tiếng Việt', 1),
     ('en', 'English', 1);
 
-INSERT INTO USERS (email, password_hash, full_name, role, preferred_language, status) VALUES
-    ('admin@foodtour.com', '$2b$12$replace_with_real_bcrypt_hash', 'Admin Hệ Thống', 'ADMIN', 'vi', 'ACTIVE');
+-- Tạo admin bằng npm run bootstrap:admin và BOOTSTRAP_ADMIN_PASSWORD.
+-- Không seed mật khẩu mặc định hoặc hash giả không thể đăng nhập.
 
 INSERT INTO CATEGORIES (name, description) VALUES
     ('Món nước', 'Phở, bún, hủ tiếu...'),

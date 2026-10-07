@@ -1,32 +1,28 @@
-const jwt = require("jsonwebtoken");
+const defaultAuthService = require("../services/auth.service");
+const AppError = require("../utils/app-error");
 
-function verifyToken(req, res, next) {
-  const authHeader = req.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Thiếu token xác thực." });
+function createAuthMiddleware(authService = defaultAuthService) {
+  async function verifyToken(req, res, next) {
+    const header = req.headers.authorization;
+    if (typeof header !== "string" || !/^Bearer [^\s]+$/.test(header)) {
+      return next(new AppError(401, "MISSING_ACCESS_TOKEN", "Thiếu token xác thực."));
+    }
+    try { req.user = await authService.authenticate(header.slice(7)); next(); }
+    catch (error) { next(error); }
   }
-
-  const token = authHeader.split(" ")[1];
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.user = decoded;
-    next();
-  } catch (err) {
-    return res
-      .status(401)
-      .json({ error: "Token không hợp lệ hoặc đã hết hạn." });
+  async function requireApprovedOwner(req, res, next) {
+    try { await authService.assertApprovedOwner(req.user); next(); }
+    catch (error) { next(error); }
   }
+  return { verifyToken, requireApprovedOwner };
 }
-
 function requireRole(...allowedRoles) {
   return (req, res, next) => {
-    if (!req.user || !allowedRoles.includes(req.user.role)) {
-      return res
-        .status(403)
-        .json({ error: "Bạn không có quyền thực hiện hành động này." });
+    if (!req.user) return next(new AppError(401, "MISSING_ACCESS_TOKEN", "Thiếu token xác thực."));
+    if (!allowedRoles.includes(req.user.role)) {
+      return next(new AppError(403, "FORBIDDEN", "Bạn không có quyền thực hiện hành động này."));
     }
     next();
   };
 }
-
-module.exports = { verifyToken, requireRole };
+module.exports = { ...createAuthMiddleware(), requireRole, createAuthMiddleware };

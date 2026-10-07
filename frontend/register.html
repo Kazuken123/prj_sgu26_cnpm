@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Đăng ký · Food Tour</title>
+  <style>
+    body{font:16px system-ui,sans-serif;background:#f4f5f7;color:#17212b;margin:0;padding:32px 20px}
+    main{max-width:480px;margin:auto;background:white;padding:28px;border-radius:12px}
+    h1{margin-top:0;font-size:26px}label{display:block;margin-top:16px}
+    input,select,button{box-sizing:border-box;width:100%;font:inherit;padding:11px;margin-top:6px;border-radius:6px;border:1px solid #abb5bf}
+    button{margin-top:22px;background:#174f82;color:white;cursor:pointer}button:disabled{opacity:.6}
+    fieldset{margin-top:18px;border:1px solid #c5cbd1;border-radius:6px;padding:14px}a{color:#174f82}
+    [hidden]{display:none}
+  </style>
+  <script src="auth.js" defer></script>
+</head>
+<body><main>
+  <h1>Tạo tài khoản</h1>
+  <form id="registerForm">
+    <label for="accountType">Loại tài khoản</label>
+    <select id="accountType"><option value="tourist">Khách du lịch</option><option value="owner">Chủ quán</option></select>
+    <label for="fullName">Họ tên</label><input id="fullName" maxlength="100" autocomplete="name">
+    <label for="email">Email</label><input id="email" type="email" required maxlength="255" autocomplete="username">
+    <label for="password">Mật khẩu</label><input id="password" type="password" required minlength="8" autocomplete="new-password">
+    <label for="phoneNumber">Số điện thoại</label><input id="phoneNumber" type="tel" maxlength="20" autocomplete="tel">
+    <fieldset id="ownerFields" hidden><legend>Thông tin quán</legend>
+      <label for="restaurantName">Tên quán</label><input id="restaurantName" maxlength="255">
+      <label for="restaurantAddress">Địa chỉ quán</label><input id="restaurantAddress" maxlength="255" autocomplete="street-address">
+    </fieldset>
+    <button id="submitButton">Đăng ký</button>
+  </form>
+  <p id="message" role="status" aria-live="polite"></p>
+  <p><a href="index.html">Về trang đăng nhập</a></p>
+</main>
+<script>
+  const accountType = document.getElementById("accountType");
+  accountType.addEventListener("change", () => {
+    const owner = accountType.value === "owner";
+    document.getElementById("ownerFields").hidden = !owner;
+    for (const id of ["restaurantName", "restaurantAddress", "phoneNumber"]) document.getElementById(id).required = owner;
+  });
+  document.getElementById("registerForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = document.getElementById("submitButton"), message = document.getElementById("message");
+    const owner = accountType.value === "owner";
+    const body = {};
+    for (const id of ["email", "password", "fullName", "phoneNumber", ...(owner ? ["restaurantName", "restaurantAddress"] : [])]) {
+      const value = document.getElementById(id).value;
+      if (value || id === "password" || id === "email") body[id] = value;
+    }
+    button.disabled = true; message.textContent = "Đang đăng ký…";
+    try {
+      const result = await FoodTourAuth.request(owner ? "/register-owner" : "/register", { body });
+      message.textContent = result.message + " Bạn có thể đăng nhập để xem tài khoản.";
+      document.getElementById("password").value = "";
+    } catch (error) { message.textContent = error.message; }
+    finally { button.disabled = false; }
+  });
+</script>
+</body></html>

@@ -19,11 +19,12 @@ describe("Database Schema SQL File Validation Test Suite", () => {
     );
   });
 
-  it("File init_db.sql khai bao du 14 bang theo dac ta ERD", () => {
+  it("File init_db.sql khai bao du 15 bang (gom phien refresh token)", () => {
     const content = fs.readFileSync(sqlPath, "utf-8");
     const requiredTables = [
       "LANGUAGES",
       "USERS",
+      "REFRESH_TOKENS",
       "OWNER_REQUESTS",
       "AUDIT_LOGS",
       "CATEGORIES",
