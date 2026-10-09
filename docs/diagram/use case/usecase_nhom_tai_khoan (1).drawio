@@ -1,0 +1,73 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Nhóm Tài khoản" id="uc-tk">
+    <mxGraphModel dx="1321" dy="764" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="1150" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="box" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#555555;strokeWidth=2;verticalAlign=top;spacingTop=15;fontFamily=Arial;fontStyle=1;fontSize=23;" value="Hệ thống thuyết minh đa ngôn ngữ&lt;br&gt;Nhóm chức năng Tài khoản" vertex="1">
+          <mxGeometry height="1100" width="1000" x="260" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="UC01" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-01&lt;br&gt;Đăng ký tài khoản&lt;br&gt;khách du lịch" vertex="1">
+          <mxGeometry height="90" width="360" x="320" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="UC031" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-03.1&lt;br&gt;Đăng ký chủ quán" vertex="1">
+          <mxGeometry height="90" width="360" x="320" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="UC02" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-02&lt;br&gt;Đăng nhập" vertex="1">
+          <mxGeometry height="90" width="360" x="320" y="600" as="geometry" />
+        </mxCell>
+        <mxCell id="UC032" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-03.2&lt;br&gt;Xem trạng thái&lt;br&gt;yêu cầu đăng ký chủ quán" vertex="1">
+          <mxGeometry height="100" width="360" x="320" y="880" as="geometry" />
+        </mxCell>
+        <mxCell id="VALID" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="Kiểm tra dữ liệu&lt;br&gt;đăng ký" vertex="1">
+          <mxGeometry height="90" width="340" x="840" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="AUTH" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="Xác thực thông tin&lt;br&gt;đăng nhập" vertex="1">
+          <mxGeometry height="90" width="340" x="840" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="LOCK" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="Khóa tạm thời tài khoản&lt;br&gt;do đăng nhập sai" vertex="1">
+          <mxGeometry height="90" width="340" x="840" y="730" as="geometry" />
+        </mxCell>
+        <mxCell id="Tourist" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=20;" value="Khách du lịch" vertex="1">
+          <mxGeometry height="105" width="60" x="65" y="150" as="geometry" />
+        </mxCell>
+        <mxCell id="Owner" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=20;" value="Chủ quán" vertex="1">
+          <mxGeometry height="105" width="60" x="65" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="Admin" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=20;" value="Quản trị viên" vertex="1">
+          <mxGeometry height="105" width="60" x="65" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="eTourist_UC01" edge="1" parent="1" source="Tourist" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC01" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eTourist_UC02" edge="1" parent="1" source="Tourist" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC02" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eOwner_UC031" edge="1" parent="1" source="Owner" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC031" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eOwner_UC02" edge="1" parent="1" source="Owner" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC02" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eOwner_UC032" edge="1" parent="1" source="Owner" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC032" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eAdmin_UC02" edge="1" parent="1" source="Admin" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC02" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eUC01_VALID" edge="1" parent="1" source="UC01" style="endArrow=open;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="VALID" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eUC031_VALID" edge="1" parent="1" source="UC031" style="endArrow=open;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="VALID" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eUC02_AUTH" edge="1" parent="1" source="UC02" style="endArrow=open;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="AUTH" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eLOCK_UC02" edge="1" parent="1" source="LOCK" style="endArrow=open;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.75;entryDx=0;entryDy=0;dashed=1;" target="UC02" value="«extend»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

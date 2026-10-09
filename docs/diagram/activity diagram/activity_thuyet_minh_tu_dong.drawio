@@ -1,0 +1,150 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Thuyết minh tự động" id="activity-auto">
+    <mxGraphModel dx="1450" dy="1900" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1450" pageHeight="1900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Sơ đồ Activity&lt;br&gt;Thuyết minh tự động theo vị trí" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;fontFamily=Arial;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="300" y="20" width="900" height="70" />
+        </mxCell>
+        <mxCell id="start" value="" style="ellipse;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="545" y="115" width="30" height="30" />
+        </mxCell>
+        <mxCell id="location" value="Ứng dụng nhận cập nhật vị trí&lt;br&gt;khi đã được cấp quyền" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="380" y="190" width="360" height="80" />
+        </mxCell>
+        <mxCell id="distance" value="Xác định khoảng cách&lt;br&gt;đến địa điểm" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="380" y="320" width="360" height="75" />
+        </mxCell>
+        <mxCell id="radius" value="Khoảng cách ≤&lt;br&gt;bán kính kích hoạt?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="440" y="450" width="240" height="120" />
+        </mxCell>
+        <mxCell id="played" value="Đã tự phát trong&lt;br&gt;lượt đến gần này?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="440" y="660" width="240" height="120" />
+        </mxCell>
+        <mxCell id="request" value="Yêu cầu audio của địa điểm&lt;br&gt;theo ngôn ngữ đã chọn" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="380" y="840" width="360" height="75" />
+        </mxCell>
+        <mxCell id="exists" value="Audio đã có sẵn?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="440" y="985" width="240" height="110" />
+        </mxCell>
+        <mxCell id="pending" value="Hiển thị trạng thái&lt;br&gt;đang xử lý" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1000" y="1000" width="300" height="80" />
+        </mxCell>
+        <mxCell id="tts" value="Gọi TTS để tạo audio" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1000" y="1120" width="300" height="75" />
+        </mxCell>
+        <mxCell id="ready" value="Tạo audio&lt;br&gt;thành công?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1040" y="1240" width="220" height="110" />
+        </mxCell>
+        <mxCell id="merge" value="" style="rhombus;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="540" y="1420" width="40" height="40" />
+        </mxCell>
+        <mxCell id="play" value="Cung cấp và phát audio&lt;br&gt;không yêu cầu bấm thêm" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="380" y="1500" width="360" height="80" />
+        </mxCell>
+        <mxCell id="mark" value="Ghi nhận địa điểm đã tự phát&lt;br&gt;trong lượt đến gần hiện tại" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="380" y="1630" width="360" height="80" />
+        </mxCell>
+        <mxCell id="skip" value="Không tự động phát audio&lt;br&gt;cho địa điểm" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="55" y="1640" width="260" height="80" />
+        </mxCell>
+        <mxCell id="error" value="Thông báo lỗi phù hợp;&lt;br&gt;ứng dụng tiếp tục phản hồi" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1000" y="1510" width="300" height="80" />
+        </mxCell>
+        <mxCell id="end" value="" style="ellipse;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="540" y="1820" width="40" height="40" />
+        </mxCell>
+        <mxCell id="e_start_location" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="start" target="location">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_location_distance" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="location" target="distance">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_distance_radius" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="distance" target="radius">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_radius_played" value="Có" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="radius" target="played">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_radius_skip" value="Không" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="radius" target="skip">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="155" y="510" />
+              <mxPoint x="155" y="1600" />
+              <mxPoint x="185" y="1600" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_played_request" value="Không" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="played" target="request">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_played_skip" value="Có" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="played" target="skip">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="245" y="720" />
+              <mxPoint x="245" y="1610" />
+              <mxPoint x="185" y="1610" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_request_exists" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="request" target="exists">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_exists_merge" value="Có" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="exists" target="merge">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_exists_pending" value="Không" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="exists" target="pending">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_pending_tts" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pending" target="tts">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_tts_ready" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="tts" target="ready">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_ready_merge" value="Có" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ready" target="merge">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1150" y="1440" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_ready_error" value="Không" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ready" target="error">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1370" y="1295" />
+              <mxPoint x="1370" y="1550" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_merge_play" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="merge" target="play">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_play_mark" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="play" target="mark">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_mark_end" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="mark" target="end">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_skip_end" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="skip" target="end">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="185" y="1780" />
+              <mxPoint x="560" y="1780" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_error_end" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="error" target="end">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1150" y="1795" />
+              <mxPoint x="560" y="1795" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,118 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Khám phá và Thuyết minh" id="uc-discovery">
+    <mxGraphModel dx="1609" dy="931" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1450" pageHeight="1900" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="box" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#555555;strokeWidth=2;verticalAlign=top;spacingTop=15;fontFamily=Arial;fontStyle=1;fontSize=23;" value="Hệ thống thuyết minh đa ngôn ngữ&lt;br&gt;Nhóm Khám phá và Thuyết minh" vertex="1">
+          <mxGeometry height="1840" width="1100" x="280" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="Tourist" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=19;" value="Khách du lịch" vertex="1">
+          <mxGeometry height="110" width="60" x="60" y="780" as="geometry" />
+        </mxCell>
+        <mxCell id="UC04" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-04&lt;br&gt;Xem địa điểm gần&lt;br&gt;vị trí hiện tại" vertex="1">
+          <mxGeometry height="95" width="390" x="340" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="UC05" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-05&lt;br&gt;Chọn ngôn ngữ" vertex="1">
+          <mxGeometry height="95" width="390" x="340" y="390" as="geometry" />
+        </mxCell>
+        <mxCell id="UC06" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-06&lt;br&gt;Nghe thuyết minh tự động&lt;br&gt;theo vị trí" vertex="1">
+          <mxGeometry height="95" width="390" x="340" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="UC07" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-07&lt;br&gt;Xem thông tin chi tiết&lt;br&gt;địa điểm" vertex="1">
+          <mxGeometry height="95" width="390" x="340" y="1030" as="geometry" />
+        </mxCell>
+        <mxCell id="UC08" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-08&lt;br&gt;Tìm kiếm địa điểm" vertex="1">
+          <mxGeometry height="95" width="390" x="340" y="1350" as="geometry" />
+        </mxCell>
+        <mxCell id="UC09" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-09&lt;br&gt;Gửi đánh giá" vertex="1">
+          <mxGeometry height="95" width="390" x="340" y="1570" as="geometry" />
+        </mxCell>
+        <mxCell id="DIST" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="Lấy vị trí và&lt;br&gt;tính khoảng cách" vertex="1">
+          <mxGeometry height="95" width="350" x="930" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="AUDIO" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="Lấy audio thuyết minh&lt;br&gt;theo ngôn ngữ đã chọn" vertex="1">
+          <mxGeometry height="95" width="350" x="950" y="470" as="geometry" />
+        </mxCell>
+        <mxCell id="TTS" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="Tạo audio bằng TTS" vertex="1">
+          <mxGeometry height="85" width="350" x="820" y="805" as="geometry" />
+        </mxCell>
+        <mxCell id="REPLAY" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-07.1&lt;br&gt;Phát lại thuyết minh" vertex="1">
+          <mxGeometry height="85" width="350" x="940" y="945" as="geometry" />
+        </mxCell>
+        <mxCell id="FALLBACK" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="Hiển thị nội dung gốc&lt;br&gt;kèm ghi chú thiếu bản dịch" vertex="1">
+          <mxGeometry height="95" width="350" x="910" y="1170" as="geometry" />
+        </mxCell>
+        <mxCell id="EDIT" parent="1" style="ellipse;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="UC-09.1&lt;br&gt;Chỉnh sửa đánh giá đã có" vertex="1">
+          <mxGeometry height="95" width="350" x="790" y="1650" as="geometry" />
+        </mxCell>
+        <mxCell id="eTourist_UC04" edge="1" parent="1" source="Tourist" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC04" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="210" y="835" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eTourist_UC05" edge="1" parent="1" source="Tourist" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC05" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="210" y="835" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eTourist_UC06" edge="1" parent="1" source="Tourist" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC06" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="210" y="835" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eTourist_UC07" edge="1" parent="1" source="Tourist" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC07" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="210" y="835" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eTourist_UC08" edge="1" parent="1" source="Tourist" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC08" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="210" y="835" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eTourist_UC09" edge="1" parent="1" source="Tourist" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="UC09" value="">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="210" y="835" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="eTourist_EDIT" edge="1" parent="1" source="Tourist" style="endArrow=none;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.235;entryY=0.026;entryDx=0;entryDy=0;entryPerimeter=0;" target="EDIT" value="">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eUC04_DIST" edge="1" parent="1" source="UC04" style="endArrow=open;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="DIST" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eUC06_DIST" edge="1" parent="1" source="UC06" style="endArrow=open;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="DIST" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eUC06_AUDIO" edge="1" parent="1" source="UC06" style="endArrow=open;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="AUDIO" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eTTS_AUDIO" edge="1" parent="1" source="TTS" style="endArrow=open;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="AUDIO" value="«extend»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eREPLAY_UC07" edge="1" parent="1" source="REPLAY" style="endArrow=open;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="UC07" value="«extend»&lt;br&gt;[khách chọn phát lại]">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eREPLAY_AUDIO" edge="1" parent="1" source="REPLAY" style="endArrow=open;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="AUDIO" value="«include»">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="eFALLBACK_UC07" edge="1" parent="1" source="FALLBACK" style="endArrow=open;endFill=0;startArrow=none;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=16;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;dashed=1;" target="UC07" value="«extend»&lt;br&gt;[chưa có bản dịch]">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

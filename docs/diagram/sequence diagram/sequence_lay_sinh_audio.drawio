@@ -1,0 +1,359 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram id="audio" name="Sequence lấy hoặc sinh audio">
+    <mxGraphModel dx="1600" dy="1950" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1600" pageHeight="2080" background="#FFFFFF">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="2" value="SEQUENCE LẤY HOẶC SINH AUDIO — US-06, US-07" style="text;html=0;align=center;verticalAlign=middle;whiteSpace=wrap;fontColor=#000000;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="0" y="12" width="1600" height="40" />
+        </mxCell>
+        <mxCell id="3" value="Giao diện / Audio Player" style="rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontSize=16;whiteSpace=wrap;html=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="5" y="75" width="270" height="65" />
+        </mxCell>
+        <mxCell id="4" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="140" y="140" />
+            <mxPoint as="targetPoint" x="140" y="2050" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="5" value="Audio Router" style="rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontSize=16;whiteSpace=wrap;html=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="335" y="75" width="270" height="65" />
+        </mxCell>
+        <mxCell id="6" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="470" y="140" />
+            <mxPoint as="targetPoint" x="470" y="2050" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="7" value="Service&#10;Audio · POI · Translation" style="rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontSize=16;whiteSpace=wrap;html=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="665" y="75" width="270" height="65" />
+        </mxCell>
+        <mxCell id="8" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="140" />
+            <mxPoint as="targetPoint" x="800" y="2050" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="9" value="Store&#10;POI · Translation · Audio" style="rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontSize=16;whiteSpace=wrap;html=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="995" y="75" width="270" height="65" />
+        </mxCell>
+        <mxCell id="10" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1130" y="140" />
+            <mxPoint as="targetPoint" x="1130" y="2050" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="11" value="Dịch vụ ngoài&#10;TTS · Audio Storage" style="rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontSize=16;whiteSpace=wrap;html=0;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1325" y="75" width="270" height="65" />
+        </mxCell>
+        <mxCell id="12" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1460" y="140" />
+            <mxPoint as="targetPoint" x="1460" y="2050" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="13" value="Yêu cầu audio (POI, ngôn ngữ)" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="140" y="200" />
+            <mxPoint as="targetPoint" x="470" y="200" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="14" value="Hiển thị trạng thái đang xử lý" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="140" y="250" />
+            <mxPoint as="targetPoint" x="240" y="250" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="15" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="240" y="250" />
+            <mxPoint as="targetPoint" x="240" y="278" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="16" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="240" y="278" />
+            <mxPoint as="targetPoint" x="140" y="278" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="17" value="Chuyển yêu cầu audio" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="470" y="310" />
+            <mxPoint as="targetPoint" x="800" y="310" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="18" value="Kiểm tra dữ liệu yêu cầu" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="355" />
+            <mxPoint as="targetPoint" x="900" y="355" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="19" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="900" y="355" />
+            <mxPoint as="targetPoint" x="900" y="383" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="20" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="900" y="383" />
+            <mxPoint as="targetPoint" x="800" y="383" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="21" value="Lấy POI công khai và audio phù hợp" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="420" />
+            <mxPoint as="targetPoint" x="1130" y="420" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="22" value="Truy vấn MySQL" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1130" y="470" />
+            <mxPoint as="targetPoint" x="1230" y="470" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="23" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1230" y="470" />
+            <mxPoint as="targetPoint" x="1230" y="498" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="24" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1230" y="498" />
+            <mxPoint as="targetPoint" x="1130" y="498" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="25" value="Thông tin POI và audio (nếu có)" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1130" y="525" />
+            <mxPoint as="targetPoint" x="800" y="525" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="26" value="" style="rounded=0;fillColor=none;strokeColor=#000000;strokeWidth=1.2;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="565" width="1520" height="120" />
+        </mxCell>
+        <mxCell id="27" value="break" style="rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="565" width="70" height="28" />
+        </mxCell>
+        <mxCell id="28" value="[POI không tồn tại hoặc chưa được công khai]" style="text;html=0;align=center;verticalAlign=middle;whiteSpace=wrap;fontColor=#000000;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="125" y="567" width="1420" height="28" />
+        </mxCell>
+        <mxCell id="29" value="Lỗi yêu cầu / địa điểm" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="620" />
+            <mxPoint as="targetPoint" x="470" y="620" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="30" value="Hiển thị thông báo; dừng chờ" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="470" y="660" />
+            <mxPoint as="targetPoint" x="140" y="660" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="31" value="" style="rounded=0;fillColor=none;strokeColor=#000000;strokeWidth=1.2;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="735" width="1520" height="1215" />
+        </mxCell>
+        <mxCell id="32" value="alt" style="rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="40" y="735" width="70" height="28" />
+        </mxCell>
+        <mxCell id="33" value="[Audio phù hợp đã sẵn sàng]" style="text;html=0;align=center;verticalAlign=middle;whiteSpace=wrap;fontColor=#000000;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="125" y="737" width="1420" height="28" />
+        </mxCell>
+        <mxCell id="34" value="Thông tin audio có sẵn" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="795" />
+            <mxPoint as="targetPoint" x="470" y="795" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="35" value="Đường dẫn và thông tin audio" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="470" y="835" />
+            <mxPoint as="targetPoint" x="140" y="835" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="36" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="40" y="890" />
+            <mxPoint as="targetPoint" x="1560" y="890" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="37" value="[Chưa có audio phù hợp]" style="text;html=0;align=center;verticalAlign=middle;whiteSpace=wrap;fontColor=#000000;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="125" y="895" width="1420" height="27" />
+        </mxCell>
+        <mxCell id="38" value="Lấy kịch bản theo ngôn ngữ" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="955" />
+            <mxPoint as="targetPoint" x="1130" y="955" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="39" value="Văn bản thuyết minh" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1130" y="995" />
+            <mxPoint as="targetPoint" x="800" y="995" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="40" value="" style="rounded=0;fillColor=none;strokeColor=#000000;strokeWidth=1.2;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="1035" width="1460" height="115" />
+        </mxCell>
+        <mxCell id="41" value="break" style="rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="1035" width="70" height="28" />
+        </mxCell>
+        <mxCell id="42" value="[Chưa có văn bản phù hợp để tạo audio]" style="text;html=0;align=center;verticalAlign=middle;whiteSpace=wrap;fontColor=#000000;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="155" y="1037" width="1360" height="28" />
+        </mxCell>
+        <mxCell id="43" value="Không đủ nội dung để sinh audio" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="1090" />
+            <mxPoint as="targetPoint" x="470" y="1090" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="44" value="Hiển thị thông báo; dừng chờ" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="470" y="1130" />
+            <mxPoint as="targetPoint" x="140" y="1130" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="45" value="TTS: tạo giọng đọc từ văn bản và ngôn ngữ" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="1205" />
+            <mxPoint as="targetPoint" x="1460" y="1205" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="46" value="" style="rounded=0;fillColor=none;strokeColor=#000000;strokeWidth=1.2;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="1250" width="1460" height="130" />
+        </mxCell>
+        <mxCell id="47" value="break" style="rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="1250" width="70" height="28" />
+        </mxCell>
+        <mxCell id="48" value="[TTS thất bại]" style="text;html=0;align=center;verticalAlign=middle;whiteSpace=wrap;fontColor=#000000;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="155" y="1252" width="1360" height="28" />
+        </mxCell>
+        <mxCell id="49" value="Lỗi tạo audio" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1460" y="1310" />
+            <mxPoint as="targetPoint" x="800" y="1310" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="50" value="Lỗi dịch vụ TTS" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="1340" />
+            <mxPoint as="targetPoint" x="470" y="1340" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="51" value="Thông báo lỗi; dừng chờ" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="470" y="1370" />
+            <mxPoint as="targetPoint" x="140" y="1370" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="52" value="Tập tin audio đã tạo" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1460" y="1420" />
+            <mxPoint as="targetPoint" x="800" y="1420" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="53" value="Audio Storage: lưu tập tin" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="1470" />
+            <mxPoint as="targetPoint" x="1460" y="1470" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="54" value="" style="rounded=0;fillColor=none;strokeColor=#000000;strokeWidth=1.2;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="1510" width="1460" height="130" />
+        </mxCell>
+        <mxCell id="55" value="break" style="rounded=0;fillColor=#FFFFFF;strokeColor=#000000;fontSize=16;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="70" y="1510" width="70" height="28" />
+        </mxCell>
+        <mxCell id="56" value="[Lưu tập tin thất bại]" style="text;html=0;align=center;verticalAlign=middle;whiteSpace=wrap;fontColor=#000000;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="155" y="1512" width="1360" height="28" />
+        </mxCell>
+        <mxCell id="57" value="Lỗi lưu trữ audio" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1460" y="1570" />
+            <mxPoint as="targetPoint" x="800" y="1570" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="58" value="Lỗi lưu trữ" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="1600" />
+            <mxPoint as="targetPoint" x="470" y="1600" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="59" value="Thông báo lỗi; dừng chờ" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="470" y="1630" />
+            <mxPoint as="targetPoint" x="140" y="1630" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="60" value="Đường dẫn tập tin" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1460" y="1685" />
+            <mxPoint as="targetPoint" x="800" y="1685" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="61" value="Lưu thông tin audio để tái sử dụng" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="1735" />
+            <mxPoint as="targetPoint" x="1130" y="1735" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="62" value="Ghi dữ liệu vào MySQL" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1130" y="1780" />
+            <mxPoint as="targetPoint" x="1230" y="1780" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="63" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1230" y="1780" />
+            <mxPoint as="targetPoint" x="1230" y="1808" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="64" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1230" y="1808" />
+            <mxPoint as="targetPoint" x="1130" y="1808" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="65" value="Đã lưu thông tin audio" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1130" y="1830" />
+            <mxPoint as="targetPoint" x="800" y="1830" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="66" value="Thông tin audio mới" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="800" y="1860" />
+            <mxPoint as="targetPoint" x="470" y="1860" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="67" value="Đường dẫn và thông tin audio" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=open;endFill=0;dashed=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="470" y="1890" />
+            <mxPoint as="targetPoint" x="140" y="1890" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="68" value="Kết thúc chờ; phát audio" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="140" y="2010" />
+            <mxPoint as="targetPoint" x="240" y="2010" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="69" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=none;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="240" y="2010" />
+            <mxPoint as="targetPoint" x="240" y="2038" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="70" value="" edge="1" parent="1" style="html=0;rounded=0;strokeColor=#000000;strokeWidth=1.2;fontColor=#000000;fontSize=15;labelBackgroundColor=#FFFFFF;endArrow=block;endFill=1;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="240" y="2038" />
+            <mxPoint as="targetPoint" x="140" y="2038" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

@@ -1,0 +1,136 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Component Back-end ba lớp" id="components">
+    <mxGraphModel dx="2943" dy="1703" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="2110" pageHeight="1540" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;fontFamily=Arial;fontSize=26;fontStyle=1;" value="Sơ đồ Component — Hệ thống thuyết minh đa ngôn ngữ" vertex="1">
+          <mxGeometry height="60" width="1850" x="100" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="client" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Ứng dụng khách&lt;br&gt;Giao diện · GPS · Audio Player" vertex="1">
+          <mxGeometry height="95" width="360" x="620" y="105" as="geometry" />
+        </mxCell>
+        <mxCell id="backend" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#555555;strokeWidth=2;verticalAlign=top;spacingTop=10;fontFamily=Arial;fontSize=20;fontStyle=1;align=left;spacingLeft=20;" value="BACK-END — NODE.JS / EXPRESS" vertex="1">
+          <mxGeometry height="1060" width="1480" x="60" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="routers" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#555555;strokeWidth=2;verticalAlign=top;spacingTop=10;fontFamily=Arial;fontSize=20;fontStyle=1;" value="ROUTER — PRESENTATION LAYER" vertex="1">
+          <mxGeometry height="240" width="1400" x="100" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="authr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Auth Router" vertex="1">
+          <mxGeometry height="70" width="270" x="140" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="poir" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;POI Router" vertex="1">
+          <mxGeometry height="70" width="270" x="470" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="locationr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Location Router" vertex="1">
+          <mxGeometry height="70" width="270" x="800" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="audior" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Audio Router" vertex="1">
+          <mxGeometry height="70" width="270" x="1130" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="reviewr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Review Router" vertex="1">
+          <mxGeometry height="70" width="270" x="140" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="ownerr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Owner Router" vertex="1">
+          <mxGeometry height="70" width="270" x="470" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="adminr" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Admin Router" vertex="1">
+          <mxGeometry height="70" width="270" x="800" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="services" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#555555;strokeWidth=2;verticalAlign=top;spacingTop=10;fontFamily=Arial;fontSize=20;fontStyle=1;" value="SERVICE — BUSINESS LOGIC LAYER" vertex="1">
+          <mxGeometry height="290" width="1400" x="100" y="610" as="geometry" />
+        </mxCell>
+        <mxCell id="auths" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Authentication Service" vertex="1">
+          <mxGeometry height="75" width="240" x="140" y="675" as="geometry" />
+        </mxCell>
+        <mxCell id="permissions" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Permission Service" vertex="1">
+          <mxGeometry height="75" width="240" x="410" y="675" as="geometry" />
+        </mxCell>
+        <mxCell id="pois" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;POI Service" vertex="1">
+          <mxGeometry height="75" width="240" x="680" y="675" as="geometry" />
+        </mxCell>
+        <mxCell id="locations" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Location Service" vertex="1">
+          <mxGeometry height="75" width="240" x="950" y="675" as="geometry" />
+        </mxCell>
+        <mxCell id="translations" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Translation Service" vertex="1">
+          <mxGeometry height="75" width="240" x="1220" y="675" as="geometry" />
+        </mxCell>
+        <mxCell id="owners" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Owner Service" vertex="1">
+          <mxGeometry height="75" width="240" x="140" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="admins" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Admin Service" vertex="1">
+          <mxGeometry height="75" width="240" x="410" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="reviews" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Review Service" vertex="1">
+          <mxGeometry height="75" width="240" x="680" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="audits" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Audit Log Service" vertex="1">
+          <mxGeometry height="75" width="240" x="950" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="audios" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Audio Service" vertex="1">
+          <mxGeometry height="75" width="240" x="1220" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="stores" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=#555555;strokeWidth=2;verticalAlign=top;spacingTop=10;fontFamily=Arial;fontSize=20;fontStyle=1;" value="STORE — DATA ACCESS LAYER" vertex="1">
+          <mxGeometry height="250" width="1400" x="100" y="960" as="geometry" />
+        </mxCell>
+        <mxCell id="userstore" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;User Store" vertex="1">
+          <mxGeometry height="70" width="350" x="170" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="poistore" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;POI Store" vertex="1">
+          <mxGeometry height="70" width="350" x="610" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="reviewstore" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Review Store" vertex="1">
+          <mxGeometry height="70" width="350" x="1050" y="1020" as="geometry" />
+        </mxCell>
+        <mxCell id="audiostore" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Audio Store" vertex="1">
+          <mxGeometry height="70" width="350" x="170" y="1115" as="geometry" />
+        </mxCell>
+        <mxCell id="translationstore" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Translation Store" vertex="1">
+          <mxGeometry height="70" width="350" x="610" y="1115" as="geometry" />
+        </mxCell>
+        <mxCell id="auditstore" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«component»&lt;br&gt;Audit Log Store" vertex="1">
+          <mxGeometry height="70" width="350" x="1050" y="1115" as="geometry" />
+        </mxCell>
+        <mxCell id="database" parent="1" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=20;" value="MySQL&lt;br&gt;Cơ sở dữ liệu hệ thống" vertex="1">
+          <mxGeometry height="95" width="350" x="625" y="1390" as="geometry" />
+        </mxCell>
+        <mxCell id="translationapi" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«external component»&lt;br&gt;Dịch vụ dịch máy" vertex="1">
+          <mxGeometry height="90" width="350" x="1690" y="667" as="geometry" />
+        </mxCell>
+        <mxCell id="ttsapi" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«external component»&lt;br&gt;Dịch vụ TTS" vertex="1">
+          <mxGeometry height="90" width="350" x="1690" y="787" as="geometry" />
+        </mxCell>
+        <mxCell id="storage" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" value="«external component»&lt;br&gt;Kho lưu trữ audio" vertex="1">
+          <mxGeometry height="90" width="350" x="1690" y="1080" as="geometry" />
+        </mxCell>
+        <mxCell id="e_client_routers" edge="1" parent="1" source="client" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="routers" value="API">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_routers_services" edge="1" parent="1" source="routers" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="services" value="Gọi xử lý nghiệp vụ">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_services_stores" edge="1" parent="1" source="services" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="stores" value="Yêu cầu truy cập dữ liệu">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_stores_database" edge="1" parent="1" source="stores" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" target="database" value="Truy vấn">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_translations_translationapi" edge="1" parent="1" source="translations" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="translationapi" value="API dịch">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_audios_ttsapi" edge="1" parent="1" source="audios" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" target="ttsapi" value="API TTS">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_audios_storage" edge="1" parent="1" source="audios" style="endArrow=open;endFill=0;dashed=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" target="storage" value="Lưu / lấy tệp">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1340" y="930" />
+              <mxPoint x="1600" y="930" />
+              <mxPoint x="1600" y="1125" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

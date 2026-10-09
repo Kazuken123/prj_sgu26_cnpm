@@ -1,0 +1,145 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram name="Gửi và kiểm duyệt nội dung" id="activity-auto">
+    <mxGraphModel dx="1450" dy="2080" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1500" pageHeight="2080" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" value="Sơ đồ Activity&lt;br&gt;Gửi và kiểm duyệt nội dung địa điểm" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;fontFamily=Arial;fontSize=24;fontStyle=1;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="250" y="20" width="1100" height="70" />
+        </mxCell>
+        <mxCell id="start" value="" style="ellipse;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="645" y="115" width="30" height="30" />
+        </mxCell>
+        <mxCell id="submit" value="Chủ quán nhập và gửi nội dung&lt;br&gt;tạo mới hoặc chỉnh sửa" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="480" y="190" width="360" height="85" />
+        </mxCell>
+        <mxCell id="ownerright" value="Đúng quyền&lt;br&gt;quản lý quán?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="540" y="335" width="240" height="115" />
+        </mxCell>
+        <mxCell id="pending" value="Ghi nhận nội dung chờ duyệt;&lt;br&gt;xác định chủ quán sở hữu" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="480" y="500" width="360" height="85" />
+        </mxCell>
+        <mxCell id="adminselect" value="Admin chọn nội dung&lt;br&gt;đang chờ xử lý" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="480" y="645" width="360" height="80" />
+        </mxCell>
+        <mxCell id="adminright" value="Có quyền Admin?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="540" y="775" width="240" height="105" />
+        </mxCell>
+        <mxCell id="deny" value="Từ chối truy cập;&lt;br&gt;không trả dữ liệu được bảo vệ" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="65" y="750" width="285" height="80" />
+        </mxCell>
+        <mxCell id="denyend" value="" style="ellipse;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="190" y="925" width="40" height="40" />
+        </mxCell>
+        <mxCell id="show" value="Cung cấp nội dung&lt;br&gt;địa điểm cần kiểm duyệt" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="480" y="940" width="360" height="80" />
+        </mxCell>
+        <mxCell id="modified" value="Nội dung&lt;br&gt;đã chỉnh sửa?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="540" y="1080" width="240" height="110" />
+        </mxCell>
+        <mxCell id="compare" value="Admin xem và so sánh&lt;br&gt;nội dung cũ với nội dung mới" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1060" y="1085" width="340" height="90" />
+        </mxCell>
+        <mxCell id="merge" value="" style="rhombus;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="640" y="1260" width="40" height="40" />
+        </mxCell>
+        <mxCell id="approve" value="Quyết định&lt;br&gt;kiểm duyệt?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=16;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="540" y="1335" width="240" height="115" />
+        </mxCell>
+        <mxCell id="publish" value="Chuyển nội dung sang đã duyệt;&lt;br&gt;công khai cho khách du lịch" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="480" y="1530" width="360" height="85" />
+        </mxCell>
+        <mxCell id="reject" value="Ghi nhận nội dung bị từ chối;&lt;br&gt;nội dung gửi duyệt không công khai" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="1060" y="1530" width="340" height="85" />
+        </mxCell>
+        <mxCell id="resultmerge" value="" style="rhombus;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="640" y="1680" width="40" height="40" />
+        </mxCell>
+        <mxCell id="ownerstatus" value="Chủ quán xem trạng thái;&lt;br&gt;xem lý do từ chối nếu có" style="rounded=1;arcSize=15;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=2;fontFamily=Arial;fontSize=18;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="480" y="1780" width="360" height="85" />
+        </mxCell>
+        <mxCell id="end" value="" style="ellipse;shape=endState;fillColor=#000000;strokeColor=#000000;" vertex="1" parent="1">
+          <mxGeometry as="geometry" x="640" y="1950" width="40" height="40" />
+        </mxCell>
+        <mxCell id="e_start_submit" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="start" target="submit">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_submit_ownerright" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="submit" target="ownerright">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_ownerright_pending" value="Có" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ownerright" target="pending">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_ownerright_deny" value="Không" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="ownerright" target="deny">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="385" y="392.5" />
+              <mxPoint x="385" y="790" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_pending_adminselect" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="pending" target="adminselect">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_adminselect_adminright" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="adminselect" target="adminright">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_adminright_show" value="Có" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="adminright" target="show">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_adminright_deny" value="Không" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="adminright" target="deny">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_deny_denyend" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="deny" target="denyend">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_show_modified" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="show" target="modified">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_modified_merge" value="Không" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="modified" target="merge">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_modified_compare" value="Có" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="modified" target="compare">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_compare_merge" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="compare" target="merge">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1230" y="1280" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_merge_approve" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="merge" target="approve">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_approve_publish" value="Phê duyệt" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="approve" target="publish">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_approve_reject" value="Từ chối" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="approve" target="reject">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1230" y="1392.5" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_publish_resultmerge" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="publish" target="resultmerge">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_reject_resultmerge" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="1" source="reject" target="resultmerge">
+          <mxGeometry as="geometry" relative="1">
+            <Array as="points">
+              <mxPoint x="1230" y="1700" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="e_resultmerge_ownerstatus" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="resultmerge" target="ownerstatus">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+        <mxCell id="e_ownerstatus_end" value="" style="endArrow=block;endFill=1;html=1;rounded=0;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=17;labelBackgroundColor=#FFFFFF;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="ownerstatus" target="end">
+          <mxGeometry as="geometry" relative="1" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
