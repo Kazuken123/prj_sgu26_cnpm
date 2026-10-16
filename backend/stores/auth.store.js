@@ -1,6 +1,6 @@
 const pool = require("../config/database");
 const UserStore = require("./user.store");
-const OwnerRequestStore = require("./owner_request.store");
+const AuditLogStore = require("./audit_log.store");
 const RefreshTokenStore = require("./refresh_token.store");
 
 // Transaction details stay in the data-access layer. Services receive operations, not a SQL connection.
@@ -8,7 +8,7 @@ class AuthStore {
   constructor(db = pool) {
     this.db = db;
     this.users = new UserStore(db);
-    this.requests = new OwnerRequestStore(db);
+    this.auditLogs = new AuditLogStore(db);
     this.tokens = new RefreshTokenStore(db);
   }
   async transaction(work) {
@@ -31,10 +31,15 @@ class AuthStore {
       }
     }
   }
-  async register(user, ownerRequest = null) {
+  async register(user) {
+    return this.transaction(connection => this.users.createUser(user, connection));
+  }
+  async createStaff(user, actorId, authorize, audit) {
     return this.transaction(async (connection) => {
+      const actor = await this.users.getUserById(actorId, connection, true);
+      authorize(actor);
       const userId = await this.users.createUser(user, connection);
-      if (ownerRequest) await this.requests.createRequest(userId, ownerRequest, connection);
+      await this.auditLogs.create({ ...audit, userId: actorId, resourceId: String(userId) }, connection);
       return userId;
     });
   }

@@ -2,7 +2,7 @@
 <html lang="vi">
 <head>
   <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Đăng nhập · Food Tour</title>
+  <title>Đăng nhập nội bộ · Chùa Linh Ứng</title>
   <style>
     body{font:16px system-ui,sans-serif;background:#f4f5f7;color:#17212b;margin:0;padding:40px 20px}
     main{max-width:420px;margin:auto;background:white;padding:28px;border-radius:12px}
@@ -15,14 +15,14 @@
 </head>
 <body>
 <main>
-  <h1>Đăng nhập</h1><p>Hệ thống du lịch ẩm thực</p>
+  <h1>Đăng nhập nội bộ</h1><p>Hệ thống thuyết minh Chùa Linh Ứng</p>
   <form id="loginForm">
     <label for="email">Email</label><input type="email" id="email" autocomplete="username" required maxlength="255">
     <label for="password">Mật khẩu</label><input type="password" id="password" autocomplete="current-password" required minlength="8">
     <button id="submitButton">Đăng nhập</button>
   </form>
   <p id="message" role="status" aria-live="polite"></p>
-  <p>Chưa có tài khoản? <a href="register.html">Đăng ký</a></p>
+  <p>Dành cho nhân viên và quản trị viên. Liên hệ quản trị viên để được cấp tài khoản.</p>
 </main>
 <script>
   document.getElementById("loginForm").addEventListener("submit", async event => {

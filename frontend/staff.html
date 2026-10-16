@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tạo nhân viên · Chùa Linh Ứng</title>
+  <style>
+    body{font:16px system-ui,sans-serif;background:#f4f5f7;color:#17212b;margin:0;padding:32px 20px}
+    main{max-width:480px;margin:auto;background:white;padding:28px;border-radius:12px}
+    h1{margin-top:0;font-size:26px}label{display:block;margin-top:16px}
+    input,button{box-sizing:border-box;width:100%;font:inherit;padding:11px;margin-top:6px;border-radius:6px;border:1px solid #abb5bf}
+    button{margin-top:22px;background:#174f82;color:white;cursor:pointer}button:disabled{opacity:.6}
+    a{color:#174f82}[hidden]{display:none}#message{line-height:1.5}
+  </style>
+  <script src="auth.js" defer></script>
+</head>
+<body><main>
+  <h1>Tạo tài khoản nhân viên</h1>
+  <p>Tài khoản mới có quyền nhân viên và có thể đăng nhập sau khi được tạo.</p>
+  <form id="staffForm" hidden>
+    <label for="fullName">Họ tên</label><input id="fullName" maxlength="100" autocomplete="name">
+    <label for="email">Email</label><input id="email" type="email" required maxlength="255" autocomplete="off">
+    <label for="password">Mật khẩu ban đầu</label><input id="password" type="password" required minlength="8" autocomplete="new-password">
+    <label for="phoneNumber">Số điện thoại</label><input id="phoneNumber" type="tel" maxlength="20" autocomplete="tel">
+    <button id="submitButton">Tạo nhân viên</button>
+  </form>
+  <p id="message" role="status" aria-live="polite">Đang kiểm tra quyền truy cập…</p>
+  <p><a href="account.html">Về tài khoản</a></p>
+</main>
+<script>
+  window.addEventListener("DOMContentLoaded", async () => {
+    if (!FoodTourAuth.hasSession()) { window.location.replace("index.html"); return; }
+    try {
+      const { data } = await FoodTourAuth.request("/me", { authenticated: true });
+      if (data.role !== "ADMIN") {
+        document.getElementById("message").textContent = "Chỉ quản trị viên được tạo tài khoản nhân viên."; return;
+      }
+      document.getElementById("staffForm").hidden = false;
+      document.getElementById("message").textContent = "";
+    } catch (error) { document.getElementById("message").textContent = error.message; }
+  });
+  document.getElementById("staffForm").addEventListener("submit", async event => {
+    event.preventDefault();
+    const button = document.getElementById("submitButton"), message = document.getElementById("message");
+    const body = {};
+    for (const id of ["email", "password", "fullName", "phoneNumber"]) {
+      const value = document.getElementById(id).value;
+      if (value || id === "password" || id === "email") body[id] = value;
+    }
+    button.disabled = true; message.textContent = "Đang tạo nhân viên…";
+    try {
+      const result = await FoodTourAuth.createStaff(body);
+      message.textContent = result.message + " Email: " + result.data.email;
+      document.getElementById("staffForm").reset();
+    } catch (error) { message.textContent = error.message; }
+    finally { document.getElementById("password").value = ""; button.disabled = false; }
+  });
+</script>
+</body></html>

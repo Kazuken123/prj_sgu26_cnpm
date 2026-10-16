@@ -127,6 +127,8 @@ jobs:
       DB_USER: food_tour_app
       DB_PASSWORD: ci-disposable-app-password
       JWT_SECRET: ci-disposable-secret-at-least-32-bytes
+      BOOTSTRAP_ADMIN_EMAIL: ci-admin@example.invalid
+      BOOTSTRAP_ADMIN_PASSWORD: ci-disposable-admin-${{ github.run_id }}-Aa1!
     steps:
       - uses: actions/download-artifact@v4
         with:
@@ -135,7 +137,9 @@ jobs:
         run: tar -xzf deploy-bundle-${{ github.sha }}.tar.gz
       - name: Start release containers
         run: docker compose up -d --build --wait --wait-timeout 120
-      - name: Smoke test readiness and the auth lifecycle
+      - name: Bootstrap ADMIN in the disposable release database
+        run: docker compose exec -T -e BOOTSTRAP_ADMIN_EMAIL -e BOOTSTRAP_ADMIN_PASSWORD backend npm run bootstrap:admin
+      - name: Smoke test ADMIN-created STAFF and the auth lifecycle
         run: node backend/scripts/smoke-auth.js
       - name: Container logs on failure
         if: failure()

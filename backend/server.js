@@ -2,6 +2,7 @@ const express = require("express");
 const cors = require("cors");
 require("dotenv").config({ quiet: true });
 const { createAuthRouter } = require("./routers/auth.router");
+const { createAdminRouter } = require("./routers/admin.router");
 const defaultAuthService = require("./services/auth.service");
 const defaultHealthService = require("./services/health.service");
 const errorHandler = require("./middlewares/error.middleware");
@@ -15,7 +16,8 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use(cors({ origin: origins }));
   app.use(express.json({ limit: "32kb" }));
   app.use("/api/auth", createAuthRouter(authService));
-  app.get("/", (req, res) => res.send("API He Thong Du Lich Am Thuc dang hoat dong..."));
+  app.use("/api/admin", createAdminRouter(authService));
+  app.get("/", (req, res) => res.send("API He Thong Thuyet Minh Chua Linh Ung dang hoat dong..."));
   app.get("/health", (req, res) => res.json({ status: "ok", service: "food-tour-api", timestamp: new Date().toISOString() }));
   app.get("/health/ready", async (req, res, next) => {
     try { res.json(await healthService.ready()); } catch (error) { next(error); }

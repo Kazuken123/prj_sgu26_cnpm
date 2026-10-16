@@ -10,11 +10,7 @@ function createAuthMiddleware(authService = defaultAuthService) {
     try { req.user = await authService.authenticate(header.slice(7)); next(); }
     catch (error) { next(error); }
   }
-  async function requireApprovedOwner(req, res, next) {
-    try { await authService.assertApprovedOwner(req.user); next(); }
-    catch (error) { next(error); }
-  }
-  return { verifyToken, requireApprovedOwner };
+  return { verifyToken };
 }
 function requireRole(...allowedRoles) {
   return (req, res, next) => {

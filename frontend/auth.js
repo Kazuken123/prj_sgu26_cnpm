@@ -8,9 +8,9 @@
     sessionStorage.setItem(key, JSON.stringify({ accessToken: data.accessToken, refreshToken: data.refreshToken }));
   }
   function clearSession() { sessionStorage.removeItem(key); }
-  async function request(path, { body, authenticated = false, retry = true } = {}) {
+  async function request(path, { body, authenticated = false, retry = true, admin = false } = {}) {
     const current = session();
-    const response = await fetch("/api/auth" + path, {
+    const response = await fetch((admin ? "/api/admin" : "/api/auth") + path, {
       method: body === undefined ? "GET" : "POST",
       headers: { "Content-Type": "application/json",
         ...(authenticated && current ? { Authorization: "Bearer " + current.accessToken } : {}) },
@@ -21,7 +21,7 @@
         const result = await request("/refresh", { body: { refreshToken: current.refreshToken }, retry: false });
         saveSession(result.data);
       } catch (error) { clearSession(); throw error; }
-      return request(path, { body, authenticated, retry: false });
+      return request(path, { body, authenticated, retry: false, admin });
     }
     if (response.status === 204) return null;
     const result = await response.json();
@@ -40,5 +40,5 @@
     }
     clearSession();
   }
-  window.FoodTourAuth = { request, saveSession, clearSession, logout, hasSession: () => Boolean(session()) };
+  window.FoodTourAuth = { request, createStaff: body => request("/staff", { body, authenticated: true, admin: true }), saveSession, clearSession, logout, hasSession: () => Boolean(session()) };
 })();

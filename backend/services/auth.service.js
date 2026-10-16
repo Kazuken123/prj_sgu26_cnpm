@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const { randomBytes, randomUUID, createHash } = require("node:crypto");
 const UserStore = require("../stores/user.store");
-const OwnerRequestStore = require("../stores/owner_request.store");
 const RefreshTokenStore = require("../stores/refresh_token.store");
 const AuthStore = require("../stores/auth.store");
 const AppError = require("../utils/app-error");
@@ -11,30 +10,35 @@ const { getAuthConfig } = require("../config/auth");
 
 const MAX_FAILED_LOGINS = 5;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
-const ROLES = ["TOURIST", "OWNER", "ADMIN"];
+const ROLES = ["STAFF", "ADMIN"];
 
 class AuthService {
-  constructor({ users = new UserStore(), requests = new OwnerRequestStore(),
+  constructor({ users = new UserStore(),
     tokens = new RefreshTokenStore(), authStore = new AuthStore(),
     passwordHasher = bcrypt, config = getAuthConfig, now = () => Date.now() } = {}) {
-    Object.assign(this, { users, requests, tokens, authStore, passwordHasher, config, now });
+    Object.assign(this, { users, tokens, authStore, passwordHasher, config, now });
   }
-  async register(input) { return this.registerAccount(input, false); }
-  async registerOwner(input) { return this.registerAccount(input, true); }
-
-  async registerAccount(input, owner) {
-    const data = validation.registration(input, owner);
+  assertAdmin(user) {
+    this.assertAccountUsable(user);
+    if (user.role !== "ADMIN") throw new AppError(403, "FORBIDDEN", "Chỉ quản trị viên được tạo tài khoản nhân viên.");
+  }
+  async createStaff(actorId, input, { ipAddress = null } = {}) {
+    if (!Number.isSafeInteger(actorId) || actorId < 1) {
+      throw new AppError(401, "MISSING_ACCESS_TOKEN", "Thiếu tài khoản xác thực.");
+    }
+    this.assertAdmin(await this.users.getUserById(actorId));
+    const data = validation.registration(input);
     if (await this.users.getUserByEmail(data.email)) {
       throw new AppError(409, "EMAIL_EXISTS", "Email đã được sử dụng!");
     }
     const passwordHash = await this.passwordHasher.hash(data.password, 10);
-    const role = owner ? "OWNER" : "TOURIST";
-    const status = owner ? "PENDING" : "ACTIVE";
     try {
-      const userId = await this.authStore.register(
-        { ...data, passwordHash, role, status }, owner ? data : null,
+      const userId = await this.authStore.createStaff(
+        { ...data, passwordHash, role: "STAFF", status: "ACTIVE" }, actorId,
+        actor => this.assertAdmin(actor),
+        { action: "CREATE_STAFF", resourceType: "USERS", details: JSON.stringify({ email: data.email }), ipAddress },
       );
-      return { userId, email: data.email, role, status };
+      return { userId, email: data.email, fullName: data.fullName, role: "STAFF", status: "ACTIVE" };
     } catch (error) {
       if (error.code === "ER_DUP_ENTRY") throw new AppError(409, "EMAIL_EXISTS", "Email đã được sử dụng!");
       throw error;
@@ -43,7 +47,7 @@ class AuthService {
   assertAccountUsable(user) {
     if (!user || !ROLES.includes(user.role)) throw new AppError(401, "INVALID_ACCOUNT", "Tài khoản không hợp lệ.");
     if (user.status === "LOCKED") throw new AppError(403, "ACCOUNT_LOCKED", "Tài khoản đã bị quản trị viên khóa.");
-    if (!["ACTIVE", "PENDING"].includes(user.status) || (user.status === "PENDING" && user.role !== "OWNER")) {
+    if (user.status !== "ACTIVE") {
       throw new AppError(403, "ACCOUNT_INACTIVE", "Tài khoản chưa được kích hoạt.");
     }
     if (user.locked_until && new Date(user.locked_until).getTime() > this.now()) {
@@ -135,18 +139,6 @@ class AuthService {
     this.assertAccountUsable(user);
     // Roles/status come from the current account, never solely from a stale JWT claim.
     return { ...this.publicUser(user), userId: user.user_id };
-  }
-  async getOwnerRequestStatus(userId) {
-    const request = await this.requests.getLatestByUserId(userId);
-    if (!request) throw new AppError(404, "OWNER_REQUEST_NOT_FOUND", "Không tìm thấy yêu cầu đăng ký chủ quán.");
-    return { status: request.status, rejectionReason: request.rejection_reason, restaurantName: request.restaurant_name };
-  }
-  async assertApprovedOwner(user) {
-    if (!user) throw new AppError(401, "MISSING_ACCESS_TOKEN", "Thiếu token xác thực.");
-    const request = user.role === "OWNER" ? await this.requests.getLatestByUserId(user.userId) : null;
-    if (user.role !== "OWNER" || user.status !== "ACTIVE" || request?.status !== "APPROVED") {
-      throw new AppError(403, "OWNER_NOT_APPROVED", "Chủ quán cần được admin phê duyệt trước khi quản lý quán.");
-    }
   }
   async bootstrapAdmin(input) {
     const data = validation.registration(input);

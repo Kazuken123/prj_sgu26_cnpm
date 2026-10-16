@@ -2,106 +2,113 @@ const { describe, it } = require("node:test");
 const assert = require("node:assert/strict");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
-const { createFixture, tourist, owner } = require("./helpers/auth.fixture");
+const { createFixture, staff, admin } = require("./helpers/auth.fixture");
 
 const rejectsCode = (promise, code) => assert.rejects(promise, error => error.code === code);
-describe("US-01–03 service behavior", () => {
+describe("US-F01 internal account service behavior", () => {
   it("normalizes email, hashes password and ignores caller-supplied role/status", async () => {
     const f = createFixture();
-    const result = await f.service.register({ ...tourist, email: " TOURIST@EXAMPLE.COM ", role: "ADMIN", status: "LOCKED" });
-    assert.equal(result.email, tourist.email);
-    assert.equal(result.role, "TOURIST"); assert.equal(result.status, "ACTIVE");
-    assert.notEqual(f.state.users[0].password_hash, tourist.password);
-    assert.equal(await bcrypt.compare(tourist.password, f.state.users[0].password_hash), true);
+    const result = await f.addStaff({ ...staff, email: " STAFF@EXAMPLE.COM ", role: "ADMIN", status: "LOCKED" });
+    assert.equal(result.email, staff.email);
+    assert.equal(result.role, "STAFF"); assert.equal(result.status, "ACTIVE");
+    assert.notEqual(f.state.users.find(u => u.email === staff.email).password_hash, staff.password);
+    assert.equal(await bcrypt.compare(staff.password, f.state.users.find(u => u.email === staff.email).password_hash), true);
   });
   it("rejects missing/invalid fields before creating any user", async () => {
     const f = createFixture();
-    for (const input of [undefined, [], {}, { ...tourist, email: "invalid" }, { ...tourist, password: 123 },
-      { ...tourist, password: "short" }, { ...tourist, password: "á".repeat(37) }]) {
-      await rejectsCode(f.service.register(input), "VALIDATION_ERROR");
+    for (const input of [undefined, [], {}, { ...staff, email: "invalid" }, { ...staff, password: 123 },
+      { ...staff, password: "short" }, { ...staff, password: "á".repeat(37) }]) {
+      await rejectsCode(f.addStaff(input), "VALIDATION_ERROR");
     }
-    assert.equal(f.state.users.length, 0);
+    assert.equal(f.state.users.filter(u => u.role === "STAFF").length, 0);
   });
-  it("requires owner name, address and valid phone", async () => {
+  it("rejects invalid optional phone data", async () => {
     const f = createFixture();
-    for (const field of ["restaurantName", "restaurantAddress", "phoneNumber"]) {
-      await rejectsCode(f.service.registerOwner({ ...owner, [field]: "" }), "VALIDATION_ERROR");
-    }
-    await rejectsCode(f.service.registerOwner({ ...owner, phoneNumber: "not a phone" }), "VALIDATION_ERROR");
-    assert.equal(f.state.users.length, 0);
+    await rejectsCode(f.addStaff({ ...staff, phoneNumber: "not a phone" }), "VALIDATION_ERROR");
   });
   it("rejects duplicate email, including concurrent registration", async () => {
     const f = createFixture();
-    const results = await Promise.allSettled([f.service.register(tourist), f.service.register(tourist)]);
+    const results = await Promise.allSettled([f.addStaff(staff), f.addStaff(staff)]);
     assert.equal(results.filter(r => r.status === "fulfilled").length, 1);
     assert.equal(results.find(r => r.status === "rejected").reason.code, "EMAIL_EXISTS");
-    assert.equal(f.state.users.length, 1);
+    assert.equal(f.state.users.filter(u => u.role === "STAFF").length, 1);
   });
-  it("registers owner as pending with a matching request", async () => {
+  it("only lets an active ADMIN create STAFF and records an audit without secrets", async () => {
     const f = createFixture();
-    const result = await f.service.registerOwner(owner);
-    assert.equal(result.status, "PENDING"); assert.equal(result.role, "OWNER");
-    assert.equal(f.state.requests[0].user_id, result.userId);
-    assert.equal((await f.service.getOwnerRequestStatus(result.userId)).status, "PENDING");
+    await rejectsCode(f.service.createStaff(undefined, staff), "MISSING_ACCESS_TOKEN");
+    const created = await f.addStaff(staff);
+    await rejectsCode(f.service.createStaff(created.userId, { ...staff, email: "forbidden@example.com" }), "FORBIDDEN");
+    const audit = f.state.audits[0];
+    assert.equal(audit.action, "CREATE_STAFF"); assert.equal(audit.resourceId, String(created.userId));
+    assert.equal(JSON.stringify(audit).includes(staff.password), false);
+    f.state.users.find(u => u.email === admin.email).status = "LOCKED";
+    await rejectsCode(f.service.createStaff(audit.userId, { ...staff, email: "blocked@example.com" }), "ACCOUNT_LOCKED");
+  });
+  it("rolls back STAFF creation when audit persistence fails", async () => {
+    const f = createFixture(); await f.seedAdmin(); f.state.failAudit = true;
+    await assert.rejects(f.addStaff(staff), /audit insert failed/);
+    assert.equal(await f.service.users.getUserByEmail(staff.email), undefined);
+    assert.equal(f.state.audits.length, 0);
+  });
+  it("rechecks ADMIN authority inside the account creation transaction", async () => {
+    const f = createFixture(); const actorId = await f.seedAdmin();
+    const original = f.service.authStore.createStaff;
+    f.service.authStore.createStaff = (...args) => {
+      f.state.users.find(u => u.user_id === actorId).role = "STAFF";
+      return original(...args);
+    };
+    await rejectsCode(f.service.createStaff(actorId, staff), "FORBIDDEN");
+    assert.equal(await f.service.users.getUserByEmail(staff.email), undefined);
+    assert.equal(f.state.audits.length, 0);
   });
   it("returns access/refresh tokens and persists only a refresh hash", async () => {
-    const f = createFixture(); await f.service.register(tourist);
-    const result = await f.service.login(tourist);
+    const f = createFixture(); await f.addStaff(staff);
+    const result = await f.service.login(staff);
     const decoded = jwt.verify(result.accessToken, f.config.secret);
     assert.equal(decoded.type, "access"); assert.equal(decoded.userId, result.user.id);
     assert.equal(result.refreshToken.length, 64);
     assert.equal(f.state.sessions.has(result.refreshToken), false);
     assert.equal(f.state.sessions.has(f.service.hashToken(result.refreshToken)), true);
-    assert.equal((await f.service.authenticate(result.accessToken)).role, "TOURIST");
+    assert.equal((await f.service.authenticate(result.accessToken)).role, "STAFF");
   });
   it("rejects unknown accounts and malformed login without issuing sessions", async () => {
     const f = createFixture();
-    await rejectsCode(f.service.login(tourist), "INVALID_CREDENTIALS");
+    await rejectsCode(f.service.login(staff), "INVALID_CREDENTIALS");
     await rejectsCode(f.service.login({}), "VALIDATION_ERROR");
     assert.equal(f.state.sessions.size, 0);
   });
   it("blocks an admin-locked account even with the correct password", async () => {
-    const f = createFixture(); await f.service.register(tourist); f.state.users[0].status = "LOCKED";
-    await rejectsCode(f.service.login(tourist), "ACCOUNT_LOCKED");
+    const f = createFixture(); await f.addStaff(staff); f.state.users.find(u => u.email === staff.email).status = "LOCKED";
+    await rejectsCode(f.service.login(staff), "ACCOUNT_LOCKED");
   });
   it("commits five failures, locks for 15 minutes and starts a new cycle after expiry", async () => {
-    const f = createFixture(); await f.service.register(tourist);
-    const wrong = { ...tourist, password: "WrongPassword123" };
+    const f = createFixture(); await f.addStaff(staff);
+    const wrong = { ...staff, password: "WrongPassword123" };
     for (let i = 1; i <= 5; i++) {
       await rejectsCode(f.service.login(wrong), i < 5 ? "INVALID_CREDENTIALS" : "LOGIN_TEMPORARILY_LOCKED");
-      assert.equal(f.state.users[0].failed_login_count, i);
+      assert.equal(f.state.users.find(u => u.email === staff.email).failed_login_count, i);
     }
-    await rejectsCode(f.service.login(tourist), "LOGIN_TEMPORARILY_LOCKED");
+    await rejectsCode(f.service.login(staff), "LOGIN_TEMPORARILY_LOCKED");
     f.advance(15 * 60000 + 1);
     await rejectsCode(f.service.login(wrong), "INVALID_CREDENTIALS");
-    assert.equal(f.state.users[0].failed_login_count, 1); assert.equal(f.state.users[0].locked_until, null);
-    await f.service.login(tourist);
-    assert.equal(f.state.users[0].failed_login_count, 0);
+    assert.equal(f.state.users.find(u => u.email === staff.email).failed_login_count, 1); assert.equal(f.state.users.find(u => u.email === staff.email).locked_until, null);
+    await f.service.login(staff);
+    assert.equal(f.state.users.find(u => u.email === staff.email).failed_login_count, 0);
   });
   it("does not lose failed attempts when requests overlap", async () => {
-    const f = createFixture(); await f.service.register(tourist);
-    const results = await Promise.allSettled(Array.from({ length: 5 }, () => f.service.login({ ...tourist, password: "WrongPassword123" })));
+    const f = createFixture(); await f.addStaff(staff);
+    const results = await Promise.allSettled(Array.from({ length: 5 }, () => f.service.login({ ...staff, password: "WrongPassword123" })));
     assert.equal(results.filter(r => r.status === "rejected").length, 5);
-    assert.equal(f.state.users[0].failed_login_count, 5); assert.ok(f.state.users[0].locked_until);
+    assert.equal(f.state.users.find(u => u.email === staff.email).failed_login_count, 5); assert.ok(f.state.users.find(u => u.email === staff.email).locked_until);
   });
-  it("allows a pending owner to view status but blocks the business guard", async () => {
-    const f = createFixture(); await f.service.registerOwner(owner);
-    const result = await f.service.login(owner);
-    const user = await f.service.authenticate(result.accessToken);
-    assert.equal((await f.service.getOwnerRequestStatus(user.userId)).status, "PENDING");
-    await rejectsCode(f.service.assertApprovedOwner(user), "OWNER_NOT_APPROVED");
-    f.state.users[0].status = "ACTIVE"; f.state.requests[0].status = "APPROVED";
-    await f.service.assertApprovedOwner(await f.service.authenticate(result.accessToken));
-    f.state.requests[0].status = "REJECTED";
-    await rejectsCode(f.service.assertApprovedOwner(await f.service.authenticate(result.accessToken)), "OWNER_NOT_APPROVED");
-  });
-  it("owner guard requires authentication before checking approval", async () => {
-    const f = createFixture();
-    await rejectsCode(f.service.assertApprovedOwner(undefined), "MISSING_ACCESS_TOKEN");
+  it("rejects unsupported account roles", async () => {
+    const f = createFixture(); await f.addStaff(staff);
+    f.state.users.find(u => u.email === staff.email).role = "INVALID_ROLE";
+    await rejectsCode(f.service.login(staff), "INVALID_ACCOUNT");
   });
   it("rotates refresh tokens and rejects reuse or simultaneous replay", async () => {
-    const f = createFixture(); await f.service.register(tourist);
-    const login = await f.service.login(tourist);
+    const f = createFixture(); await f.addStaff(staff);
+    const login = await f.service.login(staff);
     const results = await Promise.allSettled([f.service.refresh(login), f.service.refresh(login)]);
     assert.equal(results.filter(r => r.status === "fulfilled").length, 1);
     assert.equal(results.find(r => r.status === "rejected").reason.code, "INVALID_REFRESH_TOKEN");
@@ -111,8 +118,8 @@ describe("US-01–03 service behavior", () => {
     await rejectsCode(f.service.refresh(login), "INVALID_REFRESH_TOKEN");
   });
   it("expires a refresh session without extending its lifetime during rotation", async () => {
-    const f = createFixture(); await f.service.register(tourist);
-    const login = await f.service.login(tourist);
+    const f = createFixture(); await f.addStaff(staff);
+    const login = await f.service.login(staff);
     const expiry = [...f.state.sessions.values()][0].expires_at.getTime();
     f.advance(86400000);
     const next = await f.service.refresh(login);
@@ -122,48 +129,48 @@ describe("US-01–03 service behavior", () => {
     assert.equal(f.state.sessions.size, 0);
   });
   it("logout revokes both refresh and access for that session", async () => {
-    const f = createFixture(); await f.service.register(tourist); const login = await f.service.login(tourist);
+    const f = createFixture(); await f.addStaff(staff); const login = await f.service.login(staff);
     await f.service.logout(login);
     await rejectsCode(f.service.refresh(login), "INVALID_REFRESH_TOKEN");
     await rejectsCode(f.service.authenticate(login.accessToken), "SESSION_REVOKED");
     await f.service.logout(login); // Idempotent.
   });
   it("checks current role and account status instead of trusting stale claims", async () => {
-    const f = createFixture(); await f.service.register(tourist); const login = await f.service.login(tourist);
-    f.state.users[0].role = "ADMIN";
+    const f = createFixture(); await f.addStaff(staff); const login = await f.service.login(staff);
+    f.state.users.find(u => u.email === staff.email).role = "ADMIN";
     assert.equal((await f.service.authenticate(login.accessToken)).role, "ADMIN");
-    f.state.users[0].status = "LOCKED";
+    f.state.users.find(u => u.email === staff.email).status = "LOCKED";
     await rejectsCode(f.service.authenticate(login.accessToken), "ACCOUNT_LOCKED");
     await rejectsCode(f.service.refresh(login), "ACCOUNT_LOCKED");
     assert.equal(f.state.sessions.size, 0);
   });
   it("rejects tampered, expired and wrong-purpose JWTs", async () => {
-    const f = createFixture(); await f.service.register(tourist); const login = await f.service.login(tourist);
+    const f = createFixture(); await f.addStaff(staff); const login = await f.service.login(staff);
     await rejectsCode(f.service.authenticate(login.accessToken + "bad"), "INVALID_ACCESS_TOKEN");
     const sign = (payload, options = {}) => jwt.sign(payload, f.config.secret, {
       issuer: f.config.issuer, audience: f.config.audience, ...options,
     });
     await rejectsCode(f.service.authenticate(sign({ userId: 1, type: "access" }, { expiresIn: -1 })), "INVALID_ACCESS_TOKEN");
     await rejectsCode(f.service.authenticate(sign({ userId: 1, type: "refresh" })), "INVALID_ACCESS_TOKEN");
+    await rejectsCode(f.service.authenticate(sign({ userId: login.user.id, type: "visit", sessionId: "guest-session" })), "INVALID_ACCESS_TOKEN");
   });
-  it("bootstrap creates admin explicitly and never elevates an existing tourist", async () => {
-    const f = createFixture(); await f.service.register(tourist);
-    await rejectsCode(f.service.bootstrapAdmin(tourist), "EMAIL_EXISTS");
-    const input = { ...tourist, email: "admin@example.com" };
+  it("bootstrap creates admin explicitly and never elevates existing STAFF", async () => {
+    const f = createFixture(); await f.addStaff(staff);
+    await rejectsCode(f.service.bootstrapAdmin(staff), "EMAIL_EXISTS");
+    const input = { ...staff, email: "another-admin@example.com" };
     const first = await f.service.bootstrapAdmin(input); const again = await f.service.bootstrapAdmin(input);
     assert.equal(first.created, true); assert.equal(again.created, false);
     assert.equal(first.userId, again.userId);
   });
-  it("explicit bootstrap repairs only the known fake seed hash and preserves a real admin password", async () => {
+  it("explicit bootstrap repairs only a known placeholder and preserves a valid password", async () => {
     const f = createFixture();
-    const input = { ...tourist, email: "admin@example.com" };
-    await f.service.bootstrapAdmin(input);
-    f.state.users[0].password_hash = "$2b$12$replace_with_real_bcrypt_hash";
-    const repaired = await f.service.bootstrapAdmin(input);
-    assert.equal(repaired.repaired, true);
-    assert.ok((await f.service.login(input)).accessToken);
-    const realHash = f.state.users[0].password_hash;
-    await f.service.bootstrapAdmin({ ...input, password: "AnotherPassword123" });
-    assert.equal(f.state.users[0].password_hash, realHash);
+    await f.service.bootstrapAdmin(admin);
+    const account = f.state.users.find(u => u.email === admin.email);
+    account.password_hash = "$2b$12$replace_with_real_bcrypt_hash";
+    assert.equal((await f.service.bootstrapAdmin(admin)).repaired, true);
+    assert.ok((await f.service.login(admin)).accessToken);
+    const realHash = account.password_hash;
+    await f.service.bootstrapAdmin({ ...admin, password: "AnotherPassword123" });
+    assert.equal(account.password_hash, realHash);
   });
 });

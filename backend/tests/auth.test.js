@@ -22,19 +22,19 @@ describe("Auth Security & Token Helper Test Suite", () => {
   });
 
   it("Tao va xac thuc JWT token hop le", () => {
-    const payload = { userId: 1, email: "tourist@example.com", role: "TOURIST" };
+    const payload = { userId: 1, email: "staff@example.com", role: "STAFF" };
     const token = jwt.sign(payload, secretKey, { expiresIn: "1h" });
 
     assert.strictEqual(typeof token, "string");
 
     const decoded = jwt.verify(token, secretKey);
     assert.strictEqual(decoded.userId, 1);
-    assert.strictEqual(decoded.email, "tourist@example.com");
-    assert.strictEqual(decoded.role, "TOURIST");
+    assert.strictEqual(decoded.email, "staff@example.com");
+    assert.strictEqual(decoded.role, "STAFF");
   });
 
   it("Tu choi JWT token khong hop le hoac sai secret key", () => {
-    const payload = { userId: 2, role: "OWNER" };
+    const payload = { userId: 2, role: "ADMIN" };
     const token = jwt.sign(payload, secretKey);
 
     assert.throws(() => {

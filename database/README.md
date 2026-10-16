@@ -16,8 +16,8 @@ Migration 001 KHÔNG chuyển schema 15 bảng cũ sang 16 bảng mới, không 
 
 ## Tương thích ứng dụng và kiểm thử
 
-Schema mới chỉ có STAFF/ADMIN; các luồng đăng ký TOURIST/OWNER của backend và các kiểm thử tích hợp nghiệp vụ cũ chưa được chuyển đổi trong thay đổi này. Không coi schema mới là tương thích đầy đủ với ứng dụng hiện có. Các kiểm thử đó được giữ nguyên, không bị bỏ qua để làm CI xanh.
+Schema sử dụng tài khoản nội bộ STAFF/ADMIN. ADMIN đầu tiên được tạo bằng bootstrap có mật khẩu cấu hình bên ngoài; chỉ ADMIN đăng nhập mới gọi được `POST /api/admin/staff`. Tạo STAFF và ghi audit được thực hiện trong cùng transaction. Không có API đăng ký công khai hoặc luồng chủ quán.
 
-Kiểm tra schema và bước kiểm đếm bảng trong CI được cập nhật sang 16 bảng. Kiểm thử tích hợp và release smoke còn sử dụng đăng ký TOURIST sẽ cần điều chỉnh ở bước đồng bộ code.
+Bộ kiểm thử tích hợp nạp trực tiếp schema này vào database dùng riêng, kiểm tra đủ 16 bảng, migration refresh token, phân quyền, chống trùng email, rollback khi ghi audit lỗi và vòng đời phiên đăng nhập. Workflow kiểm tra thêm bản đóng gói bằng bootstrap ADMIN và tạo STAFF qua HTTP.
 
 Khóa ngoại, UNIQUE và CHECK xử lý các ràng buộc cấu trúc. Service vẫn phải kiểm tra phân quyền, chữ ký thanh toán, trạng thái/hiệu lực phiên, phiên bản nội dung và thực hiện các cập nhật nhiều bảng trong transaction. Redis quản lý mã đổi token có TTL và rate limit; không bổ sung bảng MySQL cho dữ liệu tạm này.

@@ -63,7 +63,7 @@ Sử dụng Node.js tương thích với cấu hình trong `.github/workflows/ci
 
 1. Tạo database trống trên MySQL 8.0.16 trở lên và nạp `database/init_db.sql` bằng công cụ quản trị MySQL. Script tạo 16 bảng theo thiết kế, không xóa dữ liệu và không dùng để nâng cấp database cũ. Xem [hướng dẫn database](database/README.md) trước khi sử dụng.
 
-   Schema dùng vai trò STAFF/ADMIN. Các luồng đăng ký TOURIST/OWNER và kiểm thử tích hợp cũ cần được điều chỉnh trước khi chạy với schema này; việc import thành công không chứng minh các luồng đó đã tương thích.
+   Tài khoản nội bộ chỉ có STAFF/ADMIN; không có đăng ký công khai. Sau khi cấu hình database, tạo ADMIN bằng `npm run bootstrap:admin`, đăng nhập tại `/demo/` rồi chọn tạo nhân viên trong trang tài khoản. Backend kiểm tra quyền ADMIN cho thao tác này.
 2. Cài thư viện và tạo cấu hình tại thư mục `backend`:
 
 ```powershell
@@ -78,7 +78,9 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
 ```
 
-4. Khởi động ứng dụng:
+4. Điền `BOOTSTRAP_ADMIN_EMAIL` và `BOOTSTRAP_ADMIN_PASSWORD` trong `backend/.env`, chạy `npm run bootstrap:admin` một lần để tạo tài khoản quản trị. Nếu tài khoản đã có mật khẩu hợp lệ, lệnh không đổi mật khẩu.
+
+5. Khởi động ứng dụng:
 
 ```powershell
 npm start
@@ -105,7 +107,7 @@ if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 docker compose up -d --build
 ```
 
-Compose sử dụng `.env` ở thư mục gốc; ứng dụng chạy trực tiếp bằng Node.js sử dụng `backend/.env`. Cổng MySQL phía máy chủ mặc định là `3307`, có thể thay bằng `MYSQL_HOST_PORT`. Dữ liệu MySQL được duy trì trong volume `db_data`.
+Compose sử dụng `.env` ở thư mục gốc; ứng dụng chạy trực tiếp bằng Node.js sử dụng `backend/.env`. Cổng MySQL phía máy chủ mặc định là `3307`, có thể thay bằng `MYSQL_HOST_PORT`. Dữ liệu MySQL được duy trì trong volume `db_data`. Với database mới, sau khi container sẵn sàng, có thể bootstrap ADMIN bằng `docker compose exec -T -e BOOTSTRAP_ADMIN_EMAIL -e BOOTSTRAP_ADMIN_PASSWORD backend npm run bootstrap:admin`; đặt hai biến này trong môi trường terminal trước khi chạy. Init script không nâng cấp volume đã có dữ liệu.
 
 ## Kiểm thử
 
@@ -124,6 +126,8 @@ npm test
 $env:RUN_DB_TESTS = '1'
 npm run test:integration
 ```
+
+Bộ kiểm thử tích hợp sử dụng schema 16 bảng và kiểm tra phân quyền STAFF/ADMIN, tạo nhân viên kèm audit trong transaction, refresh/logout, khóa đăng nhập và migration refresh token. Smoke test bản đóng gói bootstrap ADMIN trong database dùng riêng cho CI.
 
 Kiểm thử tích hợp cần thông tin kết nối và quyền tạo/xóa database thử nghiệm. Database thử được tạo riêng, không dùng database nghiệp vụ của nhóm.
 

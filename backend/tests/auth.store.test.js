@@ -1,21 +1,23 @@
 const { it } = require("node:test");
 const assert = require("node:assert/strict");
 const AuthStore = require("../stores/auth.store");
-it("owner request insert failure rolls back user insert and releases the connection", async () => {
+it("audit insert failure rolls back STAFF creation and releases the connection", async () => {
   const calls = [];
   const connection = {
     beginTransaction: async () => calls.push("begin"),
     query: async sql => {
+      if (sql.startsWith("SELECT * FROM USERS")) { calls.push("actor lock"); return [[{ user_id: 1, role: "ADMIN", status: "ACTIVE" }]]; }
       if (sql.startsWith("INSERT INTO USERS")) { calls.push("user insert"); return [{ insertId: 42 }]; }
-      calls.push("request insert"); throw new Error("request insert failure");
+      calls.push("audit insert"); throw new Error("audit insert failure");
     },
     commit: async () => calls.push("commit"),
     rollback: async () => calls.push("rollback"),
     release: () => calls.push("release"),
   };
   const store = new AuthStore({ getConnection: async () => connection });
-  await assert.rejects(store.register({ email: "owner@example.com", passwordHash: "hash", role: "OWNER", status: "PENDING" }, {}), /request insert failure/);
-  assert.deepEqual(calls, ["begin", "user insert", "request insert", "rollback", "release"]);
+  await assert.rejects(store.createStaff({ email: "staff@example.com", passwordHash: "hash", role: "STAFF", status: "ACTIVE" },
+    1, actor => assert.equal(actor.role, "ADMIN"), { action: "CREATE_STAFF", resourceType: "USERS" }), /audit insert failure/);
+  assert.deepEqual(calls, ["begin", "actor lock", "user insert", "audit insert", "rollback", "release"]);
 });
 it("retries a rolled-back deadlock but never retries an unknown persistence error", async () => {
   let begins = 0, rollbacks = 0, releases = 0, commits = 0;

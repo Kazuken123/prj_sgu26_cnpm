@@ -1,10 +1,11 @@
 const bcrypt = require("bcrypt");
 const { AuthService } = require("../../services/auth.service");
-
+const admin = { email: "admin@example.com", password: "AdminSecure123", fullName: "Quản trị viên" };
+const staff = { email: "staff@example.com", password: "SecurePassword123", fullName: "Nhân viên" };
 function createFixture() {
   let time = Date.now();
   let queue = Promise.resolve();
-  const state = { users: [], requests: [], sessions: new Map(), nextId: 1, failRequest: false };
+  const state = { users: [], audits: [], sessions: new Map(), nextId: 1, failAudit: false };
   const config = { secret: "test-only-secret-that-is-at-least-32-bytes", issuer: "food-tour-api",
     audience: "food-tour-client", accessTokenTtl: "1h", refreshTokenTtlMs: 7 * 86400000 };
   const clone = value => value == null ? value : structuredClone(value);
@@ -25,22 +26,25 @@ function createFixture() {
       user.password_hash = hash; return true;
     },
   };
-  const requests = { getLatestByUserId: async id => clone(state.requests.filter(r => r.user_id === id).at(-1)) };
   const tokens = {
     revoke: async hash => { state.sessions.delete(hash); },
     getBySessionId: async id => clone([...state.sessions.values()].find(s => s.session_id === id)),
   };
+  const insertAccount = data => {
+    if (state.users.some(u => u.email === data.email)) throw Object.assign(new Error("duplicate"), { code: "ER_DUP_ENTRY" });
+    const userId = state.nextId++;
+    state.users.push({ user_id: userId, email: data.email, password_hash: data.passwordHash,
+      full_name: data.fullName, phone_number: data.phoneNumber, role: data.role, status: data.status,
+      failed_login_count: 0, locked_until: null });
+    return userId;
+  };
   const authStore = {
-    register: (data, request) => serial(async () => {
-      if (state.users.some(u => u.email === data.email)) throw Object.assign(new Error("duplicate"), { code: "ER_DUP_ENTRY" });
-      const userId = state.nextId++;
-      state.users.push({ user_id: userId, email: data.email, password_hash: data.passwordHash,
-        full_name: data.fullName, phone_number: data.phoneNumber, role: data.role, status: data.status,
-        failed_login_count: 0, locked_until: null });
-      if (request) {
-        if (state.failRequest) throw new Error("request insert failed");
-        state.requests.push({ user_id: userId, restaurant_name: request.restaurantName, status: "PENDING", rejection_reason: null });
-      }
+    register: data => serial(async () => insertAccount(data)),
+    createStaff: (data, actorId, authorize, audit) => serial(async () => {
+      authorize(clone(state.users.find(u => u.user_id === actorId)));
+      const userId = insertAccount(data);
+      if (state.failAudit) throw new Error("audit insert failed");
+      state.audits.push({ ...audit, userId: actorId, resourceId: String(userId) });
       return userId;
     }),
     withLockedUser: (email, work) => serial(async () => {
@@ -48,7 +52,8 @@ function createFixture() {
       return work(clone(user), {
         saveLoginState: async (count, until) => Object.assign(user, { failed_login_count: count, locked_until: until }),
         createRefreshToken: async (hash, expiresAt, sessionId) => {
-          state.sessions.set(hash, { token_id: state.sessions.size + 1, session_id: sessionId, user_id: user.user_id, token_hash: hash, expires_at: expiresAt });
+          state.sessions.set(hash, { token_id: state.sessions.size + 1, session_id: sessionId,
+            user_id: user.user_id, token_hash: hash, expires_at: expiresAt });
         },
       });
     }),
@@ -60,11 +65,11 @@ function createFixture() {
       });
     }),
   };
-  const service = new AuthService({ users, requests, tokens, authStore, config: () => config,
+  const service = new AuthService({ users, tokens, authStore, config: () => config,
     now: () => time, passwordHasher: { hash: value => bcrypt.hash(value, 4), compare: bcrypt.compare } });
-  return { service, state, config, advance: ms => { time += ms; } };
+  let adminSeed;
+  const seedAdmin = () => adminSeed ??= service.bootstrapAdmin(admin).then(result => result.userId);
+  const addStaff = async (...inputs) => service.createStaff(await seedAdmin(), inputs.length ? inputs[0] : staff);
+  return { service, state, config, seedAdmin, addStaff, advance: ms => { time += ms; } };
 }
-const tourist = { email: "tourist@example.com", password: "SecurePassword123", fullName: "Khách" };
-const owner = { ...tourist, email: "owner@example.com", phoneNumber: "0901234567",
-  restaurantName: "Quán thử nghiệm", restaurantAddress: "Quận 4" };
-module.exports = { createFixture, tourist, owner };
+module.exports = { createFixture, staff, admin };

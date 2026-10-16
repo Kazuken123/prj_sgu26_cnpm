@@ -45,8 +45,24 @@ it("demo retains its session when logout cannot reach the server, allowing a ret
   assert.equal(f.auth.hasSession(), true);
 });
 it("all inline demo scripts have valid JavaScript syntax", () => {
-  for (const name of ["index.html", "register.html", "account.html"]) {
+  for (const name of ["index.html", "staff.html", "account.html", "dashboard.html"]) {
     const html = fs.readFileSync(path.resolve(__dirname, "../../frontend", name), "utf8");
     for (const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) new vm.Script(match[1]);
   }
+});
+
+it("staff creation retries the ADMIN endpoint after refresh without changing its payload", async () => {
+  const calls = [];
+  const f = client(async (url, options) => {
+    calls.push({ url, ...options });
+    if (calls.length === 1) return { status: 401, ok: false, json: async () => ({ error: "expired" }) };
+    if (url === "/api/auth/refresh") return { status: 200, ok: true, json: async () => ({ data: { accessToken: "new-access", refreshToken: "new-refresh" } }) };
+    return { status: 201, ok: true, json: async () => ({ data: { email: "staff@example.com", role: "STAFF" } }) };
+  });
+  f.auth.saveSession({ accessToken: "old-access", refreshToken: "old-refresh" });
+  const body = { email: "staff@example.com", password: "SecurePassword123" };
+  await f.auth.createStaff(body);
+  assert.deepEqual(calls.map(c => c.url), ["/api/admin/staff", "/api/auth/refresh", "/api/admin/staff"]);
+  assert.equal(calls[2].headers.Authorization, "Bearer new-access");
+  assert.deepEqual(JSON.parse(calls[2].body), body);
 });

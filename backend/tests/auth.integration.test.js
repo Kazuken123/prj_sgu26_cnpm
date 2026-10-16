@@ -6,8 +6,8 @@ const { randomUUID } = require("node:crypto");
 const http = require("node:http");
 require("dotenv").config({ quiet: true });
 
-describe("US-01–03 integration with a disposable MySQL database", { skip: process.env.RUN_DB_TESTS !== "1" }, () => {
-  let admin, pool, server, base, service;
+describe("US-F01 integration with the 16-table schema and a disposable MySQL database", { skip: process.env.RUN_DB_TESTS !== "1" }, () => {
+  let admin, pool, server, base, service, actorId, actorToken;
   const testDatabase = "food_tour_auth_test_" + randomUUID().replaceAll("-", "");
   const config = { secret: "integration-test-only-secret-at-least-32-bytes", issuer: "food-tour-api",
     audience: "food-tour-client", accessTokenTtl: "1h", refreshTokenTtlMs: 7 * 86400000 };
@@ -34,10 +34,12 @@ describe("US-01–03 integration with a disposable MySQL database", { skip: proc
     const { AuthService } = require("../services/auth.service");
     const AuthStore = require("../stores/auth.store");
     const UserStore = require("../stores/user.store");
-    const OwnerRequestStore = require("../stores/owner_request.store");
     const RefreshTokenStore = require("../stores/refresh_token.store");
     service = new AuthService({ authStore: new AuthStore(pool), users: new UserStore(pool),
-      requests: new OwnerRequestStore(pool), tokens: new RefreshTokenStore(pool), config: () => config });
+      tokens: new RefreshTokenStore(pool), config: () => config });
+    const administrator = credentials("integration-admin@example.com");
+    actorId = (await service.bootstrapAdmin(administrator)).userId;
+    actorToken = (await service.login(administrator)).accessToken;
     const { createApp } = require("../server");
     const { HealthService } = require("../services/health.service");
     const HealthStore = require("../stores/health.store");
@@ -56,17 +58,23 @@ describe("US-01–03 integration with a disposable MySQL database", { skip: proc
       await admin.end();
     }
   });
-  it("initializes 15 real tables and runs the additive migration twice without data loss", async () => {
-    const [tables] = await pool.query("SHOW TABLES"); assert.equal(tables.length, 15);
-    await service.register(credentials("migration@example.com"));
+  it("initializes 16 real tables and safely reruns the refresh-token migration", async () => {
+    const [tables] = await pool.query("SHOW TABLES"); assert.equal(tables.length, 16);
+    await service.createStaff(actorId, credentials("migration@example.com"));
     const migration = fs.readFileSync(path.resolve(__dirname, "../../database/migrations/001_refresh_tokens.sql"), "utf8");
     await pool.query(migration); await pool.query(migration);
     assert.ok(await service.users.getUserByEmail("migration@example.com"));
     assert.equal((await request("/health/ready")).status, 200);
   });
-  it("registers, logs in, rotates and logs out through HTTP with real persistence", async () => {
+  it("creates STAFF with audit, logs in, rotates and logs out using real persistence", async () => {
     const input = credentials("integration@example.com");
-    assert.equal((await request("/api/auth/register", input)).status, 201);
+    const created = await request("/api/admin/staff", { ...input, role: "ADMIN", status: "LOCKED" }, actorToken);
+    assert.equal(created.status, 201);
+    const staffUser = (await created.json()).data;
+    assert.equal(staffUser.role, "STAFF"); assert.equal(staffUser.status, "ACTIVE");
+    const [audit] = await pool.query("SELECT * FROM AUDIT_LOGS WHERE action = 'CREATE_STAFF' AND resource_id = ?", [String(staffUser.userId)]);
+    assert.equal(audit.length, 1); assert.equal(audit[0].user_id, actorId);
+    assert.equal(JSON.stringify(audit).includes(input.password), false);
     const { data } = await (await request("/api/auth/login", input)).json();
     assert.ok(data.accessToken); assert.ok(data.refreshToken);
     const [rows] = await pool.query("SELECT token_hash FROM REFRESH_TOKENS WHERE user_id = ?", [data.user.id]);
@@ -83,13 +91,13 @@ describe("US-01–03 integration with a disposable MySQL database", { skip: proc
   });
   it("handles concurrent duplicate email without creating two users", async () => {
     const input = credentials("duplicate@example.com");
-    const responses = await Promise.all([request("/api/auth/register", input), request("/api/auth/register", input)]);
+    const responses = await Promise.all([request("/api/admin/staff", input, actorToken), request("/api/admin/staff", input, actorToken)]);
     assert.deepEqual(responses.map(r => r.status).sort(), [201, 409]);
     const [rows] = await pool.query("SELECT COUNT(*) AS count FROM USERS WHERE email = ?", [input.email]);
     assert.equal(rows[0].count, 1);
   });
   it("commits concurrent failures atomically and resets the expired lock cycle", async () => {
-    const input = credentials("lock@example.com"); await service.register(input);
+    const input = credentials("lock@example.com"); await service.createStaff(actorId, input);
     const responses = await Promise.all(Array.from({ length: 5 }, () =>
       request("/api/auth/login", { ...input, password: "WrongPassword123" })));
     assert.deepEqual(responses.map(r => r.status).sort(), [401, 401, 401, 401, 423]);
@@ -102,29 +110,33 @@ describe("US-01–03 integration with a disposable MySQL database", { skip: proc
     assert.equal((await request("/api/auth/login", input)).status, 200);
     assert.equal((await service.users.getUserByEmail(input.email)).failed_login_count, 0);
   });
-  it("rolls back a real user insert when owner-request insertion fails", async () => {
-    await pool.query("CREATE TRIGGER auth_test_fail_owner BEFORE INSERT ON OWNER_REQUESTS FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'forced test failure'");
-    const input = { ...credentials("rollback@example.com"), restaurantName: "Test", restaurantAddress: "Quận 4", phoneNumber: "0901234567" };
+  it("rolls back the new STAFF when a real audit insert fails", async () => {
+    await pool.query("CREATE TRIGGER auth_test_fail_audit BEFORE INSERT ON AUDIT_LOGS FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'forced test failure'");
+    const input = credentials("rollback@example.com");
     try {
-      assert.equal((await request("/api/auth/register-owner", input)).status, 500);
+      const response = await request("/api/admin/staff", input, actorToken);
+      assert.equal(response.status, 500);
+      assert.equal((await response.json()).error.includes("forced"), false);
       assert.equal(await service.users.getUserByEmail(input.email), undefined);
-    } finally { await pool.query("DROP TRIGGER auth_test_fail_owner"); }
-    assert.equal((await request("/api/auth/register-owner", input)).status, 201);
+    } finally { await pool.query("DROP TRIGGER auth_test_fail_audit"); }
+    assert.equal((await request("/api/admin/staff", input, actorToken)).status, 201);
   });
-  it("pending owner can see their own request while a tourist is forbidden", async () => {
-    const input = { ...credentials("pending@example.com"), restaurantName: "Test", restaurantAddress: "Quận 4", phoneNumber: "0901234567" };
-    await service.registerOwner(input);
+  it("forbids unauthenticated and STAFF creation, and removes legacy public registration", async () => {
+    const input = credentials("permissions@example.com");
+    const created = await service.createStaff(actorId, input);
     const login = await service.login(input);
-    assert.equal(login.user.status, "PENDING");
-    const status = await request("/api/auth/owner-request/status", undefined, login.accessToken);
-    assert.equal(status.status, 200); assert.equal((await status.json()).data.status, "PENDING");
-    await assert.rejects(service.assertApprovedOwner(await service.authenticate(login.accessToken)), error => error.code === "OWNER_NOT_APPROVED");
-    const touristInput = credentials("forbidden@example.com"); await service.register(touristInput);
-    const touristLogin = await service.login(touristInput);
-    assert.equal((await request("/api/auth/owner-request/status", undefined, touristLogin.accessToken)).status, 403);
+    const another = credentials("not-created@example.com");
+    assert.equal((await request("/api/admin/staff", another)).status, 401);
+    assert.equal((await request("/api/admin/staff", another, login.accessToken)).status, 403);
+    assert.equal((await request("/api/auth/register", another)).status, 404);
+    assert.equal((await request("/api/auth/register-owner", another)).status, 404);
+    assert.equal((await request("/api/auth/owner-request/status", undefined, login.accessToken)).status, 404);
+    await assert.rejects(service.bootstrapAdmin(input), error => error.code === "EMAIL_EXISTS");
+    assert.equal((await service.users.getUserById(created.userId)).role, "STAFF");
+    assert.equal(await service.users.getUserByEmail(another.email), undefined);
   });
   it("blocks existing sessions immediately when an admin locks the account", async () => {
-    const input = credentials("disabled@example.com"); await service.register(input);
+    const input = credentials("disabled@example.com"); await service.createStaff(actorId, input);
     const login = await service.login(input);
     await pool.query("UPDATE USERS SET status = 'LOCKED' WHERE user_id = ?", [login.user.id]);
     assert.equal((await request("/api/auth/me", undefined, login.accessToken)).status, 403);

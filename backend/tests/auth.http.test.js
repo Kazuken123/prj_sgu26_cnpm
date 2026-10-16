@@ -3,23 +3,16 @@ const assert = require("node:assert/strict");
 const http = require("node:http");
 process.env.NODE_ENV = "test";
 const { createApp } = require("../server");
-const { createAuthMiddleware, requireRole } = require("../middlewares/auth.middleware");
 const AppError = require("../utils/app-error");
-const { createFixture, tourist, owner } = require("./helpers/auth.fixture");
-
-describe("Auth HTTP contract and role guards", () => {
+const { createFixture, staff, admin } = require("./helpers/auth.fixture");
+describe("US-F01 internal authentication HTTP contract", () => {
   let server, base, fixture;
   before(async () => {
-    fixture = createFixture();
-    const app = createApp({ authService: fixture.service, healthService: { ready: async () => { throw new AppError(503, "DATABASE_UNAVAILABLE", "Database chưa sẵn sàng."); } } });
-    const guards = createAuthMiddleware(fixture.service);
-    // Mount before the final error handler for the test-only protected routes.
-    const protectedApp = require("express")();
-    protectedApp.get("/admin", guards.verifyToken, requireRole("ADMIN"), (req, res) => res.json({ ok: true }));
-    protectedApp.get("/owner", guards.verifyToken, guards.requireApprovedOwner, (req, res) => res.json({ ok: true }));
-    protectedApp.use(require("../middlewares/error.middleware"));
-    const parent = require("express")(); parent.use("/protected", protectedApp); parent.use(app);
-    server = http.createServer(parent);
+    fixture = createFixture(); await fixture.addStaff();
+    const app = createApp({ authService: fixture.service, healthService: {
+      ready: async () => { throw new AppError(503, "DATABASE_UNAVAILABLE", "Database chưa sẵn sàng."); },
+    } });
+    server = http.createServer(app);
     await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
     base = `http://127.0.0.1:${server.address().port}`;
   });
@@ -27,39 +20,54 @@ describe("Auth HTTP contract and role guards", () => {
   const request = (path, body, token) => fetch(base + path, { method: body === undefined ? "GET" : "POST",
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}) },
     ...(body === undefined ? {} : { body: JSON.stringify(body) }) });
-  it("register/login/me use the documented nested data contract", async () => {
-    assert.equal((await request("/api/auth/register", tourist)).status, 201);
-    const response = await request("/api/auth/login", tourist); assert.equal(response.status, 200);
-    const { data } = await response.json(); assert.ok(data.accessToken); assert.ok(data.refreshToken);
+  const login = async input => (await (await request("/api/auth/login", input)).json()).data;
+  it("logs in STAFF and returns the existing nested account/token contract", async () => {
+    const data = await login(staff); assert.ok(data.accessToken); assert.ok(data.refreshToken);
     const me = await request("/api/auth/me", undefined, data.accessToken);
-    assert.equal(me.status, 200); assert.equal((await me.json()).data.email, tourist.email);
+    assert.equal(me.status, 200);
+    assert.deepEqual((await me.json()).data, { id: data.user.id, email: staff.email,
+      fullName: staff.fullName, role: "STAFF", status: "ACTIVE" });
   });
-  it("returns 400 validation and 409 conflict without internal details", async () => {
-    const missing = await request("/api/auth/register", {});
+  it("has no public registration or owner-request endpoints", async () => {
+    for (const route of ["/api/auth/register", "/api/auth/register-owner"]) assert.equal((await request(route, staff)).status, 404);
+    assert.equal((await request("/api/auth/owner-request/status")).status, 404);
+  });
+  it("rejects missing/bad identity and STAFF access to the ADMIN endpoint", async () => {
+    assert.equal((await request("/api/admin/staff", staff)).status, 401);
+    assert.equal((await request("/api/admin/staff", staff, "bad")).status, 401);
+    const data = await login(staff);
+    assert.equal((await request("/api/admin/staff", staff, data.accessToken)).status, 403);
+  });
+  it("ADMIN creates ACTIVE STAFF, ignores injected role/status, and writes a safe audit entry", async () => {
+    const data = await login(admin);
+    const input = { ...staff, email: "http-staff@example.com", role: "ADMIN", status: "LOCKED" };
+    const response = await request("/api/admin/staff", input, data.accessToken);
+    assert.equal(response.status, 201);
+    const created = (await response.json()).data;
+    assert.equal(created.role, "STAFF"); assert.equal(created.status, "ACTIVE");
+    assert.equal(created.password, undefined); assert.equal(created.passwordHash, undefined);
+    const audit = fixture.state.audits.at(-1);
+    assert.equal(audit.userId, data.user.id); assert.equal(audit.resourceId, String(created.userId));
+    assert.equal(JSON.stringify(audit).includes(input.password), false);
+  });
+  it("returns validation/conflict responses and hides malformed JSON details", async () => {
+    const data = await login(admin);
+    const missing = await request("/api/admin/staff", {}, data.accessToken);
     assert.equal(missing.status, 400); assert.equal((await missing.json()).code, "VALIDATION_ERROR");
-    assert.equal((await request("/api/auth/register", tourist)).status, 409);
-    const malformed = await fetch(base + "/api/auth/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{" });
+    assert.equal((await request("/api/admin/staff", staff, data.accessToken)).status, 409);
+    const malformed = await fetch(base + "/api/auth/login", {
+      method: "POST", headers: { "Content-Type": "application/json" }, body: "{",
+    });
     assert.equal(malformed.status, 400); assert.equal((await malformed.json()).code, "INVALID_JSON");
   });
-  it("returns 401 for missing/bad tokens and 403 for the wrong role", async () => {
-    assert.equal((await request("/protected/admin")).status, 401);
-    assert.equal((await request("/protected/admin", undefined, "bad")).status, 401);
-    const { data } = await (await request("/api/auth/login", tourist)).json();
-    assert.equal((await request("/protected/admin", undefined, data.accessToken)).status, 403);
-    fixture.state.users[0].role = "ADMIN";
-    assert.equal((await request("/protected/admin", undefined, data.accessToken)).status, 200);
-    fixture.state.users[0].role = "TOURIST";
-    assert.equal((await request("/api/auth/owner-request/status", undefined, data.accessToken)).status, 403);
+  it("checks current ADMIN role instead of trusting an earlier JWT", async () => {
+    const data = await login(admin);
+    const actor = fixture.state.users.find(u => u.email === admin.email); actor.role = "STAFF";
+    try { assert.equal((await request("/api/admin/staff", { ...staff, email: "blocked@example.com" }, data.accessToken)).status, 403); }
+    finally { actor.role = "ADMIN"; }
   });
-  it("pending owner can read own status but cannot use an owner business route", async () => {
-    assert.equal((await request("/api/auth/register-owner", owner)).status, 201);
-    const { data } = await (await request("/api/auth/login", owner)).json();
-    const status = await request("/api/auth/owner-request/status", undefined, data.accessToken);
-    assert.equal(status.status, 200); assert.equal((await status.json()).data.status, "PENDING");
-    assert.equal((await request("/protected/owner", undefined, data.accessToken)).status, 403);
-  });
-  it("refresh/logout work and logout makes the old access token unusable", async () => {
-    const { data } = await (await request("/api/auth/login", tourist)).json();
+  it("refreshes once, rejects replay, and revokes access on logout", async () => {
+    const data = await login(staff);
     const refreshed = await request("/api/auth/refresh", { refreshToken: data.refreshToken }); assert.equal(refreshed.status, 200);
     const next = (await refreshed.json()).data;
     assert.equal((await request("/api/auth/refresh", { refreshToken: data.refreshToken })).status, 401);
@@ -71,13 +79,12 @@ describe("Auth HTTP contract and role guards", () => {
     const response = await request("/health/ready"); assert.equal(response.status, 503);
     assert.equal((await response.json()).code, "DATABASE_UNAVAILABLE");
   });
-  it("unexpected persistence failures are reported as 500, not credential errors", async () => {
+  it("returns controlled errors for unexpected persistence failures", async () => {
     const original = fixture.service.authStore.withLockedUser;
     fixture.service.authStore.withLockedUser = async () => { throw Object.assign(new Error("private database details"), { code: "DB_TEST_FAILURE" }); };
     try {
-      const response = await request("/api/auth/login", tourist);
-      assert.equal(response.status, 500);
-      assert.equal((await response.json()).error.includes("private"), false);
+      const response = await request("/api/auth/login", staff);
+      assert.equal(response.status, 500); assert.equal((await response.json()).error.includes("private"), false);
     } finally { fixture.service.authStore.withLockedUser = original; }
   });
 });

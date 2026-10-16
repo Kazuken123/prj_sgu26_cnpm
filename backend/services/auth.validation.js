@@ -32,18 +32,14 @@ function phone(value, required) {
   }
   return normalized;
 }
-function registration(input, owner = false) {
+function registration(input) {
   objectInput(input);
   const user = {
     email: email(input.email),
     password: password(input.password),
     fullName: text(input.fullName, "Họ tên", 100),
-    phoneNumber: phone(input.phoneNumber, owner),
+    phoneNumber: phone(input.phoneNumber, false),
   };
-  if (owner) {
-    user.restaurantName = text(input.restaurantName, "Tên quán", 255, true);
-    user.restaurantAddress = text(input.restaurantAddress, "Địa chỉ quán", 255, true);
-  }
   return user;
 }
 function login(input) {
