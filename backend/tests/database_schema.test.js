@@ -19,25 +19,29 @@ describe("Database Schema SQL File Validation Test Suite", () => {
     );
   });
 
-  it("File init_db.sql khai bao du 15 bang (gom phien refresh token)", () => {
+  it("File init_db.sql khai bao du 16 bang theo thiet ke Chuong 4", () => {
     const content = fs.readFileSync(sqlPath, "utf-8");
     const requiredTables = [
       "LANGUAGES",
       "USERS",
       "REFRESH_TOKENS",
-      "OWNER_REQUESTS",
       "AUDIT_LOGS",
-      "CATEGORIES",
+      "VISIT_SESSIONS",
+      "PAYMENTS",
       "POIS",
-      "POI_CATEGORIES",
-      "DISHES",
-      "POI_IMAGES",
-      "POI_EDIT_REQUESTS",
       "POI_TRANSLATIONS",
-      "DISH_TRANSLATIONS",
       "AUDIOS",
-      "REVIEWS",
+      "CONTENT_JOBS",
+      "TOURS",
+      "TOUR_POIS",
+      "KNOWLEDGE_DOCUMENTS",
+      "KNOWLEDGE_CHUNKS",
+      "CHAT_LOGS",
+      "BUNDLE_ACCESS_LOGS",
     ];
+
+    const actualTables = Array.from(content.matchAll(/CREATE\s+TABLE\s+(\w+)\s*\(/gi), match => match[1]);
+    assert.deepEqual(actualTables.slice().sort(), requiredTables.slice().sort());
 
     for (const table of requiredTables) {
       const regex = new RegExp(`CREATE\\s+TABLE\\s+${table}\\b`, "i");

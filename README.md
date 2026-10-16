@@ -61,7 +61,9 @@ prj_sgu26_cnpm/
 
 Sử dụng Node.js tương thích với cấu hình trong `.github/workflows/ci-cd.yml`, npm và MySQL 8.
 
-1. Tạo database riêng cho dự án và nạp `database/init_db.sql` bằng công cụ quản trị MySQL. Script này có lệnh `DROP TABLE`, chỉ dùng để khởi tạo database mới, không dùng để nâng cấp dữ liệu cần giữ.
+1. Tạo database trống trên MySQL 8.0.16 trở lên và nạp `database/init_db.sql` bằng công cụ quản trị MySQL. Script tạo 16 bảng theo thiết kế, không xóa dữ liệu và không dùng để nâng cấp database cũ. Xem [hướng dẫn database](database/README.md) trước khi sử dụng.
+
+   Schema dùng vai trò STAFF/ADMIN. Các luồng đăng ký TOURIST/OWNER và kiểm thử tích hợp cũ cần được điều chỉnh trước khi chạy với schema này; việc import thành công không chứng minh các luồng đó đã tương thích.
 2. Cài thư viện và tạo cấu hình tại thư mục `backend`:
 
 ```powershell
@@ -90,7 +92,7 @@ Các địa chỉ mặc định:
 
 Các lệnh quản trị được chạy trong `backend`:
 
-- `npm run db:migrate`: thực hiện migration được cấu hình trong script của dự án.
+- `npm run db:migrate`: chạy migration `001_refresh_tokens.sql`, chỉ bổ sung bảng refresh token; không chuyển toàn bộ database cũ sang thiết kế 16 bảng.
 - `npm run bootstrap:admin`: tạo tài khoản quản trị từ `BOOTSTRAP_ADMIN_EMAIL` và `BOOTSTRAP_ADMIN_PASSWORD`. Cấu hình các biến này trước khi chạy; không sử dụng mật khẩu mặc định.
 
 ### Chạy bằng Docker Compose
@@ -127,6 +129,7 @@ Kiểm thử tích hợp cần thông tin kết nối và quyền tạo/xóa dat
 
 ## Tài liệu và quy ước
 
+- Sơ đồ ERD: [erd_diagram.drawio](docs/diagram/erd_diagram.drawio).
 - Sơ đồ Component: [component_diagram.drawio](docs/diagram/component_diagram.drawio).
 - Sơ đồ Activity: [`docs/diagram/activity/`](docs/diagram/activity/).
 - Sơ đồ Use Case: [`docs/diagram/use case/`](docs/diagram/use%20case/).

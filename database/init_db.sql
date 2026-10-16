@@ -1,247 +1,286 @@
--- =====================================================================
--- DATABASE: He Thong Du Lich Am Thuc Co Thuyet Minh Da Ngon Ngu
--- =====================================================================
--- Đảm bảo hỗ trợ Tiếng Việt
+-- MySQL 8.0.16+; target schema described in Chapter 4.
+-- Run against an EMPTY database selected by the operator.
+-- No DROP TABLE, CREATE DATABASE, or migration of the legacy schema.
+-- Application connections must also use UTC and utf8mb4.
 SET NAMES utf8mb4;
-SET FOREIGN_KEY_CHECKS = 0; -- Tạm tắt kiểm tra khóa ngoại để xóa bảng cho nhanh
+SET time_zone = '+00:00';
 
--- Xóa các bảng cũ nếu đã tồn tại (Xóa theo thứ tự: Con -> Cha)
-DROP TABLE IF EXISTS DISH_TRANSLATIONS;
-DROP TABLE IF EXISTS DISHES;
-DROP TABLE IF EXISTS AUDIOS;
-DROP TABLE IF EXISTS POI_TRANSLATIONS;
-DROP TABLE IF EXISTS REVIEWS;
-DROP TABLE IF EXISTS POI_EDIT_REQUESTS;
-DROP TABLE IF EXISTS POI_IMAGES;
-DROP TABLE IF EXISTS POI_CATEGORIES;
-DROP TABLE IF EXISTS POIS;
-DROP TABLE IF EXISTS CATEGORIES;
-DROP TABLE IF EXISTS AUDIT_LOGS;
-DROP TABLE IF EXISTS OWNER_REQUESTS;
-DROP TABLE IF EXISTS REFRESH_TOKENS;
-DROP TABLE IF EXISTS USERS;
-DROP TABLE IF EXISTS LANGUAGES;
-
-SET FOREIGN_KEY_CHECKS = 1; -- Bật lại kiểm tra khóa ngoại
-
-
--- 1. Bảng Ngôn ngữ
 CREATE TABLE LANGUAGES (
-    code VARCHAR(10) PRIMARY KEY,
+    code VARCHAR(10) NOT NULL,
     name VARCHAR(50) NOT NULL,
-    is_active TINYINT(1) DEFAULT 1
-);
+    is_active TINYINT(1) NOT NULL DEFAULT 1,
+    PRIMARY KEY (code),
+    CONSTRAINT chk_languages_active CHECK (is_active IN (0, 1))
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 2. Bảng Người dùng
 CREATE TABLE USERS (
-    user_id INT AUTO_INCREMENT PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
+    user_id INT NOT NULL AUTO_INCREMENT,
+    email VARCHAR(255) NOT NULL,
     password_hash VARCHAR(255) NOT NULL,
-    full_name VARCHAR(100),
-    phone_number VARCHAR(20),
-    role ENUM('TOURIST', 'OWNER', 'ADMIN') NOT NULL DEFAULT 'TOURIST',
-    preferred_language VARCHAR(10) DEFAULT 'vi',
-    failed_login_count INT DEFAULT 0,
-    locked_until DATETIME,
-    status ENUM('ACTIVE', 'PENDING', 'LOCKED') NOT NULL DEFAULT 'ACTIVE',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (preferred_language) REFERENCES LANGUAGES(code)
-);
+    full_name VARCHAR(100) NULL,
+    phone_number VARCHAR(20) NULL,
+    role ENUM('STAFF', 'ADMIN') NOT NULL,
+    preferred_language VARCHAR(10) NULL DEFAULT 'vi',
+    failed_login_count INT NOT NULL DEFAULT 0,
+    locked_until DATETIME NULL,
+    status ENUM('ACTIVE', 'LOCKED') NOT NULL DEFAULT 'ACTIVE',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (user_id),
+    UNIQUE KEY uq_users_email (email),
+    CONSTRAINT chk_users_failed_login_count CHECK (failed_login_count >= 0),
+    CONSTRAINT fk_users_language FOREIGN KEY (preferred_language)
+        REFERENCES LANGUAGES(code) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Phiên đăng nhập: chỉ lưu hash của refresh token.
 CREATE TABLE REFRESH_TOKENS (
-    token_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    session_id CHAR(36) UNIQUE NOT NULL,
+    token_id BIGINT NOT NULL AUTO_INCREMENT,
     user_id INT NOT NULL,
-    token_hash CHAR(64) UNIQUE NOT NULL,
+    session_id CHAR(36) NOT NULL,
+    token_hash CHAR(64) NOT NULL,
     expires_at DATETIME(3) NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
-    INDEX idx_refresh_tokens_expiry (expires_at),
-    INDEX idx_refresh_tokens_user (user_id)
-);
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (token_id),
+    UNIQUE KEY uq_refresh_tokens_session (session_id),
+    UNIQUE KEY uq_refresh_tokens_hash (token_hash),
+    KEY idx_refresh_tokens_user (user_id),
+    KEY idx_refresh_tokens_expiry (expires_at),
+    CONSTRAINT fk_refresh_tokens_user FOREIGN KEY (user_id)
+        REFERENCES USERS(user_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 3. Bảng Yêu cầu trở thành Chủ quán
-CREATE TABLE OWNER_REQUESTS (
-    request_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    restaurant_name VARCHAR(255) NOT NULL,
-    restaurant_address VARCHAR(255) NOT NULL,
-    phone_number VARCHAR(20) NOT NULL,
-    status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
-    rejection_reason TEXT,
-    reviewed_by INT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (reviewed_by) REFERENCES USERS(user_id) ON DELETE SET NULL
-);
-
--- 4. Bảng Nhật ký hệ thống
 CREATE TABLE AUDIT_LOGS (
-    log_id BIGINT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
+    log_id BIGINT NOT NULL AUTO_INCREMENT,
+    user_id INT NULL,
     action VARCHAR(100) NOT NULL,
-    resource_type VARCHAR(50),
-    resource_id VARCHAR(50),
-    details TEXT,
-    ip_address VARCHAR(45),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE SET NULL
-);
-CREATE INDEX idx_audit_logs_created_at ON AUDIT_LOGS(created_at);
+    resource_type VARCHAR(50) NULL,
+    resource_id VARCHAR(50) NULL,
+    details TEXT NULL,
+    ip_address VARCHAR(45) NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (log_id),
+    KEY idx_audit_logs_user (user_id),
+    KEY idx_audit_logs_created_at (created_at),
+    KEY idx_audit_logs_action (action),
+    CONSTRAINT fk_audit_logs_user FOREIGN KEY (user_id)
+        REFERENCES USERS(user_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 5. Bảng Danh mục
-CREATE TABLE CATEGORIES (
-    category_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+CREATE TABLE VISIT_SESSIONS (
+    session_id CHAR(36) NOT NULL,
+    created_by INT NULL,
+    status ENUM('PENDING', 'ACTIVE', 'REVOKED') NOT NULL DEFAULT 'PENDING',
+    token_hash CHAR(64) NULL,
+    activated_at DATETIME NULL,
+    expires_at DATETIME NULL,
+    reissue_count INT NOT NULL DEFAULT 0 COMMENT 'Used only for the Could Have token reissue feature',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (session_id),
+    UNIQUE KEY uq_visit_sessions_token_hash (token_hash),
+    KEY idx_visit_sessions_created_by (created_by),
+    KEY idx_visit_sessions_status (status),
+    KEY idx_visit_sessions_expiry (expires_at),
+    CONSTRAINT chk_visit_sessions_reissue_count CHECK (reissue_count >= 0),
+    CONSTRAINT fk_visit_sessions_creator FOREIGN KEY (created_by)
+        REFERENCES USERS(user_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 6. Bảng Địa điểm (Points of Interest)
+CREATE TABLE PAYMENTS (
+    payment_id BIGINT NOT NULL AUTO_INCREMENT,
+    session_id CHAR(36) NOT NULL,
+    payment_ref VARCHAR(100) NOT NULL,
+    confirmed_by INT NULL,
+    payment_method ENUM('ONLINE', 'CASH') NOT NULL,
+    amount DECIMAL(12,2) NOT NULL,
+    currency CHAR(3) NOT NULL DEFAULT 'VND',
+    status ENUM('PENDING', 'PAID', 'FAILED') NOT NULL DEFAULT 'PENDING',
+    paid_at DATETIME NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (payment_id),
+    UNIQUE KEY uq_payments_session (session_id),
+    UNIQUE KEY uq_payments_reference (payment_ref),
+    KEY idx_payments_confirmed_by (confirmed_by),
+    KEY idx_payments_status (status),
+    KEY idx_payments_paid_at (paid_at),
+    CONSTRAINT chk_payments_amount CHECK (amount > 0),
+    CONSTRAINT fk_payments_session FOREIGN KEY (session_id)
+        REFERENCES VISIT_SESSIONS(session_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_payments_confirmer FOREIGN KEY (confirmed_by)
+        REFERENCES USERS(user_id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE POIS (
-    poi_id INT AUTO_INCREMENT PRIMARY KEY,
-    owner_id INT NOT NULL,
+    poi_id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
-    address VARCHAR(255),
     latitude DECIMAL(10,8) NOT NULL,
     longitude DECIMAL(11,8) NOT NULL,
-    trigger_radius INT DEFAULT 50,
-    opening_hours VARCHAR(100),
-    avatar_url VARCHAR(500),
-    status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
-    rejection_reason TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (owner_id) REFERENCES USERS(user_id) ON DELETE RESTRICT
-);
+    trigger_radius INT NOT NULL DEFAULT 50,
+    avatar_url VARCHAR(500) NULL,
+    display_order INT NOT NULL DEFAULT 0,
+    status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'INACTIVE',
+    content_version INT NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (poi_id),
+    CONSTRAINT chk_pois_latitude CHECK (latitude BETWEEN -90 AND 90),
+    CONSTRAINT chk_pois_longitude CHECK (longitude BETWEEN -180 AND 180),
+    CONSTRAINT chk_pois_radius CHECK (trigger_radius > 0),
+    CONSTRAINT chk_pois_display_order CHECK (display_order >= 0),
+    CONSTRAINT chk_pois_version CHECK (content_version > 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE INDEX idx_pois_lat_lng ON POIS(latitude, longitude);
-
--- 7. Bảng Liên kết Địa điểm & Danh mục (N-N)
-CREATE TABLE POI_CATEGORIES (
-    poi_id INT NOT NULL,
-    category_id INT NOT NULL,
-    PRIMARY KEY (poi_id, category_id),
-    FOREIGN KEY (poi_id) REFERENCES POIS(poi_id) ON DELETE CASCADE,
-    FOREIGN KEY (category_id) REFERENCES CATEGORIES(category_id) ON DELETE CASCADE
-);
-
--- 8. Bảng Hình ảnh Địa điểm
-CREATE TABLE POI_IMAGES (
-    image_id INT AUTO_INCREMENT PRIMARY KEY,
-    poi_id INT NOT NULL,
-    image_url VARCHAR(500) NOT NULL,
-    caption VARCHAR(255),
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (poi_id) REFERENCES POIS(poi_id) ON DELETE CASCADE
-);
-
--- 9. [MOI] Bảng Yêu cầu chỉnh sửa Địa điểm
-CREATE TABLE POI_EDIT_REQUESTS (
-    edit_id INT AUTO_INCREMENT PRIMARY KEY,
-    poi_id INT NOT NULL,
-    name VARCHAR(255),
-    address VARCHAR(255),
-    latitude DECIMAL(10,8),
-    longitude DECIMAL(11,8),
-    trigger_radius INT,
-    opening_hours VARCHAR(100),
-    avatar_url VARCHAR(500),
-    status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
-    rejection_reason TEXT,
-    reviewed_by INT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (poi_id) REFERENCES POIS(poi_id) ON DELETE CASCADE,
-    FOREIGN KEY (reviewed_by) REFERENCES USERS(user_id) ON DELETE SET NULL
-);
-
--- 10. Bảng Đánh giá
-CREATE TABLE REVIEWS (
-    review_id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    poi_id INT NOT NULL,
-    rating INT NOT NULL CHECK (rating >= 1 AND rating <= 5),
-    comment TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id) REFERENCES USERS(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (poi_id) REFERENCES POIS(poi_id) ON DELETE CASCADE,
-    UNIQUE (user_id, poi_id)
-);
-
--- 11. Bảng Bản dịch Địa điểm
 CREATE TABLE POI_TRANSLATIONS (
-    translation_id INT AUTO_INCREMENT PRIMARY KEY,
+    translation_id INT NOT NULL AUTO_INCREMENT,
     poi_id INT NOT NULL,
     language_code VARCHAR(10) NOT NULL,
-    name VARCHAR(255),
-    description TEXT,
-    audio_script TEXT,
-    status ENUM('PENDING', 'APPROVED', 'REJECTED') NOT NULL DEFAULT 'APPROVED',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (poi_id) REFERENCES POIS(poi_id) ON DELETE CASCADE,
-    FOREIGN KEY (language_code) REFERENCES LANGUAGES(code) ON DELETE CASCADE,
-    UNIQUE (poi_id, language_code)
-);
-
--- 12. Bảng Audio
+    name VARCHAR(255) NULL,
+    description TEXT NULL,
+    audio_script TEXT NULL,
+    source_version INT NOT NULL,
+    status ENUM('PENDING', 'READY', 'FAILED') NOT NULL DEFAULT 'PENDING',
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (translation_id),
+    UNIQUE KEY uq_poi_translations_language (poi_id, language_code),
+    KEY idx_poi_translations_language (language_code),
+    CONSTRAINT chk_poi_translations_version CHECK (source_version > 0),
+    CONSTRAINT fk_poi_translations_poi FOREIGN KEY (poi_id)
+        REFERENCES POIS(poi_id) ON DELETE CASCADE,
+    CONSTRAINT fk_poi_translations_language FOREIGN KEY (language_code)
+        REFERENCES LANGUAGES(code) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE AUDIOS (
-    audio_id INT AUTO_INCREMENT PRIMARY KEY,
+    audio_id INT NOT NULL AUTO_INCREMENT,
     translation_id INT NOT NULL,
-    file_url VARCHAR(500) NOT NULL,
-    duration INT,
-    file_size INT,
+    file_url VARCHAR(500) NULL,
+    duration INT NULL,
+    file_size BIGINT NULL,
+    source_version INT NOT NULL,
     status ENUM('PENDING', 'AVAILABLE', 'FAILED') NOT NULL DEFAULT 'PENDING',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    FOREIGN KEY (translation_id) REFERENCES POI_TRANSLATIONS(translation_id) ON DELETE CASCADE,
-    UNIQUE (translation_id)
-);
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (audio_id),
+    UNIQUE KEY uq_audios_translation (translation_id),
+    CONSTRAINT chk_audios_duration CHECK (duration >= 0),
+    CONSTRAINT chk_audios_file_size CHECK (file_size >= 0),
+    CONSTRAINT chk_audios_version CHECK (source_version > 0),
+    CONSTRAINT fk_audios_translation FOREIGN KEY (translation_id)
+        REFERENCES POI_TRANSLATIONS(translation_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 13. Bảng Món ăn
-CREATE TABLE DISHES (
-    dish_id INT AUTO_INCREMENT PRIMARY KEY,
+CREATE TABLE CONTENT_JOBS (
+    job_id BIGINT NOT NULL AUTO_INCREMENT,
     poi_id INT NOT NULL,
-    name VARCHAR(255) NOT NULL,
-    price DECIMAL(12,2),
-    image_url VARCHAR(500),
-    description TEXT,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (poi_id) REFERENCES POIS(poi_id) ON DELETE CASCADE
-);
-
--- 14. Bảng Bản dịch Món ăn
-CREATE TABLE DISH_TRANSLATIONS (
-    translation_id INT AUTO_INCREMENT PRIMARY KEY,
-    dish_id INT NOT NULL,
     language_code VARCHAR(10) NOT NULL,
-    name VARCHAR(255),
-    description TEXT,
-    FOREIGN KEY (dish_id) REFERENCES DISHES(dish_id) ON DELETE CASCADE,
-    FOREIGN KEY (language_code) REFERENCES LANGUAGES(code) ON DELETE CASCADE,
-    UNIQUE (dish_id, language_code)
-);
+    source_version INT NOT NULL,
+    status ENUM('PENDING', 'PROCESSING', 'COMPLETED', 'FAILED') NOT NULL DEFAULT 'PENDING',
+    error_message TEXT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (job_id),
+    UNIQUE KEY uq_content_jobs_source (poi_id, language_code, source_version),
+    KEY idx_content_jobs_language (language_code),
+    KEY idx_content_jobs_status_updated (status, updated_at),
+    CONSTRAINT chk_content_jobs_version CHECK (source_version > 0),
+    CONSTRAINT fk_content_jobs_poi FOREIGN KEY (poi_id)
+        REFERENCES POIS(poi_id) ON DELETE CASCADE,
+    CONSTRAINT fk_content_jobs_language FOREIGN KEY (language_code)
+        REFERENCES LANGUAGES(code) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- =====================================================================
--- DU LIEU MAU (seed) - de nhom co san du lieu chay demo ngay, khong
--- phai tu tay nhap moi lan cai lai database.
--- =====================================================================
+CREATE TABLE TOURS (
+    tour_id INT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    description TEXT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (tour_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE TOUR_POIS (
+    tour_id INT NOT NULL,
+    poi_id INT NOT NULL,
+    sequence_no INT NOT NULL,
+    PRIMARY KEY (tour_id, poi_id),
+    UNIQUE KEY uq_tour_pois_sequence (tour_id, sequence_no),
+    KEY idx_tour_pois_poi (poi_id),
+    CONSTRAINT chk_tour_pois_sequence CHECK (sequence_no > 0),
+    CONSTRAINT fk_tour_pois_tour FOREIGN KEY (tour_id)
+        REFERENCES TOURS(tour_id) ON DELETE CASCADE,
+    CONSTRAINT fk_tour_pois_poi FOREIGN KEY (poi_id)
+        REFERENCES POIS(poi_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE KNOWLEDGE_DOCUMENTS (
+    document_id INT NOT NULL AUTO_INCREMENT,
+    title VARCHAR(255) NOT NULL,
+    content LONGTEXT NOT NULL,
+    source TEXT NULL,
+    status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'INACTIVE',
+    content_version INT NOT NULL DEFAULT 1,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (document_id),
+    CONSTRAINT chk_knowledge_documents_version CHECK (content_version > 0)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE KNOWLEDGE_CHUNKS (
+    chunk_id BIGINT NOT NULL AUTO_INCREMENT,
+    document_id INT NOT NULL,
+    chunk_text TEXT NOT NULL,
+    source_version INT NOT NULL,
+    embedding JSON NOT NULL,
+    embedding_model VARCHAR(100) NOT NULL,
+    PRIMARY KEY (chunk_id),
+    KEY idx_knowledge_chunks_document_version (document_id, source_version),
+    CONSTRAINT chk_knowledge_chunks_version CHECK (source_version > 0),
+    CONSTRAINT chk_knowledge_chunks_embedding CHECK (JSON_TYPE(embedding) = 'ARRAY'),
+    CONSTRAINT fk_knowledge_chunks_document FOREIGN KEY (document_id)
+        REFERENCES KNOWLEDGE_DOCUMENTS(document_id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE CHAT_LOGS (
+    chat_log_id BIGINT NOT NULL AUTO_INCREMENT,
+    session_id CHAR(36) NOT NULL,
+    question TEXT NOT NULL,
+    answer TEXT NULL,
+    sources JSON NULL,
+    status ENUM('SUCCESS', 'NO_CONTEXT', 'FAILED') NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (chat_log_id),
+    KEY idx_chat_logs_session_created (session_id, created_at),
+    KEY idx_chat_logs_created_at (created_at),
+    CONSTRAINT fk_chat_logs_session FOREIGN KEY (session_id)
+        REFERENCES VISIT_SESSIONS(session_id) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE BUNDLE_ACCESS_LOGS (
+    access_id BIGINT NOT NULL AUTO_INCREMENT,
+    session_id CHAR(36) NOT NULL,
+    language_code VARCHAR(10) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (access_id),
+    KEY idx_bundle_access_session_created (session_id, created_at),
+    KEY idx_bundle_access_language_created (language_code, created_at),
+    CONSTRAINT fk_bundle_access_session FOREIGN KEY (session_id)
+        REFERENCES VISIT_SESSIONS(session_id) ON DELETE RESTRICT,
+    CONSTRAINT fk_bundle_access_language FOREIGN KEY (language_code)
+        REFERENCES LANGUAGES(code) ON DELETE RESTRICT
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Minimal reference data only; this is not the complete multilingual acceptance dataset.
 INSERT INTO LANGUAGES (code, name, is_active) VALUES
     ('vi', 'Tiếng Việt', 1),
     ('en', 'English', 1);
 
--- Tạo admin bằng npm run bootstrap:admin và BOOTSTRAP_ADMIN_PASSWORD.
--- Không seed mật khẩu mặc định hoặc hash giả không thể đăng nhập.
-
-INSERT INTO CATEGORIES (name, description) VALUES
-    ('Món nước', 'Phở, bún, hủ tiếu...'),
-    ('Đồ nướng', 'Các món nướng, BBQ'),
-    ('Đồ uống', 'Cà phê, trà, nước ép');
+-- Service-layer responsibilities (not implemented by this DDL):
+-- 1. Normalize email, hash passwords/tokens, and enforce role permissions.
+-- 2. Verify payment callbacks; atomically mark PAID and activate the visit session.
+-- 3. Enforce session lifetime, token exchange/reissue, and Redis rate limits.
+-- 4. Validate READY text, AVAILABLE media, and current source versions.
+-- 5. Claim/retry jobs atomically; prevent stale workers from overwriting newer data.
+-- 6. Update Vietnamese names consistently and tour order transactionally.
+-- 7. Publish complete current knowledge chunks with compatible numeric embeddings.
+-- 8. Write audit logs without secrets and aggregate usage with defined semantics.

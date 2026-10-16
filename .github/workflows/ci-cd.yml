@@ -33,7 +33,7 @@ jobs:
           MYSQL_PWD: root
         run: |
           TABLE_COUNT=$(mysql -h 127.0.0.1 -u root -s -N -e "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema='food_tour_db';")
-          test "$TABLE_COUNT" -eq 15
+          test "$TABLE_COUNT" -eq 16
 
   ci-backend:
     name: CI - Backend (Node ${{ matrix.node-version }})
