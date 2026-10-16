@@ -1,0 +1,198 @@
+<mxfile host="app.diagrams.net">
+  <diagram id="component-detail" name="Component ba lớp">
+    <mxGraphModel dx="1776" dy="1028" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1830" pageHeight="1570" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;whiteSpace=wrap;fontFamily=Arial;fontSize=25;fillColor=#FFFFFF;strokeColor=none;" value="SƠ ĐỒ COMPONENT — HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ" vertex="1">
+          <mxGeometry height="42" width="1750" x="40" y="11" as="geometry" />
+        </mxCell>
+        <mxCell id="web" parent="1" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=21;" value="Ứng dụng web&lt;br&gt;Tham quan · Quản trị · Giám sát&lt;br&gt;Bản đồ · GPS · Audio" vertex="1">
+          <mxGeometry height="110" width="500" x="360" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="app" parent="1" style="html=1;whiteSpace=wrap;rounded=0;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;verticalAlign=top;spacingTop=12;align=left;spacingLeft=20;fontStyle=1;fontFamily=Arial;fontSize=24;" value="BACK-END NODE.JS / EXPRESS" vertex="1">
+          <mxGeometry height="1115" width="1370" x="30" y="230" as="geometry" />
+        </mxCell>
+        <mxCell id="router-layer" parent="app" style="html=1;whiteSpace=wrap;rounded=0;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;verticalAlign=top;spacingTop=12;align=left;spacingLeft=20;fontStyle=1;fontFamily=Arial;fontSize=22;" value="ROUTER — TIẾP NHẬN YÊU CẦU" vertex="1">
+          <mxGeometry height="205" width="980" x="40" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="router0" parent="router-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="Auth Router" vertex="1">
+          <mxGeometry height="55" width="220" x="25" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="router1" parent="router-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="Payment Router" vertex="1">
+          <mxGeometry height="55" width="220" x="260" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="router2" parent="router-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="Content Router" vertex="1">
+          <mxGeometry height="55" width="220" x="495" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="router3" parent="router-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="Tour Router" vertex="1">
+          <mxGeometry height="55" width="220" x="730" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="router4" parent="router-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="Chatbot Router" vertex="1">
+          <mxGeometry height="55" width="220" x="25" y="128" as="geometry" />
+        </mxCell>
+        <mxCell id="router5" parent="router-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="Admin Router" vertex="1">
+          <mxGeometry height="55" width="220" x="260" y="128" as="geometry" />
+        </mxCell>
+        <mxCell id="router6" parent="router-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="Monitoring&lt;br&gt;Router" vertex="1">
+          <mxGeometry height="55" width="220" x="495" y="128" as="geometry" />
+        </mxCell>
+        <mxCell id="service-layer" parent="app" style="html=1;whiteSpace=wrap;rounded=0;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;verticalAlign=top;spacingTop=12;align=left;spacingLeft=20;fontStyle=1;fontFamily=Arial;fontSize=22;" value="SERVICE — XỬ LÝ NGHIỆP VỤ" vertex="1">
+          <mxGeometry height="225" width="980" x="40" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="service0" parent="service-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="AuthService" vertex="1">
+          <mxGeometry height="60" width="220" x="25" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="service1" parent="service-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="PaymentService" vertex="1">
+          <mxGeometry height="60" width="220" x="260" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="service2" parent="service-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="ContentService" vertex="1">
+          <mxGeometry height="60" width="220" x="495" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="service3" parent="service-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="TourService" vertex="1">
+          <mxGeometry height="60" width="220" x="730" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="service4" parent="service-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="RagService" vertex="1">
+          <mxGeometry height="60" width="220" x="25" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="service5" parent="service-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="AuditService" vertex="1">
+          <mxGeometry height="60" width="220" x="260" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="service6" parent="service-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="Monitoring&lt;br&gt;Service" vertex="1">
+          <mxGeometry height="60" width="220" x="495" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="service7" parent="service-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=19;" value="PipelineService" vertex="1">
+          <mxGeometry height="60" width="220" x="730" y="135" as="geometry" />
+        </mxCell>
+        <mxCell id="store-layer" parent="app" style="html=1;whiteSpace=wrap;rounded=0;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;verticalAlign=top;spacingTop=12;align=left;spacingLeft=20;fontStyle=1;fontFamily=Arial;fontSize=22;" value="STORE — TRUY CẬP DỮ LIỆU" vertex="1">
+          <mxGeometry height="335" width="980" x="40" y="670" as="geometry" />
+        </mxCell>
+        <mxCell id="store0" parent="store-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=18;" value="AuthStore&lt;br&gt;User / Refresh token" vertex="1">
+          <mxGeometry height="70" width="295" x="25" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="store1" parent="store-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=18;" value="PaymentStore&lt;br&gt;Thanh toán / Phiên khách" vertex="1">
+          <mxGeometry height="70" width="295" x="340" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="store2" parent="store-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=18;" value="ContentStore&lt;br&gt;POI / Bản dịch / Audio" vertex="1">
+          <mxGeometry height="70" width="295" x="655" y="58" as="geometry" />
+        </mxCell>
+        <mxCell id="store3" parent="store-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=18;" value="TourStore&lt;br&gt;Tour / Thứ tự POI" vertex="1">
+          <mxGeometry height="70" width="295" x="25" y="143" as="geometry" />
+        </mxCell>
+        <mxCell id="store4" parent="store-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=18;" value="KnowledgeStore&lt;br&gt;Tài liệu / Đoạn kiến thức" vertex="1">
+          <mxGeometry height="70" width="295" x="340" y="143" as="geometry" />
+        </mxCell>
+        <mxCell id="store5" parent="store-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=18;" value="JobStore&lt;br&gt;Tác vụ xử lý nội dung" vertex="1">
+          <mxGeometry height="70" width="295" x="655" y="143" as="geometry" />
+        </mxCell>
+        <mxCell id="store6" parent="store-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=18;" value="AuditLogStore&lt;br&gt;Nhật ký thao tác" vertex="1">
+          <mxGeometry height="70" width="295" x="25" y="228" as="geometry" />
+        </mxCell>
+        <mxCell id="store7" parent="store-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=18;" value="MonitoringStore&lt;br&gt;Truy vấn số liệu tổng hợp" vertex="1">
+          <mxGeometry height="70" width="295" x="340" y="228" as="geometry" />
+        </mxCell>
+        <mxCell id="store8" parent="store-layer" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=18;" value="RedisStore&lt;br&gt;Mã tạm / Rate limit" vertex="1">
+          <mxGeometry height="70" width="295" x="655" y="228" as="geometry" />
+        </mxCell>
+        <mxCell id="worker" parent="app" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=21;" value="Xử lý nền&lt;br&gt;Dịch và tạo audio" vertex="1">
+          <mxGeometry height="110" width="250" x="1085" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="adapters" parent="app" style="html=1;whiteSpace=wrap;rounded=0;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;verticalAlign=top;spacingTop=12;align=left;spacingLeft=20;fontStyle=1;fontFamily=Arial;fontSize=22;" value="ADAPTER" vertex="1">
+          <mxGeometry height="610" width="280" x="1070" y="360" as="geometry" />
+        </mxCell>
+        <mxCell id="payment-adapter" parent="adapters" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=20;" value="PaymentGateway&lt;br&gt;Adapter / Mock" vertex="1">
+          <mxGeometry height="90" width="240" x="20" y="60" as="geometry" />
+        </mxCell>
+        <mxCell id="translation-adapter" parent="adapters" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=20;" value="Translation / TTS&lt;br&gt;Adapters" vertex="1">
+          <mxGeometry height="90" width="240" x="20" y="200" as="geometry" />
+        </mxCell>
+        <mxCell id="rag-adapter" parent="adapters" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=20;" value="Embedding / LLM&lt;br&gt;Adapters" vertex="1">
+          <mxGeometry height="90" width="240" x="20" y="340" as="geometry" />
+        </mxCell>
+        <mxCell id="media-adapter" parent="adapters" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=20;" value="MediaStorage&lt;br&gt;Adapter" vertex="1">
+          <mxGeometry height="90" width="240" x="20" y="480" as="geometry" />
+        </mxCell>
+        <mxCell id="iJomuKMCr1T5ii70xeDx-1" edge="1" parent="app" source="middleware-note" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;innerLoopWaypoints=1;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.25;entryY=0.533;entryDx=0;entryDy=0;entryPerimeter=0;" target="middleware-note">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="middleware-note" parent="app" style="text;html=1;align=center;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fillColor=#FFFFFF;strokeColor=none;" value="Xác thực, phân quyền và xử lý lỗi bằng middleware" vertex="1">
+          <mxGeometry height="30" width="930" x="65" y="45" as="geometry" />
+        </mxCell>
+        <mxCell id="gateway" parent="1" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=20;" value="Cổng thanh toán&lt;br&gt;Nhà cung cấp" vertex="1">
+          <mxGeometry height="90" width="330" x="1470" y="650" as="geometry" />
+        </mxCell>
+        <mxCell id="translation" parent="1" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=20;" value="Dịch vụ dịch máy&lt;br&gt;và TTS" vertex="1">
+          <mxGeometry height="90" width="330" x="1470" y="790" as="geometry" />
+        </mxCell>
+        <mxCell id="rag" parent="1" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=20;" value="Dịch vụ embedding&lt;br&gt;và LLM" vertex="1">
+          <mxGeometry height="90" width="330" x="1470" y="930" as="geometry" />
+        </mxCell>
+        <mxCell id="media" parent="1" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=20;" value="Kho tệp&lt;br&gt;Ảnh và audio" vertex="1">
+          <mxGeometry height="90" width="330" x="1470" y="1070" as="geometry" />
+        </mxCell>
+        <mxCell id="mysql" parent="1" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=22;" value="MySQL&lt;br&gt;Dữ liệu nghiệp vụ" vertex="1">
+          <mxGeometry height="100" width="330" x="255" y="1400" as="geometry" />
+        </mxCell>
+        <mxCell id="redis" parent="1" style="shape=component;html=1;whiteSpace=wrap;align=center;spacing=12;fillColor=#FFFFFF;strokeColor=#424B57;strokeWidth=1.5;fontFamily=Arial;fontSize=22;" value="Redis&lt;br&gt;Mã có TTL / Rate limit" vertex="1">
+          <mxGeometry height="100" width="330" x="780" y="1400" as="geometry" />
+        </mxCell>
+        <mxCell id="client-api" edge="1" parent="1" source="web" style="html=1;rounded=0;dashed=1;endArrow=open;endFill=0;strokeWidth=1.5;strokeColor=#424B57;exitX=0.5;exitY=1.0;entryX=0.5510204081632653;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" target="router-layer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="api-label" parent="1" style="text;html=1;align=center;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fillColor=#FFFFFF;strokeColor=none;" value="HTTP / JSON" vertex="1">
+          <mxGeometry height="28" width="200" x="660" y="194" as="geometry" />
+        </mxCell>
+        <mxCell id="router-service" edge="1" parent="1" source="router-layer" style="html=1;rounded=0;dashed=1;endArrow=open;endFill=0;strokeWidth=1.5;strokeColor=#424B57;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" target="service-layer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="call-business" parent="1" style="text;html=1;align=center;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fillColor=#FFFFFF;strokeColor=none;" value="Gọi nghiệp vụ" vertex="1">
+          <mxGeometry height="30" width="200" x="570" y="536" as="geometry" />
+        </mxCell>
+        <mxCell id="service-store" edge="1" parent="1" source="service-layer" style="html=1;rounded=0;dashed=1;endArrow=open;endFill=0;strokeWidth=1.5;strokeColor=#424B57;exitX=0.5;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" target="store-layer">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="data-label" parent="1" style="text;html=1;align=center;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fillColor=#FFFFFF;strokeColor=none;" value="Yêu cầu truy cập dữ liệu" vertex="1">
+          <mxGeometry height="30" width="300" x="590" y="842" as="geometry" />
+        </mxCell>
+        <mxCell id="worker-pipeline" edge="1" parent="1" source="worker" style="html=1;rounded=0;dashed=1;endArrow=open;endFill=0;strokeWidth=1.5;strokeColor=#424B57;exitX=0.0;exitY=0.5;entryX=1.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" target="service7">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="1080" y="400" />
+              <mxPoint x="1080" y="755" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="worker-label" parent="1" style="text;html=1;align=center;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fillColor=#FFFFFF;strokeColor=none;" value="Gọi PipelineService" vertex="1">
+          <mxGeometry height="30" width="260" x="1105" y="478" as="geometry" />
+        </mxCell>
+        <mxCell id="service-adapter" edge="1" parent="1" source="service-layer" style="html=1;rounded=0;dashed=1;endArrow=open;endFill=0;strokeWidth=1.5;strokeColor=#424B57;exitX=1.0;exitY=0.4666666666666667;entryX=0.0;entryY=0.1721311475409836;exitPerimeter=0;entryPerimeter=0;" target="adapters">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="external-payment-adapter" edge="1" parent="1" source="payment-adapter" style="html=1;rounded=0;dashed=1;endArrow=open;endFill=0;strokeWidth=1.5;strokeColor=#424B57;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" target="gateway">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="external-translation-adapter" edge="1" parent="1" source="translation-adapter" style="html=1;rounded=0;dashed=1;endArrow=open;endFill=0;strokeWidth=1.5;strokeColor=#424B57;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" target="translation">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="external-rag-adapter" edge="1" parent="1" source="rag-adapter" style="html=1;rounded=0;dashed=1;endArrow=open;endFill=0;strokeWidth=1.5;strokeColor=#424B57;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" target="rag">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="external-media-adapter" edge="1" parent="1" source="media-adapter" style="html=1;rounded=0;dashed=1;endArrow=open;endFill=0;strokeWidth=1.5;strokeColor=#424B57;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;exitPerimeter=0;entryPerimeter=0;" target="media">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sql" edge="1" parent="1" source="store-layer" style="html=1;rounded=0;dashed=1;endArrow=open;endFill=0;strokeWidth=1.5;strokeColor=#424B57;exitX=0.35714285714285715;exitY=1.0;entryX=0.5;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" target="mysql">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="sql-label" parent="1" style="text;html=1;align=center;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fillColor=#FFFFFF;strokeColor=none;" value="Truy vấn SQL" vertex="1">
+          <mxGeometry height="30" width="200" x="435" y="1355" as="geometry" />
+        </mxCell>
+        <mxCell id="redis-access" edge="1" parent="1" source="store8" style="html=1;rounded=0;dashed=1;endArrow=open;endFill=0;strokeWidth=1.5;strokeColor=#424B57;exitX=0.5;exitY=1.0;entryX=0.2803030303030303;entryY=0.0;exitPerimeter=0;entryPerimeter=0;" target="redis">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="redis-label" parent="1" style="text;html=1;align=center;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fillColor=#FFFFFF;strokeColor=none;" value="Thao tác Redis" vertex="1">
+          <mxGeometry height="30" width="230" x="885" y="1355" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

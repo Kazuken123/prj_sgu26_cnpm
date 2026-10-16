@@ -1,28 +1,68 @@
-# Hệ thống du lịch ẩm thực có thuyết minh đa ngôn ngữ
+# Hệ thống tự động thuyết minh đa ngôn ngữ cho Chùa Linh Ứng
 
-Nhóm chọn phần backend 3 lớp và CI/CD. Bản hiện tại tập trung US-01–03: đăng ký khách/chủ quán, đăng nhập, refresh/logout, xem tài khoản và trạng thái đơn owner, cùng nền phân quyền. POI, duyệt owner, đa ngôn ngữ và TTS sẽ triển khai ở các US tiếp theo.
+Đồ án môn **Công nghệ phần mềm**, xây dựng ứng dụng web hỗ trợ khách tham quan tiếp cận nội dung theo vị trí và ngôn ngữ lựa chọn. Trọng tâm kỹ thuật là Back-end ba lớp **Router–Service–Store**, kiểm thử tự động và quy trình CI/CD.
 
-## Kiến trúc
+## Tổng quan sản phẩm
 
-Luồng xử lý: Client → Router → Service → Store → MySQL.
+Hệ thống được thiết kế cho ba nhóm người dùng:
 
-- `routers/`: nhận HTTP, gọi Service và trả response.
-- `services/`: validation và quy tắc tài khoản, khóa sau 5 lần sai trong 15 phút, token và quyền owner.
-- `stores/`: SQL và transaction. Tạo user + đơn owner được commit/rollback cùng nhau. Đăng nhập khóa hàng user để cập nhật số lần sai chính xác khi có nhiều request.
-- `middlewares/`: xác thực qua Service, kiểm tra vai trò, guard owner đã được duyệt và xử lý lỗi.
-- `scripts/check.js`: kiểm tra cú pháp tất cả file JS backend, dependency tương đối và ranh giới import giữa các tầng. Đây không phải ESLint hoặc kiểm chứng kiến trúc đầy đủ.
+- **Khách tham quan:** quét QR, thanh toán để nhận quyền truy cập, xem bản đồ và POI, đọc nội dung, nghe thuyết minh, tùy chỉnh lộ trình và hỏi chatbot.
+- **Nhân viên (STAFF):** tạo hoặc chọn phiên tham quan chờ, xác nhận tiền mặt và quản lý dữ liệu tham quan theo quyền.
+- **Quản trị viên (ADMIN):** quản lý tài khoản nhân viên, xem nhật ký thao tác và theo dõi sức khỏe, tình hình sử dụng hệ thống.
 
-Access token JWT có thời hạn 1 giờ, xác minh HS256/issuer/audience. Refresh token ngẫu nhiên có thời hạn tuyệt đối 7 ngày; database chỉ lưu SHA-256. Refresh đổi token một lần sử dụng. Logout thu hồi phiên, khiến access token của phiên đó cũng không còn dùng được. Vai trò/trạng thái tài khoản được đọc lại từ database mỗi request có xác thực.
+Các nhóm chức năng của sản phẩm gồm thanh toán và phiên tham quan, bản đồ/GPS, thuyết minh đa ngôn ngữ, pipeline dịch và tạo audio, lộ trình tham quan, chatbot RAG, quản trị và monitoring. Nội dung văn bản và audio được chuẩn bị trước; dữ liệu tham quan được cung cấp cho giao diện qua content bundle.
 
-Token của phiên bản cũ không có session/issuer/audience nên cần đăng nhập lại sau khi nâng cấp.
+## Kiến trúc và công nghệ
 
-Owner PENDING được đăng nhập và xem đơn của mình. Guard `requireApprovedOwner` chỉ cho phép nghiệp vụ quán khi user ACTIVE và đơn mới nhất APPROVED; sẽ gắn vào router nghiệp vụ ở US tiếp theo. Quyền sở hữu từng POI chưa nằm trong bản này.
+Back-end được tổ chức trong một ứng dụng Express, với chiều phụ thuộc chính:
 
-## Chạy local với database đã có
+```text
+Ứng dụng web → Router → Service → Store → MySQL / Redis
+                           └→ Adapter → Dịch vụ bên ngoài
+```
 
-Yêu cầu Node.js 20 hoặc 22 và MySQL 8. Local đã được kiểm tra thêm với Node 24.21.0 và MariaDB 10.4.32.
+- **Router:** tiếp nhận HTTP, áp dụng middleware và trả phản hồi.
+- **Service:** kiểm tra dữ liệu, điều kiện và quy tắc nghiệp vụ.
+- **Store:** truy cập dữ liệu, thực hiện transaction và thao tác nguyên tử khi cần.
+- **Adapter:** bao gói giao tiếp với dịch vụ thanh toán, dịch, TTS, AI và kho tệp.
 
-Chạy trong PowerShell:
+Thiết kế sử dụng JavaScript, Node.js, Express, MySQL và Redis. Giao diện web dùng HTML, CSS, JavaScript, Leaflet và OpenStreetMap. Docker, Docker Compose và GitHub Actions phục vụ đóng gói, kiểm thử và triển khai.
+
+Phiên đăng nhập nội bộ và phiên tham quan được quản lý độc lập. Xác thực tài khoản nội bộ sử dụng mật khẩu băm bằng bcrypt, access token JWT và refresh token được lưu dạng hash.
+
+## Cấu trúc thư mục
+
+```text
+prj_sgu26_cnpm/
+├── .github/workflows/    Cấu hình GitHub Actions
+├── backend/
+│   ├── config/          Cấu hình ứng dụng và kết nối
+│   ├── routers/         Tiếp nhận yêu cầu HTTP
+│   ├── services/        Xử lý nghiệp vụ
+│   ├── stores/          Truy cập dữ liệu
+│   ├── middlewares/     Xác thực, phân quyền và xử lý lỗi
+│   ├── utils/           Thành phần dùng chung
+│   ├── scripts/         Công cụ kiểm tra và quản trị
+│   ├── tests/           Kiểm thử tự động
+│   └── server.js        Khởi tạo ứng dụng
+├── database/
+│   ├── init_db.sql      Schema và dữ liệu khởi tạo
+│   └── migrations/      Các thay đổi cơ sở dữ liệu
+├── docs/
+│   └── diagram/         Sơ đồ phân tích và thiết kế
+├── frontend/            Giao diện web
+├── .env.example         Mẫu cấu hình Docker Compose
+└── docker-compose.yml   Cấu hình các dịch vụ container
+```
+
+## Cài đặt và chạy
+
+### Chạy với Node.js và MySQL
+
+Sử dụng Node.js tương thích với cấu hình trong `.github/workflows/ci-cd.yml`, npm và MySQL 8.
+
+1. Tạo database riêng cho dự án và nạp `database/init_db.sql` bằng công cụ quản trị MySQL. Script này có lệnh `DROP TABLE`, chỉ dùng để khởi tạo database mới, không dùng để nâng cấp dữ liệu cần giữ.
+2. Cài thư viện và tạo cấu hình tại thư mục `backend`:
 
 ```powershell
 cd backend
@@ -30,86 +70,72 @@ npm ci
 if (-not (Test-Path .env)) { Copy-Item .env.example .env }
 ```
 
-Điền `DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME` và `JWT_SECRET` trong `backend/.env`. Giữ cấu hình database hiện có của nhóm nếu đã có file này. Sinh secret riêng bằng:
+3. Điền thông tin kết nối database và `JWT_SECRET` trong `backend/.env`. Có thể sinh secret bằng:
 
 ```powershell
 node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
 ```
 
-Với database đã có USERS và OWNER_REQUESTS, chỉ chạy migration bổ sung:
+4. Khởi động ứng dụng:
 
 ```powershell
-npm run db:migrate
 npm start
 ```
 
-Migration có thể chạy lại; chỉ tạo REFRESH_TOKENS nếu chưa có. `database/init_db.sql` dành cho database mới/test, có DROP TABLE và không dùng để nâng cấp database chứa dữ liệu đang cần giữ. Thời gian khóa và hết hạn phiên trong bản mới được ghi/đọc theo UTC.
+Các địa chỉ mặc định:
 
-Mở `http://localhost:3000/demo/` để đăng ký, đăng nhập, xem tài khoản, xem đơn owner và đăng xuất. Giao diện dùng sessionStorage để lưu token trong tab demo, không in token vào console. Trang dashboard địa điểm cũ chưa kết nối được vì POI API chưa triển khai; đăng nhập hiện đi tới trang tài khoản.
+- Giao diện web: `http://localhost:3000/demo/`
+- Liveness: `http://localhost:3000/health`
+- Readiness: `http://localhost:3000/health/ready`
 
-Tạo admin bằng cách đặt `BOOTSTRAP_ADMIN_EMAIL` và `BOOTSTRAP_ADMIN_PASSWORD` trong môi trường hoặc `backend/.env`, rồi chạy `npm run bootstrap:admin`. Chỉ chạy chủ động khi cần tài khoản admin; script không nâng vai trò tourist và không đổi mật khẩu admin hợp lệ đã có. Nếu đúng hash placeholder của seed cũ, lệnh sẽ thay hash giả bằng mật khẩu bạn cung cấp. Seed mới không chứa hash giả hoặc mật khẩu admin mặc định.
+Các lệnh quản trị được chạy trong `backend`:
 
-## API của US-01–03
+- `npm run db:migrate`: thực hiện migration được cấu hình trong script của dự án.
+- `npm run bootstrap:admin`: tạo tài khoản quản trị từ `BOOTSTRAP_ADMIN_EMAIL` và `BOOTSTRAP_ADMIN_PASSWORD`. Cấu hình các biến này trước khi chạy; không sử dụng mật khẩu mặc định.
 
-Response thành công đăng ký/đăng nhập/refresh dùng `{ message, data }`; lỗi dùng `{ code, error }`.
+### Chạy bằng Docker Compose
 
-- `POST /api/auth/register`: email, password; fullName và phoneNumber tùy chọn. Vai trò luôn TOURIST.
-- `POST /api/auth/register-owner`: thêm restaurantName, restaurantAddress, phoneNumber bắt buộc. Vai trò OWNER, trạng thái PENDING.
-- `POST /api/auth/login`: email, password. Trả `data.user`, `data.accessToken`, `data.refreshToken`.
-- `POST /api/auth/refresh`: refreshToken. Trả cặp token mới; token refresh cũ không dùng lại.
-- `POST /api/auth/logout`: refreshToken hiện tại. Trả 204; có thể gọi lại.
-- `GET /api/auth/me`: Bearer access token.
-- `GET /api/auth/owner-request/status`: Bearer access token của OWNER; trả status, rejectionReason, restaurantName.
-- `GET /health`: liveness.
-- `GET /health/ready`: database và các bảng auth sẵn sàng; lỗi trả 503.
+Thực hiện tại thư mục gốc repository:
 
-Các trạng thái lỗi chính: 400 dữ liệu/JSON sai, 401 xác thực không hợp lệ, 403 sai quyền hoặc tài khoản bị admin khóa, 409 trùng email, 423 khóa tạm sau 5 lần sai, 500 lỗi server, 503 chưa sẵn sàng. Mật khẩu tối thiểu 8 ký tự, tối đa 72 bytes UTF-8 để tránh bcrypt cắt ngắn mật khẩu.
+```powershell
+if (-not (Test-Path .env)) { Copy-Item .env.example .env }
+# Điền MYSQL_ROOT_PASSWORD, DB_PASSWORD và JWT_SECRET trước khi khởi động.
+docker compose up -d --build
+```
+
+Compose sử dụng `.env` ở thư mục gốc; ứng dụng chạy trực tiếp bằng Node.js sử dụng `backend/.env`. Cổng MySQL phía máy chủ mặc định là `3307`, có thể thay bằng `MYSQL_HOST_PORT`. Dữ liệu MySQL được duy trì trong volume `db_data`.
 
 ## Kiểm thử
 
+Thực hiện tại thư mục `backend`:
+
 ```powershell
-cd backend
 npm run lint
 npm test
+```
+
+`npm run lint` chạy bộ kiểm tra cú pháp và ranh giới dependency của dự án.
+
+Để chạy kiểm thử tích hợp với MySQL:
+
+```powershell
 $env:RUN_DB_TESTS = '1'
 npm run test:integration
 ```
 
-Integration test cần tài khoản database có quyền tạo/xóa database thử nghiệm. Mỗi lần chạy tạo tên ngẫu nhiên `food_tour_auth_test_<uuid>`, nạp schema vào đó và chỉ xóa database này khi kết thúc. Không nạp init_db.sql vào DB_NAME của nhóm.
+Kiểm thử tích hợp cần thông tin kết nối và quyền tạo/xóa database thử nghiệm. Database thử được tạo riêng, không dùng database nghiệp vụ của nhóm.
 
-CI đặt RUN_DB_TESTS=1 nên lỗi kết nối/schema sẽ làm test thất bại, không âm thầm bỏ qua integration. Khi chạy npm test thông thường mà không đặt biến này, nhóm integration được bỏ qua.
+## Tài liệu và quy ước
 
-Một số môi trường sandbox chặn tạo test worker với lỗi spawn EPERM. Trên Node 24 có thể chạy:
+- Sơ đồ Component: [component_diagram.drawio](docs/diagram/component_diagram.drawio).
+- Sơ đồ Activity: [`docs/diagram/activity/`](docs/diagram/activity/).
+- Sơ đồ Use Case: [`docs/diagram/use case/`](docs/diagram/use%20case/).
+- Cấu hình workflow: [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml).
+- Thay đổi schema được quản lý bằng migration; các phần yêu cầu, thiết kế và kiểm thử cần được cập nhật nhất quán.
+- Không commit file `.env`, mật khẩu, token hoặc khóa dịch vụ.
 
-```powershell
-$env:RUN_DB_TESTS = '1'
-node --test --experimental-test-isolation=none tests/*.test.js
-```
+## Thành viên
 
-Không thêm tùy chọn này vào script CI vì CI vẫn dùng Node 20/22.
-
-## Docker và pipeline
-
-Docker build context là thư mục gốc repo:
-
-```powershell
-if (-not (Test-Path .env)) { Copy-Item .env.example .env }
-# Điền MYSQL_ROOT_PASSWORD, DB_PASSWORD và JWT_SECRET riêng.
-docker compose up -d --build
-```
-
-Root `.env` dành cho Compose, khác với `backend/.env` dành cho chạy local. Production yêu cầu JWT_SECRET ít nhất 32 bytes. MySQL trong Compose công bố cổng local 3307 mặc định để có thể cùng tồn tại với MySQL/MariaDB local trên 3306. Có thể đặt MYSQL_HOST_PORT nếu cần cổng khác. Docker context loại trừ .env và node_modules; frontend demo và migration được đưa vào image.
-
-Workflow hiện tại:
-
-1. Push mọi nhánh và PR nhắm main/master chạy kiểm tra.
-2. MySQL 8 và Node 20/22 chạy syntax/import checks, unit/HTTP/integration tests.
-3. Khi push main đạt kiểm tra, build image và đóng gói đầy đủ runtime, frontend, SQL/migration và cấu hình Compose.
-4. Job sau tải chính artifact đó, chạy container, kiểm tra readiness và đăng ký → login → refresh → logout.
-5. Container CI được dọn sau khi kiểm tra. Đây là release smoke test, chưa phải staging tồn tại lâu dài theo US-18.
-
-Required checks để chặn merge phải được cấu hình trên GitHub; file workflow không tự tạo branch protection. Chưa có bằng chứng chạy workflow remote hoặc Docker build trong lần sửa local này.
-
-## Phạm vi tài liệu
-
-SQL hiện có 15 bảng, gồm bảng phiên REFRESH_TOKENS. Báo cáo/ERD cũ còn cần đồng bộ mô hình dữ liệu và phạm vi FE demo; không dùng các sơ đồ cũ để kết luận bản hiện tại đã triển khai POI/TTS hay staging.
+- Lê Văn Hiếu
+- Lê Đức Anh
+- Dương Gia Phát
