@@ -1,0 +1,31 @@
+<mxfile host="app.diagrams.net">
+  <diagram name="Page-1" id="fv3VkQq90-1NTbUNDrt1">
+    <mxGraphModel dx="964" dy="664" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="ul7Wgq7teNnBnMyketVj-3" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Quản trị viên&amp;nbsp;&lt;div&gt;(ADMIN)&lt;/div&gt;" vertex="1">
+          <mxGeometry height="60" width="30" x="90" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="ul7Wgq7teNnBnMyketVj-6" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="" vertex="1">
+          <mxGeometry height="375" width="375" x="180" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="ul7Wgq7teNnBnMyketVj-8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;Hệ Thống thuyết minh đa ngôn ngữ Chùa Linh Ứng&lt;/b&gt;" vertex="1">
+          <mxGeometry height="30" width="300" x="200" y="50" as="geometry" />
+        </mxCell>
+        <mxCell id="ul7Wgq7teNnBnMyketVj-9" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="" vertex="1">
+          <mxGeometry height="80" width="170" x="282.5" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="ul7Wgq7teNnBnMyketVj-10" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Giám sát sức khoẻ và ứng dụng" vertex="1">
+          <mxGeometry height="30" width="100" x="310" y="185" as="geometry" />
+        </mxCell>
+        <mxCell id="ul7Wgq7teNnBnMyketVj-11" edge="1" parent="1" source="ul7Wgq7teNnBnMyketVj-9" style="endArrow=none;html=1;rounded=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;exitX=0.021;exitY=0.35;exitDx=0;exitDy=0;exitPerimeter=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="195" y="224.16333333333324" as="sourcePoint" />
+            <mxPoint x="120" y="175.82999999999998" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
