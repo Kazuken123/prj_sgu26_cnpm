@@ -1,22 +1,40 @@
-<mxfile host="app.diagrams.net">
-  <diagram id="UC-05 Nghe thuyết minh thủ công" name="UC-05 Nghe thuyết minh thủ công">
-    <mxGraphModel dx="1200" dy="700" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1050" pageHeight="460" math="0" shadow="0">
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" modified="2026-10-18T12:00:00.000Z" agent="Mozilla/5.0" version="24.7.0" type="device"><diagram id="uc05-uc" name="UC-05_UseCase">
+
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" page="1" pageWidth="850" pageHeight="380">
+
       <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-        <mxCell id="boundary" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=19;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=0;verticalAlign=top;spacingTop=20;fontStyle=1;fillColor=none;" value="HỆ THỐNG TỰ ĐỘNG THUYẾT MINH ĐA NGÔN NGỮ&lt;br&gt;CHO CHÙA LINH ỨNG" vertex="1">
-          <mxGeometry height="380" width="750" x="250" y="40" as="geometry" />
+
+        <mxCell id="0" /><mxCell id="1" parent="0" />
+
+        <mxCell id="sys" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ CHÙA LINH ỨNG&#10;UC-05 — Nghe thuyết minh thủ công" style="shape=rect;html=1;verticalAlign=top;fontStyle=1;whiteSpace=wrap;align=center;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=12;spacingTop=8;" vertex="1" parent="1">
+
+          <mxGeometry x="220" y="40" width="460" height="240" as="geometry" />
+
         </mxCell>
-        <mxCell id="tourist" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;" value="Khách tham quan" vertex="1">
-          <mxGeometry height="90" width="55" x="100" y="190" as="geometry" />
+
+        <mxCell id="actor" value="Khách tham quan" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#334155;fillColor=#ffffff;fontColor=#0f172a;fontFamily=Arial;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+
+          <mxGeometry x="90" y="125" width="35" height="70" as="geometry" />
+
         </mxCell>
-        <mxCell id="uc_node" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=20;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;ellipse;" value="UC-05&lt;br&gt;Nghe thuyết minh thủ công" vertex="1">
-          <mxGeometry height="90" width="350" x="450" y="190" as="geometry" />
+
+        <mxCell id="uc_main" value="Nghe thuyết minh thủ công" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+
+          <mxGeometry x="340" y="130" width="220" height="70" as="geometry" />
+
         </mxCell>
-        <mxCell id="assoc" edge="1" parent="1" source="tourist" style="html=1;rounded=0;endArrow=none;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;fontFamily=Arial;fontSize=16;exitX=1.0;exitY=0.5;exitPerimeter=0;entryX=0.0;entryY=0.5;entryPerimeter=0;" target="uc_node">
-          <mxGeometry relative="1" as="geometry" />
-        </mxCell>
+
+        <mxCell id="rel1" style="endArrow=none;html=1;strokeColor=#334155;" edge="1" parent="1" source="actor" target="uc_main"><mxGeometry relative="1" as="geometry" /></mxCell>
+
       </root>
+
     </mxGraphModel>
+
   </diagram>
-</mxfile>
+
+
+
+  
+
+  </mxfile>

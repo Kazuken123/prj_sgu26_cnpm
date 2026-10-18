@@ -1,0 +1,261 @@
+<mxfile host="app.diagrams.net" modified="2026-10-18T12:00:00.000Z" agent="Mozilla/5.0" version="24.7.0" type="device">
+
+  <!-- UC-03 USE CASE -->
+
+  <diagram id="uc03-uc" name="UC-03_UseCase">
+
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" page="1" pageWidth="850" pageHeight="420">
+
+      <root>
+
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="sys" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ CHÙA LINH ỨNG&#xa;UC-03 — Xem bản đồ và thông tin POI" style="shape=rect;html=1;verticalAlign=top;fontStyle=1;whiteSpace=wrap;align=center;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=12;spacingTop=8;" vertex="1" parent="1">
+
+          <mxGeometry x="220" y="40" width="520" height="280" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="actor" value="Khách tham quan" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#334155;fillColor=#ffffff;fontColor=#0f172a;fontFamily=Arial;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+
+          <mxGeometry x="90" y="135" width="35" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="uc_main" value="Xem bản đồ và&#xa;thông tin POI" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+
+          <mxGeometry x="290" y="140" width="180" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="uc_ext" value="Nghe thuyết minh&#xa;thủ công" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+
+          <mxGeometry x="540" y="140" width="160" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="rel1" style="endArrow=none;html=1;strokeColor=#334155;" edge="1" parent="1" source="actor" target="uc_main"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="rel2" value="«extend»" style="endArrow=open;endSize=10;dashed=1;html=1;strokeColor=#334155;fontFamily=Arial;fontSize=10;" edge="1" parent="1" source="uc_ext" target="uc_main"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+
+    </mxGraphModel>
+
+  </diagram>
+
+
+
+  <!-- UC-04 USE CASE -->
+
+  <diagram id="uc04-uc" name="UC-04_UseCase">
+
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" page="1" pageWidth="850" pageHeight="380">
+
+      <root>
+
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="sys" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ CHÙA LINH ỨNG&#xa;UC-04 — Lựa chọn ngôn ngữ" style="shape=rect;html=1;verticalAlign=top;fontStyle=1;whiteSpace=wrap;align=center;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=12;spacingTop=8;" vertex="1" parent="1">
+
+          <mxGeometry x="220" y="40" width="460" height="240" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="actor" value="Khách tham quan" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#334155;fillColor=#ffffff;fontColor=#0f172a;fontFamily=Arial;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+
+          <mxGeometry x="90" y="125" width="35" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="uc_main" value="Lựa chọn ngôn ngữ" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+
+          <mxGeometry x="350" y="130" width="200" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="rel1" style="endArrow=none;html=1;strokeColor=#334155;" edge="1" parent="1" source="actor" target="uc_main"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+
+    </mxGraphModel>
+
+  </diagram>
+
+
+
+  <!-- UC-05 USE CASE -->
+
+  <diagram id="uc05-uc" name="UC-05_UseCase">
+
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" page="1" pageWidth="850" pageHeight="380">
+
+      <root>
+
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="sys" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ CHÙA LINH ỨNG&#xa;UC-05 — Nghe thuyết minh thủ công" style="shape=rect;html=1;verticalAlign=top;fontStyle=1;whiteSpace=wrap;align=center;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=12;spacingTop=8;" vertex="1" parent="1">
+
+          <mxGeometry x="220" y="40" width="460" height="240" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="actor" value="Khách tham quan" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#334155;fillColor=#ffffff;fontColor=#0f172a;fontFamily=Arial;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+
+          <mxGeometry x="90" y="125" width="35" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="uc_main" value="Nghe thuyết minh thủ công" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+
+          <mxGeometry x="340" y="130" width="220" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="rel1" style="endArrow=none;html=1;strokeColor=#334155;" edge="1" parent="1" source="actor" target="uc_main"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+
+    </mxGraphModel>
+
+  </diagram>
+
+
+
+  <!-- UC-06 USE CASE -->
+
+  <diagram id="uc06-uc" name="UC-06_UseCase">
+
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" page="1" pageWidth="850" pageHeight="380">
+
+      <root>
+
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="sys" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ CHÙA LINH ỨNG&#xa;UC-06 — Nghe thuyết minh tự động theo vị trí" style="shape=rect;html=1;verticalAlign=top;fontStyle=1;whiteSpace=wrap;align=center;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=12;spacingTop=8;" vertex="1" parent="1">
+
+          <mxGeometry x="220" y="40" width="460" height="240" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="actor" value="Khách tham quan" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#334155;fillColor=#ffffff;fontColor=#0f172a;fontFamily=Arial;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+
+          <mxGeometry x="90" y="125" width="35" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="uc_main" value="Nghe thuyết minh tự động&#xa;theo vị trí" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+
+          <mxGeometry x="340" y="130" width="220" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="rel1" style="endArrow=none;html=1;strokeColor=#334155;" edge="1" parent="1" source="actor" target="uc_main"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+
+    </mxGraphModel>
+
+  </diagram>
+
+
+
+  <!-- UC-08 USE CASE -->
+
+  <diagram id="uc08-uc" name="UC-08_UseCase">
+
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" page="1" pageWidth="900" pageHeight="380">
+
+      <root>
+
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="sys" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ CHÙA LINH ỨNG&#xa;UC-08 — Hỏi đáp bằng chatbot RAG" style="shape=rect;html=1;verticalAlign=top;fontStyle=1;whiteSpace=wrap;align=center;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=12;spacingTop=8;" vertex="1" parent="1">
+
+          <mxGeometry x="210" y="40" width="460" height="240" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="actor1" value="Khách tham quan" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#334155;fillColor=#ffffff;fontColor=#0f172a;fontFamily=Arial;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+
+          <mxGeometry x="80" y="125" width="35" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="actor2" value="Dịch vụ embedding&#xa;và LLM" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#334155;fillColor=#ffffff;fontColor=#0f172a;fontFamily=Arial;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+
+          <mxGeometry x="750" y="125" width="35" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="uc_main" value="Hỏi đáp bằng chatbot RAG" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+
+          <mxGeometry x="330" y="130" width="220" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="rel1" style="endArrow=none;html=1;strokeColor=#334155;" edge="1" parent="1" source="actor1" target="uc_main"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="rel2" style="endArrow=none;html=1;strokeColor=#334155;" edge="1" parent="1" source="uc_main" target="actor2"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+
+    </mxGraphModel>
+
+  </diagram>
+
+
+
+  <!-- UC-15 USE CASE -->
+
+  <diagram id="uc15-uc" name="UC-15_UseCase">
+
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" page="1" pageWidth="920" pageHeight="420">
+
+      <root>
+
+        <mxCell id="0"/><mxCell id="1" parent="0"/>
+
+        <mxCell id="sys" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ CHÙA LINH ỨNG&#xa;UC-15 — Quản lý kho kiến thức" style="shape=rect;html=1;verticalAlign=top;fontStyle=1;whiteSpace=wrap;align=center;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=12;spacingTop=8;" vertex="1" parent="1">
+
+          <mxGeometry x="220" y="40" width="460" height="300" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="staff" value="Nhân viên (STAFF)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#334155;fillColor=#ffffff;fontColor=#0f172a;fontFamily=Arial;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+
+          <mxGeometry x="85" y="85" width="35" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="admin" value="Quản trị viên (ADMIN)" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#334155;fillColor=#ffffff;fontColor=#0f172a;fontFamily=Arial;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+
+          <mxGeometry x="85" y="225" width="35" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="actor2" value="Dịch vụ embedding&#xa;và LLM" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#334155;fillColor=#ffffff;fontColor=#0f172a;fontFamily=Arial;fontSize=11;fontStyle=1;" vertex="1" parent="1">
+
+          <mxGeometry x="760" y="155" width="35" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="uc_main" value="Quản lý kho kiến thức" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+
+          <mxGeometry x="340" y="155" width="220" height="70" as="geometry"/>
+
+        </mxCell>
+
+        <mxCell id="inh" style="endArrow=block;endFill=0;endSize=10;html=1;strokeColor=#334155;" edge="1" parent="1" source="admin" target="staff"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="rel1" style="endArrow=none;html=1;strokeColor=#334155;" edge="1" parent="1" source="staff" target="uc_main"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+        <mxCell id="rel2" style="endArrow=none;html=1;strokeColor=#334155;" edge="1" parent="1" source="uc_main" target="actor2"><mxGeometry relative="1" as="geometry"/></mxCell>
+
+      </root>
+
+    </mxGraphModel>
+
+  </diagram>
+
+</mxfile>
