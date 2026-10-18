@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net">
+  <diagram id="UC-03 Activity" name="UC-03 Activity">
+    <mxGraphModel dx="1200" dy="1800" grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1100" pageHeight="1600">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=22;fontColor=#111827;strokeColor=none;fillColor=none;fontStyle=1;" value="UC-03 – XEM BẢN ĐỒ VÀ THÔNG TIN POI" vertex="1">
+          <mxGeometry height="40" width="800" x="250" y="20" as="geometry" />
+        </mxCell>
+        <mxCell id="start" parent="1" style="html=1;ellipse;fillColor=#111827;strokeColor=#111827;" value="" vertex="1">
+          <mxGeometry height="26" width="26" x="637" y="75" as="geometry" />
+        </mxCell>
+        <mxCell id="step_0" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" value="Khách mở màn hình bản đồ trên giao diện" vertex="1">
+          <mxGeometry height="55" width="460" x="420" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="e_step_0" edge="1" parent="1" source="start" target="step_0" style="html=1;rounded=0;endArrow=block;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="step_1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" value="Đọc dữ liệu điểm tham quan từ gói nội dung đã tải" vertex="1">
+          <mxGeometry height="55" width="460" x="420" y="215" as="geometry" />
+        </mxCell>
+        <mxCell id="e_step_1" edge="1" parent="1" source="step_0" target="step_1" style="html=1;rounded=0;endArrow=block;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="step_2" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rhombus;" value="Gói nội dung&lt;br&gt;hợp lệ?" vertex="1">
+          <mxGeometry height="80" width="220" x="540" y="300" as="geometry" />
+        </mxCell>
+        <mxCell id="e_step_2" edge="1" parent="1" source="step_1" target="step_2" style="html=1;rounded=0;endArrow=block;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Error node -->
+        <mxCell id="err_0" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#111827;strokeColor=#DC2626;fillColor=#FEF2F2;strokeWidth=1.5;rounded=1;arcSize=15;" value="E1. Báo lỗi dữ liệu gói;&lt;br&gt;yêu cầu tải lại gói nội dung" vertex="1">
+          <mxGeometry height="60" width="310" x="80" y="310" as="geometry" />
+        </mxCell>
+        <mxCell id="e_err_0" edge="1" parent="1" source="step_2" target="err_0" style="html=1;rounded=0;endArrow=block;endFill=1;strokeColor=#DC2626;strokeWidth=1.5;exitX=0.0;exitY=0.5;entryX=1.0;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="step_3" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" value="Hiển thị bản đồ Leaflet và đánh dấu các điểm tham quan" vertex="1">
+          <mxGeometry height="55" width="460" x="420" y="415" as="geometry" />
+        </mxCell>
+        <mxCell id="e_step_3" edge="1" parent="1" source="step_2" target="step_3" style="html=1;rounded=0;endArrow=block;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="step_4" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rhombus;" value="Quyền định vị GPS&lt;br&gt;được cấp?" vertex="1">
+          <mxGeometry height="80" width="220" x="540" y="500" as="geometry" />
+        </mxCell>
+        <mxCell id="e_step_4" edge="1" parent="1" source="step_3" target="step_4" style="html=1;rounded=0;endArrow=block;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <!-- Error node -->
+        <mxCell id="err_1" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=14;fontColor=#111827;strokeColor=#DC2626;fillColor=#FEF2F2;strokeWidth=1.5;rounded=1;arcSize=15;" value="A1. Không lấy được vị trí;&lt;br&gt;hiển thị bản đồ mặc định" vertex="1">
+          <mxGeometry height="60" width="310" x="80" y="510" as="geometry" />
+        </mxCell>
+        <mxCell id="e_err_1" edge="1" parent="1" source="step_4" target="err_1" style="html=1;rounded=0;endArrow=block;endFill=1;strokeColor=#DC2626;strokeWidth=1.5;exitX=0.0;exitY=0.5;entryX=1.0;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="step_5" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" value="Cập nhật vị trí hiện tại của khách và danh sách điểm gần nhất" vertex="1">
+          <mxGeometry height="55" width="460" x="420" y="615" as="geometry" />
+        </mxCell>
+        <mxCell id="e_step_5" edge="1" parent="1" source="step_4" target="step_5" style="html=1;rounded=0;endArrow=block;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="step_6" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" value="Khách chọn một điểm tham quan trên bản đồ hoặc danh sách" vertex="1">
+          <mxGeometry height="55" width="460" x="420" y="700" as="geometry" />
+        </mxCell>
+        <mxCell id="e_step_6" edge="1" parent="1" source="step_5" target="step_6" style="html=1;rounded=0;endArrow=block;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="step_7" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" value="Hiển thị thẻ chi tiết: tên, ảnh, bài đọc và nút nghe thuyết minh" vertex="1">
+          <mxGeometry height="55" width="460" x="420" y="785" as="geometry" />
+        </mxCell>
+        <mxCell id="e_step_7" edge="1" parent="1" source="step_6" target="step_7" style="html=1;rounded=0;endArrow=block;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="end" parent="1" style="html=1;ellipse;shape=endState;fillColor=#111827;strokeColor=#111827;" value="" vertex="1">
+          <mxGeometry height="36" width="36" x="632" y="900" as="geometry" />
+        </mxCell>
+        <mxCell id="e_end" edge="1" parent="1" source="step_7" target="end" style="html=1;rounded=0;endArrow=block;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
