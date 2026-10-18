@@ -1,29 +1,27 @@
-<mxfile host="app.diagrams.net">
-  <diagram name="Page-1" id="KOJ7lvZp8aQfkzO5xVzr">
-    <mxGraphModel dx="964" dy="664" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" version="26.0.0">
+  <diagram id="UC-11 Use Case" name="UC-11 Use Case">
+    <mxGraphModel grid="1" gridSize="10" page="1" pageScale="1" pageWidth="1120" pageHeight="540">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="Gai0u-OgKW67dYdlDfG3-2" parent="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;" value="Nhân viên&amp;nbsp;&lt;div&gt;( STAFF)&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="70" width="40" x="90" y="170" as="geometry" />
+        <mxCell id="boundary" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ&lt;br&gt;CHO CHÙA LINH ỨNG" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=20;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=0;verticalAlign=top;spacingTop=22;fontStyle=1;fillColor=none;" vertex="1" parent="1">
+          <mxGeometry x="300" y="35" width="780" height="470" as="geometry" />
         </mxCell>
-        <mxCell id="Gai0u-OgKW67dYdlDfG3-3" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="" vertex="1">
-          <mxGeometry height="330" width="330" x="200" y="80" as="geometry" />
+        <mxCell id="uc" value="UC-11&lt;br&gt;Xác nhận thanh toán&lt;br&gt;tiền mặt" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=22;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;ellipse;" vertex="1" parent="1">
+          <mxGeometry x="475" y="220" width="440" height="115" as="geometry" />
         </mxCell>
-        <mxCell id="Gai0u-OgKW67dYdlDfG3-4" parent="1" style="ellipse;whiteSpace=wrap;html=1;shapeInside=1;" value="" vertex="1">
-          <mxGeometry height="95" width="165" x="275" y="180" as="geometry" />
+        <mxCell id="staff" value="Nhân viên&lt;br&gt;(STAFF)" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="85" y="130" width="65" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="Gai0u-OgKW67dYdlDfG3-5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Xác nhận thanh toán tiền mặt&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
-          <mxGeometry height="30" width="140" x="287.5" y="220" as="geometry" />
+        <mxCell id="staff-uc" style="html=1;rounded=0;endArrow=none;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;fontFamily=Arial;fontSize=17;exitX=1.0;exitY=0.4444444444444444;exitPerimeter=0;entryX=0.10089964783637981;entryY=0.19880420171776236;entryPerimeter=0;" edge="1" parent="1" source="staff" target="uc">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
-        <mxCell id="Gai0u-OgKW67dYdlDfG3-6" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="&lt;b&gt;Hệ thống thuyết minh đa ngôn ngữ chùa linh ứng&lt;/b&gt;" vertex="1">
-          <mxGeometry height="30" width="300" x="207.5" y="100" as="geometry" />
+        <mxCell id="admin" value="Quản trị viên&lt;br&gt;(ADMIN)" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">
+          <mxGeometry x="85" y="340" width="65" height="90" as="geometry" />
         </mxCell>
-        <mxCell id="Gai0u-OgKW67dYdlDfG3-9" edge="1" parent="1" style="endArrow=none;html=1;rounded=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" value="">
-          <mxGeometry height="50" relative="1" width="50" as="geometry">
-            <mxPoint x="105" y="210" as="sourcePoint" />
-            <mxPoint x="275" y="220" as="targetPoint" />
-          </mxGeometry>
+        <mxCell id="admin-uc" style="html=1;rounded=0;endArrow=none;endFill=1;strokeColor=#4B5563;strokeWidth=1.5;fontFamily=Arial;fontSize=17;exitX=1.0;exitY=0.4444444444444444;exitPerimeter=0;entryX=0.09415301047065389;entryY=0.7920414715241088;entryPerimeter=0;" edge="1" parent="1" source="admin" target="uc">
+          <mxGeometry relative="1" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
