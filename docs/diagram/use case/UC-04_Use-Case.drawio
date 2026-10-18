@@ -1,40 +1,26 @@
 <?xml version='1.0' encoding='utf-8'?>
-<mxfile host="app.diagrams.net" modified="2026-10-18T12:00:00.000Z" agent="Mozilla/5.0" version="24.7.0" type="device"><diagram id="uc04-uc" name="UC-04_UseCase">
-
-    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" page="1" pageWidth="850" pageHeight="380">
-
+<mxfile host="app.diagrams.net" modified="2026-10-18T13:15:00.000Z" agent="Mozilla/5.0" version="24.7.0" type="device"><diagram id="uc04-uc" name="UC-04_UseCase">
+    <mxGraphModel dx="1000" dy="600" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="360" math="0" shadow="0">
       <root>
-
-        <mxCell id="0" /><mxCell id="1" parent="0" />
-
-        <mxCell id="sys" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ CHÙA LINH ỨNG&#10;UC-04 — Lựa chọn ngôn ngữ" style="shape=rect;html=1;verticalAlign=top;fontStyle=1;whiteSpace=wrap;align=center;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=12;spacingTop=8;" vertex="1" parent="1">
-
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="sys" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ CHÙA LINH ỨNG&#10;UC-04 — Lựa chọn ngôn ngữ" style="shape=rect;html=1;verticalAlign=top;fontStyle=1;whiteSpace=wrap;align=center;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=12;spacingTop=10;" vertex="1" parent="1">
           <mxGeometry x="220" y="40" width="460" height="240" as="geometry" />
-
         </mxCell>
-
         <mxCell id="actor" value="Khách tham quan" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;strokeColor=#334155;fillColor=#ffffff;fontColor=#0f172a;fontFamily=Arial;fontSize=11;fontStyle=1;" vertex="1" parent="1">
-
-          <mxGeometry x="90" y="125" width="35" height="70" as="geometry" />
-
+          <mxGeometry x="90" y="130" width="35" height="70" as="geometry" />
         </mxCell>
-
         <mxCell id="uc_main" value="Lựa chọn ngôn ngữ" style="ellipse;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#334155;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
           <mxGeometry x="350" y="130" width="200" height="70" as="geometry" />
-
         </mxCell>
-
-        <mxCell id="rel1" style="endArrow=none;html=1;strokeColor=#334155;" edge="1" parent="1" source="actor" target="uc_main"><mxGeometry relative="1" as="geometry" /></mxCell>
-
+        <mxCell id="rel1" style="endArrow=none;html=1;strokeColor=#334155;" edge="1" parent="1" source="actor" target="uc_main">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
       </root>
-
     </mxGraphModel>
-
   </diagram>
 
-
-
   
-
+  
+  
   </mxfile>
