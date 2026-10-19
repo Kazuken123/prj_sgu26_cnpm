@@ -1,4 +1,10 @@
-# Hệ thống tự động thuyết minh đa ngôn ngữ cho Chùa Linh Ứng
+# Hệ thống tự động thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn
+
+## Mốc backend 1 — POI theo báo cáo 8
+
+Đã bổ sung API nội bộ xem/tạo/sửa/ngừng POI, phân loại điểm, thông tin bảo tồn và khung giờ; lưu nguồn tiếng Việt, audit và tác vụ PENDING cùng giao dịch. Tác vụ mới chỉ được ghi nhận, chưa có worker dịch/TTS. Chưa triển khai backend thanh toán khách, bundle hoặc chatbot. Frontend được phát triển riêng; không coi các trang đang chờ kết nối là chức năng backend hoàn thành.
+
+Xem [hợp đồng API và đối chiếu UC-13](docs/BACKEND_POI_STAGE1.md). Chạy migration 001–003 trước khi dùng database cũ có schema 16 bảng. Migration này không tự chuyển database nghiệp vụ cũ sang toàn bộ mô hình mới. JWT issuer/audience và tên database mặc định được giữ để tương thích cấu hình/phiên đang có.
 
 Đồ án môn **Công nghệ phần mềm**, xây dựng ứng dụng web hỗ trợ khách tham quan tiếp cận nội dung theo vị trí và ngôn ngữ lựa chọn. Trọng tâm kỹ thuật là Back-end ba lớp **Router–Service–Store**, kiểm thử tự động và quy trình CI/CD.
 
@@ -94,7 +100,7 @@ Các địa chỉ mặc định:
 
 Các lệnh quản trị được chạy trong `backend`:
 
-- `npm run db:migrate`: chạy migration 001 và bổ sung cột lịch sử hash token theo migration 002 nếu chưa có. Chạy trước khi dùng code logout mới trên database cũ; không chuyển toàn bộ database cũ sang thiết kế 16 bảng. Xem [hợp đồng logout](docs/LOGOUT_CONTRACT.md).
+- `npm run db:migrate`: chạy migration 001–003 để nâng cấp logout và POI nếu cần. Phải có schema POIS theo thiết kế trước khi chạy 003; không chuyển toàn bộ database nghiệp vụ cũ sang thiết kế 16 bảng. Xem [hợp đồng logout](docs/LOGOUT_CONTRACT.md) và [POI](docs/BACKEND_POI_STAGE1.md).
 - `npm run bootstrap:admin`: tạo tài khoản quản trị từ `BOOTSTRAP_ADMIN_EMAIL` và `BOOTSTRAP_ADMIN_PASSWORD`. Cấu hình các biến này trước khi chạy; không sử dụng mật khẩu mặc định.
 
 ### Chạy bằng Docker Compose

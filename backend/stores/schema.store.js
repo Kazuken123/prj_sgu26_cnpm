@@ -13,5 +13,24 @@ class SchemaStore {
       catch (error) { if (error.code !== "ER_DUP_FIELDNAME") throw error; }
     }
   }
+  async migratePois() {
+    const [tables] = await this.db.query("SHOW TABLES LIKE 'POIS'");
+    if (tables.length === 0) {
+      const error = new Error("Cần schema POIS hiện có; migration 003 không tự chuyển database nghiệp vụ cũ.");
+      error.code = "POI_SCHEMA_REQUIRED";
+      throw error;
+    }
+    const sql = fs.readFileSync(path.resolve(__dirname, "../../database/migrations/003_thao_cam_vien_pois.sql"), "utf8");
+    const statements = sql.replace(/^--.*$/gm, "").split(";").map(item => item.trim()).filter(Boolean);
+    for (const statement of statements) {
+      const add = statement.match(/^ALTER TABLE POIS ADD COLUMN (category|conservation_status|activity_hours)\b/);
+      if (add) {
+        const [columns] = await this.db.query("SHOW COLUMNS FROM POIS LIKE ?", [add[1]]);
+        if (columns.length) continue;
+      }
+      try { await this.db.query(statement); }
+      catch (error) { if (!add || error.code !== "ER_DUP_FIELDNAME") throw error; }
+    }
+  }
 }
 module.exports = SchemaStore;

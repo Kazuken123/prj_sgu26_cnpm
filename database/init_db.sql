@@ -114,9 +114,12 @@ CREATE TABLE PAYMENTS (
 CREATE TABLE POIS (
     poi_id INT NOT NULL AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
+    category ENUM('ANIMAL', 'PLANT', 'HERITAGE', 'AMENITY') NULL DEFAULT 'ANIMAL',
+    conservation_status VARCHAR(100) NULL,
+    activity_hours VARCHAR(100) NULL,
     latitude DECIMAL(10,8) NOT NULL,
     longitude DECIMAL(11,8) NOT NULL,
-    trigger_radius INT NOT NULL DEFAULT 50,
+    trigger_radius INT NOT NULL DEFAULT 30,
     avatar_url VARCHAR(500) NULL,
     display_order INT NOT NULL DEFAULT 0,
     status ENUM('ACTIVE', 'INACTIVE') NOT NULL DEFAULT 'INACTIVE',

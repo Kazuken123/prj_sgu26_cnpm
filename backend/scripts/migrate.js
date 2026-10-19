@@ -4,7 +4,8 @@ const SchemaStore = require("../stores/schema.store");
 (async () => {
   try {
     await new SchemaStore().migrateRefreshTokens();
-    console.log("Migration 001–002 hoàn tất; dữ liệu tài khoản hiện có được giữ nguyên.");
+    await new SchemaStore().migratePois();
+    console.log("Migration 001–003 hoàn tất; dữ liệu tài khoản và POI hiện có được giữ nguyên.");
   } catch (error) {
     console.error("Migration thất bại:", error.code || error.name);
     process.exitCode = 1;

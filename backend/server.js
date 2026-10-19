@@ -3,13 +3,15 @@ const cors = require("cors");
 require("dotenv").config({ quiet: true });
 const { createAuthRouter } = require("./routers/auth.router");
 const { createAdminRouter } = require("./routers/admin.router");
+const { createPoiRouter } = require("./routers/poi.router");
+const defaultPoiService = require("./services/poi.service");
 const defaultAuthService = require("./services/auth.service");
 const defaultHealthService = require("./services/health.service");
 const errorHandler = require("./middlewares/error.middleware");
 const { getAuthConfig } = require("./config/auth");
 const path = require("node:path");
 
-function createApp({ authService = defaultAuthService, healthService = defaultHealthService } = {}) {
+function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService } = {}) {
   const app = express();
   app.disable("x-powered-by");
   const origins = (process.env.CORS_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500").split(",").map(value => value.trim());
@@ -17,7 +19,8 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use(express.json({ limit: "32kb" }));
   app.use("/api/auth", createAuthRouter(authService));
   app.use("/api/admin", createAdminRouter(authService));
-  app.get("/", (req, res) => res.send("API He Thong Thuyet Minh Chua Linh Ung dang hoat dong..."));
+  app.use("/api/admin/pois", createPoiRouter(authService, poiService));
+  app.get("/", (req, res) => res.send("API Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn đang hoạt động."));
   app.get("/health", (req, res) => res.json({ status: "ok", service: "food-tour-api", timestamp: new Date().toISOString() }));
   app.get("/health/ready", async (req, res, next) => {
     try { res.json(await healthService.ready()); } catch (error) { next(error); }
