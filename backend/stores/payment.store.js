@@ -64,6 +64,30 @@ class PaymentStore {
       });
     });
   }
+  async withCashCodeIssue(actorId, sessionId, authorize, work) {
+    return this.transactions.transaction(async connection => {
+      authorize(await this.users.getUserById(actorId, connection, true));
+      // Keep the same business lock order as confirmation and the future token
+      // exchange. Redis is not part of this SQL transaction.
+      const [rows] = await connection.query(confirmationProjection + " FOR UPDATE", [sessionId]);
+      const [clock] = await connection.query("SELECT UTC_TIMESTAMP(3) AS nowUtc");
+      return work(rows[0], {
+        now: clock[0].nowUtc,
+        auditIssue: async ({ issueId, codeExpiresAt, ipAddress }) => {
+          // The ID is a random audit correlation ID, never the raw auth/short code.
+          // Reusing Redis state after an ambiguous failure repairs a missing audit
+          // without writing another payment or extending either deadline.
+          const [existing] = await connection.query(`SELECT log_id FROM AUDIT_LOGS
+            WHERE action = 'ISSUE_CASH_CODE' AND resource_type = 'CASH_ACCESS_CODE' AND resource_id = ? LIMIT 1`, [issueId]);
+          if (!existing.length) {
+            await this.audit.create({ userId: actorId, action: "ISSUE_CASH_CODE", resourceType: "CASH_ACCESS_CODE", resourceId: issueId,
+              details: JSON.stringify({ sessionId, paymentRef: rows[0].paymentRef, codeExpiresAt: codeExpiresAt.toISOString() }),
+              ipAddress, createdAt: clock[0].nowUtc }, connection);
+          }
+        },
+      });
+    });
+  }
   async initialize({ hash, actorId, authorize, build }) {
     const attempt = () => this.transactions.transaction(async connection => {
       if (actorId !== null) authorize(await this.users.getUserById(actorId, connection, true));

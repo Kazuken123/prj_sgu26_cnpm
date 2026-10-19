@@ -8,7 +8,9 @@ Xem [hợp đồng API và đối chiếu UC-13](docs/BACKEND_POI_STAGE1.md). Ch
 
 Bước 4 bổ sung [tra cứu phiên tiền mặt cho STAFF/ADMIN](docs/BACKEND_CASH_LOOKUP_STAGE4.md): đọc đúng session_id, mã tham chiếu, số tiền đã lưu và trạng thái; phạm vi mốc 4 chưa xác nhận đã nhận tiền, kích hoạt phiên hoặc cấp mã. Không có migration mới. Commit 57c55db đã có CI xanh trên Node 20/22, MySQL 8 và Redis 7, mỗi bản Node chạy 139 test đạt.
 
-Bước 5 bổ sung [xác nhận đã nhận tiền mặt và kích hoạt phiên](docs/BACKEND_CASH_CONFIRMATION_STAGE5.md): CASH/PENDING chuyển PAID, phiên chuyển ACTIVE và audit được lưu trong cùng transaction; chống xác nhận lặp/đồng thời. `VISIT_VALIDITY_HOURS` mặc định 24 giờ từ lúc xác nhận, thay đổi cấu hình không đổi vé cũ. Chưa sinh auth_code/mã ngắn hoặc token, nên US-A03 AC2 mới đáp ứng một phần. Mốc 5 mới kiểm thử local, chưa xác nhận CI; không có migration.
+Bước 5 bổ sung [xác nhận đã nhận tiền mặt và kích hoạt phiên](docs/BACKEND_CASH_CONFIRMATION_STAGE5.md): CASH/PENDING chuyển PAID, phiên chuyển ACTIVE và audit được lưu trong cùng transaction; chống xác nhận lặp/đồng thời. `VISIT_VALIDITY_HOURS` mặc định 24 giờ từ lúc xác nhận, thay đổi cấu hình không đổi vé cũ. Phạm vi mốc 5 chưa sinh auth_code/mã ngắn hoặc token. Commit 7f021b8 đã có CI xanh; không có migration.
+
+Bước 6 bổ sung [cấp mã sau thanh toán tiền mặt](docs/BACKEND_CASH_CODES_STAGE6.md): gọi cash-code sau confirm-cash để tạo auth_code và mã ngắn 6 chữ số, mặc định 600 giây và không vượt hạn vé. Mã còn hạn được dùng lại; mã hết hạn được tạo mới nếu chưa có token, giữ nguyên payment và hạn vé. Chưa có đổi mã lấy token, frontend hoặc migration mới. Thay đổi mốc 6 mới kiểm thử local với Redis thay thế, Lua Redis thật/CI còn chờ xác nhận.
 
 Đồ án môn **Công nghệ phần mềm**, xây dựng ứng dụng web hỗ trợ khách tham quan tiếp cận nội dung theo vị trí và ngôn ngữ lựa chọn. Trọng tâm kỹ thuật là Back-end ba lớp **Router–Service–Store**, kiểm thử tự động và quy trình CI/CD.
 

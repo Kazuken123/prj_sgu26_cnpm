@@ -26,4 +26,12 @@ function getVisitValidityMs(env = process.env) {
   }
   return hours * 3600000;
 }
-module.exports = { getLookupConfig, getVisitPrice, getVisitValidityMs };
+function getCashCodeTtlMs(env = process.env) {
+  const raw = env.CASH_CODE_TTL_SECONDS ?? "600";
+  const seconds = Number(raw);
+  if (!/^[1-9]\d*$/.test(String(raw)) || !Number.isSafeInteger(seconds) || !Number.isSafeInteger(seconds * 1000)) {
+    throw new Error("INVALID_CASH_CODE_TTL_CONFIG");
+  }
+  return seconds * 1000;
+}
+module.exports = { getLookupConfig, getVisitPrice, getVisitValidityMs, getCashCodeTtlMs };

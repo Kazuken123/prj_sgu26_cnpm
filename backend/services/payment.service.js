@@ -1,7 +1,7 @@
-const { createHash, randomUUID } = require("node:crypto");
+const { createHash, randomUUID, randomBytes, randomInt } = require("node:crypto");
 const PaymentStore = require("../stores/payment.store");
 const RedisStore = require("../stores/redis.store");
-const { getVisitPrice, getLookupConfig, getVisitValidityMs } = require("../config/payment");
+const { getVisitPrice, getLookupConfig, getVisitValidityMs, getCashCodeTtlMs } = require("../config/payment");
 const AppError = require("../utils/app-error");
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const hash = value => createHash("sha256").update(value).digest("hex");
@@ -16,8 +16,9 @@ function authorize(actor) {
 }
 class PaymentService {
   constructor(store = new PaymentStore(), redis = new RedisStore(), { price = getVisitPrice, lookupConfig = getLookupConfig,
-    validityMs = getVisitValidityMs } = {}) {
+    validityMs = getVisitValidityMs, cashCodeTtlMs = getCashCodeTtlMs, now = () => Date.now() } = {}) {
     this.store = store; this.redis = redis; this.price = price; this.lookupConfig = lookupConfig; this.validityMs = validityMs;
+    this.cashCodeTtlMs = cashCodeTtlMs; this.now = now;
   }
   async initialize(input, requestKey, actor = null) {
     if (actor !== null) authorize(actor);
@@ -117,6 +118,58 @@ class PaymentService {
     return { sessionId: row.sessionId, paymentRef: row.paymentRef, paymentMethod: row.paymentMethod,
       amount: String(row.amount), currency: row.currency, sessionStatus: row.sessionStatus, paymentStatus: row.paymentStatus,
       paidAt: row.paidAt, activatedAt: row.activatedAt, expiresAt: row.expiresAt, alreadyConfirmed: result.alreadyConfirmed };
+  }
+  async issueCashCode(actor, sessionId, input = {}, { ipAddress = null } = {}) {
+    authorize(actor);
+    if (typeof sessionId !== "string" || !uuid.test(sessionId)) {
+      throw new AppError(400, "INVALID_SESSION_ID", "session_id không hợp lệ.");
+    }
+    if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).length) {
+      throw new AppError(400, "INVALID_CASH_CODE_INPUT", "Mã và thời hạn do server xác định; không gửi thuộc tính trong body.");
+    }
+    const id = sessionId.toLowerCase();
+    let result;
+    try {
+      result = await this.store.withCashCodeIssue(actor.userId ?? actor.user_id, id, authorize, async (row, operations) => {
+        if (!row) throw new AppError(404, "VISIT_SESSION_NOT_FOUND", "Không tìm thấy phiên tham quan.");
+        if (row.paymentMethod !== "CASH") throw new AppError(409, "CASH_PAYMENT_REQUIRED", "Phiên không sử dụng thanh toán tiền mặt.");
+        if (row.paymentStatus !== "PAID") throw new AppError(409, "CASH_PAYMENT_NOT_PAID", "Chưa ghi nhận thanh toán; không thể cấp mã.");
+        if (row.sessionStatus !== "ACTIVE") throw new AppError(409, "VISIT_SESSION_NOT_ACTIVE", "Phiên tham quan không còn hoạt động.");
+        if (row.tokenHash !== null || row.reissueCount !== 0) {
+          throw new AppError(409, "VISIT_TOKEN_ALREADY_ISSUED", "Phiên đã được cấp token; không cấp lại qua luồng mã tiền mặt.");
+        }
+        const end = row.expiresAt?.getTime(), current = operations.now.getTime();
+        if (!row.paidAt || !row.activatedAt || !Number.isFinite(end)) {
+          throw new AppError(409, "PAYMENT_SESSION_INCONSISTENT", "Dữ liệu thanh toán và phiên cần được đối soát.");
+        }
+        if (end <= current) throw new AppError(409, "VISIT_SESSION_EXPIRED", "Vé đã hết hạn; không cấp mã mới.");
+        let duration;
+        try {
+          duration = this.cashCodeTtlMs();
+          if (!Number.isSafeInteger(duration) || duration <= 0) throw new Error("INVALID_TTL");
+        } catch { throw new AppError(503, "CASH_CODE_TTL_NOT_CONFIGURED", "Thời hạn mã chưa được cấu hình hợp lệ."); }
+        const candidate = { sessionId: id, issueId: randomUUID(), authCode: randomBytes(32).toString("hex"),
+          shortedCode: String(randomInt(0, 1000000)).padStart(6, "0"), expiresAtMs: current + Math.min(duration, end - current) };
+        let issued;
+        try { issued = await this.redis.ensureCashCode(id, candidate, end); }
+        catch { throw new AppError(503, "CASH_CODE_UNAVAILABLE", "Chưa cấp được mã. Giao dịch đã thanh toán được giữ nguyên; hãy thử cấp mã lại trên phiên này."); }
+        if (!issued?.record || issued.record.sessionId !== id || !/^\d{6}$/.test(issued.record.shortedCode) ||
+            !Number.isSafeInteger(issued.record.expiresAtMs) || issued.record.expiresAtMs <= current || issued.record.expiresAtMs > end) {
+          throw new AppError(503, "CASH_CODE_UNAVAILABLE", "Trạng thái mã chưa hợp lệ; kết quả đã thanh toán được giữ nguyên.");
+        }
+        const codeExpiresAt = new Date(issued.record.expiresAtMs);
+        await operations.auditIssue({ issueId: issued.record.issueId, codeExpiresAt, ipAddress });
+        return { sessionId: id, shortedCode: issued.record.shortedCode, codeExpiresAt,
+          visitExpiresAt: row.expiresAt, reused: !issued.created };
+      });
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(503, "CASH_CODE_PERSISTENCE_UNAVAILABLE", "Chưa hoàn tất cấp mã; hãy đối soát và thử lại trên phiên hiện có, không tạo thanh toán mới.");
+    }
+    if (result.codeExpiresAt.getTime() <= this.now()) {
+      throw new AppError(409, "CASH_CODE_EXPIRED_RETRY", "Mã đã hết hạn trước khi trả kết quả; hãy thử cấp mã lại trên cùng phiên.");
+    }
+    return result;
   }
 }
 module.exports = new PaymentService();
