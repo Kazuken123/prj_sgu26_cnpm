@@ -18,4 +18,12 @@ function getVisitPrice(env = process.env) {
   }
   return Number(price).toFixed(2);
 }
-module.exports = { getLookupConfig, getVisitPrice };
+function getVisitValidityMs(env = process.env) {
+  const raw = env.VISIT_VALIDITY_HOURS ?? "24";
+  const hours = Number(raw);
+  if (!/^[1-9]\d*$/.test(String(raw)) || !Number.isSafeInteger(hours) || !Number.isSafeInteger(hours * 3600000)) {
+    throw new Error("INVALID_VISIT_VALIDITY_CONFIG");
+  }
+  return hours * 3600000;
+}
+module.exports = { getLookupConfig, getVisitPrice, getVisitValidityMs };

@@ -23,6 +23,11 @@ function createStaffPaymentRouter(authService, paymentService) {
     try { res.json({ data: await paymentService.lookupCash(req.user, req.params.sessionId) }); }
     catch (error) { next(error); }
   });
+  router.post("/sessions/:sessionId/confirm-cash", async (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    try { res.json({ data: await paymentService.confirmCash(req.user, req.params.sessionId, req.body, { ipAddress: req.ip }) }); }
+    catch (error) { next(error); }
+  });
   router.post("/", async (req, res, next) => {
     try {
       const result = await paymentService.initialize(req.body, req.get("Idempotency-Key"), req.user);
