@@ -14,8 +14,12 @@ function createAuthRouter(authService = defaultAuthService) {
     catch (error) { next(error); }
   });
   router.post("/logout", async (req, res, next) => {
-    try { await authService.logout(req.body); res.status(204).end(); }
-    catch (error) { next(error); }
+    try {
+      await authService.logout(req.body, { authorization: req.headers.authorization });
+      res.status(204).end();
+    } catch (error) {
+      next(error);
+    }
   });
   router.get("/me", verifyToken, (req, res) => {
     const { userId, ...user } = req.user;

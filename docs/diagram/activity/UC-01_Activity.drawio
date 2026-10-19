@@ -17,14 +17,14 @@
         <mxCell id="create" value="Hệ thống tạo phiên chờ&lt;br&gt;và yêu cầu thanh toán" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" vertex="1" parent="1">
           <mxGeometry x="400" y="230" width="400" height="65" as="geometry" />
         </mxCell>
-        <mxCell id="pay" value="Khách thanh toán tại cổng&lt;br&gt;và mở trang kết quả" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" vertex="1" parent="1">
-          <mxGeometry x="400" y="335" width="400" height="65" as="geometry" />
+        <mxCell id="pay" value="Khách thanh toán tại cổng;&lt;br&gt;Cổng thanh toán gửi Webhook độc lập đến Backend;&lt;br&gt;Trình duyệt của khách chuyển hướng về trang kết quả" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" vertex="1" parent="1">
+          <mxGeometry x="370" y="335" width="460" height="75" as="geometry" />
         </mxCell>
         <mxCell id="merge" value="" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rhombus;" vertex="1" parent="1">
           <mxGeometry x="584" y="445" width="32" height="32" as="geometry" />
         </mxCell>
-        <mxCell id="check" value="Hệ thống kiểm tra trạng thái thanh toán&lt;br&gt;dựa trên kết quả webhook đã xác minh" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" vertex="1" parent="1">
-          <mxGeometry x="380" y="515" width="440" height="70" as="geometry" />
+        <mxCell id="check" value="Backend xác minh chữ ký Webhook và cập nhật giao dịch;&lt;br&gt;Trình duyệt gọi API kiểm tra trạng thái thanh toán" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" vertex="1" parent="1">
+          <mxGeometry x="360" y="515" width="480" height="75" as="geometry" />
         </mxCell>
         <mxCell id="state" value="Trạng thái&lt;br&gt;thanh toán?" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=20;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rhombus;" vertex="1" parent="1">
           <mxGeometry x="475" y="635" width="250" height="105" as="geometry" />

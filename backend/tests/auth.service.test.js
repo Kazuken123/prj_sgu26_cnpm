@@ -173,4 +173,63 @@ describe("US-F01 internal account service behavior", () => {
     await f.service.bootstrapAdmin({ ...admin, password: "AnotherPassword123" });
     assert.equal(account.password_hash, realHash);
   });
+  it("logout with rotated refresh token R1 revokes session S and blocks A2 and R2", async () => {
+    const f = createFixture(); await f.addStaff(staff);
+    const s1 = await f.service.login(staff);
+    const s2 = await f.service.refresh({ refreshToken: s1.refreshToken });
+
+    await f.service.logout({ refreshToken: s1.refreshToken });
+
+    await rejectsCode(f.service.authenticate(s2.accessToken), "SESSION_REVOKED");
+    await rejectsCode(f.service.refresh({ refreshToken: s2.refreshToken }), "INVALID_REFRESH_TOKEN");
+  });
+  it("logout with expired access token revokes session without affecting other sessions of same user", async () => {
+    const f = createFixture(); await f.addStaff(staff);
+    const s1 = await f.service.login(staff);
+    const s2 = await f.service.login(staff);
+
+    f.advance(2 * 3600 * 1000); // 2 hours later
+
+    await rejectsCode(f.service.authenticate(s1.accessToken), "INVALID_ACCESS_TOKEN");
+    await f.service.logout({}, { authorization: `Bearer ${s1.accessToken}` });
+
+    await rejectsCode(f.service.refresh({ refreshToken: s1.refreshToken }), "INVALID_REFRESH_TOKEN");
+
+    const s2Refreshed = await f.service.refresh({ refreshToken: s2.refreshToken });
+    assert.ok(s2Refreshed.accessToken);
+    const authUser = await f.service.authenticate(s2Refreshed.accessToken);
+    assert.equal(authUser.email, staff.email);
+  });
+  it("runs dummy compare on non-existent account and returns identical error message to wrong password", async () => {
+    const f = createFixture(); await f.addStaff(staff);
+    let compareCalls = 0;
+    const originalCompare = f.service.passwordHasher.compare;
+    f.service.passwordHasher.compare = async (pass, hash) => {
+      compareCalls++;
+      return originalCompare(pass, hash);
+    };
+
+    let nonExistentError;
+    try {
+      await f.service.login({ email: "nonexistent@example.com", password: "SomePassword123" });
+    } catch (err) {
+      nonExistentError = err;
+    }
+
+    assert.equal(compareCalls, 1);
+    assert.equal(nonExistentError?.code, "INVALID_CREDENTIALS");
+    assert.equal(nonExistentError?.status, 401);
+
+    let wrongPasswordError;
+    try {
+      await f.service.login({ email: staff.email, password: "WrongPassword123" });
+    } catch (err) {
+      wrongPasswordError = err;
+    }
+
+    assert.equal(compareCalls, 2);
+    assert.equal(wrongPasswordError?.code, "INVALID_CREDENTIALS");
+    assert.equal(wrongPasswordError?.status, 401);
+    assert.equal(nonExistentError?.message, wrongPasswordError?.message);
+  });
 });

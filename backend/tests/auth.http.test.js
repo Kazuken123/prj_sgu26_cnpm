@@ -87,4 +87,31 @@ describe("US-F01 internal authentication HTTP contract", () => {
       assert.equal(response.status, 500); assert.equal((await response.json()).error.includes("private"), false);
     } finally { fixture.service.authStore.withLockedUser = original; }
   });
+  it("HTTP: logout with rotated refresh token R1 revokes session S completely", async () => {
+    const data1 = await login(staff);
+    const refreshed = await request("/api/auth/refresh", { refreshToken: data1.refreshToken });
+    assert.equal(refreshed.status, 200);
+    const data2 = (await refreshed.json()).data;
+
+    const logoutRes = await request("/api/auth/logout", { refreshToken: data1.refreshToken });
+    assert.equal(logoutRes.status, 204);
+
+    const meRes = await request("/api/auth/me", undefined, data2.accessToken);
+    assert.equal(meRes.status, 401);
+
+    const refreshRes = await request("/api/auth/refresh", { refreshToken: data2.refreshToken });
+    assert.equal(refreshRes.status, 401);
+  });
+  it("HTTP: logout with expired Bearer token revokes the target session", async () => {
+    const data = await login(staff);
+    fixture.advance(2 * 3600 * 1000);
+
+    assert.equal((await request("/api/auth/me", undefined, data.accessToken)).status, 401);
+
+    const logoutRes = await request("/api/auth/logout", {}, data.accessToken);
+    assert.equal(logoutRes.status, 204);
+
+    const refreshRes = await request("/api/auth/refresh", { refreshToken: data.refreshToken });
+    assert.equal(refreshRes.status, 401);
+  });
 });

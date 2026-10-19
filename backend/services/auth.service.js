@@ -11,6 +11,8 @@ const { getAuthConfig } = require("../config/auth");
 const MAX_FAILED_LOGINS = 5;
 const LOCK_DURATION_MS = 15 * 60 * 1000;
 const ROLES = ["STAFF", "ADMIN"];
+const DUMMY_PASSWORD_HASH = "$2b$10$EixZaYVK1fsbw1ZfbX3OXePaWxn96p36WQmG6Fe9P36u/t6b.Oq6.";
+const INVALID_CREDENTIALS_MSG = "Email hoặc mật khẩu không đúng.";
 
 class AuthService {
   constructor({ users = new UserStore(),
@@ -59,7 +61,13 @@ class AuthService {
   }
   accessToken(user, sessionId) {
     const config = this.config();
-    return jwt.sign({ userId: user.user_id, role: user.role, type: "access", sessionId }, config.secret, {
+    return jwt.sign({
+      userId: user.user_id,
+      role: user.role,
+      type: "access",
+      sessionId,
+      iat: Math.floor(this.now() / 1000),
+    }, config.secret, {
       algorithm: "HS256", expiresIn: config.accessTokenTtl,
       issuer: config.issuer, audience: config.audience, jwtid: randomUUID(),
     });
@@ -70,7 +78,10 @@ class AuthService {
     const { email, password } = validation.login(input);
     // Return an error value from the callback so failed-attempt updates are committed.
     const outcome = await this.authStore.withLockedUser(email, async (user, persistence) => {
-      if (!user) return { error: new AppError(401, "INVALID_CREDENTIALS", "Email hoặc mật khẩu không đúng.") };
+      if (!user) {
+        await this.passwordHasher.compare(password, DUMMY_PASSWORD_HASH);
+        return { error: new AppError(401, "INVALID_CREDENTIALS", INVALID_CREDENTIALS_MSG) };
+      }
       try { this.assertAccountUsable(user); } catch (error) { return { error }; }
       const lockExpired = user.locked_until && new Date(user.locked_until).getTime() <= this.now();
       const currentCount = lockExpired ? 0 : Number(user.failed_login_count || 0);
@@ -81,7 +92,7 @@ class AuthService {
         await persistence.saveLoginState(failedCount, isLocked ? new Date(this.now() + LOCK_DURATION_MS) : null);
         return { error: new AppError(isLocked ? 423 : 401,
           isLocked ? "LOGIN_TEMPORARILY_LOCKED" : "INVALID_CREDENTIALS",
-          isLocked ? "Nhập sai 5 lần. Tài khoản đã bị khóa 15 phút!" : `Email hoặc mật khẩu không đúng. Còn ${MAX_FAILED_LOGINS - failedCount} lần thử.`) };
+          isLocked ? "Nhập sai 5 lần. Tài khoản đã bị khóa 15 phút!" : INVALID_CREDENTIALS_MSG) };
       }
       const refreshToken = randomBytes(32).toString("hex");
       const sessionId = randomUUID();
@@ -113,9 +124,50 @@ class AuthService {
     if (outcome.error) throw outcome.error;
     return outcome.data;
   }
-  async logout(input) {
-    const token = validation.refreshToken(input?.refreshToken);
-    await this.tokens.revoke(this.hashToken(token));
+  extractVerifiedSession(tokenOrHeader) {
+    if (!tokenOrHeader || typeof tokenOrHeader !== "string") return null;
+    const cleanToken = tokenOrHeader.startsWith("Bearer ") ? tokenOrHeader.slice(7).trim() : tokenOrHeader.trim();
+    if (!cleanToken) return null;
+    const config = this.config();
+    try {
+      const decoded = jwt.verify(cleanToken, config.secret, {
+        algorithms: ["HS256"],
+        issuer: config.issuer,
+        audience: config.audience,
+        ignoreExpiration: true,
+      });
+      if (decoded.type === "access" && Number.isSafeInteger(decoded.userId) && decoded.userId > 0 &&
+          typeof decoded.sessionId === "string" && decoded.sessionId.length > 0) {
+        return { sessionId: decoded.sessionId, userId: decoded.userId };
+      }
+    } catch {
+      return null;
+    }
+    return null;
+  }
+  async logout(input, options = {}) {
+    const authHeader = typeof options === "string"
+      ? options
+      : options?.authorization || options?.authHeader || input?.authorization || input?.accessToken;
+    const verifiedSession = this.extractVerifiedSession(authHeader);
+
+    let sessionRevoked = false;
+    if (verifiedSession) {
+      if (typeof this.tokens.revokeBySession === "function") {
+        await this.tokens.revokeBySession(verifiedSession.sessionId, verifiedSession.userId);
+      }
+      sessionRevoked = true;
+    }
+
+    if (input?.refreshToken) {
+      const token = validation.refreshToken(input.refreshToken);
+      await this.tokens.revoke(this.hashToken(token));
+      sessionRevoked = true;
+    }
+
+    if (!sessionRevoked) {
+      validation.refreshToken(input?.refreshToken);
+    }
   }
   async authenticate(token) {
     const config = this.config();
@@ -123,6 +175,7 @@ class AuthService {
     try {
       decoded = jwt.verify(token, config.secret, {
         algorithms: ["HS256"], issuer: config.issuer, audience: config.audience,
+        clockTimestamp: Math.floor(this.now() / 1000),
       });
     } catch {
       throw new AppError(401, "INVALID_ACCESS_TOKEN", "Token không hợp lệ hoặc đã hết hạn.");
@@ -159,3 +212,5 @@ class AuthService {
 }
 module.exports = new AuthService();
 module.exports.AuthService = AuthService;
+module.exports.DUMMY_PASSWORD_HASH = DUMMY_PASSWORD_HASH;
+module.exports.INVALID_CREDENTIALS_MSG = INVALID_CREDENTIALS_MSG;

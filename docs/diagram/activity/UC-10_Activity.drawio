@@ -19,11 +19,11 @@
         <mxCell id="missing" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" value="A1. Không gọi server.&lt;br&gt;Chỉ kết thúc phiên tại trình duyệt" vertex="1">
           <mxGeometry height="80" width="340" x="80" y="265" as="geometry" />
         </mxCell>
-        <mxCell id="request" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" value="Giao diện gửi yêu cầu đăng xuất&lt;br&gt;kèm refresh token" vertex="1">
+        <mxCell id="request" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" value="Giao diện gửi yêu cầu đăng xuất&lt;br&gt;kèm Bearer token và/hoặc refresh token" vertex="1">
           <mxGeometry height="65" width="420" x="510" y="405" as="geometry" />
         </mxCell>
-        <mxCell id="revoke" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" value="Server kiểm tra token và xóa phiên&lt;br&gt;có hash tương ứng. Nếu không còn&lt;br&gt;bản ghi khớp, vẫn trả HTTP 204 (A2)" vertex="1">
-          <mxGeometry height="90" width="460" x="490" y="520" as="geometry" />
+        <mxCell id="revoke" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=1;arcSize=15;" value="Server xác thực token, thu hồi toàn bộ phiên&lt;br&gt;(session_id) trong REFRESH_TOKENS kể cả khi token&lt;br&gt;đã xoay vòng. Nếu phiên đã thu hồi trước đó, trả HTTP 204 (A2)" vertex="1">
+          <mxGeometry height="95" width="480" x="480" y="520" as="geometry" />
         </mxCell>
         <mxCell id="received" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=18;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rhombus;" value="Nhận phản hồi&lt;br&gt;thành công HTTP 204?" vertex="1">
           <mxGeometry height="110" width="270" x="585" y="680" as="geometry" />

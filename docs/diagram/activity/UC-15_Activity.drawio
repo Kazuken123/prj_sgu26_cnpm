@@ -57,94 +57,50 @@
 
         </mxCell>
 
-        <mxCell id="a1" value="A1. Ngừng sử dụng: chuyển trạng thái tài liệu sang&#10;INACTIVE, ghi AUDIT_LOGS và loại khỏi truy hồi" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
-          <mxGeometry x="750" y="446" width="260" height="58" as="geometry" />
-
+        <mxCell id="a1" value="A1. Ngừng sử dụng: chuyển trạng thái tài liệu sang&#10;INACTIVE, tăng content_version và ghi AUDIT_LOGS" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+          <mxGeometry x="750" y="446" width="280" height="58" as="geometry" />
         </mxCell>
-
         <mxCell id="merge_form" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;" vertex="1" parent="1">
-
           <mxGeometry x="506" y="540" width="28" height="28" as="geometry" />
-
         </mxCell>
-
         <mxCell id="act4" value="Nhập tiêu đề tài liệu, nội dung văn bản chi tiết,&#10;nguồn trích dẫn và nhấn Lưu" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
           <mxGeometry x="350" y="590" width="340" height="48" as="geometry" />
-
         </mxCell>
-
         <mxCell id="dec3" value="Dữ liệu tiêu đề và nội dung&#10;hợp lệ (không rỗng)?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
           <mxGeometry x="390" y="665" width="260" height="80" as="geometry" />
-
         </mxCell>
-
         <mxCell id="e2" value="E2. Thông báo lỗi trường bắt buộc; giữ nguyên&#10;biểu mẫu để nhân viên chỉnh sửa" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
           <mxGeometry x="750" y="678" width="260" height="54" as="geometry" />
-
         </mxCell>
-
         <mxCell id="dec4" value="Thêm tài liệu mới hay&#10;chỉnh sửa tài liệu cũ?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
           <mxGeometry x="390" y="775" width="260" height="80" as="geometry" />
-
         </mxCell>
-
         <mxCell id="a2" value="A2. Cập nhật tài liệu cũ: tăng content_version,&#10;lưu KNOWLEDGE_DOCUMENTS và ghi AUDIT_LOGS" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
-          <mxGeometry x="750" y="788" width="260" height="54" as="geometry" />
-
+          <mxGeometry x="750" y="788" width="280" height="54" as="geometry" />
         </mxCell>
-
-        <mxCell id="act5" value="Lưu tài liệu mới ở trạng thái khởi tạo INACTIVE&#10;vào KNOWLEDGE_DOCUMENTS và ghi AUDIT_LOGS" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
+        <mxCell id="act5" value="Pha 1 (Tx1): Lưu KNOWLEDGE_DOCUMENTS (trạng thái INACTIVE,&#10;tăng content_version nếu sửa) và ghi AUDIT_LOGS" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="350" y="880" width="340" height="48" as="geometry" />
-
         </mxCell>
-
         <mxCell id="merge_saved" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;" vertex="1" parent="1">
-
           <mxGeometry x="506" y="950" width="28" height="28" as="geometry" />
-
         </mxCell>
-
-        <mxCell id="dec5" value="Giao dịch lưu cơ sở dữ liệu&#10;thành công?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
+        <mxCell id="dec5" value="Transaction 1 (Tx1) commit&#10;cơ sở dữ liệu thành công?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="390" y="1000" width="260" height="80" as="geometry" />
-
         </mxCell>
-
-        <mxCell id="e3" value="E3. Lỗi cơ sở dữ liệu: rollback toàn bộ&#10;transaction và thông báo lỗi lưu dữ liệu" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
+        <mxCell id="e3" value="E3. Lỗi cơ sở dữ liệu khi lưu tài liệu:&#10;rollback Transaction 1 và báo lỗi" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="30" y="1013" width="260" height="54" as="geometry" />
-
         </mxCell>
-
-        <mxCell id="act6" value="Chia nhỏ nội dung thành các đoạn văn bản (chunking)&#10;và gửi yêu cầu tới dịch vụ sinh vector embedding" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
+        <mxCell id="act6" value="Ngoài transaction: Chia nhỏ văn bản (chunking)&#10;và gửi yêu cầu tới dịch vụ AI sinh embedding (timeout)" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="350" y="1110" width="340" height="48" as="geometry" />
-
         </mxCell>
-
-        <mxCell id="dec6" value="Sinh vector embedding thành công&#10;và khớp phiên bản nguồn?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
+        <mxCell id="dec6" value="Sinh embedding thành công và&#10;khớp content_version == source_version?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="390" y="1185" width="260" height="80" as="geometry" />
-
         </mxCell>
-
-        <mxCell id="e4" value="E4. Giữ trạng thái INACTIVE (chưa công bố đoạn mới);&#10;báo lỗi chỉ mục và cung cấp nút &quot;Xử lý lại&quot;" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
+        <mxCell id="e4" value="E4. Lỗi AI hoặc lưu chunks: rollback Tx2 (nếu mở);&#10;giữ doc INACTIVE, cung cấp nút &quot;Xử lý lại&quot;" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="30" y="1196" width="260" height="58" as="geometry" />
-
         </mxCell>
-
-        <mxCell id="act7" value="Lưu toàn bộ các đoạn vào KNOWLEDGE_CHUNKS và cập nhật&#10;trạng thái tài liệu thành ACTIVE trong cùng transaction" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
-
+        <mxCell id="act7" value="Pha 2 (Tx2): Lưu KNOWLEDGE_CHUNKS, cập nhật&#10;status = ACTIVE trong KNOWLEDGE_DOCUMENTS; commit Tx2" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
           <mxGeometry x="350" y="1295" width="340" height="52" as="geometry" />
-
         </mxCell>
 
         <mxCell id="merge_ok" value="" style="rhombus;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;" vertex="1" parent="1">

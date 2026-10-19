@@ -62,7 +62,7 @@ jobs:
       - name: Check syntax and layer dependencies
         working-directory: backend
         run: npm run lint
-      - name: Unit, HTTP and real MySQL integration tests
+      - name: Unit, HTTP and real MySQL integration tests with coverage
         working-directory: backend
         env:
           NODE_ENV: test
@@ -72,7 +72,14 @@ jobs:
           DB_PASSWORD: root
           DB_NAME: food_tour_db
           JWT_SECRET: ci-test-only-secret-at-least-32-bytes
-        run: npm test
+        run: |
+          npm run test:coverage | tee coverage.log
+          if [ -n "$GITHUB_STEP_SUMMARY" ]; then
+            echo "### Backend Test Coverage Baseline" >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+            sed -n '/start of coverage report/,/end of coverage report/p' coverage.log >> $GITHUB_STEP_SUMMARY
+            echo '```' >> $GITHUB_STEP_SUMMARY
+          fi
 
   review-decoupling:
     name: Review - Layer Boundaries and Environment Files

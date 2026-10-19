@@ -5,7 +5,7 @@ const staff = { email: "staff@example.com", password: "SecurePassword123", fullN
 function createFixture() {
   let time = Date.now();
   let queue = Promise.resolve();
-  const state = { users: [], audits: [], sessions: new Map(), nextId: 1, failAudit: false };
+  const state = { users: [], audits: [], sessions: new Map(), rotatedHashes: new Map(), nextId: 1, failAudit: false };
   const config = { secret: "test-only-secret-that-is-at-least-32-bytes", issuer: "food-tour-api",
     audience: "food-tour-client", accessTokenTtl: "1h", refreshTokenTtlMs: 7 * 86400000 };
   const clone = value => value == null ? value : structuredClone(value);
@@ -27,7 +27,36 @@ function createFixture() {
     },
   };
   const tokens = {
-    revoke: async hash => { state.sessions.delete(hash); },
+    revoke: async hash => {
+      if (state.sessions.has(hash)) {
+        const session = state.sessions.get(hash);
+        state.sessions.delete(hash);
+        for (const [oldHash, sessId] of state.rotatedHashes) {
+          if (sessId === session.session_id) state.rotatedHashes.delete(oldHash);
+        }
+        return;
+      }
+      const sessId = state.rotatedHashes.get(hash);
+      if (sessId) {
+        for (const [h, s] of state.sessions.entries()) {
+          if (s.session_id === sessId) {
+            state.sessions.delete(h);
+            break;
+          }
+        }
+        state.rotatedHashes.delete(hash);
+      }
+    },
+    revokeBySession: async (sessionId, userId) => {
+      for (const [h, s] of state.sessions.entries()) {
+        if (s.session_id === sessionId && (!userId || s.user_id === userId)) {
+          state.sessions.delete(h);
+        }
+      }
+      for (const [oldHash, sessId] of state.rotatedHashes) {
+        if (sessId === sessionId) state.rotatedHashes.delete(oldHash);
+      }
+    },
     getBySessionId: async id => clone([...state.sessions.values()].find(s => s.session_id === id)),
   };
   const insertAccount = data => {
@@ -60,8 +89,21 @@ function createFixture() {
     withLockedRefreshToken: (hash, work) => serial(async () => {
       const session = state.sessions.get(hash);
       return work(clone(session), clone(state.users.find(u => u.user_id === session?.user_id)), {
-        rotate: async nextHash => { state.sessions.delete(hash); state.sessions.set(nextHash, { ...session, token_hash: nextHash }); },
-        revoke: async () => { state.sessions.delete(hash); },
+        rotate: async nextHash => {
+          state.sessions.delete(hash);
+          if (session?.session_id) {
+            state.rotatedHashes.set(hash, session.session_id);
+          }
+          state.sessions.set(nextHash, { ...session, token_hash: nextHash });
+        },
+        revoke: async () => {
+          state.sessions.delete(hash);
+          if (session?.session_id) {
+            for (const [oldHash, sessId] of state.rotatedHashes) {
+              if (sessId === session.session_id) state.rotatedHashes.delete(oldHash);
+            }
+          }
+        },
       });
     }),
   };
