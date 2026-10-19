@@ -73,6 +73,7 @@ jobs:
           DB_NAME: food_tour_db
           JWT_SECRET: ci-test-only-secret-at-least-32-bytes
         run: |
+          set -o pipefail
           npm run test:coverage | tee coverage.log
           if [ -n "$GITHUB_STEP_SUMMARY" ]; then
             echo "### Backend Test Coverage Baseline" >> $GITHUB_STEP_SUMMARY

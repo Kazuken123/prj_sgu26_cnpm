@@ -1,5 +1,7 @@
 # Backend Thảo Cầm Viên — bước 1: quản trị POI
 
+Đây là ghi nhận phạm vi tại mốc 1. Mốc 2 đã bổ sung API xem/retry tác vụ, xem [hợp đồng bước 2](BACKEND_CONTENT_JOBS_STAGE2.md). Các mục "chưa có" và số test bên dưới mô tả thời điểm mốc 1, không thay thế trạng thái mới trong tài liệu bước 2.
+
 Mốc nguồn: báo cáo Word 8, US-F02/AC1–AC3 (phần POI), US-C02/AC1 và AC4 (phần ghi nhận tác vụ), UC-13 bước 2–6, A1/A4, E1–E3 và §4.4.4g. Bản sao code dựa trên GitHub `6a22d26` và bản sửa logout trước đó. Chưa commit/push.
 
 ## Quy tắc đã triển khai
@@ -55,12 +57,12 @@ Trong backend giữ JWT issuer/audience và tên database mặc định cũ vì 
 
 ## Phần chưa hoàn thành
 
-Chưa có worker dịch/TTS, API xem/retry tác vụ (UC-13 A2/A3 và bước 7–8 chỉ mới có bản ghi PENDING), bundle, thanh toán khách, Redis, RAG, tour quản trị hoặc API thống kê. Không coi UC-13 toàn bộ đã hoàn thành. Chưa thêm POI thực địa, chưa công bố đủ 15 hay 15+ ngôn ngữ. Bản sửa logout kế thừa đã được xác nhận thêm bằng các ca tích hợp MySQL trong lượt cuối; chưa kiểm CI/staging của bản mới.
+Tại mốc 1 chưa có worker dịch/TTS, API xem/retry tác vụ (UC-13 A2/A3 và bước 7–8 chỉ mới có bản ghi PENDING), bundle, thanh toán khách, Redis, RAG, tour quản trị hoặc API thống kê. Không coi UC-13 toàn bộ đã hoàn thành. Chưa thêm POI thực địa, chưa công bố đủ 15 hay 15+ ngôn ngữ. Bản sửa logout kế thừa đã được xác nhận thêm bằng các ca tích hợp dữ liệu local; ghi chú engine được đính chính dưới đây.
 
 ## Kiểm thử
 
-- `npm run lint`, `npm test`: kiểm cú pháp/chia lớp, auth cũ và POI mới, HTTP, rollback với executor giả. Lượt cuối đã bật RUN_DB_TESTS=1: **83 test đạt, 0 lỗi**, gồm cả 15 ca tích hợp trên MySQL localhost bằng database tạm riêng. Kiểm tra chia lớp/cú pháp đạt với 37 file backend. Log nằm ngoài repo tại `work/tcv-backend-mysql-all.txt` trong workspace rà soát.
+- `npm run lint`, `npm test`: kiểm cú pháp/chia lớp, auth cũ và POI mới, HTTP, rollback với executor giả. Lượt mốc 1 đã bật RUN_DB_TESTS=1: **83 test đạt, 0 lỗi**, gồm cả 15 ca tích hợp local bằng database tạm riêng. Ở bước 2 đã xác nhận server localhost là MariaDB 10.4.32; đính chính cách gọi "MySQL thật" trước đó. Lượt local không tự chứng minh MySQL 8. Kiểm tra chia lớp/cú pháp đạt với 37 file backend. Log nằm ngoài repo tại `work/tcv-backend-mysql-all.txt` trong workspace rà soát.
 - Có MySQL thử nghiệm: bật RUN_DB_TESTS=1 rồi chạy `npm run test:integration`; cả auth và POI dùng database tạm riêng, lỗi kết nối phải là lỗi test. Chưa được biến kết quả này thành đã chạy nếu máy không có MySQL.
-- `poi.integration.test.js` kiểm migration chạy lại và bảo toàn bán kính/phân loại cũ, hai cập nhật nguồn đồng thời, nguồn vi đồng bộ, audit rollback, soft deactivate và quyền tài khoản bị khóa. Bốn ca này đã đạt trên MySQL thật. Các ca auth tích hợp, gồm logout bằng hash cũ qua runtime mới và refresh/logout đồng thời, cũng đã đạt trong cùng lượt cuối. Chưa chạy GitHub Actions cho bản sửa vì chưa push.
+- `poi.integration.test.js` kiểm migration chạy lại và bảo toàn bán kính/phân loại cũ, hai cập nhật nguồn đồng thời, nguồn vi đồng bộ, audit rollback, soft deactivate và quyền tài khoản bị khóa. Bốn ca này đã đạt ở engine local nêu trên. Các ca auth tích hợp, gồm logout bằng hash cũ qua runtime mới và refresh/logout đồng thời, cũng đã đạt trong lượt mốc 1. Trạng thái CI sau push phải xác minh theo đúng commit.
 
 Bước tiếp theo là review hợp đồng API/migration của mốc nhỏ này rồi nối API trạng thái tác vụ/worker hoặc luồng khách đã thống nhất. Không cần sửa frontend hay báo cáo để che phần chưa code.

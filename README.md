@@ -2,7 +2,7 @@
 
 ## Mốc backend 1 — POI theo báo cáo 8
 
-Đã bổ sung API nội bộ xem/tạo/sửa/ngừng POI, phân loại điểm, thông tin bảo tồn và khung giờ; lưu nguồn tiếng Việt, audit và tác vụ PENDING cùng giao dịch. Tác vụ mới chỉ được ghi nhận, chưa có worker dịch/TTS. Chưa triển khai backend thanh toán khách, bundle hoặc chatbot. Frontend được phát triển riêng; không coi các trang đang chờ kết nối là chức năng backend hoàn thành.
+Đã bổ sung API nội bộ xem/tạo/sửa/ngừng POI, phân loại điểm, thông tin bảo tồn và khung giờ; lưu nguồn tiếng Việt, audit và tác vụ PENDING cùng giao dịch. Bước 2 bổ sung [xem trạng thái và thử lại tác vụ lỗi](docs/BACKEND_CONTENT_JOBS_STAGE2.md), kiểm phiên bản và audit cùng transaction. Tác vụ mới chỉ được ghi nhận/chuyển lại PENDING, chưa có worker dịch/TTS. Chưa triển khai backend thanh toán khách, bundle hoặc chatbot. Frontend được phát triển riêng; không coi các trang đang chờ kết nối là chức năng backend hoàn thành.
 
 Xem [hợp đồng API và đối chiếu UC-13](docs/BACKEND_POI_STAGE1.md). Chạy migration 001–003 trước khi dùng database cũ có schema 16 bảng. Migration này không tự chuyển database nghiệp vụ cũ sang toàn bộ mô hình mới. JWT issuer/audience và tên database mặc định được giữ để tương thích cấu hình/phiên đang có.
 

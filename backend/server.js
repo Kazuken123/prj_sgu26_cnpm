@@ -5,13 +5,16 @@ const { createAuthRouter } = require("./routers/auth.router");
 const { createAdminRouter } = require("./routers/admin.router");
 const { createPoiRouter } = require("./routers/poi.router");
 const defaultPoiService = require("./services/poi.service");
+const { createContentJobRouter } = require("./routers/content-job.router");
+const defaultContentJobService = require("./services/content-job.service");
 const defaultAuthService = require("./services/auth.service");
 const defaultHealthService = require("./services/health.service");
 const errorHandler = require("./middlewares/error.middleware");
 const { getAuthConfig } = require("./config/auth");
 const path = require("node:path");
 
-function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService } = {}) {
+function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService,
+  contentJobService = defaultContentJobService } = {}) {
   const app = express();
   app.disable("x-powered-by");
   const origins = (process.env.CORS_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500").split(",").map(value => value.trim());
@@ -20,6 +23,7 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use("/api/auth", createAuthRouter(authService));
   app.use("/api/admin", createAdminRouter(authService));
   app.use("/api/admin/pois", createPoiRouter(authService, poiService));
+  app.use("/api/admin/content-jobs", createContentJobRouter(authService, contentJobService));
   app.get("/", (req, res) => res.send("API Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn đang hoạt động."));
   app.get("/health", (req, res) => res.json({ status: "ok", service: "food-tour-api", timestamp: new Date().toISOString() }));
   app.get("/health/ready", async (req, res, next) => {
