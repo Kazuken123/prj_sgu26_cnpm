@@ -19,7 +19,7 @@ for (const filename of sources) {
   for (const match of source.matchAll(/require\(["']([^"']+)["']\)/g)) {
     const dependency = match[1];
     if (/^(routers|middlewares|services)\//.test(relative) &&
-        (/^mysql2(?:\/|$)/.test(dependency) || /config\/database/.test(dependency))) {
+        (/^(mysql2|redis|@redis)(?:\/|$)/.test(dependency) || /config\/database/.test(dependency))) {
       failures.push(relative + ": database driver/pool must stay in Store");
     }
     if (/^(routers|middlewares)\//.test(relative) && /stores\//.test(dependency)) {

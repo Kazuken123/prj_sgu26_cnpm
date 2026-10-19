@@ -3,6 +3,17 @@ const path = require("node:path");
 const pool = require("../config/database");
 class SchemaStore {
   constructor(db = pool) { this.db = db; }
+  async migratePaymentRequestKey() {
+    const [columns] = await this.db.query("SHOW COLUMNS FROM PAYMENTS LIKE 'request_key_hash'");
+    if (!columns.length) {
+      const sql = fs.readFileSync(path.resolve(__dirname, "../../database/migrations/004_payment_request_key.sql"), "utf8");
+      await this.db.query(sql);
+    }
+    const [indexes] = await this.db.query("SHOW INDEX FROM PAYMENTS WHERE Key_name = 'uq_payments_request_key_hash'");
+    if (indexes.length !== 1 || Number(indexes[0].Non_unique) !== 0 || indexes[0].Column_name !== "request_key_hash") {
+      const error = new Error("PAYMENT_REQUEST_KEY_INDEX_REQUIRED"); error.code = error.message; throw error;
+    }
+  }
   async migrateRefreshTokens() {
     const sql = fs.readFileSync(path.resolve(__dirname, "../../database/migrations/001_refresh_tokens.sql"), "utf8");
     await this.db.query(sql);
