@@ -89,6 +89,61 @@ describe("US-F01 integration with the 16-table schema and a disposable MySQL dat
     assert.equal((await request("/api/auth/logout", { refreshToken: next.refreshToken })).status, 204);
     assert.equal((await request("/api/auth/me", undefined, next.accessToken)).status, 401);
   });
+  it("revokes old refresh history across Store instances and preserves another session", async () => {
+    const input = credentials("rotation-history@example.com");
+    await service.createStaff(actorId, input);
+    const first = await service.login(input), other = await service.login(input);
+    const second = await service.refresh({ refreshToken: first.refreshToken });
+    const third = await service.refresh({ refreshToken: second.refreshToken });
+    // Construct a fresh runtime: no in-memory history can be reused.
+    const { AuthService } = require("../services/auth.service");
+    const AuthStore = require("../stores/auth.store");
+    const UserStore = require("../stores/user.store");
+    const RefreshTokenStore = require("../stores/refresh_token.store");
+    const restarted = new AuthService({ authStore: new AuthStore(pool), users: new UserStore(pool),
+      tokens: new RefreshTokenStore(pool), config: () => config });
+    await assert.rejects(restarted.refresh({ refreshToken: first.refreshToken }), error => error.status === 401);
+    await restarted.logout({ refreshToken: first.refreshToken });
+    await restarted.logout({ refreshToken: first.refreshToken });
+    for (const access of [first.accessToken, second.accessToken, third.accessToken]) {
+      await assert.rejects(restarted.authenticate(access), error => error.code === "SESSION_REVOKED");
+    }
+    await assert.rejects(restarted.refresh({ refreshToken: third.refreshToken }), error => error.status === 401);
+    assert.ok(await restarted.authenticate(other.accessToken));
+    assert.ok((await restarted.refresh({ refreshToken: other.refreshToken })).accessToken);
+    const [rows] = await pool.query("SELECT COUNT(*) AS count FROM REFRESH_TOKENS WHERE user_id = ?", [first.user.id]);
+    assert.equal(rows[0].count, 1);
+  });
+  it("upgrades the legacy token table without losing active sessions and safely reruns", async () => {
+    const SchemaStore = require("../stores/schema.store");
+    const input = credentials("history-migration@example.com");
+    await service.createStaff(actorId, input);
+    const login = await service.login(input);
+    // This suite owns a disposable database. Dropping the new column models 001.
+    await pool.query("ALTER TABLE REFRESH_TOKENS DROP COLUMN rotated_token_hashes");
+    await new SchemaStore(pool).migrateRefreshTokens();
+    await new SchemaStore(pool).migrateRefreshTokens();
+    assert.ok(await service.authenticate(login.accessToken));
+    const next = await service.refresh({ refreshToken: login.refreshToken });
+    await service.logout({ refreshToken: login.refreshToken });
+    await assert.rejects(service.authenticate(next.accessToken), error => error.code === "SESSION_REVOKED");
+  });
+  it("concurrent refresh and logout using the old refresh token leave no usable session", async () => {
+    const input = credentials("logout-race@example.com");
+    await service.createStaff(actorId, input);
+    const first = await service.login(input);
+    const outcomes = await Promise.allSettled([
+      service.refresh({ refreshToken: first.refreshToken }),
+      service.logout({ refreshToken: first.refreshToken }),
+    ]);
+    assert.equal(outcomes[1].status, "fulfilled");
+    await assert.rejects(service.authenticate(first.accessToken), error => error.code === "SESSION_REVOKED");
+    if (outcomes[0].status === "fulfilled") {
+      const next = outcomes[0].value;
+      await assert.rejects(service.authenticate(next.accessToken), error => error.code === "SESSION_REVOKED");
+      await assert.rejects(service.refresh({ refreshToken: next.refreshToken }), error => error.status === 401);
+    } else assert.equal(outcomes[0].reason.status, 401);
+  });
   it("handles concurrent duplicate email without creating two users", async () => {
     const input = credentials("duplicate@example.com");
     const responses = await Promise.all([request("/api/admin/staff", input, actorToken), request("/api/admin/staff", input, actorToken)]);

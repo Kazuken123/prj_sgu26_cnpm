@@ -94,7 +94,7 @@ Các địa chỉ mặc định:
 
 Các lệnh quản trị được chạy trong `backend`:
 
-- `npm run db:migrate`: chạy migration `001_refresh_tokens.sql`, chỉ bổ sung bảng refresh token; không chuyển toàn bộ database cũ sang thiết kế 16 bảng.
+- `npm run db:migrate`: chạy migration 001 và bổ sung cột lịch sử hash token theo migration 002 nếu chưa có. Chạy trước khi dùng code logout mới trên database cũ; không chuyển toàn bộ database cũ sang thiết kế 16 bảng. Xem [hợp đồng logout](docs/LOGOUT_CONTRACT.md).
 - `npm run bootstrap:admin`: tạo tài khoản quản trị từ `BOOTSTRAP_ADMIN_EMAIL` và `BOOTSTRAP_ADMIN_PASSWORD`. Cấu hình các biến này trước khi chạy; không sử dụng mật khẩu mặc định.
 
 ### Chạy bằng Docker Compose

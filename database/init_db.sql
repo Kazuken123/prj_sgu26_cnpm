@@ -38,6 +38,7 @@ CREATE TABLE REFRESH_TOKENS (
     user_id INT NOT NULL,
     session_id CHAR(36) NOT NULL,
     token_hash CHAR(64) NOT NULL,
+    rotated_token_hashes JSON NULL,
     expires_at DATETIME(3) NOT NULL,
     created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (token_id),

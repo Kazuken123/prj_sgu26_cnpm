@@ -151,23 +151,14 @@ class AuthService {
       : options?.authorization || options?.authHeader || input?.authorization || input?.accessToken;
     const verifiedSession = this.extractVerifiedSession(authHeader);
 
-    let sessionRevoked = false;
     if (verifiedSession) {
-      if (typeof this.tokens.revokeBySession === "function") {
-        await this.tokens.revokeBySession(verifiedSession.sessionId, verifiedSession.userId);
-      }
-      sessionRevoked = true;
+      await this.tokens.revokeBySession(verifiedSession.sessionId, verifiedSession.userId);
+      // One request revokes one authenticated session. Do not additionally
+      // revoke a different session supplied in the refresh-token body.
+      return;
     }
-
-    if (input?.refreshToken) {
-      const token = validation.refreshToken(input.refreshToken);
-      await this.tokens.revoke(this.hashToken(token));
-      sessionRevoked = true;
-    }
-
-    if (!sessionRevoked) {
-      validation.refreshToken(input?.refreshToken);
-    }
+    const token = validation.refreshToken(input?.refreshToken);
+    await this.tokens.revoke(this.hashToken(token));
   }
   async authenticate(token) {
     const config = this.config();

@@ -59,7 +59,7 @@ class AuthStore {
       const session = await this.tokens.getByHash(tokenHash, connection);
       const user = session ? await this.users.getUserById(session.user_id, connection, true) : undefined;
       return work(session, user, {
-        rotate: (nextHash) => this.tokens.rotate(session.token_id, nextHash, connection, tokenHash, session.session_id, session.user_id),
+        rotate: (nextHash) => this.tokens.rotate(session.token_id, nextHash, connection),
         revoke: () => this.tokens.revoke(tokenHash, connection),
       });
     });

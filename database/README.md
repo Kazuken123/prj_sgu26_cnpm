@@ -10,7 +10,7 @@ ERD chỉnh sửa được nằm tại [`../docs/diagram/erd_diagram.drawio`](..
 
 ## Migration
 
-Giữ `migrations/001_refresh_tokens.sql` vì `backend/stores/schema.store.js` và lệnh `npm run db:migrate` vẫn tham chiếu tệp này. Migration bổ sung bảng REFRESH_TOKENS nếu chưa có, không xóa dữ liệu và không thay đổi các cột của bảng đã tồn tại. Trên database vừa khởi tạo bằng schema mới, bảng đã có nên migration không tạo lại.
+Lệnh `npm run db:migrate` giữ migration 001 để tạo REFRESH_TOKENS nếu thiếu, rồi kiểm tra và chạy migration 002 để thêm cột JSON nullable `rotated_token_hashes` nếu chưa có. Chạy được nhiều lần, giữ tài khoản và phiên hiện có; schema mới vẫn 16 bảng. Chạy nâng cấp trước khi dùng code logout mới. Các hash đã xoay trước nâng cấp không thể phục hồi; các phiên đó dùng Bearer hoặc refresh hiện tại để logout. Xem `docs/LOGOUT_CONTRACT.md`.
 
 Migration 001 KHÔNG chuyển schema 15 bảng cũ sang 16 bảng mới, không đổi vai trò và không loại bỏ các bảng nghiệp vụ cũ. Việc nâng cấp database có dữ liệu cần migration riêng sau khi xác định cách chuyển tài khoản, POI và các quan hệ liên quan. Không xóa volume MySQL để thay cho migration. Docker Compose chỉ chạy init script khi khởi tạo thư mục dữ liệu MySQL mới.
 
