@@ -173,7 +173,7 @@ it("staff payment endpoint validates real JWT signatures, expiry, guest type and
     body: JSON.stringify({ paymentMethod: "CASH" }) });
   assert.equal((await post(login.accessToken)).status, 201);
   const payload = jwt.decode(login.accessToken); delete payload.iat; delete payload.exp; delete payload.iss; delete payload.aud;
-  const sign = (data, secret = auth.config.secret, expiresIn = "1h") => jwt.sign(data, secret,
+  const sign = (data, secret = auth.config.secret, expiresIn = "1h") => jwt.sign({ ...data, iat: Math.floor(auth.service.now() / 1000) }, secret,
     { algorithm: "HS256", issuer: auth.config.issuer, audience: auth.config.audience, expiresIn });
   assert.equal((await post(sign(payload, "different-test-only-secret"))).status, 401);
   assert.equal((await post(sign(payload, auth.config.secret, -1))).status, 401);

@@ -18,6 +18,11 @@ function createPaymentRouter(paymentService) {
 function createStaffPaymentRouter(authService, paymentService) {
   const router = express.Router();
   router.use(createAuthMiddleware(authService).verifyToken, requireRole("STAFF", "ADMIN"));
+  router.get("/sessions/:sessionId", async (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    try { res.json({ data: await paymentService.lookupCash(req.user, req.params.sessionId) }); }
+    catch (error) { next(error); }
+  });
   router.post("/", async (req, res, next) => {
     try {
       const result = await paymentService.initialize(req.body, req.get("Idempotency-Key"), req.user);

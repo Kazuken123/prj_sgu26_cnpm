@@ -11,7 +11,7 @@ function authorize(actor) {
   }
   if (!["STAFF", "ADMIN"].includes(actor.role) || actor.status !== "ACTIVE" ||
       (actor.locked_until && new Date(actor.locked_until).getTime() > Date.now())) {
-    throw new AppError(403, "FORBIDDEN", "Không có quyền tạo phiên hỗ trợ khách.");
+    throw new AppError(403, "FORBIDDEN", "Không có quyền hỗ trợ thanh toán cho khách.");
   }
 }
 class PaymentService {
@@ -61,6 +61,20 @@ class PaymentService {
     const row = await this.store.getStatus(normalized);
     if (!row) throw new AppError(404, "VISIT_SESSION_NOT_FOUND", "Không tìm thấy phiên tham quan.");
     return { sessionId: row.sessionId, sessionStatus: row.sessionStatus, paymentStatus: row.paymentStatus };
+  }
+  async lookupCash(actor, sessionId) {
+    authorize(actor);
+    if (typeof sessionId !== "string" || !uuid.test(sessionId)) {
+      throw new AppError(400, "INVALID_SESSION_ID", "session_id không hợp lệ.");
+    }
+    const row = await this.store.lookupForStaff(actor.userId ?? actor.user_id, sessionId.toLowerCase(), authorize);
+    if (!row) throw new AppError(404, "VISIT_SESSION_NOT_FOUND", "Không tìm thấy phiên tham quan.");
+    if (row.paymentMethod !== "CASH") {
+      throw new AppError(409, "CASH_PAYMENT_REQUIRED", "Phiên này không sử dụng thanh toán tiền mặt.");
+    }
+    // Lookup is not confirmation: preserve PAID/FAILED and ACTIVE/REVOKED states.
+    return { sessionId: row.sessionId, paymentRef: row.paymentRef, paymentMethod: row.paymentMethod,
+      amount: String(row.amount), currency: row.currency, sessionStatus: row.sessionStatus, paymentStatus: row.paymentStatus };
   }
 }
 module.exports = new PaymentService();

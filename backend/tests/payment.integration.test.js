@@ -163,4 +163,52 @@ describe("Pending CASH/ONLINE with disposable SQL database", { skip: process.env
       build: () => ({ sessionId: randomUUID(), paymentRef: existing.data.paymentRef, paymentMethod: "CASH", amount: "50000.00" }) }), { code: "ER_DUP_ENTRY" });
     assert.deepEqual(await counts(), before);
   });
+  it("staff lookup reads guest CASH and other staff CASH with saved prices, without Redis or current price", async () => {
+    const guest = await create(), internal = await create("CASH", randomUUID(), staff);
+    const store = new PaymentStore(db);
+    const lookup = new PaymentService(store, { consumeLookup: async () => { throw new Error("Redis is unavailable"); } },
+      { price: () => { throw new Error("Price configuration removed"); } });
+    const [other] = await db.query("INSERT INTO USERS (email, password_hash, role, status) VALUES ('cash-lookup@example.invalid', 'test-only', 'STAFF', 'ACTIVE')");
+    const actor = { ...staff, userId: other.insertId };
+    for (const created of [guest, internal]) {
+      const row = await lookup.lookupCash(actor, created.data.sessionId.toUpperCase());
+      assert.deepEqual(row, created.data);
+      assert.equal(row.amount, "50000.00");
+    }
+  });
+  it("staff lookup rejects ONLINE, missing sessions and stale locked/deleted actor identities", async () => {
+    const cash = await create(), online = await create("ONLINE"), before = await counts();
+    await assert.rejects(service.lookupCash(staff, online.data.sessionId), { code: "CASH_PAYMENT_REQUIRED" });
+    await assert.rejects(service.lookupCash(staff, randomUUID()), { code: "VISIT_SESSION_NOT_FOUND" });
+    await assert.rejects(service.lookupCash(staff, "' OR 1=1 --"), { code: "INVALID_SESSION_ID" });
+    await db.query("UPDATE USERS SET status = 'LOCKED' WHERE user_id = ?", [staff.userId]);
+    try { await assert.rejects(service.lookupCash(staff, cash.data.sessionId), { code: "FORBIDDEN" }); }
+    finally { await db.query("UPDATE USERS SET status = 'ACTIVE' WHERE user_id = ?", [staff.userId]); }
+    await assert.rejects(service.lookupCash({ ...staff, userId: 999999 }, cash.data.sessionId), { code: "MISSING_ACCESS_TOKEN" });
+    assert.deepEqual(await counts(), before);
+  });
+  it("concurrent staff cash lookups are read-only, return no hashes and leave audit unchanged", async () => {
+    const created = await create(), before = await counts();
+    const [payment] = await db.query("SELECT * FROM PAYMENTS WHERE session_id = ?", [created.data.sessionId]);
+    const [session] = await db.query("SELECT * FROM VISIT_SESSIONS WHERE session_id = ?", [created.data.sessionId]);
+    const rows = await Promise.all(Array.from({ length: 12 }, () => service.lookupCash(staff, created.data.sessionId)));
+    for (const row of rows) assert.deepEqual(row, created.data);
+    assert.deepEqual(await counts(), before);
+    assert.deepEqual((await db.query("SELECT * FROM PAYMENTS WHERE session_id = ?", [created.data.sessionId]))[0], payment);
+    assert.deepEqual((await db.query("SELECT * FROM VISIT_SESSIONS WHERE session_id = ?", [created.data.sessionId]))[0], session);
+  });
+  it("staff cash lookup displays seeded PAID/FAILED/REVOKED states without changing payment or ticket dates", async () => {
+    for (const state of [{ payment: "PAID", session: "ACTIVE" }, { payment: "FAILED", session: "PENDING" }, { payment: "PAID", session: "REVOKED" }]) {
+      const created = await create();
+      await db.query("UPDATE PAYMENTS SET status = ? WHERE session_id = ?", [state.payment, created.data.sessionId]);
+      await db.query("UPDATE VISIT_SESSIONS SET status = ? WHERE session_id = ?", [state.session, created.data.sessionId]);
+      const [payment] = await db.query("SELECT * FROM PAYMENTS WHERE session_id = ?", [created.data.sessionId]);
+      const [session] = await db.query("SELECT * FROM VISIT_SESSIONS WHERE session_id = ?", [created.data.sessionId]);
+      const before = await counts(), result = await service.lookupCash(staff, created.data.sessionId);
+      assert.equal(result.paymentStatus, state.payment); assert.equal(result.sessionStatus, state.session);
+      assert.deepEqual(await counts(), before);
+      assert.deepEqual((await db.query("SELECT * FROM PAYMENTS WHERE session_id = ?", [created.data.sessionId]))[0], payment);
+      assert.deepEqual((await db.query("SELECT * FROM VISIT_SESSIONS WHERE session_id = ?", [created.data.sessionId]))[0], session);
+    }
+  });
 });

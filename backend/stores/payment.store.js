@@ -22,6 +22,15 @@ class PaymentStore {
       WHERE s.session_id = ?`, [sessionId]);
     return rows[0];
   }
+  async lookupForStaff(actorId, sessionId, authorize) {
+    return this.transactions.transaction(async connection => {
+      // Recheck the account before reading payment details, including accounts
+      // locked/deleted after HTTP authentication. No payment/session mutation.
+      authorize(await this.users.getUserById(actorId, connection, true));
+      const [rows] = await connection.query(projection + " WHERE p.session_id = ?", [sessionId]);
+      return rows[0];
+    });
+  }
   async initialize({ hash, actorId, authorize, build }) {
     const attempt = () => this.transactions.transaction(async connection => {
       if (actorId !== null) authorize(await this.users.getUserById(actorId, connection, true));

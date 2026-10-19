@@ -6,6 +6,8 @@
 
 Xem [hợp đồng API và đối chiếu UC-13](docs/BACKEND_POI_STAGE1.md). Chạy migration 001–004 trước khi dùng database cũ có schema 16 bảng. Các migration này không tự chuyển database nghiệp vụ cũ sang toàn bộ mô hình mới. JWT issuer/audience và tên database mặc định được giữ để tương thích cấu hình/phiên đang có.
 
+Bước 4 bổ sung [tra cứu phiên tiền mặt cho STAFF/ADMIN](docs/BACKEND_CASH_LOOKUP_STAGE4.md): đọc đúng session_id, mã tham chiếu, số tiền đã lưu và trạng thái; chưa xác nhận đã nhận tiền, kích hoạt phiên hoặc cấp mã. Không có migration mới. Thay đổi mốc 4 hiện mới kiểm thử local, chưa xác nhận CI.
+
 Đồ án môn **Công nghệ phần mềm**, xây dựng ứng dụng web hỗ trợ khách tham quan tiếp cận nội dung theo vị trí và ngôn ngữ lựa chọn. Trọng tâm kỹ thuật là Back-end ba lớp **Router–Service–Store**, kiểm thử tự động và quy trình CI/CD.
 
 ## Tổng quan sản phẩm
