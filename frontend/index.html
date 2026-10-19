@@ -1,44 +1,53 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Đăng nhập nội bộ · Chùa Linh Ứng</title>
-  <style>
-    body{font:16px system-ui,sans-serif;background:#f4f5f7;color:#17212b;margin:0;padding:40px 20px}
-    main{max-width:420px;margin:auto;background:white;padding:28px;border-radius:12px}
-    h1{margin-top:0;font-size:26px}label{display:block;margin-top:18px}
-    input,button{box-sizing:border-box;width:100%;font:inherit;padding:12px;margin-top:6px;border-radius:6px;border:1px solid #abb5bf}
-    button{margin-top:22px;background:#174f82;color:white;cursor:pointer}button:disabled{opacity:.6}
-    a{color:#174f82}#message{line-height:1.5}
-  </style>
-  <script src="auth.js" defer></script>
+  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/components.css">
+  <link rel="stylesheet" href="./assets/css/layout.css">
+  <script src="./auth.js" defer></script>
+  <script src="./assets/js/api.js" defer></script>
+  <script src="./assets/js/ui/common.js" defer></script>
+  <script src="./assets/js/ui/navigation.js" defer></script>
+  <script src="./assets/js/pages/login.js" defer></script>
+  <script src="./assets/js/ui/motion.js" defer></script>
 </head>
-<body>
-<main>
-  <h1>Đăng nhập nội bộ</h1><p>Hệ thống thuyết minh Chùa Linh Ứng</p>
-  <form id="loginForm">
-    <label for="email">Email</label><input type="email" id="email" autocomplete="username" required maxlength="255">
-    <label for="password">Mật khẩu</label><input type="password" id="password" autocomplete="current-password" required minlength="8">
-    <button id="submitButton">Đăng nhập</button>
-  </form>
-  <p id="message" role="status" aria-live="polite"></p>
-  <p>Dành cho nhân viên và quản trị viên. Liên hệ quản trị viên để được cấp tài khoản.</p>
+<body class="login-page">
+<a class="skip-link" href="#main">Đến nội dung chính</a>
+<header class="site-header">
+  <a class="brand" href="./account.html"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 29C11 25 12 17 20 8c8 9 9 17 0 21Z"/><path d="M20 29C10 30 5 23 5 16c6 0 11 3 15 13ZM20 29c10 1 15-6 15-13-6 0-11 3-15 13ZM9 32h22"/></svg></span><span>Chùa Linh Ứng<small>Hệ thống thuyết minh đa ngôn ngữ</small></span></a>
+  <span class="header-label">Dành cho nhân viên và quản trị viên</span>
+</header>
+<main id="main" class="auth-layout cinema-hero">
+  <section class="auth-intro" aria-labelledby="welcomeTitle">
+    <picture class="auth-image">
+      <source media="(max-width: 800px)" srcset="./assets/images/a1%20%281%29.jpg" width="1066" height="853">
+      <img src="./assets/images/a1%20%283%29.jpg" width="1200" height="860" alt="Tượng Quan Âm giữa khuôn viên Chùa Linh Ứng, phía xa là núi và biển" loading="eager" fetchpriority="high" decoding="async">
+    </picture>
+    <div class="auth-copy">
+    <p class="eyebrow">Gìn giữ • Lắng nghe • Kết nối</p>
+    <h1 id="welcomeTitle"><span class="hero-title-line">Gìn giữ.</span><span class="hero-title-line hero-emphasis">Kết nối.</span></h1>
+    <p>Đăng nhập bằng tài khoản được cấp để sử dụng các chức năng nội bộ theo vai trò của bạn.</p>
+    <p class="auth-caption fine-print">Hệ thống tự động thuyết minh đa ngôn ngữ<br>cho Chùa Linh Ứng</p>
+    </div>
+  </section>
+  <section class="card auth-card" aria-labelledby="loginTitle">
+    <h2 id="loginTitle">Đăng nhập nội bộ</h2>
+    <p class="muted">Chào mừng bạn trở lại.</p>
+    <form id="loginForm" class="spaced">
+      <div class="field"><label for="email">Email <span class="fine-print">(bắt buộc)</span></label><input type="email" id="email" name="email" autocomplete="username" required maxlength="255" placeholder="Nhập email được cấp"></div>
+      <div class="field"><label for="password">Mật khẩu <span class="fine-print">(bắt buộc)</span></label><input type="password" id="password" name="password" autocomplete="current-password" required minlength="8" aria-describedby="passwordHint"><small id="passwordHint" class="field-hint">Ít nhất 8 ký tự, tối đa 72 byte UTF-8.</small></div>
+      <button id="submitButton" class="button-full" type="submit">Đăng nhập</button>
+    </form>
+    <p id="message" aria-atomic="true" class="notice spaced" role="status" aria-live="polite" hidden></p>
+    <p class="fine-print section-divider">Liên hệ quản trị viên để được cấp tài khoản</p>
+  </section>
 </main>
-<script>
-  document.getElementById("loginForm").addEventListener("submit", async event => {
-    event.preventDefault();
-    const button = document.getElementById("submitButton");
-    const message = document.getElementById("message");
-    button.disabled = true; message.textContent = "Đang đăng nhập…";
-    try {
-      const result = await FoodTourAuth.request("/login", { body: {
-        email: document.getElementById("email").value, password: document.getElementById("password").value,
-      } });
-      FoodTourAuth.saveSession(result.data);
-      window.location.href = "account.html";
-    } catch (error) { message.textContent = error.message; }
-    finally { button.disabled = false; }
-  });
-</script>
+<footer class="site-footer">Chùa Linh Ứng · Không gian làm việc nội bộ</footer>
+<noscript><p class="notice no-script-note">JavaScript cần được bật để đăng nhập và tải dữ liệu nội bộ. Chuyển động không cần thiết để đọc nội dung tĩnh trên trang.</p></noscript>
 </body>
 </html>
+
+

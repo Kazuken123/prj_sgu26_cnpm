@@ -1,43 +1,47 @@
 <!doctype html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Tài khoản nội bộ · Chùa Linh Ứng</title>
-  <style>
-    body{font:16px system-ui,sans-serif;background:#f4f5f7;color:#17212b;margin:0;padding:40px 20px}
-    main{max-width:540px;margin:auto;background:white;padding:28px;border-radius:12px}
-    h1{margin-top:0;font-size:26px}dt{font-weight:600;margin-top:14px}dd{margin:4px 0;overflow-wrap:anywhere}
-    button{font:inherit;padding:10px 16px;border-radius:6px;border:1px solid #174f82;background:#174f82;color:white;cursor:pointer}
-    section{border-top:1px solid #d5dae0;margin-top:24px;padding-top:16px}[hidden]{display:none}
-  </style>
-  <script src="auth.js" defer></script>
+  <link rel="stylesheet" href="./assets/css/base.css">
+  <link rel="stylesheet" href="./assets/css/components.css">
+  <link rel="stylesheet" href="./assets/css/layout.css">
+  <script src="./auth.js" defer></script>
+  <script src="./assets/js/api.js" defer></script>
+  <script src="./assets/js/ui/common.js" defer></script>
+  <script src="./assets/js/ui/navigation.js" defer></script>
+  <script src="./assets/js/pages/account.js" defer></script>
+  <script src="./assets/js/ui/motion.js" defer></script>
 </head>
-<body><main>
-  <h1>Tài khoản của bạn</h1>
-  <p id="message" role="status" aria-live="polite">Đang tải tài khoản…</p>
-  <dl id="profile" hidden><dt>Email</dt><dd id="email"></dd><dt>Vai trò</dt><dd id="role"></dd><dt>Trạng thái tài khoản</dt><dd id="status"></dd></dl>
-  <section id="adminSection" hidden><h2>Quản lý tài khoản</h2><p><a href="staff.html">Tạo tài khoản nhân viên</a></p></section>
-  <button id="logoutButton" type="button">Đăng xuất</button>
-</main>
-<script>
-  const labels = { STAFF: "Nhân viên", ADMIN: "Quản trị viên", ACTIVE: "Đang hoạt động", LOCKED: "Đã khóa" };
-  async function loadAccount() {
-    if (!FoodTourAuth.hasSession()) { window.location.replace("index.html"); return; }
-    try {
-      const { data: user } = await FoodTourAuth.request("/me", { authenticated: true });
-      document.getElementById("email").textContent = user.email;
-      document.getElementById("role").textContent = labels[user.role] || user.role;
-      document.getElementById("status").textContent = labels[user.status] || user.status;
-      document.getElementById("profile").hidden = false; document.getElementById("message").textContent = "";
-      document.getElementById("adminSection").hidden = user.role !== "ADMIN";
-    } catch (error) { document.getElementById("message").textContent = error.message; }
-  }
-  document.getElementById("logoutButton").addEventListener("click", async () => {
-    const button = document.getElementById("logoutButton"); button.disabled = true;
-    try { await FoodTourAuth.logout(); window.location.replace("index.html"); }
-    catch (error) { document.getElementById("message").textContent = error.message; }
-    finally { button.disabled = false; }
-  });
-  window.addEventListener("DOMContentLoaded", loadAccount);
-</script>
-</body></html>
+<body class="internal-page">
+<a class="skip-link" href="#main">Đến nội dung chính</a>
+<header class="site-header">
+  <a class="brand" href="./account.html"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M20 29C11 25 12 17 20 8c8 9 9 17 0 21Z"/><path d="M20 29C10 30 5 23 5 16c6 0 11 3 15 13ZM20 29c10 1 15-6 15-13-6 0-11 3-15 13ZM9 32h22"/></svg></span><span>Chùa Linh Ứng<small>Hệ thống thuyết minh đa ngôn ngữ</small></span></a>
+  <span class="header-label">Dành cho nhân viên và quản trị viên</span>
+<svg class="header-contour" viewBox="0 0 480 96" fill="none" stroke="currentColor" aria-hidden="true" focusable="false"><path d="M0 88C80 88 90 16 170 34S276 108 350 62s100-40 130-28M0 96c100 0 110-56 178-42s100 64 176 28 98-42 126-28"/><path d="M80 96c60-10 72-50 118-40s90 50 160 14 90-30 122-18"/></svg>
+</header>
+<div class="shell">
+  <aside class="sidebar" id="internalNav" aria-label="Menu nội bộ"></aside>
+  <main id="main" class="workspace">
+    <div class="page-heading"><p class="eyebrow">Tài khoản</p><h1>Tài khoản của bạn</h1><p>Thông tin và quyền truy cập nội bộ hiện tại.</p></div>
+    <section class="card" aria-labelledby="profileTitle">
+      <h2 id="profileTitle">Thông tin tài khoản</h2>
+      <div id="message" aria-atomic="true" role="status" aria-live="polite">Đang tải tài khoản…</div>
+      <dl id="profile" class="profile" hidden>
+        <div class="profile-row"><dt>Họ tên</dt><dd id="fullName"></dd></div>
+        <div class="profile-row"><dt>Email</dt><dd id="email"></dd></div>
+        <div class="profile-row"><dt>Vai trò</dt><dd id="role"></dd></div>
+        <div class="profile-row"><dt>Trạng thái</dt><dd><span id="status" class="badge"></span></dd></div>
+      </dl>
+      <section id="adminSection" class="section-divider" hidden><h2>Quản lý tài khoản nhân viên</h2><p class="muted">Cấp tài khoản mới để nhân viên có thể đăng nhập hệ thống.</p><a class="button button-secondary" href="./staff.html">Tạo tài khoản nhân viên</a></section>
+      <div id="logoutMessage" class="spaced" role="status" aria-live="polite" aria-atomic="true" hidden></div>
+      <div class="section-divider"><button id="logoutButton" type="button" class="button-secondary">Đăng xuất</button></div>
+    </section>
+  </main>
+</div>
+<footer class="site-footer">Chùa Linh Ứng · Không gian làm việc nội bộ</footer>
+<noscript><p class="notice no-script-note">JavaScript cần được bật để đăng nhập và tải dữ liệu nội bộ. Chuyển động không cần thiết để đọc nội dung tĩnh trên trang.</p></noscript>
+</body>
+</html>
+
