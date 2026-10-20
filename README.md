@@ -1,5 +1,9 @@
 # Hệ thống tự động thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn
 
+## Bàn giao demo trình duyệt DRAFT-03
+
+Xem [hướng dẫn dựng backend có dữ liệu và API cho frontend](data/demo/README.md) và [kết quả bàn giao](docs/DEMO_DRAFT03_FRONTEND_HANDOFF.md). Hai POI/bốn bản VI–EN/một tour đã nhập vào DB demo riêng, worker tạo bốn WAV âm thử mock; seed chạy lại UNCHANGED. Guard dùng nguồn OSM đã lưu theo chấp thuận của chủ đồ án, không ghi ngày tái kiểm tra giả. Bản kiểm chứng local đạt456/456 test MySQL8/Redis thật ngoài OneDrive; chưa sửa frontend/Word. Trạng thái CI cần đối chiếu đúng commit trên GitHub Actions. Các mô tả mốc phía dưới là lịch sử, không dùng để thay hiện trạng trong bản bàn giao này.
+
 ## Hiện trạng backend theo báo cáo 8
 
 Mốc 15 đang local: [hạn giữ quyền và phục hồi job gián đoạn](docs/BACKEND_JOB_RECOVERY_STAGE15.md). Migration 006 thêm lease_expires_at nullable đã được duyệt; mặc định 120 giây, heartbeat 15 giây. Job hết hạn mất quyền ghi; jobs:recover mặc định dry-run, --apply mới chuyển FAILED có audit. Legacy thiếu hạn chỉ đối soát. Đạt 372 test local, kiểm tra 102 file JavaScript; chưa commit/push/CI mới. Chưa worker tự lấy PENDING. Chạy db:migrate đến 006 trước code mới.

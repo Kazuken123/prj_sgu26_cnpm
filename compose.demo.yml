@@ -1,0 +1,88 @@
+# Browser demo only. Separate project, DB, network and media; no production .env.
+name: tcv-browser-demo-draft03
+x-app: &app
+  image: tcv-browser-demo:draft03-local
+  environment: &environment
+    NODE_ENV: production
+    PORT: '3000'
+    DB_HOST: database
+    DB_USER: tcv_demo_app
+    DB_PASSWORD: ${DEMO_DB_PASSWORD:?Generate demo.local.env as documented}
+    DB_NAME: tcv_demo_review_20261020
+    JWT_SECRET: ${DEMO_JWT_SECRET:?Generate demo.local.env as documented}
+    REDIS_URL: redis://redis:6379
+    MEDIA_ROOT: /var/lib/tcv/media
+    PAYMENT_GATEWAY: mock
+    MOCK_PAYMENT_BASE_URL: ${DEMO_PUBLIC_BASE_URL:-http://127.0.0.1:18080}
+    MOCK_WEBHOOK_SECRET: ${DEMO_WEBHOOK_SECRET:?Generate demo.local.env as documented}
+    VISIT_PRICE_VND: '50000'
+    CORS_ORIGINS: http://localhost:5500,http://127.0.0.1:5500,http://localhost:5173,http://127.0.0.1:5173
+  volumes:
+    - demo_media:/var/lib/tcv/media
+    - ./data/demo:/demo-data:ro
+  networks: [demo_only]
+services:
+  database:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DEMO_DB_ROOT_PASSWORD:?Generate demo.local.env as documented}
+      MYSQL_DATABASE: tcv_demo_review_20261020
+      MYSQL_USER: tcv_demo_app
+      MYSQL_PASSWORD: ${DEMO_DB_PASSWORD:?Generate demo.local.env as documented}
+    volumes:
+      - demo_mysql:/var/lib/mysql
+      # Official MySQL entrypoint runs this only for a NEW empty volume.
+      - ./database/init_db.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+    healthcheck:
+      test: [CMD-SHELL, 'MYSQL_PWD="$$MYSQL_ROOT_PASSWORD" mysqladmin ping -h localhost --silent']
+      interval: 2s
+      timeout: 3s
+      retries: 45
+    networks: [demo_only]
+  redis:
+    image: redis:7-alpine
+    volumes: [demo_redis:/data]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+    networks: [demo_only]
+  backend:
+    <<: *app
+    # A host-facing bridge is needed for published localhost ports.
+    # MySQL, Redis and the worker stay on the internal network only.
+    networks: [demo_only, demo_access]
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports: ['127.0.0.1:${DEMO_PORT:-18080}:3000']
+    depends_on:
+      database: { condition: service_healthy }
+      redis: { condition: service_healthy }
+  worker:
+    <<: *app
+    command: [node, scripts/content-worker.js, --mock, --concurrency, '2', --poll-ms, '250']
+    healthcheck: { disable: true }
+    depends_on:
+      database: { condition: service_healthy }
+      redis: { condition: service_healthy }
+  migrate:
+    <<: *app
+    profiles: [tools]
+    command: [node, scripts/migrate.js]
+    healthcheck: { disable: true }
+  seed:
+    <<: *app
+    profiles: [tools]
+    command: [node, scripts/seed-demo.js, --manifest, /demo-data/draft03.json, --database, tcv_demo_review_20261020, --apply]
+    healthcheck: { disable: true }
+networks:
+  demo_only:
+    internal: true
+  demo_access:
+    driver: bridge
+volumes:
+  demo_mysql:
+  demo_redis:
+  demo_media:
