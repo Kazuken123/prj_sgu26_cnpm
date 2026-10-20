@@ -1,6 +1,45 @@
 const pool = require("../config/database");
+const AuthStore = require("./auth.store");
 class ContentStore {
-  constructor(db = pool) { this.db = db; }
+  constructor(db = pool) { this.db = db; this.transactions = new AuthStore(db); }
+  async withBundleSnapshot({ sessionId, tokenHash }, work) {
+    return this.transactions.transaction(async connection => {
+      // Same payment-before-visit order as webhook/checkout/token exchange.
+      const [payments] = await connection.query("SELECT status AS paymentStatus, paid_at AS paidAt FROM PAYMENTS WHERE session_id = ? FOR UPDATE", [sessionId]);
+      const [visits] = await connection.query(`SELECT status AS sessionStatus, token_hash AS tokenHash, activated_at AS activatedAt,
+        expires_at AS expiresAt FROM VISIT_SESSIONS WHERE session_id = ? FOR UPDATE`, [sessionId]);
+      const [clock] = await connection.query("SELECT UTC_TIMESTAMP(3) AS nowUtc");
+      return work({ visit: visits[0] && payments[0] ? { ...visits[0], ...payments[0] } : undefined, nowUtc: clock[0].nowUtc,
+        languages: async () => {
+          const [rows] = await connection.query("SELECT code, name FROM LANGUAGES WHERE is_active = 1 ORDER BY code"); return rows;
+        },
+        content: async languageCodes => {
+          const [pois] = await connection.query(`SELECT poi_id AS poiId, name AS originalName, category, conservation_status AS conservationStatus,
+            activity_hours AS activityHours, latitude, longitude, trigger_radius AS triggerRadius, avatar_url AS avatarUrl,
+            display_order AS displayOrder, content_version AS contentVersion FROM POIS WHERE status = 'ACTIVE' ORDER BY display_order, poi_id`);
+          const placeholders = languageCodes.map(() => "?").join(",");
+          const [translations] = await connection.query(`SELECT t.poi_id AS poiId, t.language_code AS languageCode, t.name, t.description,
+            t.audio_script AS audioScript, t.status, t.source_version AS sourceVersion, a.status AS audioStatus,
+            a.source_version AS audioVersion, a.file_url AS fileUrl, a.duration, a.file_size AS fileSize
+            FROM POI_TRANSLATIONS t JOIN POIS p ON p.poi_id = t.poi_id JOIN LANGUAGES l ON l.code = t.language_code
+            LEFT JOIN AUDIOS a ON a.translation_id = t.translation_id
+            WHERE p.status = 'ACTIVE' AND l.is_active = 1 AND t.language_code IN (${placeholders})`, languageCodes);
+          const [tours] = await connection.query("SELECT tour_id AS tourId, name, description FROM TOURS ORDER BY tour_id");
+          const [items] = await connection.query(`SELECT tp.tour_id AS tourId, tp.poi_id AS poiId, tp.sequence_no AS sequenceNo
+            FROM TOUR_POIS tp JOIN POIS p ON p.poi_id = tp.poi_id WHERE p.status = 'ACTIVE' ORDER BY tp.tour_id, tp.sequence_no`);
+          return { pois, translations, tours, items };
+        },
+        recordAccess: async languageCode => {
+          // Recheck at the actual write: expiry may pass while building the response.
+          const [saved] = await connection.query(`INSERT INTO BUNDLE_ACCESS_LOGS (session_id, language_code)
+            SELECT s.session_id, ? FROM VISIT_SESSIONS s JOIN PAYMENTS p ON p.session_id = s.session_id
+            WHERE s.session_id = ? AND s.token_hash = ? AND s.status = 'ACTIVE' AND s.expires_at > UTC_TIMESTAMP(3)
+            AND s.activated_at IS NOT NULL AND p.status = 'PAID' AND p.paid_at IS NOT NULL`, [languageCode, sessionId, tokenHash]);
+          return saved.affectedRows === 1;
+        },
+      });
+    }, { repeatableRead: true });
+  }
   async getForUpdate(poiId, languageCode, executor = this.db) {
     const [rows] = await executor.query(`SELECT translation_id AS translationId, name, description, audio_script AS audioScript,
       source_version AS sourceVersion, status FROM POI_TRANSLATIONS WHERE poi_id = ? AND language_code = ? FOR UPDATE`, [poiId, languageCode]);

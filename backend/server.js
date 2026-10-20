@@ -12,6 +12,8 @@ const defaultPaymentService = require("./services/payment.service");
 const { createVisitRouter } = require("./routers/visit.router");
 const { createMediaRouter } = require("./routers/media.router");
 const { MediaService } = require("./services/media.service");
+const { ContentService } = require("./services/content.service");
+const { createContentRouter } = require("./routers/content.router");
 const defaultAuthService = require("./services/auth.service");
 const defaultHealthService = require("./services/health.service");
 const errorHandler = require("./middlewares/error.middleware");
@@ -19,7 +21,7 @@ const { getAuthConfig } = require("./config/auth");
 const path = require("node:path");
 
 function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService,
-  contentJobService = defaultContentJobService, paymentService = defaultPaymentService, mediaService = new MediaService() } = {}) {
+  contentJobService = defaultContentJobService, paymentService = defaultPaymentService, mediaService = new MediaService(), contentService = new ContentService() } = {}) {
   const app = express();
   app.disable("x-powered-by");
   const origins = (process.env.CORS_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500").split(",").map(value => value.trim());
@@ -35,6 +37,7 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use("/api/payments", createPaymentRouter(paymentService));
   app.use("/api/visits", createVisitRouter(paymentService));
   app.use("/api/media", createMediaRouter(paymentService, mediaService));
+  app.use("/api/content", createContentRouter(paymentService, contentService));
   app.use("/api/admin/payments", createStaffPaymentRouter(authService, paymentService));
   app.get("/", (req, res) => res.send("API Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn đang hoạt động."));
   app.get("/health", (req, res) => res.json({ status: "ok", service: "food-tour-api", timestamp: new Date().toISOString() }));

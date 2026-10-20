@@ -11,18 +11,22 @@ class AuthStore {
     this.auditLogs = new AuditLogStore(db);
     this.tokens = new RefreshTokenStore(db);
   }
-  async transaction(work) {
+  async transaction(work, { repeatableRead = false } = {}) {
     // InnoDB may deadlock concurrent locking reads + token-index updates.
     // Only retry known transaction conflicts after a successful rollback.
     for (let attempt = 0; attempt < 3; attempt++) {
       const connection = await this.db.getConnection();
-      let discard = false;
+      let discard = false, started = false;
       try {
+        // Applies only to this next transaction, not the pooled connection's session default.
+        if (repeatableRead) await connection.query("SET TRANSACTION ISOLATION LEVEL REPEATABLE READ");
         await connection.beginTransaction();
+        started = true;
         const result = await work(connection);
         await connection.commit();
         return result;
       } catch (error) {
+        if (repeatableRead && !started) discard = true;
         let rolledBack = false;
         try { await connection.rollback(); rolledBack = true; } catch { discard = true; }
         const retryable = ["ER_LOCK_DEADLOCK", "ER_LOCK_WAIT_TIMEOUT"].includes(error.code);
