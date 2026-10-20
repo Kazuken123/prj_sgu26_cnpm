@@ -28,6 +28,29 @@ class ContentJobStore {
     const [rows] = await this.db.query("SELECT " + projection + joins + " WHERE j.job_id = ?", [id]);
     return rows[0];
   }
+  async withWorkerJob(id, work) {
+    return this.transactions.transaction(async connection => {
+      const [reference] = await connection.query("SELECT poi_id FROM CONTENT_JOBS WHERE job_id = ?", [id]);
+      if (!reference[0]) return work({ job: undefined });
+      // Keep the same parent-before-job lock order as POI edits and STAFF retry.
+      // Locking reads below see changes committed while waiting for the parent.
+      const [parents] = await connection.query("SELECT content_version FROM POIS WHERE poi_id = ? FOR UPDATE", [reference[0].poi_id]);
+      const [rows] = await connection.query(`SELECT job_id AS jobId, poi_id AS poiId, language_code AS languageCode,
+        source_version AS sourceVersion, status FROM CONTENT_JOBS WHERE job_id = ? FOR UPDATE`, [id]);
+      if (!parents[0] || !rows[0]) return work({ job: undefined });
+      const job = { ...rows[0], currentVersion: parents[0].content_version };
+      return work({ job, transition: async (status, errorCode) => {
+        const [result] = await connection.query(`UPDATE CONTENT_JOBS SET status = ?, error_message = ?
+          WHERE job_id = ? AND status = 'PENDING' AND source_version = ?`, [status, errorCode, id, job.sourceVersion]);
+        if (result.affectedRows !== 1) return false;
+        await this.audit.create({ userId: null, action: status === "PROCESSING" ? "CLAIM_CONTENT_JOB" : "FAIL_CONTENT_JOB",
+          resourceType: "CONTENT_JOBS", resourceId: String(id),
+          details: JSON.stringify({ poiId: job.poiId, languageCode: job.languageCode, sourceVersion: job.sourceVersion,
+            currentVersion: job.currentVersion, ...(errorCode ? { code: errorCode } : {}) }), ipAddress: null }, connection);
+        return true;
+      } });
+    });
+  }
   async withLockedJob(actorId, id, authorize, work) {
     return this.transactions.transaction(async connection => {
       authorize(await this.users.getUserById(actorId, connection, true));

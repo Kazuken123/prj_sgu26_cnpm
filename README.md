@@ -2,6 +2,8 @@
 
 ## Hiện trạng backend theo báo cáo 8
 
+Mốc mới đang local: [nhận một tác vụ nội dung an toàn](docs/BACKEND_PIPELINE_CLAIM_STAGE12.md). PipelineService nhận job PENDING đúng một lần qua SQL transaction; job lỗi thời chuyển FAILED, audit cùng giao dịch. Đã đạt 304 test local và kiểm tra 83 file JavaScript; chưa commit/push/CI cho mốc 12. Chưa có tiến trình chạy worker, dịch/TTS, ghi kết quả hoặc phục hồi job dở dang; không coi nhận job là đã hoàn tất pipeline.
+
 Hiện tại, CASH đã được kiểm chứng đến API khách trên CI của commit 64523ce. ONLINE đã nối đủ luồng backend/API với **MockGateway**: khởi tạo → webhook có chữ ký → đổi mã một lần → `GET /api/visits/me`. Ba mốc ONLINE mới đạt 288 test local trên MariaDB với Redis thay thế; chưa push/chưa có CI mới với MySQL 8 và Redis thật. Chưa có frontend thanh toán, Payoo thật, bundle/audio hoặc chatbot. Các đoạn theo mốc bên dưới ghi cả phạm vi lịch sử.
 
 Đã bổ sung API nội bộ xem/tạo/sửa/ngừng POI, phân loại điểm, thông tin bảo tồn và khung giờ; lưu nguồn tiếng Việt, audit và tác vụ PENDING cùng giao dịch. Bước 2 bổ sung [xem trạng thái và thử lại tác vụ lỗi](docs/BACKEND_CONTENT_JOBS_STAGE2.md), kiểm phiên bản và audit cùng transaction. Tác vụ mới chỉ được ghi nhận/chuyển lại PENDING, chưa có worker dịch/TTS. Bước 3 bổ sung [khởi tạo CASH/ONLINE PENDING và tra cứu trạng thái tối thiểu](docs/BACKEND_PENDING_PAYMENTS_STAGE3.md), chưa xác nhận tiền, gọi cổng hoặc cấp quyền; US-A02 AC1 chưa đáp ứng. Chưa có bundle hoặc chatbot. Frontend được phát triển riêng; không coi các trang đang chờ kết nối là chức năng backend hoàn thành.
