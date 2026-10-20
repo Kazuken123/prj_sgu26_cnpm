@@ -1,5 +1,9 @@
 # Mốc 17, phần 2 — API bundle khách có xác thực
 
+**Ghi chú sau push:** commit 9d75f63 đã push. CI lần đầu phát hiện test expiry dùng chờ cố định 2100 ms chưa ổn định: expires_at DATETIME(0) có thể làm tròn mốc hết hạn lên giây tiếp theo. Đã đối chiếu NFR-06 và kiểm chứng làm tròn bằng bảng tạm MySQL; sửa riêng test chờ đồng hồ SQL xác nhận hết hạn, tối đa 6 giây. Không đổi API/schema. Các mục “chưa commit/push” phía dưới là ảnh chụp trước push; kết quả CI bản sửa sẽ được báo theo đúng SHA sau khi chạy.
+
+Sau sửa test: toàn bộ `npm run lint && npm run test:coverage` trên MySQL 8/Redis thật ngoài OneDrive đạt 435/435, lỗi 0/bỏ qua 0/hủy 0, lint 115 file; 91.872 giây. Bằng chứng `evidence/bundle-ci-repair-coverage.log` trong thư mục kiểm thử ngoài repo. Chưa dùng kết quả này thay CI của commit sửa test.
+
 ## Trạng thái và nguồn
 
 Đã triển khai, kiểm chứng bằng unit và HTTP/integration trên MySQL 8.0.46 + Redis 7.4.11, chưa commit/push/CI mới, chưa deploy staging hoặc sửa frontend/Word. HEAD nền vẫn 70b3d32416a60932eb582863439a296402016d9f; CI nền xanh tại https://github.com/Kazuken123/prj_sgu26_cnpm/actions/runs/39406346270 không thay bằng chứng cho thay đổi này.

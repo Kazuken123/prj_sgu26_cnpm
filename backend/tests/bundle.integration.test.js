@@ -144,7 +144,20 @@ if (process.env.RUN_DB_TESTS === "1") describe("Guest bundle with MySQL snapshot
   });
   it("expiry while building refuses the actual log INSERT and returns 401 without an access log", async () => {
     const g = await guest(); await db.query("UPDATE VISIT_SESSIONS SET expires_at = TIMESTAMPADD(SECOND, 2, UTC_TIMESTAMP(3)) WHERE session_id = ?", [g.sessionId]); let delayed = false;
-    content = instrument(async sql => { if (!delayed && /FROM POIS WHERE status/.test(sql)) { delayed = true; await new Promise(resolve => setTimeout(resolve, 2100)); } });
+    content = instrument(async (sql, connection) => {
+      if (!delayed && /FROM POIS WHERE status/.test(sql)) {
+        delayed = true;
+        // DATETIME(0) may round the assigned deadline up. Wait for the SQL clock,
+        // not a fixed app-side delay that can end before the stored deadline.
+        const deadline = Date.now() + 6000;
+        while (Date.now() < deadline) {
+          const [rows] = await connection.query("SELECT expires_at <= UTC_TIMESTAMP(3) AS expired FROM VISIT_SESSIONS WHERE session_id = ?", [g.sessionId]);
+          if (rows[0].expired) return;
+          await new Promise(resolve => setTimeout(resolve, 25));
+        }
+        throw new Error("SQL expiry did not occur within the bounded wait");
+      }
+    });
     try { const result = await bundle(g); assert.equal(result.response.status, 401); assert.equal(result.json.code, "VISIT_SESSION_EXPIRED"); assert.equal(delayed, true); assert.equal((await logs(g.sessionId)).length, 0); }
     finally { content = new ContentService(new ContentStore(db)); }
   });
