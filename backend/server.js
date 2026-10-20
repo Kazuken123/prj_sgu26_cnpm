@@ -9,6 +9,7 @@ const { createContentJobRouter } = require("./routers/content-job.router");
 const defaultContentJobService = require("./services/content-job.service");
 const { createPaymentRouter, createStaffPaymentRouter } = require("./routers/payment.router");
 const defaultPaymentService = require("./services/payment.service");
+const { createVisitRouter } = require("./routers/visit.router");
 const defaultAuthService = require("./services/auth.service");
 const defaultHealthService = require("./services/health.service");
 const errorHandler = require("./middlewares/error.middleware");
@@ -27,6 +28,7 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use("/api/admin/pois", createPoiRouter(authService, poiService));
   app.use("/api/admin/content-jobs", createContentJobRouter(authService, contentJobService));
   app.use("/api/payments", createPaymentRouter(paymentService));
+  app.use("/api/visits", createVisitRouter(paymentService));
   app.use("/api/admin/payments", createStaffPaymentRouter(authService, paymentService));
   app.get("/", (req, res) => res.send("API Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn đang hoạt động."));
   app.get("/health", (req, res) => res.json({ status: "ok", service: "food-tour-api", timestamp: new Date().toISOString() }));

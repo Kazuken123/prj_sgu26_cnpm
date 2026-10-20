@@ -2,6 +2,7 @@ const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const http = require("node:http");
 const { randomUUID, createHash } = require("node:crypto");
 const { PaymentService } = require("../services/payment.service");
 const PaymentStore = require("../stores/payment.store");
@@ -154,5 +155,70 @@ describe("Cash exchange SQL / " + (realRedis ? "real Redis" : "Redis replacement
     const before = await snapshot(item.id); assert.match(before.visits[0].token_hash, /^[a-f0-9]{64}$/);
     await assert.rejects(exchange(item), { code: "VISIT_TOKEN_ALREADY_ISSUED" });
     assert.deepEqual(await snapshot(item.id), before); assert.equal(before.audits.length, 1);
+  });
+  async function httpApp(t) {
+    const { AuthService } = require("../services/auth.service");
+    const AuthStore = require("../stores/auth.store");
+    const UserStore = require("../stores/user.store");
+    const RefreshTokenStore = require("../stores/refresh_token.store");
+    const credentials = { email: "cash-exchange@example.invalid", password: "TestOnlyPassword123" };
+    const passwordHash = await require("bcrypt").hash(credentials.password, 4);
+    await db.query("UPDATE USERS SET password_hash = ? WHERE user_id = ?", [passwordHash, staff.userId]);
+    const auth = new AuthService({ authStore: new AuthStore(db), users: new UserStore(db), tokens: new RefreshTokenStore(db),
+      config: () => ({ secret: "visitor-http-integration-only-at-least-32-bytes", issuer: "food-tour-api", audience: "food-tour-client",
+        accessTokenTtl: "1h", refreshTokenTtlMs: 86400000 }) });
+    const { createApp } = require("../server");
+    const server = http.createServer(createApp({ authService: auth, paymentService: service }));
+    await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+    t.after(async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); });
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const request = (target, body, token, extraHeaders = {}) => fetch(base + target, {
+      method: body === undefined ? "GET" : "POST", headers: { "Content-Type": "application/json", ...extraHeaders,
+        ...(token ? { Authorization: "Bearer " + token } : {}) }, ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    });
+    return { request, credentials };
+  }
+  it("HTTP full cash flow: staff login through guest protected request, role separation and staff logout", async t => {
+    const { request, credentials } = await httpApp(t);
+    const login = await request("/api/auth/login", credentials); assert.equal(login.status, 200);
+    const staffToken = (await login.json()).data.accessToken;
+    const pending = await request("/api/payments", { paymentMethod: "CASH" }, undefined, { "Idempotency-Key": randomUUID() });
+    assert.equal(pending.status, 201); const id = (await pending.json()).data.sessionId;
+    assert.equal((await request(`/api/admin/payments/sessions/${id}`, undefined, staffToken)).status, 200);
+    assert.equal((await request(`/api/admin/payments/sessions/${id}/confirm-cash`, {}, staffToken)).status, 200);
+    const code = await request(`/api/admin/payments/sessions/${id}/cash-code`, {}, staffToken); assert.equal(code.status, 200);
+    const body = { shortedCode: (await code.json()).data.shortedCode };
+    const exchangeResponse = await request(`/api/payments/sessions/${id}/exchange-cash-code`, body);
+    assert.equal(exchangeResponse.status, 200); const visitor = (await exchangeResponse.json()).data;
+    const me = await request("/api/visits/me", undefined, visitor.token);
+    assert.equal(me.status, 200); assert.equal(me.headers.get("cache-control"), "no-store");
+    assert.deepEqual((await me.json()).data, { sessionId: id, status: "ACTIVE", expiresAt: visitor.expiresAt });
+    assert.equal((await request(`/api/payments/sessions/${id}/exchange-cash-code`, body)).status, 409);
+    assert.equal((await request("/api/visits/me", undefined, staffToken)).status, 401);
+    assert.equal((await request("/api/auth/me", undefined, visitor.token)).status, 401);
+    assert.equal((await request(`/api/admin/payments/sessions/${id}/confirm-cash`, {}, visitor.token)).status, 401);
+    const stored = await snapshot(id); assert.equal(stored.payments.length, 1); assert.equal(stored.visits.length, 1); assert.equal(stored.audits.length, 1);
+    assert.equal(stored.visits[0].token_hash, createHash("sha256").update(visitor.token).digest("hex"));
+    assert.equal((await request("/api/auth/logout", {}, staffToken)).status, 204);
+    assert.equal((await request(`/api/admin/payments/sessions/${id}`, undefined, staffToken)).status, 401);
+    assert.equal((await request("/api/visits/me", undefined, visitor.token)).status, 200);
+    assert.deepEqual(await snapshot(id), stored);
+  });
+  it("HTTP checks SQL again on the next request for expiry, revocation, hash removal and payment inconsistency", async t => {
+    const { request } = await httpApp(t);
+    for (const change of ["expired", "revoked", "removed-token", "unpaid", "missing-payment"]) {
+      const item = await create(), visitor = await exchange(item);
+      assert.equal((await request("/api/visits/me", undefined, visitor.token)).status, 200);
+      if (change === "expired") await db.query("UPDATE VISIT_SESSIONS SET expires_at = UTC_TIMESTAMP() WHERE session_id = ?", [item.id]);
+      if (change === "revoked") await db.query("UPDATE VISIT_SESSIONS SET status = 'REVOKED' WHERE session_id = ?", [item.id]);
+      if (change === "removed-token") await db.query("UPDATE VISIT_SESSIONS SET token_hash = NULL WHERE session_id = ?", [item.id]);
+      if (change === "unpaid") await db.query("UPDATE PAYMENTS SET status = 'PENDING' WHERE session_id = ?", [item.id]);
+      if (change === "missing-payment") await db.query("DELETE FROM PAYMENTS WHERE session_id = ?", [item.id]);
+      const denied = await request("/api/visits/me", undefined, visitor.token);
+      assert.equal(denied.status, 401, change); assert.equal(denied.headers.get("cache-control"), "no-store");
+      const text = await denied.text(); assert.equal(text.includes(visitor.token), false);
+    }
+    const unknown = "tcv_visit_" + "0".repeat(64);
+    assert.equal((await request("/api/visits/me", undefined, unknown)).status, 401);
   });
 });

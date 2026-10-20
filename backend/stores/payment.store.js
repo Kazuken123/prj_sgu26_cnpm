@@ -27,6 +27,14 @@ class PaymentStore {
       WHERE s.session_id = ?`, [sessionId]);
     return rows[0];
   }
+  async getVisitorByTokenHash(tokenHash) {
+    const [rows] = await this.db.query(`SELECT s.session_id AS sessionId, s.status AS sessionStatus,
+      s.activated_at AS activatedAt, s.expires_at AS expiresAt, p.status AS paymentStatus, p.paid_at AS paidAt,
+      UTC_TIMESTAMP(3) AS nowUtc
+      FROM VISIT_SESSIONS s JOIN PAYMENTS p ON p.session_id = s.session_id
+      WHERE s.token_hash = ?`, [tokenHash]);
+    return rows[0];
+  }
   async lookupForStaff(actorId, sessionId, authorize) {
     return this.transactions.transaction(async connection => {
       // Recheck the account before reading payment details, including accounts

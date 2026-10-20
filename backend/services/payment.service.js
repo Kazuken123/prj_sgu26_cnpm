@@ -120,6 +120,24 @@ class PaymentService {
       amount: String(row.amount), currency: row.currency, sessionStatus: row.sessionStatus, paymentStatus: row.paymentStatus,
       paidAt: row.paidAt, activatedAt: row.activatedAt, expiresAt: row.expiresAt, alreadyConfirmed: result.alreadyConfirmed };
   }
+  async authenticateVisitor(token) {
+    if (typeof token !== "string" || !/^tcv_visit_[a-f0-9]{64}$/.test(token)) {
+      throw new AppError(401, "INVALID_VISITOR_TOKEN", "Token khách không hợp lệ.");
+    }
+    let row;
+    try { row = await this.store.getVisitorByTokenHash(hash(token)); }
+    catch { throw new AppError(503, "VISITOR_AUTH_UNAVAILABLE", "Chưa kiểm tra được phiên tham quan; vui lòng thử lại sau."); }
+    if (!row) throw new AppError(401, "INVALID_VISITOR_TOKEN", "Token khách không hợp lệ.");
+    const dateMs = value => value instanceof Date ? value.getTime() : NaN;
+    const current = dateMs(row.nowUtc), expires = dateMs(row.expiresAt);
+    if (!Number.isFinite(current)) throw new AppError(503, "VISITOR_AUTH_UNAVAILABLE", "Chưa kiểm tra được thời hạn phiên.");
+    if (row.paymentStatus !== "PAID" || row.sessionStatus !== "ACTIVE" ||
+        !Number.isFinite(dateMs(row.paidAt)) || !Number.isFinite(dateMs(row.activatedAt)) || !Number.isFinite(expires)) {
+      throw new AppError(401, "INVALID_VISITOR_SESSION", "Phiên tham quan không còn hợp lệ.");
+    }
+    if (expires <= current) throw new AppError(401, "VISIT_SESSION_EXPIRED", "Vé đã hết hạn.");
+    return { sessionId: row.sessionId, status: row.sessionStatus, expiresAt: row.expiresAt };
+  }
   async exchangeCashCode(sessionId, input, ipAddress) {
     const id = typeof sessionId === "string" && uuid.test(sessionId) ? sessionId.toLowerCase() : "invalid";
     if (typeof ipAddress !== "string" || !ipAddress || ipAddress.length > 100) {

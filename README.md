@@ -14,6 +14,10 @@ Bước 6 bổ sung [cấp mã sau thanh toán tiền mặt](docs/BACKEND_CASH_C
 
 Bước 7 bổ sung [đổi mã tiền mặt lấy token khách một lần](docs/BACKEND_CASH_EXCHANGE_STAGE7.md): gửi sessionId cùng shortedCode, kiểm tra CASH/PAID/ACTIVE còn hạn, lưu hash token và audit cùng transaction. Mặc định tối đa 5 lượt/phút theo phiên và 30 lượt/phút theo IP; Redis lỗi trước xác minh thì không cấp token. Lỗi dọn mã sau commit không cấp được token lần hai. Mất phản hồi sau khi token đã lưu chưa có cơ chế khôi phục/cấp lại; hướng dẫn liên hệ nhân viên và không thanh toán lại. Local đạt 207 test với MariaDB và Redis thay thế; Redis thật/MySQL 8/CI cho mốc 7 chưa kiểm chứng. Chưa có middleware/API kiểm tra token khách, bundle hoặc frontend, nên chưa gọi đây là toàn bộ luồng tham quan hoàn chỉnh. Không có migration mới.
 
+Bước 7 đã push bằng commit 45a2fe8 và [CI/CD xanh](https://github.com/Kazuken123/prj_sgu26_cnpm/actions/runs/39352061812), gồm backend Node 20/22 với MySQL 8 và Redis 7 thật. Các ghi chú chờ CI ở đoạn/tài liệu mốc 7 phía trên mô tả thời điểm trước push.
+
+Bước 8 bổ sung [kiểm tra quyền khách và demo luồng tiền mặt qua API](docs/BACKEND_VISITOR_ACCESS_STAGE8.md): `GET /api/visits/me` chỉ dùng token khách, đọc lại payment/phiên/hạn vé từ SQL trên từng request, trả mã phiên/trạng thái/hạn vé tối thiểu. Token sai, vé hết hạn, phiên thu hồi, payment không PAID và JWT nội bộ bị từ chối. Local đạt 217 test với MariaDB/Redis thay thế; mốc 8 chưa commit/push, chưa có CI mới. Luồng tiền mặt kiểm thử được đến sử dụng token ở API khách; chưa có bundle, nghe thuyết minh hoặc frontend. Không có migration mới.
+
 Đồ án môn **Công nghệ phần mềm**, xây dựng ứng dụng web hỗ trợ khách tham quan tiếp cận nội dung theo vị trí và ngôn ngữ lựa chọn. Trọng tâm kỹ thuật là Back-end ba lớp **Router–Service–Store**, kiểm thử tự động và quy trình CI/CD.
 
 ## Tổng quan sản phẩm
