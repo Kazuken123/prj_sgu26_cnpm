@@ -8,6 +8,11 @@ const workerErrors = {
   TRANSLATION_TIMEOUT: "Dịch vụ dịch vượt thời gian chờ.",
   TRANSLATION_PROVIDER_FAILED: "Dịch vụ dịch tạm thời không xử lý được tác vụ.",
   TRANSLATION_RESULT_INVALID: "Kết quả dịch không đủ nội dung hợp lệ.",
+  CONTENT_TRANSLATION_NOT_READY: "Văn bản chưa sẵn sàng để tạo âm thanh.",
+  TTS_TIMEOUT: "Dịch vụ âm thanh vượt thời gian chờ.",
+  TTS_PROVIDER_FAILED: "Dịch vụ âm thanh tạm thời không xử lý được tác vụ.",
+  TTS_RESULT_INVALID: "Tệp âm thanh trả về không hợp lệ.",
+  MEDIA_STORAGE_FAILED: "Chưa lưu hoặc kiểm tra được tệp âm thanh.",
 };
 
 function publicJob(row) {

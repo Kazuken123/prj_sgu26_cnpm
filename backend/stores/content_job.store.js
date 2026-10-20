@@ -52,6 +52,7 @@ class ContentJobStore {
         return true;
       },
       getContent: language => this.content.getForUpdate(job.poiId, language, connection),
+      getAudio: translationId => this.content.getAudioForUpdate(translationId, connection),
       failClaim: async (claimId, errorCode) => {
         const [saved] = await connection.query(`UPDATE CONTENT_JOBS SET status = 'FAILED', error_message = ?, claim_id = NULL
           WHERE job_id = ? AND status = 'PROCESSING' AND claim_id = ?`, [errorCode, id, claimId]);
@@ -63,6 +64,22 @@ class ContentJobStore {
         if (job.status !== "PROCESSING" || job.claimId !== claimId || job.sourceVersion !== job.currentVersion) return false;
         await this.content.saveTranslation(job.poiId, job.languageCode, job.sourceVersion, text, connection);
         await workerAudit("PREPARE_TRANSLATION", { provider });
+        return true;
+      },
+      failAudio: async (claimId, translationId, errorCode) => {
+        const [saved] = await connection.query(`UPDATE CONTENT_JOBS SET status = 'FAILED', error_message = ?, claim_id = NULL
+          WHERE job_id = ? AND status = 'PROCESSING' AND claim_id = ?`, [errorCode, id, claimId]);
+        if (saved.affectedRows !== 1) return false;
+        await this.content.saveAudio(translationId, job.sourceVersion, null, connection);
+        await workerAudit("FAIL_CONTENT_JOB", { code: errorCode });
+        return true;
+      },
+      completeAudio: async (claimId, translationId, asset, provider, reused) => {
+        const [saved] = await connection.query(`UPDATE CONTENT_JOBS SET status = 'COMPLETED', error_message = NULL, claim_id = NULL
+          WHERE job_id = ? AND status = 'PROCESSING' AND claim_id = ? AND source_version = ?`, [id, claimId, job.currentVersion]);
+        if (saved.affectedRows !== 1) return false;
+        if (!reused) await this.content.saveAudio(translationId, job.sourceVersion, asset, connection);
+        await workerAudit("COMPLETE_CONTENT_JOB", { provider, reused });
         return true;
       } });
     });

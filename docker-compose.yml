@@ -42,6 +42,7 @@ services:
       DB_NAME: ${DB_NAME:-food_tour_db}
       JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env (at least 32 bytes)}
       REDIS_URL: redis://redis:6379
+      MEDIA_ROOT: /var/lib/tcv/media
       VISIT_PRICE_VND: ${VISIT_PRICE_VND:-}
       VISIT_VALIDITY_HOURS: ${VISIT_VALIDITY_HOURS-24}
       CASH_CODE_TTL_SECONDS: ${CASH_CODE_TTL_SECONDS-600}
@@ -60,6 +61,8 @@ services:
       VISIT_LOOKUP_SESSION_LIMIT: ${VISIT_LOOKUP_SESSION_LIMIT:-20}
     ports:
       - "${PORT:-3000}:3000"
+    volumes:
+      - media_data:/var/lib/tcv/media
     depends_on:
       database:
         condition: service_healthy
@@ -68,3 +71,4 @@ services:
 
 volumes:
   db_data:
+  media_data:
