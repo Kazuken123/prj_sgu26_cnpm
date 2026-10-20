@@ -2,6 +2,11 @@ const express = require("express");
 const { createAuthMiddleware, requireRole } = require("../middlewares/auth.middleware");
 function createPaymentRouter(paymentService) {
   const router = express.Router();
+  router.post("/sessions/:sessionId/exchange-cash-code", async (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    try { res.json({ data: await paymentService.exchangeCashCode(req.params.sessionId, req.body, req.ip) }); }
+    catch (error) { next(error); }
+  });
   router.post("/", async (req, res, next) => {
     try {
       const result = await paymentService.initialize(req.body, req.get("Idempotency-Key"));

@@ -34,4 +34,11 @@ function getCashCodeTtlMs(env = process.env) {
   }
   return seconds * 1000;
 }
-module.exports = { getLookupConfig, getVisitPrice, getVisitValidityMs, getCashCodeTtlMs };
+function getCashExchangeConfig(env = process.env) {
+  return {
+    windowSeconds: positiveInteger(env.CASH_EXCHANGE_WINDOW_SECONDS, 60, 3600),
+    ipLimit: positiveInteger(env.CASH_EXCHANGE_IP_LIMIT, 30, 10000),
+    sessionLimit: positiveInteger(env.CASH_EXCHANGE_SESSION_LIMIT, 5, 10000),
+  };
+}
+module.exports = { getLookupConfig, getVisitPrice, getVisitValidityMs, getCashCodeTtlMs, getCashExchangeConfig };

@@ -88,6 +88,26 @@ class PaymentStore {
       });
     });
   }
+  async withCashTokenExchange(sessionId, work) {
+    return this.transactions.transaction(async connection => {
+      // Same payment/visit lock order as code issuance and confirmation.
+      const [rows] = await connection.query(confirmationProjection + " FOR UPDATE", [sessionId]);
+      const [clock] = await connection.query("SELECT UTC_TIMESTAMP(3) AS nowUtc");
+      return work(rows[0], {
+        now: clock[0].nowUtc,
+        persist: async ({ tokenHash, issueId, codeExpiresAt, ipAddress }) => {
+          const [saved] = await connection.query(`UPDATE VISIT_SESSIONS SET token_hash = ?
+            WHERE session_id = ? AND token_hash IS NULL AND reissue_count = 0
+            AND status = 'ACTIVE' AND expires_at > UTC_TIMESTAMP(3) AND ? > UTC_TIMESTAMP(3)`,
+          [tokenHash, sessionId, codeExpiresAt]);
+          if (saved.affectedRows !== 1) return false;
+          await this.audit.create({ userId: null, action: "ISSUE_VISITOR_TOKEN", resourceType: "VISIT_SESSIONS", resourceId: sessionId,
+            details: JSON.stringify({ paymentRef: rows[0].paymentRef, issueId }), ipAddress, createdAt: clock[0].nowUtc }, connection);
+          return true;
+        },
+      });
+    });
+  }
   async initialize({ hash, actorId, authorize, build }) {
     const attempt = () => this.transactions.transaction(async connection => {
       if (actorId !== null) authorize(await this.users.getUserById(actorId, connection, true));

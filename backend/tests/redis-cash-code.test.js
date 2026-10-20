@@ -25,6 +25,26 @@ it("Redis cash code Store refuses expired, corrupt or cross-session replies with
     assert.equal(client.isOpen, false);
   }
 });
+it("Redis exchange inspection validates its reply and cleanup uses a compare-delete script", async () => {
+  const session = randomUUID(), record = candidate(session); let reply = [1, JSON.stringify(record)], received;
+  const client = { isOpen: true, on: () => {}, connect: async () => { client.isOpen = true; },
+    disconnect: async () => { client.isOpen = false; }, eval: async (script, args) => { received = { script, args }; return reply; } };
+  const store = new RedisStore({ clientFactory: () => client, cashCodePrefix: "test:" });
+  assert.deepEqual(await store.inspectCashCode(session, record.shortedCode), record);
+  assert.match(received.script, /TIME/); assert.match(received.script, /PTTL/);
+  assert.deepEqual(received.args.arguments, [session, record.shortedCode]);
+  assert.equal(received.script.includes("'DEL'"), false);
+  reply = [0]; assert.equal(await store.inspectCashCode(session, "999999"), null);
+  for (const bad of [[-1], [1, "broken-json"], [1, JSON.stringify({ ...record, sessionId: randomUUID() })],
+    [1, JSON.stringify({ ...record, authCode: "bad" })], [1, JSON.stringify({ ...record, shortedCode: "999999" })]]) {
+    reply = bad; await assert.rejects(store.inspectCashCode(session, record.shortedCode));
+  }
+  reply = 1; await store.removeCashCode(session, record.issueId);
+  assert.deepEqual(received.args.arguments, [record.issueId]);
+  assert.match(received.script, /record.issueId/); assert.match(received.script, /'DEL'/);
+  assert.equal(client.isOpen, false);
+});
+
 describe("Real Redis cash-code atomic creation, expiry and retry", { skip: process.env.RUN_REDIS_TESTS !== "1" }, () => {
   const prefix = "tcv_test_cash_lua:" + randomUUID() + ":", tracked = new Set();
   let admin, store;
@@ -72,5 +92,28 @@ describe("Real Redis cash-code atomic creation, expiry and retry", { skip: proce
     await assert.rejects(store.ensureCashCode(session, candidate(session), Date.now() + 60000));
     await admin.set(prefix + session, "broken-json", { PX: 10000 });
     await assert.rejects(store.ensureCashCode(session, candidate(session), Date.now() + 60000));
+  });
+  it("inspection binds the exact pair without consuming the code or renewing its TTL", async () => {
+    const session = id(), record = (await store.ensureCashCode(session, candidate(session), Date.now() + 60000)).record;
+    const ttl = await admin.pTTL(prefix + session);
+    assert.equal(await store.inspectCashCode(session, "999999"), null);
+    assert.equal(await store.inspectCashCode(id(), record.shortedCode), null);
+    assert.deepEqual(await store.inspectCashCode(session, record.shortedCode), record);
+    assert.ok(await admin.pTTL(prefix + session) <= ttl);
+    assert.equal(await store.removeCashCode(session, randomUUID()), 0);
+    assert.deepEqual(await store.inspectCashCode(session, record.shortedCode), record);
+    assert.equal(await store.removeCashCode(session, record.issueId), 1);
+    assert.equal(await store.inspectCashCode(session, record.shortedCode), null);
+  });
+  it("inspection rejects missing TTL and corrupt mapping, and actual expiry returns no valid code", async () => {
+    const session = id(), record = candidate(session, 1000);
+    await admin.set(prefix + session, JSON.stringify(record));
+    await assert.rejects(store.inspectCashCode(session, record.shortedCode));
+    await admin.set(prefix + session, "broken-json", { PX: 10000 });
+    await assert.rejects(store.inspectCashCode(session, record.shortedCode));
+    await admin.del(prefix + session);
+    await store.ensureCashCode(session, candidate(session, 500), Date.now() + 60000);
+    await new Promise(resolve => setTimeout(resolve, 700));
+    assert.equal(await store.inspectCashCode(session, record.shortedCode), null);
   });
 });

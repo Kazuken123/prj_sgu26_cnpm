@@ -1,7 +1,7 @@
 const { createHash, randomUUID, randomBytes, randomInt } = require("node:crypto");
 const PaymentStore = require("../stores/payment.store");
 const RedisStore = require("../stores/redis.store");
-const { getVisitPrice, getLookupConfig, getVisitValidityMs, getCashCodeTtlMs } = require("../config/payment");
+const { getVisitPrice, getLookupConfig, getVisitValidityMs, getCashCodeTtlMs, getCashExchangeConfig } = require("../config/payment");
 const AppError = require("../utils/app-error");
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const hash = value => createHash("sha256").update(value).digest("hex");
@@ -16,9 +16,10 @@ function authorize(actor) {
 }
 class PaymentService {
   constructor(store = new PaymentStore(), redis = new RedisStore(), { price = getVisitPrice, lookupConfig = getLookupConfig,
-    validityMs = getVisitValidityMs, cashCodeTtlMs = getCashCodeTtlMs, now = () => Date.now() } = {}) {
+    validityMs = getVisitValidityMs, cashCodeTtlMs = getCashCodeTtlMs, exchangeConfig = getCashExchangeConfig, now = () => Date.now() } = {}) {
     this.store = store; this.redis = redis; this.price = price; this.lookupConfig = lookupConfig; this.validityMs = validityMs;
     this.cashCodeTtlMs = cashCodeTtlMs; this.now = now;
+    this.exchangeConfig = exchangeConfig;
   }
   async initialize(input, requestKey, actor = null) {
     if (actor !== null) authorize(actor);
@@ -118,6 +119,59 @@ class PaymentService {
     return { sessionId: row.sessionId, paymentRef: row.paymentRef, paymentMethod: row.paymentMethod,
       amount: String(row.amount), currency: row.currency, sessionStatus: row.sessionStatus, paymentStatus: row.paymentStatus,
       paidAt: row.paidAt, activatedAt: row.activatedAt, expiresAt: row.expiresAt, alreadyConfirmed: result.alreadyConfirmed };
+  }
+  async exchangeCashCode(sessionId, input, ipAddress) {
+    const id = typeof sessionId === "string" && uuid.test(sessionId) ? sessionId.toLowerCase() : "invalid";
+    if (typeof ipAddress !== "string" || !ipAddress || ipAddress.length > 100) {
+      throw new AppError(503, "CASH_EXCHANGE_PROTECTION_UNAVAILABLE", "Chưa thể bảo vệ việc đổi mã.");
+    }
+    let allowed;
+    try {
+      allowed = await this.redis.consumeLookup(["cash-exchange:ip:" + hash(ipAddress), "cash-exchange:session:" + hash(id)], this.exchangeConfig());
+    } catch { throw new AppError(503, "CASH_EXCHANGE_PROTECTION_UNAVAILABLE", "Đổi mã tạm ngừng; vui lòng thử lại sau."); }
+    if (!allowed) throw new AppError(429, "CASH_EXCHANGE_RATE_LIMITED", "Đã vượt giới hạn thử mã; vui lòng đợi rồi thử lại.");
+    if (id === "invalid") throw new AppError(400, "INVALID_SESSION_ID", "session_id không hợp lệ.");
+    if (!input || typeof input !== "object" || Array.isArray(input) || Object.keys(input).length !== 1 ||
+        typeof input.shortedCode !== "string" || !/^\d{6}$/.test(input.shortedCode)) {
+      throw new AppError(400, "INVALID_CASH_EXCHANGE_INPUT", "Chỉ gửi shortedCode dạng chuỗi sáu chữ số.");
+    }
+    let result;
+    try {
+      result = await this.store.withCashTokenExchange(id, async (row, operations) => {
+        if (!row) throw new AppError(404, "VISIT_SESSION_NOT_FOUND", "Không tìm thấy phiên tham quan.");
+        if (row.paymentMethod !== "CASH") throw new AppError(409, "CASH_PAYMENT_REQUIRED", "Phiên không sử dụng thanh toán tiền mặt.");
+        if (row.paymentStatus === "PENDING") throw new AppError(409, "CASH_PAYMENT_PENDING", "Đang chờ nhân viên xác nhận; không tạo thanh toán mới.");
+        if (row.paymentStatus !== "PAID") throw new AppError(409, "CASH_PAYMENT_NOT_PAID", "Thanh toán chưa hợp lệ để đổi mã.");
+        if (row.sessionStatus !== "ACTIVE") throw new AppError(409, "VISIT_SESSION_NOT_ACTIVE", "Phiên tham quan không hoạt động.");
+        if (row.tokenHash !== null || row.reissueCount !== 0) {
+          throw new AppError(409, "VISIT_TOKEN_ALREADY_ISSUED", "Phiên đã được cấp token. Nếu chưa nhận được token, hãy liên hệ nhân viên; không thanh toán lại.");
+        }
+        const end = row.expiresAt?.getTime(), current = operations.now.getTime();
+        if (!row.paidAt || !row.activatedAt || !Number.isFinite(end)) throw new AppError(409, "PAYMENT_SESSION_INCONSISTENT", "Dữ liệu phiên cần được đối soát.");
+        if (end <= current) throw new AppError(409, "VISIT_SESSION_EXPIRED", "Vé đã hết hạn.");
+        let record;
+        try { record = await this.redis.inspectCashCode(id, input.shortedCode); }
+        catch { throw new AppError(503, "CASH_CODE_UNAVAILABLE", "Chưa kiểm tra được mã; kết quả thanh toán được giữ nguyên."); }
+        if (!record) throw new AppError(401, "CASH_CODE_INVALID_OR_EXPIRED", "Mã không hợp lệ hoặc đã hết hạn; hãy kiểm tra với nhân viên.");
+        if (record.sessionId !== id || record.shortedCode !== input.shortedCode ||
+            !/^[a-f0-9-]{36}$/.test(record.issueId) || !/^[a-f0-9]{64}$/.test(record.authCode) ||
+            !Number.isSafeInteger(record.expiresAtMs) || record.expiresAtMs > end) {
+          throw new AppError(503, "CASH_CODE_UNAVAILABLE", "Trạng thái mã chưa hợp lệ; kết quả thanh toán được giữ nguyên.");
+        }
+        if (record.expiresAtMs <= current) throw new AppError(401, "CASH_CODE_INVALID_OR_EXPIRED", "Mã không hợp lệ hoặc đã hết hạn.");
+        const token = "tcv_visit_" + randomBytes(32).toString("hex");
+        const saved = await operations.persist({ tokenHash: hash(token), issueId: record.issueId, codeExpiresAt: new Date(record.expiresAtMs), ipAddress });
+        if (!saved) throw new AppError(409, "CASH_EXCHANGE_CHANGED", "Mã hoặc phiên không còn cho phép đổi; hãy kiểm tra lại trạng thái.");
+        return { data: { sessionId: id, token, tokenType: "Bearer", expiresAt: row.expiresAt }, issueId: record.issueId };
+      });
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(503, "CASH_EXCHANGE_PERSISTENCE_UNAVAILABLE", "Chưa xác định được kết quả cấp token; hãy đối soát phiên trước khi thử lại, không thanh toán lại.");
+    }
+    // SQL commit is the one-time claim. A stale Redis record cannot bypass it.
+    // Cleanup failure after commit must not hide the only returned copy of the token.
+    try { await this.redis.removeCashCode(id, result.issueId); } catch { /* TTL cleans up the temporary mapping. */ }
+    return result.data;
   }
   async issueCashCode(actor, sessionId, input = {}, { ipAddress = null } = {}) {
     authorize(actor);

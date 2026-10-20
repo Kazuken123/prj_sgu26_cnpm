@@ -29,6 +29,24 @@ local ttl = candidate.expiresAtMs - now
 if ttl <= 0 then return {-1} end
 redis.call('SET', KEYS[1], ARGV[1], 'PX', string.format('%.0f', ttl))
 return {1, ARGV[1]}`;
+// Inspection never consumes a code: SQL must commit the unique token first.
+const inspectCashCodeScript = `
+local value = redis.call('GET', KEYS[1])
+if not value then return {0} end
+local record = cjson.decode(value)
+local clock = redis.call('TIME')
+local now = tonumber(clock[1]) * 1000 + math.floor(tonumber(clock[2]) / 1000)
+if type(record.expiresAtMs) ~= 'number' or redis.call('PTTL', KEYS[1]) <= 0 then return {-1} end
+if record.expiresAtMs <= now then return {0} end
+if record.sessionId ~= ARGV[1] or record.shortedCode ~= ARGV[2] then return {0} end
+return {1, value}`;
+// Compare the issue ID, so a delayed cleanup cannot erase a different code.
+const removeCashCodeScript = `
+local value = redis.call('GET', KEYS[1])
+if not value then return 0 end
+local record = cjson.decode(value)
+if record.issueId ~= ARGV[1] then return 0 end
+return redis.call('DEL', KEYS[1])`;
 class RedisStore {
   constructor({ url = process.env.REDIS_URL || "redis://127.0.0.1:6379", clientFactory = createClient,
     cashCodePrefix = "tcv:cash-code:v1:" } = {}) {
@@ -72,7 +90,25 @@ class RedisStore {
       return { created: Number(reply[0]) === 1, record };
     });
   }
+  async inspectCashCode(sessionId, shortedCode) {
+    return this.execute(async client => {
+      const reply = await client.eval(inspectCashCodeScript, { keys: [this.cashCodePrefix + sessionId],
+        arguments: [sessionId, shortedCode] });
+      if (Array.isArray(reply) && reply.length === 1 && Number(reply[0]) === 0) return null;
+      if (!Array.isArray(reply) || Number(reply[0]) !== 1 || typeof reply[1] !== "string") throw new Error("INVALID_CASH_CODE_STATE");
+      const record = JSON.parse(reply[1]);
+      if (record.sessionId !== sessionId || record.shortedCode !== shortedCode ||
+          !/^[a-f0-9-]{36}$/.test(record.issueId) || !/^[a-f0-9]{64}$/.test(record.authCode) ||
+          !/^\d{6}$/.test(record.shortedCode) || !Number.isSafeInteger(record.expiresAtMs)) throw new Error("INVALID_CASH_CODE_STATE");
+      return record;
+    });
+  }
+  async removeCashCode(sessionId, issueId) {
+    return this.execute(client => client.eval(removeCashCodeScript, { keys: [this.cashCodePrefix + sessionId], arguments: [issueId] }));
+  }
 }
 module.exports = RedisStore;
 module.exports.consumeScript = consumeScript;
 module.exports.issueCashCodeScript = issueCashCodeScript;
+module.exports.inspectCashCodeScript = inspectCashCodeScript;
+module.exports.removeCashCodeScript = removeCashCodeScript;
