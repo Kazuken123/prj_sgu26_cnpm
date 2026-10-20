@@ -99,6 +99,11 @@ class RedisStore {
     return this.execute(async client => Number(await client.eval(consumeScript, { keys,
       arguments: [String(windowSeconds), String(ipLimit), String(sessionLimit)] })) === 1);
   }
+  async ping() {
+    return this.execute(async client => {
+      if (await client.ping() !== "PONG") throw new Error("INVALID_REDIS_PING_REPLY");
+    });
+  }
   async inspectOnlineCode(sessionId, authCode) {
     if (typeof authCode !== "string" || !/^[a-f0-9]{64}$/.test(authCode)) throw new Error("INVALID_ONLINE_CODE_INPUT");
     return this.execute(async client => {

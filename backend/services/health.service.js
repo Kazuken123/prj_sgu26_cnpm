@@ -5,7 +5,9 @@ class HealthService {
   async ready() {
     try { await this.store.ping(); }
     catch { throw new AppError(503, "DATABASE_UNAVAILABLE", "Database chưa sẵn sàng."); }
-    return { status: "ok", service: "food-tour-api", database: "ready" };
+    try { await this.store.pingRedis(); }
+    catch { throw new AppError(503, "REDIS_UNAVAILABLE", "Redis chưa sẵn sàng."); }
+    return { status: "ok", service: "food-tour-api", database: "ready", redis: "ready" };
   }
 }
 module.exports = new HealthService();

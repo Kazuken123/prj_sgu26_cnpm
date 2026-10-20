@@ -43,7 +43,8 @@ describe("US-F01 integration with the 16-table schema and a disposable MySQL dat
     const { createApp } = require("../server");
     const { HealthService } = require("../services/health.service");
     const HealthStore = require("../stores/health.store");
-    server = http.createServer(createApp({ authService: service, healthService: new HealthService(new HealthStore(pool)) }));
+    const healthRedis = process.env.RUN_REDIS_TESTS === "1" ? undefined : { ping: async () => {} };
+    server = http.createServer(createApp({ authService: service, healthService: new HealthService(new HealthStore(pool, healthRedis)) }));
     await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
     base = `http://127.0.0.1:${server.address().port}`;
   });

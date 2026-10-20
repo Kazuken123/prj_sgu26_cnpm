@@ -1,6 +1,8 @@
 const pool = require("../config/database");
+const RedisStore = require("./redis.store");
 class HealthStore {
-  constructor(db = pool) { this.db = db; }
+  constructor(db = pool, redis = new RedisStore()) { this.db = db; this.redis = redis; }
+  async pingRedis() { await this.redis.ping(); }
   async ping() {
     for (const sql of ["SELECT user_id FROM USERS LIMIT 0", "SELECT token_id, rotated_token_hashes FROM REFRESH_TOKENS LIMIT 0",
       "SELECT log_id FROM AUDIT_LOGS LIMIT 0", "SELECT poi_id, category, conservation_status, activity_hours FROM POIS LIMIT 0",
