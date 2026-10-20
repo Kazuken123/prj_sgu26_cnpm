@@ -12,7 +12,8 @@
     "bootstrap:admin": "node scripts/bootstrap-admin.js",
     "db:migrate": "node scripts/migrate.js",
     "mock:payment": "node scripts/mock-payment.js",
-    "jobs:recover": "node scripts/recover-content-jobs.js"
+    "jobs:recover": "node scripts/recover-content-jobs.js",
+    "jobs:worker": "node scripts/content-worker.js"
   },
   "keywords": [],
   "author": "",

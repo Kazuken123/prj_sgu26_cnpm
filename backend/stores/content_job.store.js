@@ -30,6 +30,11 @@ class ContentJobStore {
     const [rows] = await this.db.query("SELECT " + projection + joins + " WHERE j.job_id = ?", [id]);
     return rows[0];
   }
+  async listPending(limit) {
+    const [rows] = await this.db.query(`SELECT job_id AS jobId FROM CONTENT_JOBS
+      WHERE status = 'PENDING' ORDER BY created_at, job_id LIMIT ?`, [limit]);
+    return rows;
+  }
   async listExpiredClaims(limit) {
     const [rows] = await this.db.query(`SELECT job_id AS jobId, claim_id AS claimId FROM CONTENT_JOBS
       WHERE status = 'PROCESSING' AND claim_id IS NOT NULL AND lease_expires_at <= UTC_TIMESTAMP(3)

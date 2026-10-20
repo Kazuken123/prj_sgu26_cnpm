@@ -17,6 +17,11 @@ class PipelineService {
     this.leaseConfig = leaseConfig;
   }
   async renewClaim(jobId, claimId) { return lease.renewClaim(this, jobId, claimId); }
+  async pendingJobs(limit) {
+    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 4) throw new AppError(400, "INVALID_WORKER_LIMIT", "Mỗi worker xử lý từ 1 đến 4 tác vụ đồng thời.");
+    try { return await this.store.listPending(limit); }
+    catch { throw new AppError(503, "CONTENT_QUEUE_UNAVAILABLE", "Chưa đọc được danh sách tác vụ chờ."); }
+  }
   async recoverExpiredJobs(options) { return lease.recoverExpiredJobs(this, options); }
   async prepareAudio(jobId, claimId) { return prepareAudio(this, jobId, claimId); }
   async runJob(jobId) {
