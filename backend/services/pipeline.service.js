@@ -1,10 +1,19 @@
 const ContentJobStore = require("../stores/content_job.store");
 const AppError = require("../utils/app-error");
 const { id } = require("./content-job.validation");
+const { randomUUID } = require("node:crypto");
+const { prepareTranslation } = require("./pipeline-translation");
 
 // Internal worker entry point, deliberately not exposed by an HTTP Router.
 class PipelineService {
-  constructor(store = new ContentJobStore()) { this.store = store; }
+  constructor(store = new ContentJobStore(), { translator, translationTimeoutMs = 10000 } = {}) {
+    this.store = store; this.translator = translator; this.translationTimeoutMs = translationTimeoutMs;
+  }
+  async prepareTranslation(jobId, claimId) { return prepareTranslation(this, jobId, claimId); }
+  async runTranslation(jobId) {
+    const claim = await this.claimJob(jobId);
+    return claim.claimed ? this.prepareTranslation(claim.jobId, claim.claimId) : claim;
+  }
   async claimJob(rawId) {
     const jobId = id(rawId);
     try {
@@ -16,9 +25,10 @@ class PipelineService {
           if (!saved) throw new Error("CONTENT_JOB_CLAIM_CONFLICT");
           return { claimed: false, reason: "CONTENT_SOURCE_OUTDATED", jobId, status: "FAILED" };
         }
-        const saved = await transition("PROCESSING", null);
+        const claimId = randomUUID();
+        const saved = await transition("PROCESSING", null, claimId);
         if (!saved) throw new Error("CONTENT_JOB_CLAIM_CONFLICT");
-        return { claimed: true, jobId: job.jobId, poiId: job.poiId, languageCode: job.languageCode,
+        return { claimed: true, claimId, jobId: job.jobId, poiId: job.poiId, languageCode: job.languageCode,
           sourceVersion: job.sourceVersion, status: "PROCESSING" };
       });
     } catch {

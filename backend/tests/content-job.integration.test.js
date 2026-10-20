@@ -23,6 +23,7 @@ describe("UC-13 content status/retry with real MySQL", { skip: process.env.RUN_D
     await admin.query("CREATE DATABASE `" + name + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     db = mysql.createPool({ ...connection, database: name, multipleStatements: true, connectionLimit: 8 });
     await db.query(fs.readFileSync(path.resolve(__dirname, "../../database/init_db.sql"), "utf8"));
+    await new (require("../stores/schema.store"))(db).migrateContentJobClaim();
     const { AuthService } = require("../services/auth.service");
     const AuthStore = require("../stores/auth.store");
     const UserStore = require("../stores/user.store");

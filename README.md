@@ -2,7 +2,9 @@
 
 ## Hiện trạng backend theo báo cáo 8
 
-Mốc mới đang local: [nhận một tác vụ nội dung an toàn](docs/BACKEND_PIPELINE_CLAIM_STAGE12.md). PipelineService nhận job PENDING đúng một lần qua SQL transaction; job lỗi thời chuyển FAILED, audit cùng giao dịch. Đã đạt 304 test local và kiểm tra 83 file JavaScript; chưa commit/push/CI cho mốc 12. Chưa có tiến trình chạy worker, dịch/TTS, ghi kết quả hoặc phục hồi job dở dang; không coi nhận job là đã hoàn tất pipeline.
+Mốc 12 [nhận một tác vụ nội dung an toàn](docs/BACKEND_PIPELINE_CLAIM_STAGE12.md) đã push bằng f382be7 và [CI xanh](https://github.com/Kazuken123/prj_sgu26_cnpm/actions/runs/39383566623). PipelineService nhận PENDING đúng một lần; job lỗi thời chuyển FAILED, audit cùng giao dịch. Ghi chú chưa push trong tài liệu mốc 12 là lịch sử trước khi chốt commit.
+
+Mốc 13 đang local: [mã lượt xử lý và chuẩn bị văn bản qua adapter mock](docs/BACKEND_TRANSLATION_STAGE13.md). Migration 005 thêm claim_id nullable đã được duyệt; ghi kết quả phải khớp lượt và phiên bản nguồn. Tiếng Việt dùng nguồn, text cùng phiên bản được tái sử dụng; timeout/lỗi chuyển FAILED an toàn. Mock gắn nhãn, chưa dịch máy thật. Job vẫn PROCESSING vì chưa có audio; chưa worker tự chạy/TTS/media/phục hồi. Đạt 325 test local và kiểm tra 87 file JavaScript; chưa commit/push/CI cho mốc 13. Chạy db:migrate đến 005 trước khi dùng code mới, kể cả khi vừa nạp init schema.
 
 Hiện tại, CASH đã được kiểm chứng đến API khách trên CI của commit 64523ce. ONLINE đã nối đủ luồng backend/API với **MockGateway**: khởi tạo → webhook có chữ ký → đổi mã một lần → `GET /api/visits/me`. Ba mốc ONLINE mới đạt 288 test local trên MariaDB với Redis thay thế; chưa push/chưa có CI mới với MySQL 8 và Redis thật. Chưa có frontend thanh toán, Payoo thật, bundle/audio hoặc chatbot. Các đoạn theo mốc bên dưới ghi cả phạm vi lịch sử.
 
@@ -126,7 +128,7 @@ Các địa chỉ mặc định:
 
 Các lệnh quản trị được chạy trong `backend`:
 
-- `npm run db:migrate`: chạy migration 001–004 để nâng cấp logout, POI và khóa nhận diện yêu cầu thanh toán nếu cần. Phải có schema 16 bảng theo thiết kế; không chuyển toàn bộ database nghiệp vụ cũ sang thiết kế mới. Xem [hợp đồng logout](docs/LOGOUT_CONTRACT.md), [POI](docs/BACKEND_POI_STAGE1.md) và [PENDING payment](docs/BACKEND_PENDING_PAYMENTS_STAGE3.md).
+- `npm run db:migrate`: chạy migration 001–005 để nâng cấp logout, POI, khóa nhận diện yêu cầu thanh toán và mã lượt xử lý nội dung. Phải có schema 16 bảng theo thiết kế; không chuyển toàn bộ database nghiệp vụ cũ sang thiết kế mới. Xem [hợp đồng logout](docs/LOGOUT_CONTRACT.md), [POI](docs/BACKEND_POI_STAGE1.md), [PENDING payment](docs/BACKEND_PENDING_PAYMENTS_STAGE3.md) và [claim_id](docs/BACKEND_TRANSLATION_STAGE13.md).
 - `npm run bootstrap:admin`: tạo tài khoản quản trị từ `BOOTSTRAP_ADMIN_EMAIL` và `BOOTSTRAP_ADMIN_PASSWORD`. Cấu hình các biến này trước khi chạy; không sử dụng mật khẩu mặc định.
 
 ### Chạy bằng Docker Compose

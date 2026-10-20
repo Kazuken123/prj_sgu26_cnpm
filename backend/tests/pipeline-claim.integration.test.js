@@ -9,6 +9,7 @@ const { ContentJobService } = require("../services/content-job.service");
 const { PoiService } = require("../services/poi.service");
 const PoiStore = require("../stores/poi.store");
 const utcPool = require("../config/utc-pool");
+const MockTranslation = require("../adapters/mock-translation");
 
 if (process.env.RUN_DB_TESTS === "1") describe("Worker claim with real SQL and POI/retry flows", () => {
   let admin, db, pipeline, second, jobs, pois, actor;
@@ -22,6 +23,7 @@ if (process.env.RUN_DB_TESTS === "1") describe("Worker claim with real SQL and P
     await admin.query("CREATE DATABASE `" + name + "` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci");
     db = utcPool(mysql.createPool({ ...connection, database: name, multipleStatements: true, connectionLimit: 10 }));
     await db.query(fs.readFileSync(path.resolve(__dirname, "../../database/init_db.sql"), "utf8"));
+    await new (require("../stores/schema.store"))(db).migrateContentJobClaim();
     const { AuthService } = require("../services/auth.service");
     const AuthStore = require("../stores/auth.store");
     const UserStore = require("../stores/user.store");
@@ -163,5 +165,159 @@ if (process.env.RUN_DB_TESTS === "1") describe("Worker claim with real SQL and P
     const logs = await audit(f.jobId);
     assert.deepEqual(logs.map(row => row.action), ["RETRY_CONTENT_JOB", "CLAIM_CONTENT_JOB"]);
     await assert.rejects(jobs.retry(actor, f.jobId, {}), { code: "CONTENT_JOB_NOT_FAILED" });
+  });
+  const translating = (translator = new MockTranslation(), translationTimeoutMs = 1000) =>
+    new PipelineService(new ContentJobStore(db), { translator, translationTimeoutMs });
+  async function translation(poiId, language = "en") {
+    const [rows] = await db.query("SELECT * FROM POI_TRANSLATIONS WHERE poi_id = ? AND language_code = ?", [poiId, language]);
+    return rows[0];
+  }
+  function deferredProvider() {
+    let ready, resolve;
+    const called = new Promise(r => { ready = r; });
+    const answer = new Promise(r => { resolve = r; });
+    return { called, resolve, provider: "TEST", translate: () => { ready(); return answer; } };
+  }
+  it("migration 005 preserves existing rows, leaves old claims NULL and can run twice", async () => {
+    const f = await fixture();
+    // Model a legacy schema in this disposable database only.
+    await db.query("ALTER TABLE CONTENT_JOBS DROP COLUMN claim_id");
+    const [before] = await db.query("SELECT * FROM CONTENT_JOBS ORDER BY job_id");
+    const schema = new (require("../stores/schema.store"))(db);
+    await schema.migrateContentJobClaim(); await schema.migrateContentJobClaim();
+    const [after] = await db.query("SELECT * FROM CONTENT_JOBS ORDER BY job_id");
+    assert.ok(after.every(row => row.claim_id === null));
+    assert.deepEqual(after.map(({ claim_id, ...row }) => row), before);
+    const claim = await pipeline.claimJob(f.jobId);
+    const [saved] = await db.query("SELECT claim_id FROM CONTENT_JOBS WHERE job_id = ?", [f.jobId]);
+    assert.equal(saved[0].claim_id, claim.claimId);
+    assert.equal(JSON.stringify(await jobs.get(actor, f.jobId)).includes(claim.claimId), false);
+    assert.equal(JSON.stringify(await audit(f.jobId)).includes(claim.claimId), false);
+  });
+  it("migration rejects an incompatible existing claim column instead of silently altering it", async () => {
+    await db.query("ALTER TABLE CONTENT_JOBS MODIFY claim_id VARCHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL");
+    try { await assert.rejects(new (require("../stores/schema.store"))(db).migrateContentJobClaim(), { code: "CONTENT_JOB_CLAIM_SCHEMA_REQUIRED" }); }
+    finally { await db.query("ALTER TABLE CONTENT_JOBS MODIFY claim_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL"); }
+  });
+  it("mock text commits READY with audit, but does not create audio or complete the job", async () => {
+    const f = await fixture(), worker = translating();
+    const result = await worker.runTranslation(f.jobId);
+    assert.equal(result.prepared, true); assert.equal(result.status, "PROCESSING");
+    const text = await translation(f.poiId);
+    assert.equal(text.status, "READY"); assert.equal(text.source_version, 1); assert.match(text.audio_script, /^\[MOCK en\]/);
+    const row = await jobs.get(actor, f.jobId);
+    assert.equal(row.status, "PROCESSING"); assert.equal(row.audio.status, null);
+    assert.deepEqual((await audit(f.jobId)).map(row => row.action), ["CLAIM_CONTENT_JOB", "PREPARE_TRANSLATION"]);
+    assert.equal(JSON.parse((await audit(f.jobId))[1].details).provider, "MOCK");
+  });
+  it("Vietnamese and existing current text are reused without invoking the provider or duplicating audit", async () => {
+    const worker = translating({ translate: () => assert.fail("No provider required") });
+    const vi = await fixture("vi");
+    const viBefore = await translation(vi.poiId, "vi");
+    assert.equal((await worker.runTranslation(vi.jobId)).reused, true);
+    assert.deepEqual(await translation(vi.poiId, "vi"), viBefore);
+    const en = await fixture(); const claim = await pipeline.claimJob(en.jobId);
+    await db.query(`INSERT INTO POI_TRANSLATIONS (poi_id, language_code, name, description, audio_script, source_version, status)
+      VALUES (?, 'en', 'Existing', 'Existing description', 'Existing script', 1, 'READY')`, [en.poiId]);
+    assert.equal((await worker.prepareTranslation(en.jobId, claim.claimId)).reused, true);
+    assert.equal((await worker.prepareTranslation(en.jobId, claim.claimId)).reused, true);
+    assert.equal((await audit(en.jobId)).length, 1);
+  });
+  it("20 workers still call the translation provider only once for one pending job", async () => {
+    const f = await fixture(); let calls = 0;
+    const mock = new MockTranslation();
+    const worker = translating({ provider: "MOCK", translate: input => { calls++; return mock.translate(input); } });
+    const results = await Promise.all(Array.from({ length: 20 }, () => worker.runTranslation(f.jobId)));
+    assert.equal(results.filter(row => row.prepared).length, 1); assert.equal(calls, 1);
+    assert.equal((await audit(f.jobId)).filter(row => row.action === "PREPARE_TRANSLATION").length, 1);
+  });
+  it("source edit while provider runs rejects the old result and preserves the new Vietnamese source", async () => {
+    const f = await fixture(), adapter = deferredProvider(), worker = translating(adapter);
+    const running = worker.runTranslation(f.jobId);
+    await adapter.called;
+    await pois.save(actor, f.poiId, { ...f.body, audioScript: "Kịch bản mới.", expectedVersion: 1 });
+    adapter.resolve({ name: "Old", description: "Old", audioScript: "Old" });
+    assert.equal((await running).reason, "CONTENT_SOURCE_OUTDATED");
+    assert.equal(await translation(f.poiId), undefined);
+    assert.equal((await translation(f.poiId, "vi")).audio_script, "Kịch bản mới.");
+    assert.equal((await jobs.get(actor, f.jobId)).status, "FAILED");
+  });
+  it("a recovered/retried job has a new claim; delayed success and failure from the old attempt cannot write", async () => {
+    for (const succeeds of [true, false]) {
+      const f = await fixture(), adapter = deferredProvider(), oldWorker = translating(adapter);
+      const running = oldWorker.runTranslation(f.jobId); await adapter.called;
+      const [original] = await db.query("SELECT claim_id FROM CONTENT_JOBS WHERE job_id = ?", [f.jobId]);
+      // Recovery is NOT implemented here: this fixture models the future safe reset.
+      await db.query("UPDATE CONTENT_JOBS SET status = 'FAILED' WHERE job_id = ?", [f.jobId]);
+      await jobs.retry(actor, f.jobId, {});
+      const [reset] = await db.query("SELECT claim_id FROM CONTENT_JOBS WHERE job_id = ?", [f.jobId]); assert.equal(reset[0].claim_id, null);
+      const next = await pipeline.claimJob(f.jobId); assert.notEqual(next.claimId, original[0].claim_id);
+      assert.equal((await translating().prepareTranslation(f.jobId, next.claimId)).prepared, true);
+      const current = await translation(f.poiId), before = await audit(f.jobId);
+      adapter.resolve(succeeds ? { name: "Old result", description: "old", audioScript: "old" } : null);
+      assert.equal((await running).reason, "CLAIM_LOST");
+      assert.deepEqual(await translation(f.poiId), current); assert.deepEqual(await audit(f.jobId), before);
+    }
+  });
+  it("provider failure/timeout leaves the POI and source intact, shows safe reason, and allows staff retry", async () => {
+    for (const mode of ["failure", "timeout"]) {
+      const f = await fixture(), worker = translating(new MockTranslation({ mode }), 25);
+      const source = await translation(f.poiId, "vi");
+      const result = await worker.runTranslation(f.jobId);
+      const code = mode === "timeout" ? "TRANSLATION_TIMEOUT" : "TRANSLATION_PROVIDER_FAILED";
+      assert.equal(result.reason, code); assert.deepEqual(await translation(f.poiId, "vi"), source);
+      const visible = await jobs.get(actor, f.jobId); assert.equal(visible.error.code, code); assert.equal(visible.canRetry, true);
+      await jobs.retry(actor, f.jobId, {});
+      assert.equal((await translating().runTranslation(f.jobId)).prepared, true);
+    }
+  });
+  it("a late resolution after timeout cannot overwrite the next attempt's text", async () => {
+    const f = await fixture(), adapter = deferredProvider(), old = translating(adapter, 20);
+    const failed = await old.runTranslation(f.jobId); assert.equal(failed.reason, "TRANSLATION_TIMEOUT");
+    await jobs.retry(actor, f.jobId, {}); await translating().runTranslation(f.jobId);
+    const current = await translation(f.poiId), before = await audit(f.jobId);
+    adapter.resolve({ name: "Too late", description: "old", audioScript: "old" });
+    await new Promise(resolve => setImmediate(resolve));
+    assert.deepEqual(await translation(f.poiId), current); assert.deepEqual(await audit(f.jobId), before);
+  });
+  it("translation SQL/audit failure rolls back the text and does not mark the job completed", async () => {
+    for (const target of ["POI_TRANSLATIONS", "AUDIT_LOGS"]) {
+      const f = await fixture(), worker = translating(), claim = await pipeline.claimJob(f.jobId);
+      await db.query("CREATE TRIGGER translation_fail BEFORE INSERT ON " + target + " FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'private SQL failure'");
+      try { await assert.rejects(worker.prepareTranslation(f.jobId, claim.claimId), { code: "CONTENT_TRANSLATION_UNAVAILABLE" }); }
+      finally { await db.query("DROP TRIGGER translation_fail"); }
+      assert.equal(await translation(f.poiId), undefined);
+      assert.equal((await jobs.get(actor, f.jobId)).status, "PROCESSING"); assert.equal((await audit(f.jobId)).length, 1);
+      assert.equal((await worker.prepareTranslation(f.jobId, claim.claimId)).prepared, true);
+    }
+  });
+  it("lost translation commit acknowledgement is reconciled by reusing the committed current text", async () => {
+    const f = await fixture(), claim = await pipeline.claimJob(f.jobId);
+    const proxy = { getConnection: async () => {
+      const connection = await db.getConnection();
+      return { query: (...args) => connection.query(...args), beginTransaction: () => connection.beginTransaction(),
+        commit: async () => { await connection.commit(); throw new Error("lost reply"); },
+        rollback: () => connection.rollback(), release: () => connection.release(), destroy: () => connection.destroy() };
+    } };
+    let invoked = false;
+    // Only lose the write commit, not the preliminary read transaction.
+    const normal = new ContentJobStore(db), uncertain = new ContentJobStore(proxy);
+    const worker = new PipelineService({ withWorkerJob: (...args) => (invoked ? uncertain : normal).withWorkerJob(...args) }, {
+      translator: { provider: "MOCK", translate: input => { invoked = true; return new MockTranslation().translate(input); } },
+    });
+    await assert.rejects(worker.prepareTranslation(f.jobId, claim.claimId), { code: "CONTENT_TRANSLATION_UNAVAILABLE" });
+    assert.equal((await translation(f.poiId)).status, "READY");
+    assert.equal((await translating({ translate: () => assert.fail("Must reuse") }).prepareTranslation(f.jobId, claim.claimId)).reused, true);
+    assert.equal((await audit(f.jobId)).filter(row => row.action === "PREPARE_TRANSLATION").length, 1);
+  });
+  it("provider errors, missing source and invalid output never expose raw details or partial READY text", async () => {
+    for (const type of ["source", "provider", "output"]) {
+      const f = await fixture();
+      if (type === "source") await db.query("UPDATE POI_TRANSLATIONS SET status = 'FAILED' WHERE poi_id = ? AND language_code = 'vi'", [f.poiId]);
+      const worker = translating({ translate: async () => { if (type === "provider") throw new Error("password=secret SQL token"); return { name: "Partial" }; } });
+      await worker.runTranslation(f.jobId);
+      assert.equal((await jobs.get(actor, f.jobId)).status, "FAILED"); assert.equal(await translation(f.poiId), undefined);
+      assert.equal(/secret|password|SQL token/.test(JSON.stringify(await jobs.get(actor, f.jobId)) + JSON.stringify(await audit(f.jobId))), false);
+    }
   });
 });

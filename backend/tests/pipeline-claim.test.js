@@ -13,7 +13,9 @@ function fixture(overrides = {}) {
 }
 it("worker claim returns only the job identity/version after a successful PROCESSING transition", async () => {
   const { service, writes } = fixture({ rawProviderError: "secret must not escape" });
-  assert.deepEqual(await service.claimJob("7"), { claimed: true, jobId: 7, poiId: 3, languageCode: "en", sourceVersion: 1, status: "PROCESSING" });
+  const { claimId, ...result } = await service.claimJob("7");
+  assert.match(claimId, /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/);
+  assert.deepEqual(result, { claimed: true, jobId: 7, poiId: 3, languageCode: "en", sourceVersion: 1, status: "PROCESSING" });
   assert.deepEqual(writes, [{ status: "PROCESSING", error: null }]);
 });
 it("worker claim never resets PROCESSING, COMPLETED or FAILED, even if their source is old", async () => {

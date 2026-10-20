@@ -2,6 +2,13 @@ const ContentJobStore = require("../stores/content_job.store");
 const AppError = require("../utils/app-error");
 const { assertContentEditor } = require("./internal-access");
 const validation = require("./content-job.validation");
+const workerErrors = {
+  CONTENT_SOURCE_OUTDATED: "Phiên bản nguồn không còn phù hợp.",
+  CONTENT_SOURCE_UNAVAILABLE: "Nội dung nguồn chưa sẵn sàng hoặc không hợp lệ.",
+  TRANSLATION_TIMEOUT: "Dịch vụ dịch vượt thời gian chờ.",
+  TRANSLATION_PROVIDER_FAILED: "Dịch vụ dịch tạm thời không xử lý được tác vụ.",
+  TRANSLATION_RESULT_INVALID: "Kết quả dịch không đủ nội dung hợp lệ.",
+};
 
 function publicJob(row) {
   const isCurrent = row.sourceVersion === row.currentVersion;
@@ -13,9 +20,11 @@ function publicJob(row) {
       isCurrent: row.translationVersion === row.currentVersion },
     audio: { status: row.audioStatus ?? null, sourceVersion: row.audioVersion ?? null,
       isCurrent: row.audioVersion === row.currentVersion && row.translationVersion === row.currentVersion },
-    // Provider/legacy error_message may contain SQL, keys or raw tokens. Never
-    // return it directly. A worker can introduce reviewed safe error codes later.
-    error: row.status === "FAILED" ? { code: "CONTENT_PROCESSING_FAILED", message: "Tác vụ xử lý nội dung thất bại; kiểm tra trạng thái và yêu cầu thử lại nếu còn hợp lệ." } : null,
+    // Only reviewed fixed worker codes may escape; never return provider/legacy text.
+    error: row.status === "FAILED" ? {
+      code: Object.hasOwn(workerErrors, row.errorCode) ? row.errorCode : "CONTENT_PROCESSING_FAILED",
+      message: Object.hasOwn(workerErrors, row.errorCode) ? workerErrors[row.errorCode] : "Tác vụ xử lý nội dung thất bại; kiểm tra trạng thái và yêu cầu thử lại nếu còn hợp lệ.",
+    } : null,
   };
 }
 class ContentJobService {

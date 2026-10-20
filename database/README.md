@@ -20,6 +20,8 @@ Migration MySQL DDL không rollback như giao dịch DML: nếu ngắt giữa ch
 
 ## Tương thích ứng dụng và kiểm thử
 
+Migration 005 thêm đúng `CONTENT_JOBS.claim_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NULL`, theo quyết định được duyệt cho pipeline. Giữ nguyên row cũ với NULL; chạy lại qua db:migrate không tạo cột trùng. Cột hiện có sai kiểu/nullability/collation sẽ báo lỗi, không tự đổi. Cần chạy db:migrate trước code worker/retry mới, kể cả database mới nạp init_db.sql; init và migration cũ không được sửa trong mốc này. claim_id nhận diện một lượt xử lý nội bộ; nhận job sinh mới, retry/FAILED xóa, ghi kết quả phải kiểm tra mã lượt và source_version. Không dùng như token khách hoặc công bố qua API trạng thái. Dừng worker cũ trước nâng cấp; job PROCESSING cũ giữ NULL và chưa có chức năng tự phục hồi. Xem [mốc chuẩn bị văn bản](../docs/BACKEND_TRANSLATION_STAGE13.md).
+
 Schema sử dụng tài khoản nội bộ STAFF/ADMIN. ADMIN đầu tiên được tạo bằng bootstrap có mật khẩu cấu hình bên ngoài; chỉ ADMIN đăng nhập mới gọi được `POST /api/admin/staff`. Tạo STAFF và ghi audit được thực hiện trong cùng transaction. Không có API đăng ký công khai hoặc luồng chủ quán.
 
 Bộ kiểm thử tích hợp nạp trực tiếp schema này vào database dùng riêng, kiểm tra đủ 16 bảng, migration refresh token, phân quyền, chống trùng email, rollback khi ghi audit lỗi và vòng đời phiên đăng nhập. Workflow kiểm tra thêm bản đóng gói bằng bootstrap ADMIN và tạo STAFF qua HTTP.
