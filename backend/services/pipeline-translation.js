@@ -6,7 +6,7 @@ function validText(text) {
   return !!text && ["name", "description", "audioScript"].every(key => typeof text[key] === "string" && text[key].trim().length > 0 &&
     (key === "name" ? [...text[key]].length <= 255 : Buffer.byteLength(text[key], "utf8") <= 65535));
 }
-const owned = (job, claimId) => job && job.status === "PROCESSING" && job.claimId === claimId;
+const owned = (job, claimId) => job && job.status === "PROCESSING" && job.claimId === claimId && job.leaseValid === true;
 async function checkedWork(service, jobId, claimId, work) {
   return service.store.withWorkerJob(jobId, async ops => {
     const job = ops.job;

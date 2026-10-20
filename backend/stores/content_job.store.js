@@ -30,6 +30,17 @@ class ContentJobStore {
     const [rows] = await this.db.query("SELECT " + projection + joins + " WHERE j.job_id = ?", [id]);
     return rows[0];
   }
+  async listExpiredClaims(limit) {
+    const [rows] = await this.db.query(`SELECT job_id AS jobId, claim_id AS claimId FROM CONTENT_JOBS
+      WHERE status = 'PROCESSING' AND claim_id IS NOT NULL AND lease_expires_at <= UTC_TIMESTAMP(3)
+      ORDER BY lease_expires_at, job_id LIMIT ?`, [limit]);
+    return rows;
+  }
+  async countLegacyProcessing() {
+    const [rows] = await this.db.query(`SELECT COUNT(*) AS total FROM CONTENT_JOBS
+      WHERE status = 'PROCESSING' AND (claim_id IS NULL OR lease_expires_at IS NULL)`);
+    return Number(rows[0].total);
+  }
   async withWorkerJob(id, work) {
     return this.transactions.transaction(async connection => {
       const [reference] = await connection.query("SELECT poi_id FROM CONTENT_JOBS WHERE job_id = ?", [id]);
@@ -38,45 +49,63 @@ class ContentJobStore {
       // Locking reads below see changes committed while waiting for the parent.
       const [parents] = await connection.query("SELECT content_version FROM POIS WHERE poi_id = ? FOR UPDATE", [reference[0].poi_id]);
       const [rows] = await connection.query(`SELECT job_id AS jobId, poi_id AS poiId, language_code AS languageCode,
-        source_version AS sourceVersion, claim_id AS claimId, status FROM CONTENT_JOBS WHERE job_id = ? FOR UPDATE`, [id]);
+        source_version AS sourceVersion, claim_id AS claimId, lease_expires_at AS leaseExpiresAt, status FROM CONTENT_JOBS WHERE job_id = ? FOR UPDATE`, [id]);
       if (!parents[0] || !rows[0]) return work({ job: undefined });
-      const job = { ...rows[0], currentVersion: parents[0].content_version };
+      const [clock] = await connection.query("SELECT UTC_TIMESTAMP(3) AS nowUtc");
+      const job = { ...rows[0], currentVersion: parents[0].content_version,
+        leaseValid: rows[0].leaseExpiresAt instanceof Date && clock[0].nowUtc instanceof Date && rows[0].leaseExpiresAt > clock[0].nowUtc };
       const workerAudit = (action, details) => this.audit.create({ userId: null, action, resourceType: "CONTENT_JOBS", resourceId: String(id),
         details: JSON.stringify({ poiId: job.poiId, languageCode: job.languageCode, sourceVersion: job.sourceVersion,
           currentVersion: job.currentVersion, ...details }), ipAddress: null }, connection);
-      return work({ job, transition: async (status, errorCode, claimId = null) => {
-        const [result] = await connection.query(`UPDATE CONTENT_JOBS SET status = ?, error_message = ?, claim_id = ?
-          WHERE job_id = ? AND status = 'PENDING' AND source_version = ?`, [status, errorCode, claimId, id, job.sourceVersion]);
+      return work({ job, transition: async (status, errorCode, claimId = null, leaseSeconds = 120) => {
+        const [result] = await connection.query(`UPDATE CONTENT_JOBS SET status = ?, error_message = ?, claim_id = ?,
+          lease_expires_at = CASE WHEN ? = 'PROCESSING' THEN TIMESTAMPADD(SECOND, ?, UTC_TIMESTAMP(3)) ELSE NULL END
+          WHERE job_id = ? AND status = 'PENDING' AND source_version = ?`, [status, errorCode, claimId, status, leaseSeconds, id, job.sourceVersion]);
         if (result.affectedRows !== 1) return false;
         await workerAudit(status === "PROCESSING" ? "CLAIM_CONTENT_JOB" : "FAIL_CONTENT_JOB", errorCode ? { code: errorCode } : {});
         return true;
       },
       getContent: language => this.content.getForUpdate(job.poiId, language, connection),
       getAudio: translationId => this.content.getAudioForUpdate(translationId, connection),
+      renewLease: async (claimId, leaseSeconds) => {
+        const [saved] = await connection.query(`UPDATE CONTENT_JOBS SET lease_expires_at = TIMESTAMPADD(SECOND, ?, UTC_TIMESTAMP(3))
+          WHERE job_id = ? AND status = 'PROCESSING' AND claim_id = ? AND lease_expires_at > UTC_TIMESTAMP(3)`, [leaseSeconds, id, claimId]);
+        return saved.affectedRows === 1;
+      },
+      recoverExpired: async claimId => {
+        const [saved] = await connection.query(`UPDATE CONTENT_JOBS SET status = 'FAILED', error_message = 'CONTENT_WORKER_INTERRUPTED',
+          claim_id = NULL, lease_expires_at = NULL WHERE job_id = ? AND status = 'PROCESSING' AND claim_id = ?
+          AND lease_expires_at <= UTC_TIMESTAMP(3)`, [id, claimId]);
+        if (saved.affectedRows !== 1) return false;
+        await workerAudit("RECOVER_CONTENT_JOB", { code: "CONTENT_WORKER_INTERRUPTED" });
+        return true;
+      },
       failClaim: async (claimId, errorCode) => {
-        const [saved] = await connection.query(`UPDATE CONTENT_JOBS SET status = 'FAILED', error_message = ?, claim_id = NULL
-          WHERE job_id = ? AND status = 'PROCESSING' AND claim_id = ?`, [errorCode, id, claimId]);
+        const [saved] = await connection.query(`UPDATE CONTENT_JOBS SET status = 'FAILED', error_message = ?, claim_id = NULL, lease_expires_at = NULL
+          WHERE job_id = ? AND status = 'PROCESSING' AND claim_id = ? AND lease_expires_at > UTC_TIMESTAMP(3)`, [errorCode, id, claimId]);
         if (saved.affectedRows !== 1) return false;
         await workerAudit("FAIL_CONTENT_JOB", { code: errorCode });
         return true;
       },
       saveTranslation: async (claimId, text, provider) => {
-        if (job.status !== "PROCESSING" || job.claimId !== claimId || job.sourceVersion !== job.currentVersion) return false;
+        const [allowed] = await connection.query(`SELECT job_id FROM CONTENT_JOBS WHERE job_id = ? AND status = 'PROCESSING'
+          AND claim_id = ? AND lease_expires_at > UTC_TIMESTAMP(3) FOR UPDATE`, [id, claimId]);
+        if (!allowed.length || job.sourceVersion !== job.currentVersion) return false;
         await this.content.saveTranslation(job.poiId, job.languageCode, job.sourceVersion, text, connection);
         await workerAudit("PREPARE_TRANSLATION", { provider });
         return true;
       },
       failAudio: async (claimId, translationId, errorCode) => {
-        const [saved] = await connection.query(`UPDATE CONTENT_JOBS SET status = 'FAILED', error_message = ?, claim_id = NULL
-          WHERE job_id = ? AND status = 'PROCESSING' AND claim_id = ?`, [errorCode, id, claimId]);
+        const [saved] = await connection.query(`UPDATE CONTENT_JOBS SET status = 'FAILED', error_message = ?, claim_id = NULL, lease_expires_at = NULL
+          WHERE job_id = ? AND status = 'PROCESSING' AND claim_id = ? AND lease_expires_at > UTC_TIMESTAMP(3)`, [errorCode, id, claimId]);
         if (saved.affectedRows !== 1) return false;
         await this.content.saveAudio(translationId, job.sourceVersion, null, connection);
         await workerAudit("FAIL_CONTENT_JOB", { code: errorCode });
         return true;
       },
       completeAudio: async (claimId, translationId, asset, provider, reused) => {
-        const [saved] = await connection.query(`UPDATE CONTENT_JOBS SET status = 'COMPLETED', error_message = NULL, claim_id = NULL
-          WHERE job_id = ? AND status = 'PROCESSING' AND claim_id = ? AND source_version = ?`, [id, claimId, job.currentVersion]);
+        const [saved] = await connection.query(`UPDATE CONTENT_JOBS SET status = 'COMPLETED', error_message = NULL, claim_id = NULL, lease_expires_at = NULL
+          WHERE job_id = ? AND status = 'PROCESSING' AND claim_id = ? AND source_version = ? AND lease_expires_at > UTC_TIMESTAMP(3)`, [id, claimId, job.currentVersion]);
         if (saved.affectedRows !== 1) return false;
         if (!reused) await this.content.saveAudio(translationId, job.sourceVersion, asset, connection);
         await workerAudit("COMPLETE_CONTENT_JOB", { provider, reused });
@@ -97,7 +126,7 @@ class ContentJobStore {
       if (!parents[0] || !rows[0]) return work({ job: undefined });
       const job = { ...rows[0], currentVersion: parents[0].content_version };
       return work({ job, enqueue: async ipAddress => {
-        const [result] = await connection.query("UPDATE CONTENT_JOBS SET status = 'PENDING', error_message = NULL, claim_id = NULL WHERE job_id = ? AND status = 'FAILED' AND source_version = ?",
+        const [result] = await connection.query("UPDATE CONTENT_JOBS SET status = 'PENDING', error_message = NULL, claim_id = NULL, lease_expires_at = NULL WHERE job_id = ? AND status = 'FAILED' AND source_version = ?",
           [id, job.currentVersion]);
         if (result.affectedRows !== 1) return undefined;
         await this.audit.create({ userId: actorId, action: "RETRY_CONTENT_JOB", resourceType: "CONTENT_JOBS", resourceId: String(id),

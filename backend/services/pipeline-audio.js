@@ -18,7 +18,7 @@ async function limited(work, ms, code, onLate) {
 async function current(service, jobId, claimId, work) {
   return service.store.withWorkerJob(jobId, async ops => {
     const job = ops.job;
-    if (!job || job.status !== "PROCESSING" || job.claimId !== claimId) return { completed: false, reason: "CLAIM_LOST", jobId };
+    if (!job || job.status !== "PROCESSING" || job.claimId !== claimId || job.leaseValid !== true) return { completed: false, reason: "CLAIM_LOST", jobId };
     if (job.sourceVersion !== job.currentVersion) {
       if (!await ops.failClaim(claimId, "CONTENT_SOURCE_OUTDATED")) throw new Error("CLAIM_CHANGED");
       return { completed: false, reason: "CONTENT_SOURCE_OUTDATED", jobId, status: "FAILED" };

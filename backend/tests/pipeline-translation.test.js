@@ -5,7 +5,7 @@ const { PipelineService } = require("../services/pipeline.service");
 const MockTranslation = require("../adapters/mock-translation");
 function fixture({ language = "en", translator = new MockTranslation(), timeout = 100 } = {}) {
   const claimId = randomUUID();
-  const state = { job: { jobId: 1, poiId: 2, languageCode: language, sourceVersion: 1, currentVersion: 1, status: "PROCESSING", claimId },
+  const state = { job: { jobId: 1, poiId: 2, languageCode: language, sourceVersion: 1, currentVersion: 1, status: "PROCESSING", claimId, leaseValid: true },
     source: { name: "Nguồn", description: "Mô tả", audioScript: "Lời đọc", sourceVersion: 1, status: "READY" }, target: null, writes: 0, failures: [] };
   const store = { withWorkerJob: async (id, work) => work({ job: { ...state.job },
     getContent: async code => code === "vi" ? state.source : state.target,

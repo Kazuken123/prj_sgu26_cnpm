@@ -24,6 +24,7 @@ if (process.env.RUN_DB_TESTS === "1") describe("Worker claim with real SQL and P
     db = utcPool(mysql.createPool({ ...connection, database: name, multipleStatements: true, connectionLimit: 10 }));
     await db.query(fs.readFileSync(path.resolve(__dirname, "../../database/init_db.sql"), "utf8"));
     await new (require("../stores/schema.store"))(db).migrateContentJobClaim();
+    await new (require("../stores/schema.store"))(db).migrateContentJobLease();
     const { AuthService } = require("../services/auth.service");
     const AuthStore = require("../stores/auth.store");
     const UserStore = require("../stores/user.store");

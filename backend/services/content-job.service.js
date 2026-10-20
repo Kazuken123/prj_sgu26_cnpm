@@ -3,6 +3,7 @@ const AppError = require("../utils/app-error");
 const { assertContentEditor } = require("./internal-access");
 const validation = require("./content-job.validation");
 const workerErrors = {
+  CONTENT_WORKER_INTERRUPTED: "Tác vụ hết hạn giữ quyền xử lý; có thể yêu cầu chạy lại nếu phiên bản còn hiện hành.",
   CONTENT_SOURCE_OUTDATED: "Phiên bản nguồn không còn phù hợp.",
   CONTENT_SOURCE_UNAVAILABLE: "Nội dung nguồn chưa sẵn sàng hoặc không hợp lệ.",
   TRANSLATION_TIMEOUT: "Dịch vụ dịch vượt thời gian chờ.",

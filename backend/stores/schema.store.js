@@ -3,6 +3,18 @@ const path = require("node:path");
 const pool = require("../config/database");
 class SchemaStore {
   constructor(db = pool) { this.db = db; }
+  async migrateContentJobLease() {
+    const [columns] = await this.db.query("SHOW FULL COLUMNS FROM CONTENT_JOBS LIKE 'lease_expires_at'");
+    if (!columns.length) {
+      const sql = fs.readFileSync(path.resolve(__dirname, "../../database/migrations/006_content_job_lease.sql"), "utf8");
+      try { await this.db.query(sql); }
+      catch (error) { if (error.code !== "ER_DUP_FIELDNAME") throw error; }
+    }
+    const [actual] = await this.db.query("SHOW FULL COLUMNS FROM CONTENT_JOBS LIKE 'lease_expires_at'");
+    if (actual.length !== 1 || actual[0].Type.toLowerCase() !== "datetime(3)" || actual[0].Null !== "YES") {
+      const error = new Error("CONTENT_JOB_LEASE_SCHEMA_REQUIRED"); error.code = error.message; throw error;
+    }
+  }
   async migrateContentJobClaim() {
     const [columns] = await this.db.query("SHOW FULL COLUMNS FROM CONTENT_JOBS LIKE 'claim_id'");
     if (!columns.length) {

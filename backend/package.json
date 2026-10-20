@@ -11,7 +11,8 @@
     "lint": "node scripts/check.js",
     "bootstrap:admin": "node scripts/bootstrap-admin.js",
     "db:migrate": "node scripts/migrate.js",
-    "mock:payment": "node scripts/mock-payment.js"
+    "mock:payment": "node scripts/mock-payment.js",
+    "jobs:recover": "node scripts/recover-content-jobs.js"
   },
   "keywords": [],
   "author": "",

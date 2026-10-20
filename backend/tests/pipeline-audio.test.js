@@ -7,7 +7,7 @@ const { MediaService } = require("../services/media.service");
 const { inspectWav } = require("../utils/pcm-wav");
 function fixture({ tts = new MockTts(), audioTimeoutMs = 100 } = {}) {
   const claimId = randomUUID(), files = new Map();
-  const state = { job: { jobId: 1, languageCode: "en", sourceVersion: 1, currentVersion: 1, status: "PROCESSING", claimId },
+  const state = { job: { jobId: 1, languageCode: "en", sourceVersion: 1, currentVersion: 1, status: "PROCESSING", claimId, leaseValid: true },
     text: { translationId: 2, name: "Name", description: "Description", audioScript: "Script", status: "READY", sourceVersion: 1 }, failures: [], completed: 0 };
   const storage = { put: async (key, bytes) => { files.set(key, Buffer.from(bytes)); },
     get: async key => { if (!files.has(key)) throw Object.assign(new Error("missing"), { code: "ENOENT" }); return files.get(key); }, remove: async key => { files.delete(key); } };

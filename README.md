@@ -2,11 +2,13 @@
 
 ## Hiện trạng backend theo báo cáo 8
 
+Mốc 15 đang local: [hạn giữ quyền và phục hồi job gián đoạn](docs/BACKEND_JOB_RECOVERY_STAGE15.md). Migration 006 thêm lease_expires_at nullable đã được duyệt; mặc định 120 giây, heartbeat 15 giây. Job hết hạn mất quyền ghi; jobs:recover mặc định dry-run, --apply mới chuyển FAILED có audit. Legacy thiếu hạn chỉ đối soát. Đạt 372 test local, kiểm tra 102 file JavaScript; chưa commit/push/CI mới. Chưa worker tự lấy PENDING. Chạy db:migrate đến 006 trước code mới.
+
 Mốc 12 [nhận một tác vụ nội dung an toàn](docs/BACKEND_PIPELINE_CLAIM_STAGE12.md) đã push bằng f382be7 và [CI xanh](https://github.com/Kazuken123/prj_sgu26_cnpm/actions/runs/39383566623). PipelineService nhận PENDING đúng một lần; job lỗi thời chuyển FAILED, audit cùng giao dịch. Ghi chú chưa push trong tài liệu mốc 12 là lịch sử trước khi chốt commit.
 
 Mốc 13 [mã lượt xử lý và chuẩn bị văn bản qua adapter mock](docs/BACKEND_TRANSLATION_STAGE13.md) đã push bằng e52180a và [CI xanh](https://github.com/Kazuken123/prj_sgu26_cnpm/actions/runs/39385088056). Migration 005 thêm claim_id nullable đã được duyệt; ghi kết quả phải khớp lượt và phiên bản nguồn. Tiếng Việt dùng nguồn, text cùng phiên bản được tái sử dụng; timeout/lỗi chuyển FAILED an toàn. Mock chưa phải dịch máy thật. Chạy db:migrate đến 005 trước khi dùng code mới, kể cả khi vừa nạp init schema. Ghi chú chưa push/chưa audio trong tài liệu mốc 13 là phạm vi lịch sử.
 
-Mốc 14 đang local: [audio mock, file riêng và API tải có xác thực](docs/BACKEND_AUDIO_STAGE14.md). Service nối POI/job → text → file WAV → audio AVAILABLE/job COMPLETED với kiểm claim/phiên bản, audit và nhánh lỗi. GET /api/media/audio/:key yêu cầu token khách còn hiệu lực; file ngoài frontend/public. MEDIA_ROOT là đường dẫn tuyệt đối riêng khi chạy Node; Compose dùng volume media_data. Đạt 350 test local, kiểm tra 96 file JavaScript; chưa commit/push/CI mới, chưa chạy Docker để chứng minh volume. Audio mock là âm báo thử, không phải giọng đọc; chưa worker tự chạy, phục hồi, TTS thật hoặc frontend.
+Mốc 14 [audio mock, file riêng và API tải có xác thực](docs/BACKEND_AUDIO_STAGE14.md) đã push bằng ca21731 và [CI xanh](https://github.com/Kazuken123/prj_sgu26_cnpm/actions/runs/39386967221). Service nối POI/job → text → file WAV → audio AVAILABLE/job COMPLETED với kiểm claim/phiên bản, audit và nhánh lỗi. GET /api/media/audio/:key yêu cầu token khách còn hiệu lực; file ngoài frontend/public. MEDIA_ROOT là đường dẫn tuyệt đối riêng khi chạy Node; Compose dùng volume media_data, chưa chạy Docker để chứng minh volume. Audio mock là âm báo thử, không phải giọng đọc; ghi chú chưa push/phục hồi trong tài liệu mốc 14 là lịch sử trước các mốc sau.
 
 Hiện tại, CASH và ONLINE MockGateway đã được kiểm chứng đến API khách; phần ONLINE đã push tới 623c277 và [CI xanh](https://github.com/Kazuken123/prj_sgu26_cnpm/actions/runs/39362306417) với MySQL 8/Redis 7. Chưa có frontend thanh toán, Payoo thật, bundle hoặc chatbot. Phần audio mock đang local như mốc 14 phía trên; các đoạn theo mốc bên dưới ghi cả phạm vi lịch sử.
 
@@ -130,7 +132,8 @@ Các địa chỉ mặc định:
 
 Các lệnh quản trị được chạy trong `backend`:
 
-- `npm run db:migrate`: chạy migration 001–005 để nâng cấp logout, POI, khóa nhận diện yêu cầu thanh toán và mã lượt xử lý nội dung. Phải có schema 16 bảng theo thiết kế; không chuyển toàn bộ database nghiệp vụ cũ sang thiết kế mới. Xem [hợp đồng logout](docs/LOGOUT_CONTRACT.md), [POI](docs/BACKEND_POI_STAGE1.md), [PENDING payment](docs/BACKEND_PENDING_PAYMENTS_STAGE3.md) và [claim_id](docs/BACKEND_TRANSLATION_STAGE13.md).
+- `npm run db:migrate`: chạy migration 001–006 để nâng cấp logout, POI, khóa yêu cầu thanh toán, claim_id và lease_expires_at. Phải có schema 16 bảng theo thiết kế; không chuyển toàn bộ database nghiệp vụ cũ sang thiết kế mới. Xem [hợp đồng logout](docs/LOGOUT_CONTRACT.md), [POI](docs/BACKEND_POI_STAGE1.md), [PENDING payment](docs/BACKEND_PENDING_PAYMENTS_STAGE3.md), [claim_id](docs/BACKEND_TRANSLATION_STAGE13.md) và [lease/phục hồi](docs/BACKEND_JOB_RECOVERY_STAGE15.md).
+- `npm run jobs:recover`: kiểm tra job PROCESSING hết lease, mặc định chỉ xem. Dùng `npm run jobs:recover -- --apply --limit 100` để chuyển FAILED có audit sau khi đối soát. Không tự reset job legacy hoặc tạo job mới; chưa có lịch phục hồi tự chạy.
 - `npm run bootstrap:admin`: tạo tài khoản quản trị từ `BOOTSTRAP_ADMIN_EMAIL` và `BOOTSTRAP_ADMIN_PASSWORD`. Cấu hình các biến này trước khi chạy; không sử dụng mật khẩu mặc định.
 
 ### Chạy bằng Docker Compose
