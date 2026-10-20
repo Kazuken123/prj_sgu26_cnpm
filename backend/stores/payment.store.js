@@ -116,6 +116,34 @@ class PaymentStore {
       });
     });
   }
+  async withOnlineCheckout(sessionId, requestHash, work) {
+    return this.transactions.transaction(async connection => {
+      const [rows] = await connection.query(confirmationProjection + " AND p.request_key_hash = ? FOR UPDATE", [sessionId, requestHash]);
+      const row = rows[0];
+      if (!row) return work(undefined, {});
+      const [clock] = await connection.query("SELECT UTC_TIMESTAMP(3) AS nowUtc");
+      const [prepared] = await connection.query(`SELECT details FROM AUDIT_LOGS
+        WHERE action = 'PREPARE_ONLINE_CHECKOUT' AND resource_type = 'PAYMENTS' AND resource_id = ? ORDER BY log_id LIMIT 1`, [row.paymentRef]);
+      const preparation = prepared[0] ? JSON.parse(prepared[0].details) : null;
+      const [ready] = preparation ? await connection.query(`SELECT log_id FROM AUDIT_LOGS
+        WHERE action = 'ONLINE_CHECKOUT_READY' AND resource_type = 'ONLINE_CHECKOUT' AND resource_id = ? LIMIT 1`, [preparation.issueId]) : [[]];
+      return work(row, {
+        now: clock[0].nowUtc, preparation, ready: ready.length > 0,
+        currentTime: async () => {
+          const [current] = await connection.query("SELECT UTC_TIMESTAMP(3) AS nowUtc"); return current[0].nowUtc;
+        },
+        prepare: entry => this.audit.create({ userId: null, action: "PREPARE_ONLINE_CHECKOUT", resourceType: "PAYMENTS",
+          resourceId: row.paymentRef, details: JSON.stringify(entry), createdAt: clock[0].nowUtc }, connection),
+        markReady: () => this.audit.create({ userId: null, action: "ONLINE_CHECKOUT_READY", resourceType: "ONLINE_CHECKOUT",
+          resourceId: preparation.issueId, details: JSON.stringify({ sessionId, paymentRef: row.paymentRef }), createdAt: clock[0].nowUtc }, connection),
+      });
+    });
+  }
+  async getMockCheckout(paymentRef) {
+    const [rows] = await this.db.query(`SELECT payment_ref AS paymentRef, payment_method AS paymentMethod,
+      amount, currency, status AS paymentStatus FROM PAYMENTS WHERE payment_ref = ?`, [paymentRef]);
+    return rows[0];
+  }
   async initialize({ hash, actorId, authorize, build }) {
     const attempt = () => this.transactions.transaction(async connection => {
       if (actorId !== null) authorize(await this.users.getUserById(actorId, connection, true));

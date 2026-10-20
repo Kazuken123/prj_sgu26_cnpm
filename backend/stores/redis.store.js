@@ -47,10 +47,25 @@ if not value then return 0 end
 local record = cjson.decode(value)
 if record.issueId ~= ARGV[1] then return 0 end
 return redis.call('DEL', KEYS[1])`;
+const ensureOnlineCodeScript = `
+local clock = redis.call('TIME')
+local now = tonumber(clock[1]) * 1000 + math.floor(tonumber(clock[2]) / 1000)
+local candidate = cjson.decode(ARGV[1])
+if type(candidate.expiresAtMs) ~= 'number' or candidate.expiresAtMs <= now then return {-1} end
+local existing = redis.call('GET', KEYS[1])
+if existing then
+  local record = cjson.decode(existing)
+  if record.sessionId ~= candidate.sessionId or record.issueId ~= candidate.issueId or record.expiresAtMs ~= candidate.expiresAtMs or redis.call('PTTL', KEYS[1]) <= 0 then return {-2} end
+  return {1, existing}
+end
+if ARGV[2] ~= '1' then return {0} end
+redis.call('SET', KEYS[1], ARGV[1], 'PX', string.format('%.0f', candidate.expiresAtMs - now))
+return {1, ARGV[1]}`;
 class RedisStore {
   constructor({ url = process.env.REDIS_URL || "redis://127.0.0.1:6379", clientFactory = createClient,
-    cashCodePrefix = "tcv:cash-code:v1:" } = {}) {
+    cashCodePrefix = "tcv:cash-code:v1:", onlineCodePrefix = "tcv:online-code:v1:" } = {}) {
     this.url = url; this.clientFactory = clientFactory; this.cashCodePrefix = cashCodePrefix;
+    this.onlineCodePrefix = onlineCodePrefix;
   }
   async execute(work) {
     const client = this.clientFactory({ url: this.url, disableOfflineQueue: true,
@@ -73,6 +88,18 @@ class RedisStore {
   async consumeLookup(keys, { windowSeconds, ipLimit, sessionLimit }) {
     return this.execute(async client => Number(await client.eval(consumeScript, { keys,
       arguments: [String(windowSeconds), String(ipLimit), String(sessionLimit)] })) === 1);
+  }
+  async ensureOnlineCode(sessionId, candidate, allowCreate) {
+    return this.execute(async client => {
+      const reply = await client.eval(ensureOnlineCodeScript, { keys: [this.onlineCodePrefix + sessionId],
+        arguments: [JSON.stringify(candidate), allowCreate ? "1" : "0"] });
+      if (Array.isArray(reply) && reply.length === 1 && Number(reply[0]) === 0) return null;
+      if (!Array.isArray(reply) || Number(reply[0]) !== 1 || typeof reply[1] !== "string") throw new Error("INVALID_ONLINE_CODE_STATE");
+      const record = JSON.parse(reply[1]);
+      if (record.sessionId !== sessionId || record.issueId !== candidate.issueId || record.expiresAtMs !== candidate.expiresAtMs ||
+          !/^[a-f0-9]{64}$/.test(record.authCode)) throw new Error("INVALID_ONLINE_CODE_STATE");
+      return record;
+    });
   }
   async ensureCashCode(sessionId, candidate, ticketExpiresAtMs) {
     return this.execute(async client => {
@@ -112,3 +139,4 @@ module.exports.consumeScript = consumeScript;
 module.exports.issueCashCodeScript = issueCashCodeScript;
 module.exports.inspectCashCodeScript = inspectCashCodeScript;
 module.exports.removeCashCodeScript = removeCashCodeScript;
+module.exports.ensureOnlineCodeScript = ensureOnlineCodeScript;

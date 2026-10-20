@@ -18,6 +18,10 @@ Bước 7 đã push bằng commit 45a2fe8 và [CI/CD xanh](https://github.com/Ka
 
 Bước 8 bổ sung [kiểm tra quyền khách và demo luồng tiền mặt qua API](docs/BACKEND_VISITOR_ACCESS_STAGE8.md): `GET /api/visits/me` chỉ dùng token khách, đọc lại payment/phiên/hạn vé từ SQL trên từng request, trả mã phiên/trạng thái/hạn vé tối thiểu. Token sai, vé hết hạn, phiên thu hồi, payment không PAID và JWT nội bộ bị từ chối. Local đạt 217 test với MariaDB/Redis thay thế; mốc 8 chưa commit/push, chưa có CI mới. Luồng tiền mặt kiểm thử được đến sử dụng token ở API khách; chưa có bundle, nghe thuyết minh hoặc frontend. Không có migration mới.
 
+Mốc 8 đã được chốt bằng commit 64523ce và [CI/CD xanh](https://github.com/Kazuken123/prj_sgu26_cnpm/actions/runs/39356052063); ghi chú chưa push trong tài liệu mốc 8 là lịch sử trước push. Luồng CASH đến API khách đã kiểm chứng trên CI của commit đó.
+
+Bước 9 bổ sung [khởi tạo ONLINE qua MockGateway](docs/BACKEND_ONLINE_CHECKOUT_STAGE9.md): `POST /api/payments/online-checkout` tạo/dùng lại ONLINE/PENDING, trả URL mock và authCode mặc định 15 phút; retry giữ giá, mã và deadline cũ. Mã đã phát hành mà mất/hết hạn không được tự cấp lại. URL mock hiện chỉ xem JSON, không thu tiền, không có webhook/thành công/thất bại hoặc token ONLINE. Không sửa frontend/schema; API tạo PENDING cũ giữ nguyên. Local 245 test đạt với MariaDB/Redis thay thế; mốc 9 chưa commit/push và chưa có CI mới.
+
 Đồ án môn **Công nghệ phần mềm**, xây dựng ứng dụng web hỗ trợ khách tham quan tiếp cận nội dung theo vị trí và ngôn ngữ lựa chọn. Trọng tâm kỹ thuật là Back-end ba lớp **Router–Service–Store**, kiểm thử tự động và quy trình CI/CD.
 
 ## Tổng quan sản phẩm
