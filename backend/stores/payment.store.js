@@ -97,12 +97,29 @@ class PaymentStore {
     });
   }
   async withCashTokenExchange(sessionId, work) {
+    return this.withVisitorTokenExchange(sessionId, work);
+  }
+  async withOnlineTokenExchange(sessionId, work) {
+    return this.withVisitorTokenExchange(sessionId, work, true);
+  }
+  async withVisitorTokenExchange(sessionId, work, online = false) {
     return this.transactions.transaction(async connection => {
       // Same payment/visit lock order as code issuance and confirmation.
       const [rows] = await connection.query(confirmationProjection + " FOR UPDATE", [sessionId]);
       const [clock] = await connection.query("SELECT UTC_TIMESTAMP(3) AS nowUtc");
+      let preparation = null, ready = false;
+      if (online && rows[0]) {
+        const [prepared] = await connection.query(`SELECT details FROM AUDIT_LOGS WHERE action = 'PREPARE_ONLINE_CHECKOUT'
+          AND resource_type = 'PAYMENTS' AND resource_id = ? ORDER BY log_id LIMIT 1`, [rows[0].paymentRef]);
+        preparation = prepared[0] ? JSON.parse(prepared[0].details) : null;
+        if (preparation) {
+          const [issued] = await connection.query(`SELECT log_id FROM AUDIT_LOGS WHERE action = 'ONLINE_CHECKOUT_READY'
+            AND resource_type = 'ONLINE_CHECKOUT' AND resource_id = ? LIMIT 1`, [preparation.issueId]);
+          ready = issued.length > 0;
+        }
+      }
       return work(rows[0], {
-        now: clock[0].nowUtc,
+        now: clock[0].nowUtc, ...(online ? { preparation, ready } : {}),
         persist: async ({ tokenHash, issueId, codeExpiresAt, ipAddress }) => {
           const [saved] = await connection.query(`UPDATE VISIT_SESSIONS SET token_hash = ?
             WHERE session_id = ? AND token_hash IS NULL AND reissue_count = 0

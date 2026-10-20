@@ -4,9 +4,10 @@ const RedisStore = require("../stores/redis.store");
 const { getVisitPrice, getLookupConfig, getVisitValidityMs, getCashCodeTtlMs, getCashExchangeConfig } = require("../config/payment");
 const AppError = require("../utils/app-error");
 const MockGateway = require("../adapters/mock-gateway");
-const { getOnlineCodeTtlMs } = require("../config/online-payment");
+const { getOnlineCodeTtlMs, getOnlineExchangeConfig } = require("../config/online-payment");
 const { initializeOnline } = require("./online-checkout");
 const { processMockWebhook } = require("./online-webhook");
+const { exchangeOnlineCode } = require("./online-exchange");
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const hash = value => createHash("sha256").update(value).digest("hex");
 function authorize(actor) {
@@ -21,14 +22,16 @@ function authorize(actor) {
 class PaymentService {
   constructor(store = new PaymentStore(), redis = new RedisStore(), { price = getVisitPrice, lookupConfig = getLookupConfig,
     validityMs = getVisitValidityMs, cashCodeTtlMs = getCashCodeTtlMs, exchangeConfig = getCashExchangeConfig, now = () => Date.now(),
-    gateway = new MockGateway(), onlineCodeTtlMs = getOnlineCodeTtlMs, gatewayTimeoutMs = 2000 } = {}) {
+    gateway = new MockGateway(), onlineCodeTtlMs = getOnlineCodeTtlMs, gatewayTimeoutMs = 2000, onlineExchangeConfig = getOnlineExchangeConfig } = {}) {
     this.store = store; this.redis = redis; this.price = price; this.lookupConfig = lookupConfig; this.validityMs = validityMs;
     this.cashCodeTtlMs = cashCodeTtlMs; this.now = now;
     this.exchangeConfig = exchangeConfig;
     this.gateway = gateway; this.onlineCodeTtlMs = onlineCodeTtlMs; this.gatewayTimeoutMs = gatewayTimeoutMs;
+    this.onlineExchangeConfig = onlineExchangeConfig;
   }
   async initializeOnline(input, requestKey) { return initializeOnline(this, input, requestKey); }
   async processMockWebhook(body, signature) { return processMockWebhook(this, body, signature); }
+  async exchangeOnlineCode(sessionId, input, ipAddress) { return exchangeOnlineCode(this, sessionId, input, ipAddress); }
   async mockCheckout(paymentRef) {
     try { this.gateway.assertConfigured(); }
     catch { throw new AppError(503, "ONLINE_GATEWAY_NOT_CONFIGURED", "MockGateway chưa được bật."); }

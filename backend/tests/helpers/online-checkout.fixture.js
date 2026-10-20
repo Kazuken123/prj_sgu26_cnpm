@@ -1,8 +1,25 @@
 const { PaymentService } = require("../../services/payment.service");
 const MockGateway = require("../../adapters/mock-gateway");
+const { memoryCashRedis } = require("./cash-exchange.fixture");
 function memoryOnlineRedis(clock = Date.now) {
-  const state = { codes: new Map(), down: false, lostReply: false, calls: [] };
-  const redis = { ensureOnlineCode: async (id, candidate, allowCreate) => {
+  const limits = memoryCashRedis(clock);
+  const state = { codes: new Map(), down: false, lostReply: false, calls: [], inspections: 0, cleanupDown: false, protectionDown: false, inspectionDown: false };
+  const redis = {
+    consumeLookup: async (...args) => {
+      if (state.down || state.protectionDown) throw new Error("private Redis protection failure");
+      return limits.redis.consumeLookup(...args);
+    },
+    inspectOnlineCode: async (id, code) => {
+      state.inspections++;
+      if (state.down || state.inspectionDown) throw new Error("private Redis inspection failure");
+      const record = state.codes.get(id);
+      return record && record.expiresAtMs > clock() && record.authCode === code ? structuredClone(record) : null;
+    },
+    removeOnlineCode: async (id, issueId) => {
+      if (state.down || state.cleanupDown) throw new Error("private Redis cleanup failure");
+      if (state.codes.get(id)?.issueId === issueId) { state.codes.delete(id); return 1; } return 0;
+    },
+    ensureOnlineCode: async (id, candidate, allowCreate) => {
     state.calls.push({ id, allowCreate });
     if (state.down) throw new Error("private Redis URL");
     let record = state.codes.get(id);

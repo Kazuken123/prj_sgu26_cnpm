@@ -24,6 +24,21 @@ it("online Redis Store refuses unavailable, corrupt, mismatched and invalid code
     assert.equal(client.isOpen, false);
   }
 });
+it("online code inspection compares opaque secrets, never consumes on read, and cleanup compares issue ID", async () => {
+  const id = randomUUID(), record = candidate(id); let reply = [1, JSON.stringify(record)], received;
+  const client = { isOpen: true, on: () => {}, connect: async () => { client.isOpen = true; }, disconnect: async () => { client.isOpen = false; },
+    eval: async (script, args) => { received = { script, args }; return reply; } };
+  const store = new RedisStore({ clientFactory: () => client, onlineCodePrefix: "test:" });
+  assert.deepEqual(await store.inspectOnlineCode(id, record.authCode), record);
+  assert.deepEqual(received.args.arguments, [id]); assert.equal(received.script.includes("'DEL'"), false);
+  assert.equal(await store.inspectOnlineCode(id, "0".repeat(64)), null);
+  for (const bad of [[-1], [1, "bad-json"], [1, JSON.stringify({ ...record, sessionId: randomUUID() })], [1, JSON.stringify({ ...record, authCode: "bad" })]]) {
+    reply = bad; await assert.rejects(store.inspectOnlineCode(id, record.authCode));
+  }
+  await assert.rejects(store.inspectOnlineCode(id, "short"));
+  reply = 1; assert.equal(await store.removeOnlineCode(id, record.issueId), 1);
+  assert.deepEqual(received.args.keys, ["test:" + id]); assert.deepEqual(received.args.arguments, [record.issueId]); assert.match(received.script, /record.issueId/);
+});
 describe("Real Redis online code fixed deadline and no replacement after issuance", { skip: process.env.RUN_REDIS_TESTS !== "1" }, () => {
   const prefix = "tcv_test_online_lua:" + randomUUID() + ":", tracked = new Set(); let admin, store;
   const id = () => { const value = randomUUID(); tracked.add(value); return value; };
@@ -63,5 +78,26 @@ describe("Real Redis online code fixed deadline and no replacement after issuanc
       await assert.rejects(store.ensureOnlineCode(session, changed, true));
       assert.deepEqual(JSON.parse(await admin.get(prefix + session)), record);
     }
+  });
+  it("read validates exact session/code, preserves TTL and compare-delete cannot erase another issue", async () => {
+    const session = id(), record = candidate(session); await store.ensureOnlineCode(session, record, true);
+    const ttl = await admin.pTTL(prefix + session);
+    assert.equal(await store.inspectOnlineCode(session, "0".repeat(64)), null);
+    assert.equal(await store.inspectOnlineCode(id(), record.authCode), null);
+    assert.deepEqual(await store.inspectOnlineCode(session, record.authCode), record);
+    assert.ok(await admin.pTTL(prefix + session) <= ttl);
+    assert.equal(await store.removeOnlineCode(session, randomUUID()), 0);
+    assert.deepEqual(await store.inspectOnlineCode(session, record.authCode), record);
+    assert.equal(await store.removeOnlineCode(session, record.issueId), 1);
+    assert.equal(await store.inspectOnlineCode(session, record.authCode), null);
+  });
+  it("inspection rejects missing TTL/corrupt state and recognizes actual expiry without consumption", async () => {
+    const session = id(), record = candidate(session);
+    await admin.set(prefix + session, JSON.stringify(record)); await assert.rejects(store.inspectOnlineCode(session, record.authCode));
+    await admin.set(prefix + session, "bad-json", { PX: 10000 }); await assert.rejects(store.inspectOnlineCode(session, record.authCode));
+    await admin.del(prefix + session);
+    await store.ensureOnlineCode(session, { ...record, expiresAtMs: Date.now() + 1000 }, true);
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    assert.equal(await store.inspectOnlineCode(session, record.authCode), null);
   });
 });

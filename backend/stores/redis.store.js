@@ -1,4 +1,5 @@
 const { createClient } = require("redis");
+const { timingSafeEqual } = require("node:crypto");
 // Both buckets are updated atomically, with expiry assigned in the same script.
 const consumeScript = `
 local allowed = 1
@@ -47,6 +48,15 @@ if not value then return 0 end
 local record = cjson.decode(value)
 if record.issueId ~= ARGV[1] then return 0 end
 return redis.call('DEL', KEYS[1])`;
+const inspectOnlineCodeScript = `
+local value = redis.call('GET', KEYS[1])
+if not value then return {0} end
+local record = cjson.decode(value)
+if type(record.expiresAtMs) ~= 'number' or redis.call('PTTL', KEYS[1]) <= 0 then return {-1} end
+local clock = redis.call('TIME')
+local now = tonumber(clock[1]) * 1000 + math.floor(tonumber(clock[2]) / 1000)
+if record.expiresAtMs <= now or record.sessionId ~= ARGV[1] then return {0} end
+return {1, value}`;
 const ensureOnlineCodeScript = `
 local clock = redis.call('TIME')
 local now = tonumber(clock[1]) * 1000 + math.floor(tonumber(clock[2]) / 1000)
@@ -88,6 +98,21 @@ class RedisStore {
   async consumeLookup(keys, { windowSeconds, ipLimit, sessionLimit }) {
     return this.execute(async client => Number(await client.eval(consumeScript, { keys,
       arguments: [String(windowSeconds), String(ipLimit), String(sessionLimit)] })) === 1);
+  }
+  async inspectOnlineCode(sessionId, authCode) {
+    if (typeof authCode !== "string" || !/^[a-f0-9]{64}$/.test(authCode)) throw new Error("INVALID_ONLINE_CODE_INPUT");
+    return this.execute(async client => {
+      const reply = await client.eval(inspectOnlineCodeScript, { keys: [this.onlineCodePrefix + sessionId], arguments: [sessionId] });
+      if (Array.isArray(reply) && reply.length === 1 && Number(reply[0]) === 0) return null;
+      if (!Array.isArray(reply) || Number(reply[0]) !== 1 || typeof reply[1] !== "string") throw new Error("INVALID_ONLINE_CODE_STATE");
+      const record = JSON.parse(reply[1]);
+      if (record.sessionId !== sessionId || !/^[a-f0-9-]{36}$/.test(record.issueId) ||
+          !Number.isSafeInteger(record.expiresAtMs) || !/^[a-f0-9]{64}$/.test(record.authCode)) throw new Error("INVALID_ONLINE_CODE_STATE");
+      return timingSafeEqual(Buffer.from(authCode, "hex"), Buffer.from(record.authCode, "hex")) ? record : null;
+    });
+  }
+  async removeOnlineCode(sessionId, issueId) {
+    return this.execute(client => client.eval(removeCashCodeScript, { keys: [this.onlineCodePrefix + sessionId], arguments: [issueId] }));
   }
   async ensureOnlineCode(sessionId, candidate, allowCreate) {
     return this.execute(async client => {
@@ -140,3 +165,4 @@ module.exports.issueCashCodeScript = issueCashCodeScript;
 module.exports.inspectCashCodeScript = inspectCashCodeScript;
 module.exports.removeCashCodeScript = removeCashCodeScript;
 module.exports.ensureOnlineCodeScript = ensureOnlineCodeScript;
+module.exports.inspectOnlineCodeScript = inspectOnlineCodeScript;

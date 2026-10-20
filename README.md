@@ -2,6 +2,8 @@
 
 ## Hiện trạng backend theo báo cáo 8
 
+Hiện tại, CASH đã được kiểm chứng đến API khách trên CI của commit 64523ce. ONLINE đã nối đủ luồng backend/API với **MockGateway**: khởi tạo → webhook có chữ ký → đổi mã một lần → `GET /api/visits/me`. Ba mốc ONLINE mới đạt 288 test local trên MariaDB với Redis thay thế; chưa push/chưa có CI mới với MySQL 8 và Redis thật. Chưa có frontend thanh toán, Payoo thật, bundle/audio hoặc chatbot. Các đoạn theo mốc bên dưới ghi cả phạm vi lịch sử.
+
 Đã bổ sung API nội bộ xem/tạo/sửa/ngừng POI, phân loại điểm, thông tin bảo tồn và khung giờ; lưu nguồn tiếng Việt, audit và tác vụ PENDING cùng giao dịch. Bước 2 bổ sung [xem trạng thái và thử lại tác vụ lỗi](docs/BACKEND_CONTENT_JOBS_STAGE2.md), kiểm phiên bản và audit cùng transaction. Tác vụ mới chỉ được ghi nhận/chuyển lại PENDING, chưa có worker dịch/TTS. Bước 3 bổ sung [khởi tạo CASH/ONLINE PENDING và tra cứu trạng thái tối thiểu](docs/BACKEND_PENDING_PAYMENTS_STAGE3.md), chưa xác nhận tiền, gọi cổng hoặc cấp quyền; US-A02 AC1 chưa đáp ứng. Chưa có bundle hoặc chatbot. Frontend được phát triển riêng; không coi các trang đang chờ kết nối là chức năng backend hoàn thành.
 
 Xem [hợp đồng API và đối chiếu UC-13](docs/BACKEND_POI_STAGE1.md). Chạy migration 001–004 trước khi dùng database cũ có schema 16 bảng. Các migration này không tự chuyển database nghiệp vụ cũ sang toàn bộ mô hình mới. JWT issuer/audience và tên database mặc định được giữ để tương thích cấu hình/phiên đang có.
@@ -25,6 +27,8 @@ Bước 9 bổ sung [khởi tạo ONLINE qua MockGateway](docs/BACKEND_ONLINE_CH
 Bước 9 đã được tách thành commit local 1d6447e, chưa push. Theo yêu cầu mới, các phần ONLINE được kiểm thử local và sẽ push chung sau, nên chưa có CI của mốc 9/10.
 
 Bước 10 bổ sung [webhook MockGateway có chữ ký và xác nhận ONLINE](docs/BACKEND_ONLINE_WEBHOOK_STAGE10.md): SUCCESS hợp lệ cập nhật PAID + ACTIVE + audit trong một SQL transaction; FAILED không cấp quyền; SUCCESS hợp lệ đến sau FAILED được ghi nhận trên giao dịch cũ theo quyết định người dùng. PAID không bị hạ hoặc gia hạn khi gửi lại. Có `npm run mock:payment -- <paymentRef> SUCCESS|FAILED` để người vận hành thử mock ở phía server; trình duyệt không được cấp khóa ký. Local 265 test đạt với MariaDB/Redis thay thế; chưa push/CI mới. Chưa có endpoint đổi auth_code ONLINE lấy token, nên chưa hoàn tất luồng online qua API khách. Các ghi chú chưa có webhook trong mốc 9 là phạm vi lịch sử của mốc đó.
+
+Bước 10 đã được tách thành commit local dd00702, chưa push. Bước 11 bổ sung [đổi mã ONLINE lấy token và kiểm thử nối luồng API](docs/BACKEND_ONLINE_EXCHANGE_STAGE11.md): chỉ ONLINE/PAID/ACTIVE còn hạn được đổi; PENDING/FAILED không tiêu thụ mã; SQL lưu hash và audit một lần, sau commit mới dọn Redis. Giữ nguyên tiền/hạn vé, không cấp lại khi mất mã/token. Local 288 test đạt và 80 file JavaScript đạt kiểm tra cú pháp/phân lớp; 15 ca Redis thật chưa bật local. Không migration hoặc sửa frontend. Các ghi chú ONLINE chưa đổi được token phía trên mô tả thời điểm trước mốc 11.
 
 Đồ án môn **Công nghệ phần mềm**, xây dựng ứng dụng web hỗ trợ khách tham quan tiếp cận nội dung theo vị trí và ngôn ngữ lựa chọn. Trọng tâm kỹ thuật là Back-end ba lớp **Router–Service–Store**, kiểm thử tự động và quy trình CI/CD.
 

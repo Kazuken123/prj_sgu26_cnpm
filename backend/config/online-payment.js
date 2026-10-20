@@ -22,4 +22,13 @@ function getMockWebhookSecret(env = process.env) {
   }
   return secret;
 }
-module.exports = { getOnlineCodeTtlMs, getMockGatewayConfig, getMockWebhookSecret };
+function getOnlineExchangeConfig(env = process.env) {
+  const integer = (value, fallback, maximum) => {
+    const raw = value ?? String(fallback), parsed = Number(raw);
+    if (!/^[1-9]\d*$/.test(String(raw)) || !Number.isSafeInteger(parsed) || parsed > maximum) throw new Error("INVALID_ONLINE_EXCHANGE_CONFIG");
+    return parsed;
+  };
+  return { windowSeconds: integer(env.ONLINE_EXCHANGE_WINDOW_SECONDS, 60, 3600),
+    ipLimit: integer(env.ONLINE_EXCHANGE_IP_LIMIT, 30, 10000), sessionLimit: integer(env.ONLINE_EXCHANGE_SESSION_LIMIT, 5, 10000) };
+}
+module.exports = { getOnlineCodeTtlMs, getMockGatewayConfig, getMockWebhookSecret, getOnlineExchangeConfig };
