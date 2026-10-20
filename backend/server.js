@@ -22,6 +22,9 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.disable("x-powered-by");
   const origins = (process.env.CORS_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500").split(",").map(value => value.trim());
   app.use(cors({ origin: origins }));
+  // Verify mock webhook signatures against the received JSON bytes, not a reserialization.
+  app.use("/api/payments/webhooks/mock", (req, res, next) => { res.set("Cache-Control", "no-store"); next(); },
+    express.raw({ type: "application/json", limit: "32kb", inflate: false }));
   app.use(express.json({ limit: "32kb" }));
   app.use("/api/auth", createAuthRouter(authService));
   app.use("/api/admin", createAdminRouter(authService));

@@ -15,4 +15,11 @@ function getMockGatewayConfig(env = process.env) {
   }
   return { provider: "MOCK", publicBaseUrl: url.origin };
 }
-module.exports = { getOnlineCodeTtlMs, getMockGatewayConfig };
+function getMockWebhookSecret(env = process.env) {
+  const secret = env.MOCK_WEBHOOK_SECRET;
+  if (typeof secret !== "string" || Buffer.byteLength(secret, "utf8") < 32 || Buffer.byteLength(secret, "utf8") > 1024) {
+    throw new Error("INVALID_MOCK_WEBHOOK_SECRET");
+  }
+  return secret;
+}
+module.exports = { getOnlineCodeTtlMs, getMockGatewayConfig, getMockWebhookSecret };

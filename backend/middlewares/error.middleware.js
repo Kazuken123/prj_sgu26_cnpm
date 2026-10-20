@@ -8,6 +8,9 @@ function errorHandler(error, req, res, next) {
   if (error.type === "entity.too.large") {
     return res.status(413).json({ code: "BODY_TOO_LARGE", error: "Dữ liệu vượt quá dung lượng cho phép." });
   }
+  if (error.type === "encoding.unsupported") {
+    return res.status(415).json({ code: "UNSUPPORTED_ENCODING", error: "Không hỗ trợ nội dung nén tại endpoint này." });
+  }
   if (error instanceof AppError) return res.status(error.status).json({ code: error.code, error: error.message });
   // Avoid echoing SQL, credentials, token values or stack traces to clients/logs.
   console.error("Request failed:", error.code || error.name || "UNKNOWN_ERROR");

@@ -116,6 +116,36 @@ class PaymentStore {
       });
     });
   }
+  async withOnlineWebhook(paymentRef, work) {
+    return this.transactions.transaction(async connection => {
+      // Lock the payment before its visit, consistent with the checkout/exchange join.
+      const [reference] = await connection.query("SELECT session_id FROM PAYMENTS WHERE payment_ref = ? FOR UPDATE", [paymentRef]);
+      if (!reference[0]) return work(undefined, {});
+      const sessionId = reference[0].session_id;
+      const [rows] = await connection.query(confirmationProjection + " FOR UPDATE", [sessionId]);
+      const row = rows[0];
+      const [prepared] = row ? await connection.query(`SELECT log_id FROM AUDIT_LOGS
+        WHERE action = 'PREPARE_ONLINE_CHECKOUT' AND resource_type = 'PAYMENTS' AND resource_id = ? LIMIT 1`, [paymentRef]) : [[]];
+      return work(row, {
+        checkoutPrepared: prepared.length > 0,
+        currentTime: async () => { const [clock] = await connection.query("SELECT UTC_TIMESTAMP() AS paidAt"); return clock[0].paidAt; },
+        persist: async ({ status, paidAt = null, expiresAt = null }) => {
+          const [payment] = await connection.query(`UPDATE PAYMENTS SET status = ?, paid_at = ?
+            WHERE payment_ref = ? AND status IN ('PENDING', 'FAILED')`, [status, paidAt, paymentRef]);
+          if (payment.affectedRows !== 1) throw Object.assign(new Error("ONLINE_PAYMENT_WRITE_CONFLICT"), { code: "ONLINE_PAYMENT_WRITE_CONFLICT" });
+          if (status === "PAID") {
+            const [visit] = await connection.query(`UPDATE VISIT_SESSIONS SET status = 'ACTIVE', activated_at = ?, expires_at = ?
+              WHERE session_id = ? AND status = 'PENDING' AND token_hash IS NULL AND reissue_count = 0`, [paidAt, expiresAt, sessionId]);
+            if (visit.affectedRows !== 1) throw Object.assign(new Error("ONLINE_VISIT_WRITE_CONFLICT"), { code: "ONLINE_VISIT_WRITE_CONFLICT" });
+          }
+          await this.audit.create({ userId: null, action: status === "PAID" ? "CONFIRM_ONLINE_PAYMENT" : "FAIL_ONLINE_PAYMENT",
+            resourceType: "PAYMENTS", resourceId: paymentRef,
+            details: JSON.stringify({ sessionId, previousStatus: row.paymentStatus, status, amount: String(row.amount), currency: row.currency }),
+            ...(paidAt ? { createdAt: paidAt } : {}) }, connection);
+        },
+      });
+    });
+  }
   async withOnlineCheckout(sessionId, requestHash, work) {
     return this.transactions.transaction(async connection => {
       const [rows] = await connection.query(confirmationProjection + " AND p.request_key_hash = ? FOR UPDATE", [sessionId, requestHash]);

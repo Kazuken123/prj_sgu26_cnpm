@@ -22,6 +22,10 @@ Mốc 8 đã được chốt bằng commit 64523ce và [CI/CD xanh](https://gith
 
 Bước 9 bổ sung [khởi tạo ONLINE qua MockGateway](docs/BACKEND_ONLINE_CHECKOUT_STAGE9.md): `POST /api/payments/online-checkout` tạo/dùng lại ONLINE/PENDING, trả URL mock và authCode mặc định 15 phút; retry giữ giá, mã và deadline cũ. Mã đã phát hành mà mất/hết hạn không được tự cấp lại. URL mock hiện chỉ xem JSON, không thu tiền, không có webhook/thành công/thất bại hoặc token ONLINE. Không sửa frontend/schema; API tạo PENDING cũ giữ nguyên. Local 245 test đạt với MariaDB/Redis thay thế; mốc 9 chưa commit/push và chưa có CI mới.
 
+Bước 9 đã được tách thành commit local 1d6447e, chưa push. Theo yêu cầu mới, các phần ONLINE được kiểm thử local và sẽ push chung sau, nên chưa có CI của mốc 9/10.
+
+Bước 10 bổ sung [webhook MockGateway có chữ ký và xác nhận ONLINE](docs/BACKEND_ONLINE_WEBHOOK_STAGE10.md): SUCCESS hợp lệ cập nhật PAID + ACTIVE + audit trong một SQL transaction; FAILED không cấp quyền; SUCCESS hợp lệ đến sau FAILED được ghi nhận trên giao dịch cũ theo quyết định người dùng. PAID không bị hạ hoặc gia hạn khi gửi lại. Có `npm run mock:payment -- <paymentRef> SUCCESS|FAILED` để người vận hành thử mock ở phía server; trình duyệt không được cấp khóa ký. Local 265 test đạt với MariaDB/Redis thay thế; chưa push/CI mới. Chưa có endpoint đổi auth_code ONLINE lấy token, nên chưa hoàn tất luồng online qua API khách. Các ghi chú chưa có webhook trong mốc 9 là phạm vi lịch sử của mốc đó.
+
 Đồ án môn **Công nghệ phần mềm**, xây dựng ứng dụng web hỗ trợ khách tham quan tiếp cận nội dung theo vị trí và ngôn ngữ lựa chọn. Trọng tâm kỹ thuật là Back-end ba lớp **Router–Service–Store**, kiểm thử tự động và quy trình CI/CD.
 
 ## Tổng quan sản phẩm

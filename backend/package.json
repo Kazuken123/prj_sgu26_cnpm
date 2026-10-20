@@ -10,7 +10,8 @@
     "test:integration": "node --test tests/*.integration.test.js",
     "lint": "node scripts/check.js",
     "bootstrap:admin": "node scripts/bootstrap-admin.js",
-    "db:migrate": "node scripts/migrate.js"
+    "db:migrate": "node scripts/migrate.js",
+    "mock:payment": "node scripts/mock-payment.js"
   },
   "keywords": [],
   "author": "",

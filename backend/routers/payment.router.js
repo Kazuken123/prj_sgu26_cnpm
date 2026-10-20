@@ -2,6 +2,11 @@ const express = require("express");
 const { createAuthMiddleware, requireRole } = require("../middlewares/auth.middleware");
 function createPaymentRouter(paymentService) {
   const router = express.Router();
+  router.post("/webhooks/mock", async (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    try { res.json({ data: await paymentService.processMockWebhook(req.body, req.get("X-Mock-Signature")) }); }
+    catch (error) { next(error); }
+  });
   router.post("/online-checkout", async (req, res, next) => {
     res.set("Cache-Control", "no-store");
     try {

@@ -6,6 +6,7 @@ const AppError = require("../utils/app-error");
 const MockGateway = require("../adapters/mock-gateway");
 const { getOnlineCodeTtlMs } = require("../config/online-payment");
 const { initializeOnline } = require("./online-checkout");
+const { processMockWebhook } = require("./online-webhook");
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const hash = value => createHash("sha256").update(value).digest("hex");
 function authorize(actor) {
@@ -27,6 +28,7 @@ class PaymentService {
     this.gateway = gateway; this.onlineCodeTtlMs = onlineCodeTtlMs; this.gatewayTimeoutMs = gatewayTimeoutMs;
   }
   async initializeOnline(input, requestKey) { return initializeOnline(this, input, requestKey); }
+  async processMockWebhook(body, signature) { return processMockWebhook(this, body, signature); }
   async mockCheckout(paymentRef) {
     try { this.gateway.assertConfigured(); }
     catch { throw new AppError(503, "ONLINE_GATEWAY_NOT_CONFIGURED", "MockGateway chưa được bật."); }
@@ -34,7 +36,7 @@ class PaymentService {
     const row = await this.store.getMockCheckout(paymentRef.toLowerCase());
     if (!row || row.paymentMethod !== "ONLINE") throw new AppError(404, "MOCK_CHECKOUT_NOT_FOUND", "Không tìm thấy checkout mock.");
     return { provider: "MOCK", simulationOnly: true, paymentRef: row.paymentRef, amount: String(row.amount), currency: row.currency,
-      paymentStatus: row.paymentStatus, message: "Checkout mô phỏng, không thu tiền thật. Mốc hiện tại chưa xử lý kết quả thanh toán." };
+      paymentStatus: row.paymentStatus, message: "Checkout mô phỏng, không thu tiền thật. Mở URL không xác nhận thanh toán; kết quả phải qua webhook có chữ ký từ công cụ mock phía server." };
   }
   async initialize(input, requestKey, actor = null) {
     if (actor !== null) authorize(actor);

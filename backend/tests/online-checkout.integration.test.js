@@ -30,7 +30,8 @@ describe("ONLINE checkout SQL / " + (realRedis ? "real Redis" : "Redis replaceme
       const store = new RedisStore({ onlineCodePrefix: prefix });
       redis = { ensureOnlineCode: (...args) => { tracked.add(args[0]); return store.ensureOnlineCode(...args); } };
     } else { memory = memoryOnlineRedis(); redis = memory.redis; }
-    gateway = new MockGateway({ config: () => ({ provider: "MOCK", publicBaseUrl: "http://localhost:3000" }) });
+    gateway = new MockGateway({ config: () => ({ provider: "MOCK", publicBaseUrl: "http://localhost:3000" }),
+      webhookSecret: () => "online-sql-webhook-test-only-at-least-32-bytes" });
     service = new PaymentService(new PaymentStore(db), redis, { gateway, price: () => "50000.00" });
   });
   after(async () => {
@@ -42,6 +43,10 @@ describe("ONLINE checkout SQL / " + (realRedis ? "real Redis" : "Redis replaceme
     }
   });
   const start = key => service.initializeOnline({}, key);
+  const notify = (checkout, status = "SUCCESS", overrides = {}) => {
+    const event = gateway.createWebhook({ paymentRef: checkout.paymentRef, amount: checkout.amount, currency: checkout.currency, status, ...overrides });
+    return service.processMockWebhook(event.body, event.signature);
+  };
   const stored = async id => realRedis ? JSON.parse(await redisAdmin.get(prefix + id)) : structuredClone(memory.state.codes.get(id));
   const forget = async id => { if (realRedis) await redisAdmin.del(prefix + id); else memory.state.codes.delete(id); };
   async function snapshot(id) {
@@ -91,6 +96,9 @@ describe("ONLINE checkout SQL / " + (realRedis ? "real Redis" : "Redis replaceme
     const first = await short.initializeOnline({}, key), before = await snapshot(first.data.sessionId);
     await new Promise(resolve => setTimeout(resolve, 3200));
     await assert.rejects(start(key), { code: "ONLINE_CODE_EXPIRED" }); assert.deepEqual(await snapshot(first.data.sessionId), before);
+    // Expiry only affects the exchange code. Verified late money must still be recorded.
+    assert.equal((await notify(first.data)).paymentStatus, "PAID");
+    const paid = await snapshot(first.data.sessionId); assert.equal(paid.visits[0].token_hash, null);
   });
   it("failed first Redis write retains a committed deadline and can complete setup within that deadline", async () => {
     const key = randomUUID(); service.redis = { ensureOnlineCode: async () => { throw new Error("unavailable"); } };
@@ -167,5 +175,98 @@ describe("ONLINE checkout SQL / " + (realRedis ? "real Redis" : "Redis replaceme
     }
     assert.equal((await fetch(base + "/api/visits/me", { headers: { Authorization: "Bearer " + data.authCode } })).status, 401);
     assert.deepEqual(await snapshot(data.sessionId), before);
+  });
+  it("SQL webhook commits PAID/ACTIVE/audit once, leaves confirmation actor NULL and issues no token", async () => {
+    const checkout = (await start(randomUUID())).data, before = await snapshot(checkout.sessionId);
+    const result = await notify(checkout), after = await snapshot(checkout.sessionId);
+    assert.equal(result.duplicate, false); assert.equal(after.payments[0].status, "PAID"); assert.equal(after.visits[0].status, "ACTIVE");
+    assert.equal(after.payments[0].amount, before.payments[0].amount); assert.equal(after.payments[0].payment_ref, before.payments[0].payment_ref);
+    assert.equal(after.payments[0].confirmed_by, null); assert.equal(after.visits[0].token_hash, null); assert.equal(after.visits[0].reissue_count, 0);
+    assert.equal(after.visits[0].activated_at.getTime(), after.payments[0].paid_at.getTime());
+    assert.equal(after.visits[0].expires_at.getTime() - after.payments[0].paid_at.getTime(), 86400000);
+    const audits = after.audits.filter(a => a.action === "CONFIRM_ONLINE_PAYMENT" && a.resource_id === checkout.paymentRef);
+    assert.equal(audits.length, 1); assert.equal(audits[0].user_id, null); assert.equal(JSON.stringify(audits).includes(checkout.authCode), false);
+    assert.equal((await notify(checkout)).duplicate, true); assert.equal((await notify(checkout, "FAILED")).paymentStatus, "PAID");
+    assert.deepEqual(await snapshot(checkout.sessionId), after);
+  });
+  it("SQL repeated FAILED is idempotent, then valid late SUCCESS upgrades the same payment and visit", async () => {
+    const checkout = (await start(randomUUID())).data;
+    await notify(checkout, "FAILED"); const failed = await snapshot(checkout.sessionId);
+    assert.equal(failed.payments[0].status, "FAILED"); assert.equal(failed.payments[0].paid_at, null);
+    assert.equal(failed.visits[0].status, "PENDING"); assert.equal(failed.visits[0].expires_at, null);
+    assert.equal((await notify(checkout, "FAILED")).duplicate, true); assert.deepEqual(await snapshot(checkout.sessionId), failed);
+    await notify(checkout); const paid = await snapshot(checkout.sessionId);
+    assert.equal(paid.payments.length, 1); assert.equal(paid.visits.length, 1); assert.equal(paid.payments[0].status, "PAID");
+    const audit = paid.audits.find(a => a.action === "CONFIRM_ONLINE_PAYMENT" && a.resource_id === checkout.paymentRef);
+    assert.equal(JSON.parse(audit.details).previousStatus, "FAILED");
+  });
+  it("20 concurrent SUCCESS/FAILED SQL callbacks from two Stores activate once and never downgrade PAID", async () => {
+    const checkout = (await start(randomUUID())).data, second = new PaymentService(new PaymentStore(db), redis, { gateway });
+    await Promise.all(Array.from({ length: 20 }, (_, i) => {
+      const event = gateway.createWebhook({ paymentRef: checkout.paymentRef, amount: checkout.amount, currency: "VND", status: i % 2 ? "SUCCESS" : "FAILED" });
+      return (i % 2 ? service : second).processMockWebhook(event.body, event.signature);
+    }));
+    const paid = await snapshot(checkout.sessionId);
+    assert.equal(paid.payments[0].status, "PAID"); assert.equal(paid.visits[0].status, "ACTIVE");
+    assert.equal(paid.audits.filter(a => a.action === "CONFIRM_ONLINE_PAYMENT" && a.resource_id === checkout.paymentRef).length, 1);
+    assert.ok(paid.audits.filter(a => a.action === "FAIL_ONLINE_PAYMENT" && a.resource_id === checkout.paymentRef).length <= 1);
+  });
+  it("invalid signature, mismatched money, unknown/CASH or unprepared references cannot alter SQL", async () => {
+    const checkout = (await start(randomUUID())).data, before = await snapshot(checkout.sessionId), event = gateway.createWebhook({
+      paymentRef: checkout.paymentRef, amount: checkout.amount, currency: "VND", status: "SUCCESS" });
+    await assert.rejects(service.processMockWebhook(event.body, "sha256=" + "0".repeat(64)), { code: "INVALID_WEBHOOK_SIGNATURE" });
+    await assert.rejects(notify(checkout, "SUCCESS", { amount: "50001.00" }), { code: "WEBHOOK_PAYMENT_MISMATCH" });
+    await assert.rejects(notify(checkout, "SUCCESS", { paymentRef: randomUUID() }), { code: "WEBHOOK_PAYMENT_NOT_FOUND" });
+    assert.deepEqual(await snapshot(checkout.sessionId), before);
+    const cash = (await service.initialize({ paymentMethod: "CASH" }, randomUUID())).data;
+    await assert.rejects(notify(cash), { code: "WEBHOOK_ONLINE_REQUIRED" });
+    const unprepared = (await service.initialize({ paymentMethod: "ONLINE" }, randomUUID())).data;
+    await assert.rejects(notify(unprepared), { code: "ONLINE_CHECKOUT_NOT_PREPARED" });
+  });
+  it("payment/visit/audit SQL failures roll back together and retry records money exactly once", async () => {
+    for (const table of ["PAYMENTS", "VISIT_SESSIONS", "AUDIT_LOGS"]) {
+      const checkout = (await start(randomUUID())).data, before = await snapshot(checkout.sessionId);
+      const operation = table === "AUDIT_LOGS" ? "INSERT" : "UPDATE";
+      await db.query("CREATE TRIGGER online_webhook_failure BEFORE " + operation + " ON " + table + " FOR EACH ROW SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = 'forced webhook SQL failure'");
+      try { await assert.rejects(notify(checkout), { code: "WEBHOOK_PERSISTENCE_UNAVAILABLE" }); }
+      finally { await db.query("DROP TRIGGER online_webhook_failure"); }
+      assert.deepEqual(await snapshot(checkout.sessionId), before);
+      assert.equal((await notify(checkout)).duplicate, false); assert.equal((await notify(checkout)).duplicate, true);
+    }
+  });
+  it("lost webhook commit acknowledgement and revoked/expired paid visits never renew or reactivate", async () => {
+    const checkout = (await start(randomUUID())).data, original = service.store;
+    service.store = Object.create(original);
+    service.store.withOnlineWebhook = async (...args) => { await original.withOnlineWebhook(...args); throw new Error("commit response lost"); };
+    try { await assert.rejects(notify(checkout), { code: "WEBHOOK_PERSISTENCE_UNAVAILABLE" }); }
+    finally { service.store = original; }
+    const paid = await snapshot(checkout.sessionId); assert.equal((await notify(checkout)).duplicate, true); assert.deepEqual(await snapshot(checkout.sessionId), paid);
+    await db.query("UPDATE VISIT_SESSIONS SET status = 'REVOKED' WHERE session_id = ?", [checkout.sessionId]);
+    const revoked = await snapshot(checkout.sessionId); assert.equal((await notify(checkout)).sessionStatus, "REVOKED"); assert.deepEqual(await snapshot(checkout.sessionId), revoked);
+    await db.query("UPDATE VISIT_SESSIONS SET status = 'ACTIVE', expires_at = '2020-01-01 00:00:00' WHERE session_id = ?", [checkout.sessionId]);
+    const expired = await snapshot(checkout.sessionId); await notify(checkout); assert.deepEqual(await snapshot(checkout.sessionId), expired);
+  });
+  it("webhook can persist valid late payment while Redis is unavailable without creating replacement credentials", async () => {
+    const checkout = (await start(randomUUID())).data; await forget(checkout.sessionId);
+    service.redis = new Proxy({}, { get: () => { throw new Error("Redis unavailable"); } });
+    try { assert.equal((await notify(checkout)).paymentStatus, "PAID"); } finally { service.redis = redis; }
+    const paid = await snapshot(checkout.sessionId); assert.equal(paid.visits[0].token_hash, null);
+    assert.equal(await stored(checkout.sessionId) ?? null, null);
+  });
+  it("HTTP/operator mock tool demonstrates FAILED then SUCCESS with real SQL and signed raw requests", async t => {
+    const { createApp } = require("../server"), { runMockPayment } = require("../scripts/mock-payment");
+    const server = http.createServer(createApp({ paymentService: service }));
+    await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+    const base = `http://127.0.0.1:${server.address().port}`, previous = gateway.config;
+    gateway.config = () => ({ provider: "MOCK", publicBaseUrl: base });
+    t.after(async () => { gateway.config = previous; server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); });
+    const response = await fetch(base + "/api/payments/online-checkout", { method: "POST", headers: { "Content-Type": "application/json", "Idempotency-Key": randomUUID() }, body: "{}" });
+    assert.equal(response.status, 201); const checkout = (await response.json()).data;
+    const failed = await runMockPayment([checkout.paymentRef, "FAILED"], { gateway }); assert.equal(failed.paymentStatus, "FAILED");
+    const success = await runMockPayment([checkout.paymentRef, "SUCCESS"], { gateway }); assert.equal(success.paymentStatus, "PAID");
+    assert.equal((await runMockPayment([checkout.paymentRef, "FAILED"], { gateway })).paymentStatus, "PAID");
+    const before = await snapshot(checkout.sessionId);
+    assert.equal((await fetch(checkout.paymentUrl + "?result=FAILED")).status, 200); assert.deepEqual(await snapshot(checkout.sessionId), before);
+    assert.equal((await fetch(base + "/api/visits/me", { headers: { Authorization: "Bearer " + checkout.authCode } })).status, 401);
   });
 });
