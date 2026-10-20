@@ -1,4 +1,5 @@
 const mysql = require("mysql2/promise");
+const utcPool = require("./utc-pool");
 require("dotenv").config({ quiet: true });
 const pool = mysql.createPool({
   host: process.env.DB_HOST || "localhost",
@@ -12,4 +13,4 @@ const pool = mysql.createPool({
   connectTimeout: 3000,
   queueLimit: 0,
 });
-module.exports = pool;
+module.exports = utcPool(pool);

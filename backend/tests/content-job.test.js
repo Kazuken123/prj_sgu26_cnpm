@@ -26,6 +26,26 @@ function fixture(overrides = {}) {
 }
 const code = expected => error => error.code === expected;
 
+it("Store retry conflict is mapped by Service and rolls back without audit", async () => {
+  const ContentJobStore = require("../stores/content_job.store");
+  const calls = [];
+  const connection = {
+    beginTransaction: async () => calls.push("begin"), commit: async () => calls.push("commit"),
+    rollback: async () => calls.push("rollback"), release: () => calls.push("release"),
+    query: async sql => {
+      if (sql.startsWith("SELECT * FROM USERS")) return [[actor]];
+      if (sql.startsWith("SELECT poi_id")) return [[{ poi_id: 2 }]];
+      if (sql.startsWith("SELECT content_version")) return [[{ content_version: 3 }]];
+      if (sql.startsWith("SELECT job_id")) return [[{ jobId: 1, poiId: 2, sourceVersion: 3, status: "FAILED" }]];
+      if (sql.startsWith("UPDATE CONTENT_JOBS")) return [{ affectedRows: 0 }];
+      throw new Error("Unexpected SQL: " + sql);
+    },
+  };
+  const service = new ContentJobService(new ContentJobStore({ getConnection: async () => connection }));
+  await assert.rejects(service.retry(actor, 1, {}), error => error.status === 409 && error.code === "CONTENT_JOB_CHANGED");
+  assert.deepEqual(calls, ["begin", "rollback", "release"]);
+});
+
 it("UC-13 retry accepts only current FAILED, enqueues once and does not claim completion", async () => {
   const f = fixture();
   const result = await f.service.retry(actor, 1, {});

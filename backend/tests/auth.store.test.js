@@ -39,9 +39,10 @@ it("retries a rolled-back deadlock but never retries an unknown persistence erro
 });
 it("bounds conflict retries and stops when rollback itself fails", async () => {
   let attempts = 0;
+  let releases = 0, destroys = 0;
   const connection = {
     beginTransaction: async () => { attempts++; }, commit: async () => {},
-    rollback: async () => {}, release: () => {},
+    rollback: async () => {}, release: () => { releases++; }, destroy: () => { destroys++; },
   };
   const store = new AuthStore({ getConnection: async () => connection });
   const conflict = () => { throw Object.assign(new Error("deadlock"), { code: "ER_LOCK_DEADLOCK" }); };
@@ -50,4 +51,6 @@ it("bounds conflict retries and stops when rollback itself fails", async () => {
   connection.rollback = async () => { throw new Error("rollback failed"); };
   await assert.rejects(store.transaction(conflict), /deadlock/);
   assert.equal(attempts, 4);
+  assert.equal(releases, 3);
+  assert.equal(destroys, 1);
 });

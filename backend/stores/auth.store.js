@@ -16,6 +16,7 @@ class AuthStore {
     // Only retry known transaction conflicts after a successful rollback.
     for (let attempt = 0; attempt < 3; attempt++) {
       const connection = await this.db.getConnection();
+      let discard = false;
       try {
         await connection.beginTransaction();
         const result = await work(connection);
@@ -23,11 +24,12 @@ class AuthStore {
         return result;
       } catch (error) {
         let rolledBack = false;
-        try { await connection.rollback(); rolledBack = true; } catch { /* Keep original error. */ }
+        try { await connection.rollback(); rolledBack = true; } catch { discard = true; }
         const retryable = ["ER_LOCK_DEADLOCK", "ER_LOCK_WAIT_TIMEOUT"].includes(error.code);
         if (!rolledBack || !retryable || attempt === 2) throw error;
       } finally {
-        connection.release();
+        if (discard) connection.destroy();
+        else connection.release();
       }
     }
   }

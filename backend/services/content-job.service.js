@@ -43,6 +43,7 @@ class ContentJobService {
         throw new AppError(409, "CONTENT_JOB_NOT_FAILED", "Chỉ tác vụ FAILED mới được thử lại; tải lại trạng thái hiện tại.");
       }
       const pending = await enqueue(ipAddress);
+      if (!pending) throw new AppError(409, "CONTENT_JOB_CHANGED", "Tác vụ đã thay đổi; tải lại trạng thái.");
       return { jobId: pending.jobId, poiId: pending.poiId, languageCode: pending.languageCode,
         sourceVersion: pending.sourceVersion, currentVersion: pending.currentVersion,
         status: pending.status, accepted: true };

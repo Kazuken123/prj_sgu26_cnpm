@@ -34,7 +34,9 @@ class PoiService {
   }
   async deactivate(actor, rawId, { ipAddress = null } = {}) {
     this.authorize(actor);
-    return this.store.deactivate(actor.userId ?? actor.user_id, validation.id(rawId), user => this.authorize(user), ipAddress);
+    const result = await this.store.deactivate(actor.userId ?? actor.user_id, validation.id(rawId), user => this.authorize(user), ipAddress);
+    if (!result) throw new AppError(404, "POI_NOT_FOUND", "Không tìm thấy POI.");
+    return result;
   }
 }
 module.exports = new PoiService();

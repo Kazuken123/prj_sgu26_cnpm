@@ -66,6 +66,12 @@ function fixture() {
   return { state, service: new PoiService(new PoiStore(db)) };
 }
 
+it("missing POI deactivation maps to HTTP 404 in Service without writing", async () => {
+  const f = fixture();
+  await assert.rejects(f.service.deactivate(staff, 999), error => error.status === 404 && error.code === "POI_NOT_FOUND");
+  assert.equal(f.state.audits.length, 0);
+});
+
 it("UC-13 create saves POI + Vietnamese source + jobs + audit in one transaction", async () => {
   const f = fixture(), result = await f.service.save(staff, null, input());
   assert.equal(result.triggerRadius, 30); assert.equal(result.status, "INACTIVE");

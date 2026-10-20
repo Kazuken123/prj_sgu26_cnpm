@@ -2,7 +2,6 @@ const pool = require("../config/database");
 const AuthStore = require("./auth.store");
 const UserStore = require("./user.store");
 const AuditLogStore = require("./audit_log.store");
-const AppError = require("../utils/app-error");
 
 const projection = `j.job_id AS jobId, j.poi_id AS poiId, j.language_code AS languageCode,
  j.source_version AS sourceVersion, p.content_version AS currentVersion, j.status,
@@ -44,7 +43,7 @@ class ContentJobStore {
       return work({ job, enqueue: async ipAddress => {
         const [result] = await connection.query("UPDATE CONTENT_JOBS SET status = 'PENDING', error_message = NULL WHERE job_id = ? AND status = 'FAILED' AND source_version = ?",
           [id, job.currentVersion]);
-        if (result.affectedRows !== 1) throw new AppError(409, "CONTENT_JOB_CHANGED", "Tác vụ đã thay đổi; tải lại trạng thái.");
+        if (result.affectedRows !== 1) return undefined;
         await this.audit.create({ userId: actorId, action: "RETRY_CONTENT_JOB", resourceType: "CONTENT_JOBS", resourceId: String(id),
           details: JSON.stringify({ poiId: job.poiId, languageCode: job.languageCode, sourceVersion: job.sourceVersion }), ipAddress }, connection);
         return { ...job, status: "PENDING" };

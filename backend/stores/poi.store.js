@@ -2,7 +2,6 @@ const pool = require("../config/database");
 const AuthStore = require("./auth.store");
 const UserStore = require("./user.store");
 const AuditLogStore = require("./audit_log.store");
-const AppError = require("../utils/app-error");
 
 const columns = `p.poi_id AS poiId, p.name, p.category, p.conservation_status AS conservationStatus,
  p.activity_hours AS activityHours, p.latitude, p.longitude, p.trigger_radius AS triggerRadius,
@@ -57,7 +56,7 @@ class PoiStore {
     return this.transactions.transaction(async connection => {
       authorize(await this.users.getUserById(actorId, connection, true));
       const [rows] = await connection.query("SELECT poi_id, status FROM POIS WHERE poi_id = ? FOR UPDATE", [id]);
-      if (!rows[0]) throw new AppError(404, "POI_NOT_FOUND", "Không tìm thấy POI.");
+      if (!rows[0]) return undefined;
       if (rows[0].status !== "INACTIVE") {
         await connection.query("UPDATE POIS SET status = 'INACTIVE' WHERE poi_id = ?", [id]);
         await this.audit.create({ userId: actorId, action: "DEACTIVATE_POI", resourceType: "POIS", resourceId: String(id), ipAddress }, connection);
