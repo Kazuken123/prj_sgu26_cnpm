@@ -6,7 +6,7 @@ const fs = require("node:fs");
 function createFrontendRouter(distDirectory) {
   const router = express.Router();
   const indexFile = path.join(distDirectory, "index.html");
-  const staticFiles = express.static(distDirectory, { index: false, dotfiles: "deny" });
+  const staticFiles = express.static(distDirectory, { index: false, dotfiles: "deny", redirect: false });
   router.use((req, res, next) => {
     if (/^\/(api|health)(\/|$)/.test(req.path)) return next("router");
     let decodedPath;
