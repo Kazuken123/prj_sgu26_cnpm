@@ -45,10 +45,8 @@ export function getApiBaseUrl(): string {
   if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
     return envUrl.trim().replace(/\/+$/, '');
   }
-  if (typeof window !== 'undefined' && /^https?:$/.test(window.location?.protocol || '')) {
-    return window.location.origin;
-  }
-  return 'http://127.0.0.1:18080';
+  // Production uses Express; development uses Vite's API proxy.
+  return typeof window !== 'undefined' ? window.location?.origin || '' : '';
 }
 
 export async function requestApi<T>({

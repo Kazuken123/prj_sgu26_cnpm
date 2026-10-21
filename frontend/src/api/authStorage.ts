@@ -63,7 +63,7 @@ export function loadInternalSession(currentBaseUrl: string): {
 
     if (sessionBaseUrl && sessionBaseUrl !== activeBaseUrl) {
       return {
-        session: { ...getEmptyInternalSession(activeBaseUrl), ...parsed, apiBaseUrl: sessionBaseUrl },
+        session: getEmptyInternalSession(sessionBaseUrl),
         mismatchedBaseUrl: true,
         storageError: null
       };

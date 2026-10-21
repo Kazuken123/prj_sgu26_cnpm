@@ -10,6 +10,7 @@ import {
   TourDto
 } from '../api/content.ts';
 import { AudioPlayer } from '../components/AudioPlayer.tsx';
+import { Icon } from '../components/Icon';
 
 function formatCategory(category: string | null): string {
   if (!category) return 'Chưa phân loại';
@@ -29,8 +30,8 @@ function formatCategory(category: string | null): string {
 
 export const ExplorePage: React.FC = () => {
   const currentBaseUrl = getApiBaseUrl();
-  const { session } = loadGuestSession(currentBaseUrl);
-  const token = session.token;
+  const { session, mismatchedBaseUrl } = loadGuestSession(currentBaseUrl);
+  const token = mismatchedBaseUrl ? null : session.token;
 
   const [bundle, setBundle] = useState<BundleDto | null>(null);
   const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>('vi');
@@ -119,6 +120,7 @@ export const ExplorePage: React.FC = () => {
 
   // Khoi tao va xac minh phien khi mount
   useEffect(() => {
+    let cancelled = false;
     if (!token) {
       setIsVerifying(false);
       return;
@@ -129,10 +131,12 @@ export const ExplorePage: React.FC = () => {
 
     getVisitMe(token, currentBaseUrl)
       .then(() => {
+        if (cancelled) return;
         setIsVerifying(false);
         fetchBundle('vi', token);
       })
       .catch((err: unknown) => {
+        if (cancelled) return;
         setIsVerifying(false);
         if (err instanceof ApiError && err.status === 401) {
           setSessionError('Phiên tham quan của bạn không hợp lệ hoặc đã hết hạn (mã 401). Quyền xem nội dung bị khóa.');
@@ -142,6 +146,8 @@ export const ExplorePage: React.FC = () => {
       });
 
     return () => {
+      cancelled = true;
+      requestSeqRef.current += 1;
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
@@ -163,27 +169,18 @@ export const ExplorePage: React.FC = () => {
   if (!token) {
     return (
       <div className="explore-container">
-        <div className="tcv-card">
+        <div className="tcv-card access-gate">
+          <span className="gate-icon"><Icon name="headphones" /></span>
           <h1 className="hero-title" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)' }}>
-            Khám phá Bản đồ & Thuyết minh bách thảo
+            Câu chuyện đang chờ bạn
           </h1>
-
-          <div className="banner-notice warning" style={{ margin: '20px 0' }}>
-            <div style={{ fontSize: '1.4rem' }}>🔒</div>
-            <div>
-              <div className="banner-title">Yêu cầu quyền truy cập khách tham quan</div>
-              <div className="banner-desc">
-                Tính năng xem nội dung thuyết minh và lộ trình yêu cầu token khách tham quan hợp lệ từ máy chủ. Hiện tại trình duyệt của bạn chưa có phiên kích hoạt.
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <p>Kích hoạt lượt tham quan để xem các điểm đến, chọn lộ trình và nghe thuyết minh. Bạn có thể dùng mã tại quầy hoặc trải nghiệm thanh toán mô phỏng.</p>
+          <div className="gate-actions">
             <Link to="/payment" className="btn-primary">
-              Đi tới Cổng thanh toán để nhận quyền →
+              Kích hoạt thuyết minh <span className="button-icon"><Icon name="arrow" /></span>
             </Link>
-            <Link to="/" className="btn-secondary">
-              Về Trang bắt đầu
+            <Link to="/" className="text-link">
+              Về trang chủ
             </Link>
           </div>
         </div>
@@ -201,14 +198,14 @@ export const ExplorePage: React.FC = () => {
           </h1>
 
           <div className="banner-notice" style={{ margin: '20px 0', background: 'var(--tcv-status-err-bg)', border: '1px solid #fecaca', color: '#991b1b' }}>
-            <div style={{ fontSize: '1.4rem' }}>⛔</div>
+            <Icon name="info" />
             <div>
               <div className="banner-title">Phiên không hợp lệ hoặc đã kết thúc</div>
               <div className="banner-desc">{sessionError}</div>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+          <div className="gate-actions">
             <Link to="/payment" className="btn-primary">
               Quay lại Cổng thanh toán
             </Link>
@@ -228,13 +225,13 @@ export const ExplorePage: React.FC = () => {
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px' }}>
           <div>
             <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--tcv-green-700)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Sprint 2 • Khám phá Thảo Cầm Viên
+              Khám phá Thảo Cầm Viên
             </span>
             <h1 className="hero-title" style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2rem)', margin: '4px 0 8px' }}>
-              Nội dung Thuyết minh Bách thảo & Lộ trình
+              Hành trình của bạn
             </h1>
             <div style={{ fontSize: '0.86rem', color: 'var(--tcv-slate-600)' }}>
-              Dữ liệu được cấp từ điểm cuối GET /api/content/bundle và lưu trong bộ nhớ tạm của trang.
+              Chọn một điểm tham quan để đọc câu chuyện và nghe thuyết minh.
             </div>
           </div>
 
@@ -296,7 +293,7 @@ export const ExplorePage: React.FC = () => {
         {/* THONG BAO LOI KHI TAI BUNDLE */}
         {bundleError && (
           <div className="banner-notice" style={{ marginTop: '14px', background: 'var(--tcv-status-err-bg)', border: '1px solid #fecaca', color: '#991b1b' }}>
-            <div style={{ fontSize: '1.2rem' }}>⚠️</div>
+            <Icon name="info" />
             <div style={{ flex: 1 }}>
               <div className="banner-title">Lỗi tải dữ liệu [{bundleError.code}]</div>
               <div className="banner-desc">{bundleError.message}</div>
@@ -323,7 +320,7 @@ export const ExplorePage: React.FC = () => {
 
       {/* BO CUC CHINH: DANH SACH POI / CHI TIET POI / TOUR */}
       {!isVerifying && bundle && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', alignItems: 'start' }}>
+        <div className="explore-grid">
           
           {/* COT TRAI: DANH SACH DIEM THUYET MINH VA LO TRINH TOUR */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -355,7 +352,8 @@ export const ExplorePage: React.FC = () => {
                         onClick={() => setSelectedPoiId(poi.poiId)}
                         role="button"
                         tabIndex={0}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setSelectedPoiId(poi.poiId); }}
+                        aria-pressed={isSelected}
+                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPoiId(poi.poiId); } }}
                         style={{
                           padding: '12px 14px',
                           borderRadius: 'var(--radius-sm)',
@@ -430,7 +428,7 @@ export const ExplorePage: React.FC = () => {
                       </div>
 
                       <ol style={{ paddingLeft: '20px', fontSize: '0.84rem', color: 'var(--tcv-slate-700)' }}>
-                        {tour.items
+                        {[...tour.items]
                           .sort((a, b) => a.sequenceNo - b.sequenceNo)
                           .map((item) => {
                             const linkedPoi = bundle.pois.find((p) => p.poiId === item.poiId);
@@ -494,7 +492,7 @@ export const ExplorePage: React.FC = () => {
                 {/* KHUNG MINH HOA TRUNG TINH */}
                 <div className="botanical-ornament" style={{ padding: '28px 16px', margin: '14px 0' }}>
                   <div>
-                    <div style={{ fontSize: '2rem', marginBottom: '4px' }}>🌿</div>
+                    <Icon name="leaf" />
                     <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>
                       Hình ảnh đại diện đang được bảo tồn
                     </div>

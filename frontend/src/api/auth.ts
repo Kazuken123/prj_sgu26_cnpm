@@ -119,7 +119,11 @@ export async function executeAuthenticatedInternalRequest<T>(
   requestFn: (currentAccessToken: string) => Promise<T>,
   onUnrecoverableAuthError?: () => void
 ): Promise<T> {
-  const { session } = loadInternalSession(apiBaseUrl);
+  const { session, mismatchedBaseUrl } = loadInternalSession(apiBaseUrl);
+  if (mismatchedBaseUrl) {
+    throw new ApiError({ status: 401, code: 'SESSION_BACKEND_MISMATCH',
+      message: 'Phiên nội bộ thuộc máy chủ khác. Hãy đăng nhập lại trên máy chủ hiện tại.' });
+  }
   if (!session.accessToken) {
     if (onUnrecoverableAuthError) onUnrecoverableAuthError();
     throw new ApiError({

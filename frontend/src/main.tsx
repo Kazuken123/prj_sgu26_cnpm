@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import './index.css';
+import './visitor.css';
 
 const rootElement = document.getElementById('root');
 
@@ -12,7 +13,7 @@ if (!rootElement) {
 
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter basename={/^\/demo(?:\/|$)/.test(window.location.pathname) ? '/demo' : '/'}>
       <App />
     </BrowserRouter>
   </React.StrictMode>

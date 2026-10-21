@@ -6,11 +6,11 @@ Người tiếp tục thiết kế giao diện đọc [bàn giao UI/UX và các 
 
 Thực hiện cài đặt, build và test trong clone/bản sao **ngoài OneDrive**, không sao chép `.env` thật. Dùng `npm ci` để giữ đúng lockfile; không cần thêm dependency cho bản sửa tích hợp này.
 
-**Chạy chung một địa chỉ:** build frontend bằng `npm run build` trong `frontend`, sau đó chạy backend. Trình duyệt mở `/` trên cổng backend; `/payment`, `/explore` và các đường dẫn nội bộ hỗ trợ tải lại trực tiếp. `/demo` chuyển về `/`. Backend chỉ phục vụ `frontend/dist`, không công khai mã nguồn frontend. Chưa build thì truy cập HTML báo 503 `FRONTEND_UNAVAILABLE`; API/health vẫn độc lập. Request `/` không yêu cầu HTML vẫn giữ thông báo API cũ.
+**Chạy chung một địa chỉ:** build frontend bằng `npm run build` trong `frontend`, sau đó chạy backend. Trình duyệt mở `/` hoặc `/demo/` trên cổng backend; các đường dẫn React hỗ trợ tải lại trực tiếp ở cả hai địa chỉ. Backend chỉ phục vụ `frontend/dist`, không công khai mã nguồn frontend. Chưa build thì truy cập HTML báo 503 `FRONTEND_NOT_BUILT`; API/health vẫn độc lập. Request `/` không yêu cầu HTML vẫn giữ thông báo API cũ.
 
 **Chạy bằng Docker:** Dockerfile build React trong stage riêng trước khi tạo image runtime. Dựng demo theo `data/demo/README.md`; không chạy lại init_db.sql trên DB đã có dữ liệu hoặc xóa volume. Không cần đưa `node_modules` hay `dist` vào Git.
 
-**Chạy Vite để phát triển:** nếu không đặt `VITE_API_BASE_URL`, frontend dùng origin hiện tại; dev server chuyển `/api` và `/health` tới `http://127.0.0.1:18080`. Có thể dùng `.env.example` cho backend riêng; biến `VITE_` là cấu hình công khai lúc build, tuyệt đối không chứa khóa ký webhook/API secret. Bản Docker mặc định dùng chung origin, không cố định cổng 18080 trong JavaScript đã build.
+**Chạy Vite để phát triển:** nếu không đặt `VITE_API_BASE_URL`, frontend dùng origin hiện tại; dev server chuyển `/api` và `/health` tới `API_PROXY_TARGET`, mặc định `http://127.0.0.1:3000`. Đặt cổng 18080 khi dùng stack DRAFT-03. Biến `VITE_` là cấu hình công khai lúc build, tuyệt đối không chứa khóa ký webhook/API secret. Bản Docker mặc định dùng chung origin.
 
 **Kiểm thử:** `npm test` sử dụng TypeScript đã có trong lockfile qua loader tương thích Node 20/22; `npm run build` kiểm kiểu và build bằng Vite. CI chạy cả hai cho frontend. Test refresh/logout cũ được chuyển sang `frontend/test/auth-regression.test.js`; test HTTP phía backend kiểm build, đường dẫn, 404 và lỗi chưa build. Không loại bỏ kiểm tra bảo mật chỉ để CI xanh. Test API dùng fetch mock không thay cho nghiệm thu trình duyệt với DB thật.
 
@@ -20,10 +20,10 @@ Tài liệu này hướng dẫn cách thiết lập, chạy thử nghiệm và k
 
 ## 1. Yêu cầu môi trường
 
-- Môi trường chạy: Node.js phiên bản 20 trở lên.
+- CI dùng Node.js 20/22 với TypeScript loader; bản local đã kiểm tra trên Node.js 24.
 - Trình quản lý gói: npm phiên bản 10 trở lên.
 - Trình duyệt khuyến nghị: Google Chrome, Mozilla Firefox hoặc Microsoft Edge phiên bản mới.
-- Máy chủ backend: Cổng mặc định 18080 tại địa chỉ `http://127.0.0.1:18080`.
+- Backend chạy Node trực tiếp mặc định ở cổng 3000; stack Docker DRAFT-03 dùng cổng 18080.
 
 ## 2. Cài đặt các gói phụ thuộc
 
@@ -45,10 +45,13 @@ cp .env.example .env
 Nội dung tệp `.env`:
 
 ```env
-VITE_API_BASE_URL=http://127.0.0.1:18080
+VITE_API_BASE_URL=
+API_PROXY_TARGET=http://127.0.0.1:3000
 ```
 
-Nếu máy chủ backend chạy trên cổng hoặc địa chỉ khác, thay đổi giá trị của `VITE_API_BASE_URL` cho phù hợp.
+Vite chuyển `/api` và `/health` sang `API_PROXY_TARGET`. Với stack DRAFT-03, đổi giá trị này thành `http://127.0.0.1:18080`. Để trống `VITE_API_BASE_URL` để trình duyệt dùng cùng origin; chỉ đặt URL tuyệt đối khi chủ động triển khai API riêng và đã cấu hình CORS.
+
+Để chạy chung với Express, chạy `npm run build` trong `frontend`, sau đó `npm start` trong `backend`. Mở `http://127.0.0.1:3000/demo/`. Express chỉ phục vụ `frontend/dist`; các trang con như `/demo/explore` tải lại được. Dockerfile cũng tự build React trước khi đóng gói backend. Xem [bản nối frontend/backend](../docs/FRONTEND_BACKEND_INTEGRATION.md).
 
 ## 4. Chạy ứng dụng ở môi trường phát triển
 
@@ -64,7 +67,7 @@ npm run dev
 http://127.0.0.1:5173
 ```
 
-Khi mở trình duyệt tới địa chỉ trên, trang chủ sẽ tự động kiểm tra trạng thái kết nối tới máy chủ backend qua endpoint `GET /health/ready`.
+Mở mục thông tin kết nối ở cuối trang chủ để kiểm tra `GET /health/ready`.
 
 ## 5. Chạy bộ kiểm thử tự động
 
@@ -74,7 +77,7 @@ Bộ kiểm thử được xây dựng bằng công cụ kiểm thử tích hợ
 npm test
 ```
 
-Bản đồng bộ ngày 21/10/2026 có 64 ca đạt, gồm 9 suite và các ca hồi quy xác thực bổ sung. Phạm vi gồm:
+Bản hợp nhất ngày 21/10/2026 có 66 ca đạt, gồm 9 suite và các ca hồi quy xác thực, kết nối bổ sung. Test API dùng mock fetch, không thay thế kiểm thử với MySQL/Redis và trình duyệt thật. Phạm vi gồm:
 - Kiểm thử quản lý phiên và bộ nhớ lưu trữ
 - Kiểm thử phân loại lỗi và xử lý mã lỗi
 - Kiểm thử luồng gọi API thanh toán trực tuyến

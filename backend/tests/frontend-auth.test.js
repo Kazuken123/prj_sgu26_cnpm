@@ -49,10 +49,10 @@ it("only built assets are public; missing API, source and assets never receive H
     assert.doesNotMatch(await result.text(), /id="root"/);
   }
 });
-it("legacy demo entry redirects to the React root", async () => {
+it("demo entry serves the React shell", async () => {
   const result = await fetch(base + "/demo", { redirect: "manual" });
-  assert.equal(result.status, 302);
-  assert.equal(result.headers.get("location"), "/");
+  assert.equal(result.status, 200);
+  assert.match(await result.text(), /id="root"/);
 });
 it("missing frontend build returns a safe 503 without affecting API health", async () => {
   const missing = createApp({ frontendDir: path.join(root, "not-built") }).listen(0, "127.0.0.1");
@@ -62,7 +62,7 @@ it("missing frontend build returns a safe 503 without affecting API health", asy
     const page = await fetch(url + "/", { headers: { Accept: "text/html" } });
     assert.equal(page.status, 503);
     const error = await page.json();
-    assert.equal(error.code, "FRONTEND_UNAVAILABLE");
+    assert.equal(error.code, "FRONTEND_NOT_BUILT");
     assert.ok(!JSON.stringify(error).includes(root));
     assert.equal((await fetch(url + "/health")).status, 200);
   } finally { await new Promise(resolve => missing.close(resolve)); }

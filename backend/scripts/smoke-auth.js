@@ -15,6 +15,18 @@ async function request(route, body, token) {
   const adminInput = { email: process.env.BOOTSTRAP_ADMIN_EMAIL, password: process.env.BOOTSTRAP_ADMIN_PASSWORD };
   assert.ok(adminInput.email && adminInput.password, "Bootstrap credentials are required for the disposable release smoke test.");
   assert.equal((await request("/health/ready")).status, 200);
+  for (const route of ["/", "/demo/", "/demo/explore", "/internal/account"]) {
+    const page = await request(route);
+    assert.equal(page.status, 200);
+    const html = await page.text();
+    assert.match(html, /id="root"/);
+    const script = html.match(/src="([^\"]+\.js)"/);
+    assert.ok(script, "The release must contain compiled React assets");
+    const asset = await request(script[1]);
+    assert.equal(asset.status, 200);
+    assert.match(asset.headers.get("content-type"), /javascript/);
+  }
+  assert.equal((await request("/src/main.tsx")).status, 404);
   assert.equal((await request("/api/auth/register", input)).status, 404);
   const adminLogin = await request("/api/auth/login", adminInput);
   assert.equal(adminLogin.status, 200);

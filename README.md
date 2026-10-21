@@ -1,5 +1,9 @@
 # Hệ thống tự động thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn
 
+## Nối React và Express — 21/10/2026
+
+Xem [hướng dẫn tích hợp và trạng thái kiểm chứng](docs/FRONTEND_BACKEND_INTEGRATION.md). Express phục vụ React đã build tại `/demo/`, Vite có proxy API khi phát triển, Docker tự build giao diện và CI kiểm tra frontend. Các thay đổi hiện ở local: build và 60 test frontend đạt; HTTP thực và push GitHub đang bị giới hạn quyền của phiên làm việc. Các phần bàn giao phía dưới ghi lại các mốc trước.
+
 ## Bàn giao demo trình duyệt DRAFT-03
 
 Xem [hướng dẫn dựng backend có dữ liệu và API cho frontend](data/demo/README.md) và [kết quả bàn giao](docs/DEMO_DRAFT03_FRONTEND_HANDOFF.md). Hai POI/bốn bản VI–EN/một tour đã nhập vào DB demo riêng, worker tạo bốn WAV âm thử mock; seed chạy lại UNCHANGED. Guard dùng nguồn OSM đã lưu theo chấp thuận của chủ đồ án, không ghi ngày tái kiểm tra giả. Bản kiểm chứng local đạt456/456 test MySQL8/Redis thật ngoài OneDrive; chưa sửa frontend/Word. Trạng thái CI cần đối chiếu đúng commit trên GitHub Actions. Các mô tả mốc phía dưới là lịch sử, không dùng để thay hiện trạng trong bản bàn giao này.

@@ -29,7 +29,7 @@ describe("API Server Endpoints Test Suite", () => {
   });
 
   it("GET / tra ve trang thai 200 va noi dung hoat dong", async () => {
-    const res = await fetch(`${baseUrl}/`);
+    const res = await fetch(`${baseUrl}/`, { headers: { Accept: "text/plain" } });
     assert.strictEqual(res.status, 200);
     const text = await res.text();
     assert.ok(text.includes("API"));

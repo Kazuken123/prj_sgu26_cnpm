@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import { Icon } from '../components/Icon';
 import { getApiBaseUrl, ApiError } from '../api/client';
 import {
   createOnlineCheckout,
@@ -23,9 +24,21 @@ type UiStep =
   | 'CHECKING_STATUS'
   | 'EXCHANGING_TOKEN'
   | 'VERIFYING_VISIT'
+  | 'VERIFICATION_FAILED'
   | 'VISIT_ACTIVE';
 
 type PaymentTab = 'ONLINE' | 'CASH';
+
+const stepLabels: Record<UiStep, string> = {
+  IDLE: 'Chưa kích hoạt',
+  CREATING_CHECKOUT: 'Đang tạo lượt tham quan',
+  CHECKOUT_READY: 'Chờ xác nhận',
+  CHECKING_STATUS: 'Đang kiểm tra',
+  EXCHANGING_TOKEN: 'Đang kích hoạt',
+  VERIFYING_VISIT: 'Đang xác minh',
+  VERIFICATION_FAILED: 'Chưa xác minh được phiên',
+  VISIT_ACTIVE: 'Sẵn sàng tham quan',
+};
 
 export const PaymentPage: React.FC = () => {
   const currentBaseUrl = getApiBaseUrl();
@@ -115,11 +128,11 @@ export const PaymentPage: React.FC = () => {
           if (err instanceof ApiError && err.status === 401) {
             setErrorCode(err.code);
             setErrorMessage('Phiên tham quan hoặc token không còn hợp lệ. Quyền truy cập bị chặn.');
-            setUiStep('CHECKOUT_READY');
+            setUiStep('VERIFICATION_FAILED');
           } else {
             setErrorCode(err instanceof ApiError ? err.code : 'VERIFY_ERROR');
             setErrorMessage(err instanceof Error ? err.message : 'Chưa thể xác minh phiên qua máy chủ.');
-            setUiStep('CHECKOUT_READY');
+            setUiStep('VERIFICATION_FAILED');
           }
         });
     } else if (s.sessionId) {
@@ -255,8 +268,9 @@ export const PaymentPage: React.FC = () => {
         setUiStep('VISIT_ACTIVE');
         setStatusNotice('Đã đổi mã và xác minh phiên khách thành công. Bạn có thể bắt đầu sử dụng thuyết minh.');
       } catch (visitErr: unknown) {
-        setUiStep('VISIT_ACTIVE');
-        setStatusNotice('Đã nhận token thành công. Hãy chuyển sang trang Khám phá để truy cập dữ liệu thuyết minh.');
+        setUiStep('VERIFICATION_FAILED');
+        setErrorMessage(visitErr instanceof Error ? visitErr.message : 'Chưa thể xác minh phiên.');
+        setStatusNotice('Đã lưu quyền truy cập. Hãy xác minh lại, không đổi mã hoặc thanh toán lần nữa.');
       }
     } catch (err: unknown) {
       setUiStep('CHECKOUT_READY');
@@ -322,9 +336,10 @@ export const PaymentPage: React.FC = () => {
         }));
         setUiStep('VISIT_ACTIVE');
         setStatusNotice('Đã đổi mã tiền mặt thành công. Phiên khách tham quan đã sẵn sàng.');
-      } catch {
-        setUiStep('VISIT_ACTIVE');
-        setStatusNotice('Đã nhận token từ mã tiền mặt. Bạn có thể sang trang Khám phá để bắt đầu.');
+      } catch (visitErr: unknown) {
+        setUiStep('VERIFICATION_FAILED');
+        setErrorMessage(visitErr instanceof Error ? visitErr.message : 'Chưa thể xác minh phiên.');
+        setStatusNotice('Đã lưu quyền truy cập. Hãy xác minh lại, không đổi mã hoặc thanh toán lần nữa.');
       }
       setIsExchangingCash(false);
     } catch (err: unknown) {
@@ -337,6 +352,25 @@ export const PaymentPage: React.FC = () => {
         setErrorCode('NETWORK_ERROR');
         setErrorMessage('Lỗi mạng khi gửi yêu cầu đổi mã tiền mặt.');
       }
+    }
+  };
+
+  const handleVerifyAgain = async () => {
+    if (!session.token || mismatchedEnv) return;
+    setUiStep('VERIFYING_VISIT');
+    setErrorMessage(null);
+    setErrorCode(null);
+    try {
+      const visit = await getVisitMe(session.token, currentBaseUrl);
+      updateAndPersistSession(prev => ({ ...prev, verifiedVisit: visit,
+        sessionStatus: visit.status as StoredGuestSession['sessionStatus'],
+        expiresAt: visit.expiresAt || prev.expiresAt }));
+      setUiStep('VISIT_ACTIVE');
+      setStatusNotice('Phiên đã được máy chủ xác minh. Bạn có thể bắt đầu tham quan.');
+    } catch (err: unknown) {
+      setUiStep('VERIFICATION_FAILED');
+      setErrorCode(err instanceof ApiError ? err.code : 'VERIFY_ERROR');
+      setErrorMessage(err instanceof Error ? err.message : 'Chưa thể xác minh phiên.');
     }
   };
 
@@ -353,21 +387,26 @@ export const PaymentPage: React.FC = () => {
   };
 
   return (
-    <div className="container" style={{ padding: '32px 16px', maxWidth: '860px' }}>
-      <div className="panel" style={{ marginBottom: '24px' }}>
+    <div className="payment-page">
+      <ol className="payment-progress" aria-label="Tiến trình kích hoạt">
+        <li aria-current={uiStep === 'IDLE' || uiStep === 'CREATING_CHECKOUT' ? 'step' : undefined}><span>1</span> Chọn hình thức</li>
+        <li aria-current={uiStep !== 'IDLE' && uiStep !== 'CREATING_CHECKOUT' && uiStep !== 'VISIT_ACTIVE' ? 'step' : undefined}><span>2</span> Xác nhận lượt</li>
+        <li aria-current={uiStep === 'VISIT_ACTIVE' ? 'step' : undefined}><span>3</span> Khám phá</li>
+      </ol>
+      <div className="payment-heading">
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
           <div>
             <span style={{ textTransform: 'uppercase', fontSize: '0.78rem', letterSpacing: '0.08em', color: 'var(--tcv-green-700)', fontWeight: 700 }}>
-              Cổng thanh toán vé tham quan
+              Vé thuyết minh
             </span>
-            <h1 style={{ fontSize: '1.6rem', color: 'var(--tcv-green-950)', marginTop: '4px', fontWeight: 800 }}>
-              Nhận quyền thuyết minh Thảo Cầm Viên
+            <h1 className="hero-title" style={{ fontSize: '2rem', marginTop: '8px' }}>
+              Bắt đầu hành trình lắng nghe
             </h1>
           </div>
 
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
             <span className={`status-pill ${uiStep === 'VISIT_ACTIVE' ? 'ready' : uiStep === 'IDLE' ? 'idle' : 'unready'}`}>
-              Trạng thái UI: {uiStep}
+              {stepLabels[uiStep]}
             </span>
           </div>
         </div>
@@ -378,14 +417,14 @@ export const PaymentPage: React.FC = () => {
 
         {storageWarning && (
           <div className="banner-notice warning" style={{ marginTop: '16px' }}>
-            <div style={{ fontSize: '1.2rem' }}>⚠️</div>
+            <Icon name="info" />
             <div className="banner-desc">{storageWarning}</div>
           </div>
         )}
 
         {mismatchedEnv && (
           <div className="banner-notice warning" style={{ marginTop: '16px' }}>
-            <div style={{ fontSize: '1.2rem' }}>⚠️</div>
+            <Icon name="info" />
             <div>
               <div className="banner-title">Địa chỉ máy chủ không khớp phiên cũ</div>
               <div className="banner-desc">
@@ -400,19 +439,19 @@ export const PaymentPage: React.FC = () => {
 
         {statusNotice && (
           <div className="banner-notice info" style={{ marginTop: '16px' }}>
-            <div style={{ fontSize: '1.2rem' }}>ℹ️</div>
-            <div className="banner-desc">{statusNotice}</div>
+            <Icon name="info" />
+            <div className="banner-desc" role="status">{statusNotice}</div>
           </div>
         )}
 
         {errorMessage && (
           <div className="banner-notice" style={{ marginTop: '16px', background: 'var(--tcv-status-err-bg)', border: '1px solid #fecaca', color: '#991b1b' }}>
-            <div style={{ fontSize: '1.2rem' }}>⛔</div>
+            <Icon name="info" />
             <div>
               <div className="banner-title">
                 Lỗi {errorCode ? `[${errorCode}]` : ''}
               </div>
-              <div className="banner-desc">{errorMessage}</div>
+              <div className="banner-desc" role="alert">{errorMessage}</div>
             </div>
           </div>
         )}
@@ -422,7 +461,7 @@ export const PaymentPage: React.FC = () => {
       {uiStep === 'VISIT_ACTIVE' && (
         <div style={{ background: 'var(--tcv-green-50)', border: '1px solid var(--tcv-green-500)', borderRadius: 'var(--radius-sm)', padding: '20px', marginBottom: '24px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <span style={{ fontSize: '1.4rem' }}>✅</span>
+            <Icon name="check" />
             <h3 style={{ fontSize: '1.1rem', color: 'var(--tcv-green-900)', fontWeight: 700, margin: 0 }}>
               Phiên khách tham quan hợp lệ
             </h3>
@@ -448,7 +487,7 @@ export const PaymentPage: React.FC = () => {
               </tr>
               <tr>
                 <th>Thời hạn sử dụng</th>
-                <td>{session.expiresAt ? new Date(session.expiresAt).toLocaleString('vi-VN') : '24 giờ kể từ kích hoạt'}</td>
+                <td>{session.expiresAt ? new Date(session.expiresAt).toLocaleString('vi-VN') : 'Chưa nhận được thời hạn từ máy chủ'}</td>
               </tr>
             </tbody>
           </table>
@@ -470,11 +509,21 @@ export const PaymentPage: React.FC = () => {
       )}
 
       {/* KHI CHUA CO TOKEN: CHON TAB PHUONG THUC */}
-      {uiStep !== 'VISIT_ACTIVE' && (
+      {session.token && !mismatchedEnv && uiStep !== 'VISIT_ACTIVE' && (
+        <div className="tcv-card" role="status">
+          <p>Quyền truy cập đã được lưu. Cần xác minh với máy chủ trước khi tiếp tục.</p>
+          <button className="btn-primary" onClick={handleVerifyAgain} disabled={uiStep === 'VERIFYING_VISIT'}>
+            {uiStep === 'VERIFYING_VISIT' ? 'Đang xác minh...' : 'Xác minh lại phiên'}
+          </button>
+          <Link to="/explore" className="btn-secondary">Kiểm tra quyền ở trang Khám phá</Link>
+        </div>
+      )}
+      {uiStep !== 'VISIT_ACTIVE' && !session.token && !mismatchedEnv && (
         <div>
           <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '2px solid var(--tcv-slate-200)', paddingBottom: '4px' }}>
             <button
               type="button"
+              aria-pressed={paymentTab === 'ONLINE'}
               onClick={() => {
                 setPaymentTab('ONLINE');
                 setErrorMessage(null);
@@ -490,10 +539,11 @@ export const PaymentPage: React.FC = () => {
                 fontSize: '0.95rem'
               }}
             >
-              Thanh toán trực tuyến Mock
+              Trực tuyến · Mô phỏng
             </button>
             <button
               type="button"
+              aria-pressed={paymentTab === 'CASH'}
               onClick={() => {
                 setPaymentTab('CASH');
                 setErrorMessage(null);
@@ -509,7 +559,7 @@ export const PaymentPage: React.FC = () => {
                 fontSize: '0.95rem'
               }}
             >
-              Đổi mã tiền mặt tại quầy
+              Nhập mã tại quầy
             </button>
           </div>
 
@@ -617,10 +667,11 @@ export const PaymentPage: React.FC = () => {
 
               <form onSubmit={handleExchangeCashCode}>
                 <div style={{ marginBottom: '16px' }}>
-                  <label style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
+                  <label htmlFor="cash-session-id" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
                     Mã phiên tham quan (Session ID)
                   </label>
                   <input
+                    id="cash-session-id"
                     type="text"
                     value={cashSessionIdInput}
                     onChange={(e) => setCashSessionIdInput(e.target.value)}
@@ -634,10 +685,14 @@ export const PaymentPage: React.FC = () => {
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
+                  <label htmlFor="cash-code" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
                     Mã ngắn sáu chữ số (Cash Code)
                   </label>
                   <input
+                    id="cash-code"
+                    inputMode="numeric"
+                    pattern="[0-9]{6}"
+                    autoComplete="one-time-code"
                     type="text"
                     value={cashShortedCodeInput}
                     onChange={(e) => setCashShortedCodeInput(e.target.value)}

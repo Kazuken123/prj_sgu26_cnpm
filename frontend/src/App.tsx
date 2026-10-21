@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Link, Routes, Route, useLocation } from 'react-router-dom';
 import { Navigation } from './components/Navigation';
 import { HomePage } from './pages/HomePage';
 import { PaymentPage } from './pages/PaymentPage';
@@ -14,10 +14,13 @@ import { InternalPoiEditPage } from './pages/InternalPoiEditPage';
 import { InternalJobsPage } from './pages/InternalJobsPage';
 
 export const App: React.FC = () => {
+  const { pathname } = useLocation();
+  React.useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
   return (
     <>
+      <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
       <Navigation />
-      <main className="main-content">
+      <main id="main-content" className="main-content" tabIndex={-1}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/payment" element={<PaymentPage />} />
@@ -38,11 +41,9 @@ export const App: React.FC = () => {
       <footer className="site-footer">
         <div className="footer-inner">
           <div>
-            <strong>Thảo Cầm Viên Sài Gòn (1864)</strong> — Hệ thống Thuyết minh Đa ngôn ngữ GPS
+            <strong>Thảo Cầm Viên Sài Gòn</strong><span className="footer-caption">Lắng nghe thiên nhiên. Kết nối di sản.</span>
           </div>
-          <div style={{ color: 'rgba(255, 255, 255, 0.5)' }}>
-            Phiên bản thử nghiệm Sprint 6 • Quản lý POI & Theo dõi tác vụ nội dung
-          </div>
+          <div className="footer-links"><span>Phiên bản thử nghiệm</span><Link to="/login">Dành cho nhân viên</Link></div>
         </div>
       </footer>
     </>

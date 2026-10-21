@@ -23,7 +23,7 @@ const defaultHealthService = require("./services/health.service");
 const errorHandler = require("./middlewares/error.middleware");
 const { getAuthConfig } = require("./config/auth");
 const path = require("node:path");
-const AppError = require("./utils/app-error");
+const { createFrontendRouter } = require("./routers/frontend.router");
 
 function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService,
   contentJobService = defaultContentJobService, paymentService = defaultPaymentService, mediaService = new MediaService(), contentService = new ContentService(),
@@ -51,21 +51,11 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.get("/health/ready", async (req, res, next) => {
     try { res.json(await healthService.ready()); } catch (error) { next(error); }
   });
-  function sendFrontend(req, res, next) {
-    res.set("Cache-Control", "no-store");
-    res.sendFile(path.join(frontendDir, "index.html"), error => {
-      if (error) next(new AppError(503, "FRONTEND_UNAVAILABLE", "Giao diện chưa được đóng gói; hãy build frontend trước khi chạy."));
-    });
-  }
   app.get("/", (req, res, next) => {
-    // Keep the existing API probe; browser navigations explicitly request HTML.
-    if ((req.get("Accept") || "").includes("text/html")) return sendFrontend(req, res, next);
-    res.type("text").send("API Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn đang hoạt động.");
+    if ((req.get("Accept") || "").includes("text/html")) return next();
+    res.send("API Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn đang hoạt động.");
   });
-  app.get("/demo", (req, res) => res.redirect(302, "/"));
-  app.use(express.static(frontendDir, { index: false, dotfiles: "deny" }));
-  // Only client routes receive the SPA shell. Missing API/assets remain 404.
-  app.get(/^\/(?:payment|explore|login|internal\/(?:login|account|staff\/new|cash|pois(?:\/(?:new|[1-9]\d*)(?:\/edit)?)?|jobs))\/?$/, sendFrontend);
+  app.use(createFrontendRouter(frontendDir));
   app.use(errorHandler);
   return app;
 }
