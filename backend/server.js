@@ -5,6 +5,8 @@ const { createAuthRouter } = require("./routers/auth.router");
 const { createAdminRouter } = require("./routers/admin.router");
 const { createPoiRouter } = require("./routers/poi.router");
 const defaultPoiService = require("./services/poi.service");
+const { createTourRouter } = require("./routers/tour.router");
+const defaultTourService = require("./services/tour.service");
 const { createContentJobRouter } = require("./routers/content-job.router");
 const defaultContentJobService = require("./services/content-job.service");
 const { createPaymentRouter, createStaffPaymentRouter } = require("./routers/payment.router");
@@ -23,7 +25,7 @@ const AppError = require("./utils/app-error");
 
 function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService,
   contentJobService = defaultContentJobService, paymentService = defaultPaymentService, mediaService = new MediaService(), contentService = new ContentService(),
-  frontendDir = path.resolve(__dirname, "../frontend/dist") } = {}) {
+  frontendDir = path.resolve(__dirname, "../frontend/dist"), tourService = defaultTourService } = {}) {
   const app = express();
   app.disable("x-powered-by");
   const origins = (process.env.CORS_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500").split(",").map(value => value.trim());
@@ -35,6 +37,7 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use("/api/auth", createAuthRouter(authService));
   app.use("/api/admin", createAdminRouter(authService));
   app.use("/api/admin/pois", createPoiRouter(authService, poiService));
+  app.use("/api/admin/tours", createTourRouter(authService, tourService));
   app.use("/api/admin/content-jobs", createContentJobRouter(authService, contentJobService));
   app.use("/api/payments", createPaymentRouter(paymentService));
   app.use("/api/visits", createVisitRouter(paymentService));
