@@ -16,8 +16,8 @@ async function request(route, body, token) {
   assert.ok(adminInput.email && adminInput.password, "Bootstrap credentials are required for the disposable release smoke test.");
   assert.equal((await request("/health/ready")).status, 200);
   for (const route of ["/", "/demo/", "/demo/explore", "/internal/account"]) {
-    const page = await request(route);
-    assert.equal(page.status, 200);
+    const page = await fetch(base + route, { headers: { Accept: "text/html" }, signal: AbortSignal.timeout(10000) });
+    assert.equal(page.status, 200, `React route ${route}`);
     const html = await page.text();
     assert.match(html, /id="root"/);
     const script = html.match(/src="([^\"]+\.js)"/);
