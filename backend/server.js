@@ -9,6 +9,8 @@ const { createTourRouter } = require("./routers/tour.router");
 const defaultTourService = require("./services/tour.service");
 const { createAuditRouter } = require("./routers/audit.router");
 const defaultAuditService = require("./services/audit.service");
+const { createMonitoringRouter } = require("./routers/monitoring.router");
+const defaultMonitoringService = require("./services/monitoring.service");
 const { createContentJobRouter } = require("./routers/content-job.router");
 const defaultContentJobService = require("./services/content-job.service");
 const { createPaymentRouter, createStaffPaymentRouter } = require("./routers/payment.router");
@@ -27,7 +29,8 @@ const { createFrontendRouter } = require("./routers/frontend.router");
 
 function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService,
   contentJobService = defaultContentJobService, paymentService = defaultPaymentService, mediaService = new MediaService(), contentService = new ContentService(),
-  frontendDir = path.resolve(__dirname, "../frontend/dist"), tourService = defaultTourService, auditService = defaultAuditService } = {}) {
+  frontendDir = path.resolve(__dirname, "../frontend/dist"), tourService = defaultTourService, auditService = defaultAuditService,
+  monitoringService = defaultMonitoringService } = {}) {
   const app = express();
   app.disable("x-powered-by");
   const origins = (process.env.CORS_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500").split(",").map(value => value.trim());
@@ -41,6 +44,7 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use("/api/admin/pois", createPoiRouter(authService, poiService));
   app.use("/api/admin/tours", createTourRouter(authService, tourService));
   app.use("/api/admin/audit-logs", createAuditRouter(authService, auditService));
+  app.use("/api/admin/monitoring", createMonitoringRouter(authService, monitoringService));
   app.use("/api/admin/content-jobs", createContentJobRouter(authService, contentJobService));
   app.use("/api/payments", createPaymentRouter(paymentService));
   app.use("/api/visits", createVisitRouter(paymentService));
