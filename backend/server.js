@@ -39,12 +39,18 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use("/api/media", createMediaRouter(paymentService, mediaService));
   app.use("/api/content", createContentRouter(paymentService, contentService));
   app.use("/api/admin/payments", createStaffPaymentRouter(authService, paymentService));
-  app.get("/", (req, res) => res.send("API Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn đang hoạt động."));
   app.get("/health", (req, res) => res.json({ status: "ok", service: "food-tour-api", timestamp: new Date().toISOString() }));
   app.get("/health/ready", async (req, res, next) => {
     try { res.json(await healthService.ready()); } catch (error) { next(error); }
   });
+  app.use(express.static(path.join(__dirname, "../frontend")));
   app.use("/demo", express.static(path.join(__dirname, "../frontend")));
+  app.get("/", (req, res) => {
+    if (req.accepts("html")) {
+      return res.sendFile(path.join(__dirname, "../frontend/index.html"));
+    }
+    res.send("API Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn đang hoạt động.");
+  });
   app.use(errorHandler);
   return app;
 }
