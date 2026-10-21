@@ -19,9 +19,11 @@ const defaultHealthService = require("./services/health.service");
 const errorHandler = require("./middlewares/error.middleware");
 const { getAuthConfig } = require("./config/auth");
 const path = require("node:path");
+const AppError = require("./utils/app-error");
 
 function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService,
-  contentJobService = defaultContentJobService, paymentService = defaultPaymentService, mediaService = new MediaService(), contentService = new ContentService() } = {}) {
+  contentJobService = defaultContentJobService, paymentService = defaultPaymentService, mediaService = new MediaService(), contentService = new ContentService(),
+  frontendDir = path.resolve(__dirname, "../frontend/dist") } = {}) {
   const app = express();
   app.disable("x-powered-by");
   const origins = (process.env.CORS_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500").split(",").map(value => value.trim());
@@ -43,14 +45,21 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.get("/health/ready", async (req, res, next) => {
     try { res.json(await healthService.ready()); } catch (error) { next(error); }
   });
-  app.use(express.static(path.join(__dirname, "../frontend")));
-  app.use("/demo", express.static(path.join(__dirname, "../frontend")));
-  app.get("/", (req, res) => {
-    if (req.accepts("html")) {
-      return res.sendFile(path.join(__dirname, "../frontend/index.html"));
-    }
-    res.send("API Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn đang hoạt động.");
+  function sendFrontend(req, res, next) {
+    res.set("Cache-Control", "no-store");
+    res.sendFile(path.join(frontendDir, "index.html"), error => {
+      if (error) next(new AppError(503, "FRONTEND_UNAVAILABLE", "Giao diện chưa được đóng gói; hãy build frontend trước khi chạy."));
+    });
+  }
+  app.get("/", (req, res, next) => {
+    // Keep the existing API probe; browser navigations explicitly request HTML.
+    if ((req.get("Accept") || "").includes("text/html")) return sendFrontend(req, res, next);
+    res.type("text").send("API Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn đang hoạt động.");
   });
+  app.get("/demo", (req, res) => res.redirect(302, "/"));
+  app.use(express.static(frontendDir, { index: false, dotfiles: "deny" }));
+  // Only client routes receive the SPA shell. Missing API/assets remain 404.
+  app.get(/^\/(?:payment|explore|login|internal\/(?:login|account|staff\/new|cash|pois(?:\/(?:new|[1-9]\d*)(?:\/edit)?)?|jobs))\/?$/, sendFrontend);
   app.use(errorHandler);
   return app;
 }

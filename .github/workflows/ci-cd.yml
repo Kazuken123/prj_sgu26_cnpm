@@ -10,6 +10,29 @@ permissions:
   contents: read
 
 jobs:
+  ci-frontend:
+    name: CI - Frontend (Node ${{ matrix.node-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [20.x, 22.x]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Frontend API and auth regression tests
+        working-directory: frontend
+        run: npm test
+      - name: Type check and build frontend
+        working-directory: frontend
+        run: npm run build
+
   ci-database:
     name: CI - Database Schema (MySQL 8.0)
     runs-on: ubuntu-latest
@@ -91,7 +114,7 @@ jobs:
 
   review-decoupling:
     name: Review - Layer Boundaries and Environment Files
-    needs: [ci-database, ci-backend]
+    needs: [ci-database, ci-backend, ci-frontend]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -156,6 +179,8 @@ jobs:
         run: docker compose exec -T -e BOOTSTRAP_ADMIN_EMAIL -e BOOTSTRAP_ADMIN_PASSWORD backend npm run bootstrap:admin
       - name: Smoke test ADMIN-created STAFF and the auth lifecycle
         run: node backend/scripts/smoke-auth.js
+      - name: Smoke test the compiled frontend and client routes
+        run: node backend/scripts/smoke-frontend.js
       - name: Container logs on failure
         if: failure()
         run: docker compose logs

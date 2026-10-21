@@ -1,68 +1,69 @@
-const { it } = require("node:test");
+const { it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
+const fs = require("node:fs/promises");
+const os = require("node:os");
 const path = require("node:path");
-const vm = require("node:vm");
+const { createApp } = require("../server");
 
-function client(fetch) {
-  const storage = new Map();
-  const window = {};
-  const context = vm.createContext({ window, fetch,
-    sessionStorage: { getItem: key => storage.get(key), setItem: (key, value) => storage.set(key, value), removeItem: key => storage.delete(key) } });
-  vm.runInContext(fs.readFileSync(path.resolve(__dirname, "../../frontend/auth.js"), "utf8"), context);
-  return { auth: window.FoodTourAuth, storage };
-}
-it("demo client uses the real auth contract, renews an expired access token once and sends Bearer", async () => {
-  const calls = [];
-  const f = client(async (url, options) => {
-    calls.push({ url, ...options });
-    if (calls.length === 1) return { status: 401, ok: false, json: async () => ({ error: "expired" }) };
-    if (url === "/api/auth/refresh") return { status: 200, ok: true, json: async () => ({ data: { accessToken: "new-access", refreshToken: "new-refresh" } }) };
-    return { status: 200, ok: true, json: async () => ({ data: { email: "test@example.com" } }) };
-  });
-  f.auth.saveSession({ accessToken: "old-access", refreshToken: "old-refresh" });
-  const result = await f.auth.request("/me", { authenticated: true });
-  assert.equal(result.data.email, "test@example.com");
-  assert.equal(calls[0].headers.Authorization, "Bearer old-access");
-  assert.equal(calls[1].url, "/api/auth/refresh");
-  assert.equal(JSON.parse(calls[1].body).refreshToken, "old-refresh");
-  assert.equal(calls[2].headers.Authorization, "Bearer new-access");
+// Auth regressions now exercise React's API module in frontend/test/auth-regression.test.js.
+let root, server, base;
+before(async () => {
+  root = await fs.mkdtemp(path.join(os.tmpdir(), "tcv-frontend-http-"));
+  const dist = path.join(root, "dist");
+  await fs.mkdir(path.join(dist, "assets"), { recursive: true });
+  await fs.writeFile(path.join(dist, "index.html"), '<!doctype html><div id="root"></div><script type="module" src="/assets/app.js"></script>');
+  await fs.writeFile(path.join(dist, "assets", "app.js"), 'console.log("built frontend");');
+  await fs.writeFile(path.join(root, "private.txt"), "not a public asset");
+  server = createApp({ frontendDir: dist }).listen(0, "127.0.0.1");
+  await new Promise(resolve => server.once("listening", resolve));
+  base = `http://127.0.0.1:${server.address().port}`;
 });
-it("demo logout revokes the session on the server before removing stored tokens", async () => {
-  let revoked = false;
-  const f = client(async (url, options) => {
-    assert.equal(url, "/api/auth/logout"); assert.equal(JSON.parse(options.body).refreshToken, "refresh");
-    revoked = true; return { status: 204, ok: true };
-  });
-  f.auth.saveSession({ accessToken: "access", refreshToken: "refresh" });
-  await f.auth.logout();
-  assert.equal(revoked, true); assert.equal(f.auth.hasSession(), false);
+after(async () => {
+  if (server) await new Promise(resolve => server.close(resolve));
+  if (root) await fs.rm(root, { recursive: true, force: true });
+  await require("../config/database").end();
 });
-it("demo retains its session when logout cannot reach the server, allowing a retry", async () => {
-  const f = client(async () => { throw new Error("network error"); });
-  f.auth.saveSession({ accessToken: "access", refreshToken: "refresh" });
-  await assert.rejects(f.auth.logout(), /network error/);
-  assert.equal(f.auth.hasSession(), true);
+it("browser root serves the built shell while the existing API probe remains text", async () => {
+  const page = await fetch(base + "/", { headers: { Accept: "text/html" } });
+  assert.equal(page.status, 200);
+  assert.match(page.headers.get("content-type"), /text\/html/);
+  assert.match(await page.text(), /\/assets\/app.js/);
+  const probe = await fetch(base + "/");
+  assert.equal(probe.status, 200);
+  assert.match(await probe.text(), /API/);
 });
-it("all inline demo scripts have valid JavaScript syntax", () => {
-  for (const name of ["index.html", "staff.html", "account.html", "dashboard.html"]) {
-    const html = fs.readFileSync(path.resolve(__dirname, "../../frontend", name), "utf8");
-    for (const match of html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)) new vm.Script(match[1]);
+it("React routes support direct navigation and reload", async () => {
+  for (const route of ["/payment", "/explore", "/internal/account", "/internal/pois/12/edit", "/internal/jobs"]) {
+    const result = await fetch(base + route, { headers: { Accept: "text/html" } });
+    assert.equal(result.status, 200, route);
+    assert.match(await result.text(), /id="root"/);
   }
 });
-
-it("staff creation retries the ADMIN endpoint after refresh without changing its payload", async () => {
-  const calls = [];
-  const f = client(async (url, options) => {
-    calls.push({ url, ...options });
-    if (calls.length === 1) return { status: 401, ok: false, json: async () => ({ error: "expired" }) };
-    if (url === "/api/auth/refresh") return { status: 200, ok: true, json: async () => ({ data: { accessToken: "new-access", refreshToken: "new-refresh" } }) };
-    return { status: 201, ok: true, json: async () => ({ data: { email: "staff@example.com", role: "STAFF" } }) };
-  });
-  f.auth.saveSession({ accessToken: "old-access", refreshToken: "old-refresh" });
-  const body = { email: "staff@example.com", password: "SecurePassword123" };
-  await f.auth.createStaff(body);
-  assert.deepEqual(calls.map(c => c.url), ["/api/admin/staff", "/api/auth/refresh", "/api/admin/staff"]);
-  assert.equal(calls[2].headers.Authorization, "Bearer new-access");
-  assert.deepEqual(JSON.parse(calls[2].body), body);
+it("only built assets are public; missing API, source and assets never receive HTML", async () => {
+  const asset = await fetch(base + "/assets/app.js");
+  assert.equal(asset.status, 200);
+  assert.match(asset.headers.get("content-type"), /javascript/);
+  for (const route of ["/api/not-found", "/src/main.tsx", "/package.json", "/.env", "/private.txt", "/assets/missing.js"]) {
+    const result = await fetch(base + route, { headers: { Accept: "text/html" } });
+    assert.equal(result.status, 404, route);
+    assert.doesNotMatch(await result.text(), /id="root"/);
+  }
+});
+it("legacy demo entry redirects to the React root", async () => {
+  const result = await fetch(base + "/demo", { redirect: "manual" });
+  assert.equal(result.status, 302);
+  assert.equal(result.headers.get("location"), "/");
+});
+it("missing frontend build returns a safe 503 without affecting API health", async () => {
+  const missing = createApp({ frontendDir: path.join(root, "not-built") }).listen(0, "127.0.0.1");
+  await new Promise(resolve => missing.once("listening", resolve));
+  const url = `http://127.0.0.1:${missing.address().port}`;
+  try {
+    const page = await fetch(url + "/", { headers: { Accept: "text/html" } });
+    assert.equal(page.status, 503);
+    const error = await page.json();
+    assert.equal(error.code, "FRONTEND_UNAVAILABLE");
+    assert.ok(!JSON.stringify(error).includes(root));
+    assert.equal((await fetch(url + "/health")).status, 200);
+  } finally { await new Promise(resolve => missing.close(resolve)); }
 });

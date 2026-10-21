@@ -41,9 +41,12 @@ export class ApiError extends Error {
 const DEFAULT_TIMEOUT_MS = 10000;
 
 export function getApiBaseUrl(): string {
-  const envUrl = import.meta.env.VITE_API_BASE_URL;
+  const envUrl = import.meta.env?.VITE_API_BASE_URL;
   if (envUrl && typeof envUrl === 'string' && envUrl.trim().length > 0) {
     return envUrl.trim().replace(/\/+$/, '');
+  }
+  if (typeof window !== 'undefined' && /^https?:$/.test(window.location?.protocol || '')) {
+    return window.location.origin;
   }
   return 'http://127.0.0.1:18080';
 }

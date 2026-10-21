@@ -1,5 +1,21 @@
 # Hướng dẫn Cài đặt, Chạy và Kiểm thử Frontend Thảo Cầm Viên
 
+## Đồng bộ bản React với backend — 21/10/2026
+
+Người tiếp tục thiết kế giao diện đọc [bàn giao UI/UX và các ràng buộc cần giữ](docs/HANDOFF_UI_UX_2026-10-21.md).
+
+Thực hiện cài đặt, build và test trong clone/bản sao **ngoài OneDrive**, không sao chép `.env` thật. Dùng `npm ci` để giữ đúng lockfile; không cần thêm dependency cho bản sửa tích hợp này.
+
+**Chạy chung một địa chỉ:** build frontend bằng `npm run build` trong `frontend`, sau đó chạy backend. Trình duyệt mở `/` trên cổng backend; `/payment`, `/explore` và các đường dẫn nội bộ hỗ trợ tải lại trực tiếp. `/demo` chuyển về `/`. Backend chỉ phục vụ `frontend/dist`, không công khai mã nguồn frontend. Chưa build thì truy cập HTML báo 503 `FRONTEND_UNAVAILABLE`; API/health vẫn độc lập. Request `/` không yêu cầu HTML vẫn giữ thông báo API cũ.
+
+**Chạy bằng Docker:** Dockerfile build React trong stage riêng trước khi tạo image runtime. Dựng demo theo `data/demo/README.md`; không chạy lại init_db.sql trên DB đã có dữ liệu hoặc xóa volume. Không cần đưa `node_modules` hay `dist` vào Git.
+
+**Chạy Vite để phát triển:** nếu không đặt `VITE_API_BASE_URL`, frontend dùng origin hiện tại; dev server chuyển `/api` và `/health` tới `http://127.0.0.1:18080`. Có thể dùng `.env.example` cho backend riêng; biến `VITE_` là cấu hình công khai lúc build, tuyệt đối không chứa khóa ký webhook/API secret. Bản Docker mặc định dùng chung origin, không cố định cổng 18080 trong JavaScript đã build.
+
+**Kiểm thử:** `npm test` sử dụng TypeScript đã có trong lockfile qua loader tương thích Node 20/22; `npm run build` kiểm kiểu và build bằng Vite. CI chạy cả hai cho frontend. Test refresh/logout cũ được chuyển sang `frontend/test/auth-regression.test.js`; test HTTP phía backend kiểm build, đường dẫn, 404 và lỗi chưa build. Không loại bỏ kiểm tra bảo mật chỉ để CI xanh. Test API dùng fetch mock không thay cho nghiệm thu trình duyệt với DB thật.
+
+Demo ONLINE vẫn cần operator gửi kết quả bằng công cụ backend `mock:payment`; không có nút ký webhook trong frontend. Audio DRAFT-03 vẫn là âm thử một giây, không đọc kịch bản. Không coi bản sửa này là nghiệm thu GPS hoặc staging HTTPS.
+
 Tài liệu này hướng dẫn cách thiết lập, chạy thử nghiệm và kiểm thử mã nguồn giao diện hệ thống thuyết minh Thảo Cầm Viên Sài Gòn.
 
 ## 1. Yêu cầu môi trường
@@ -15,7 +31,7 @@ Di chuyển vào thư mục frontend và chạy lệnh cài đặt:
 
 ```bash
 cd frontend
-npm install
+npm ci
 ```
 
 ## 3. Cấu hình biến môi trường
@@ -58,7 +74,7 @@ Bộ kiểm thử được xây dựng bằng công cụ kiểm thử tích hợ
 npm test
 ```
 
-Bộ kiểm thử thực hiện 58 ca kiểm tra trên 9 bộ kiểm thử:
+Bản đồng bộ ngày 21/10/2026 có 64 ca đạt, gồm 9 suite và các ca hồi quy xác thực bổ sung. Phạm vi gồm:
 - Kiểm thử quản lý phiên và bộ nhớ lưu trữ
 - Kiểm thử phân loại lỗi và xử lý mã lỗi
 - Kiểm thử luồng gọi API thanh toán trực tuyến

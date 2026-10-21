@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getApiBaseUrl, ApiError } from '../api/client.ts';
-import { getAuthMe, logoutInternal, executeAuthenticatedInternalRequest } from '../api/auth.ts';
+import { getAuthMe, logoutStoredInternalSession, executeAuthenticatedInternalRequest } from '../api/auth.ts';
 import type { InternalUser } from '../api/authStorage.ts';
-import { loadInternalSession, clearInternalSession } from '../api/authStorage.ts';
+import { clearInternalSession } from '../api/authStorage.ts';
 
 export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
@@ -54,20 +54,9 @@ export const AccountPage: React.FC = () => {
     setIsLoggingOut(true);
     setErrorMessage(null);
 
-    const { session } = loadInternalSession(currentBaseUrl);
-
     try {
       // Goi POST /api/auth/logout len backend (tra ve 204 No Content)
-      await logoutInternal(
-        {
-          accessToken: session.accessToken,
-          refreshToken: session.refreshToken
-        },
-        currentBaseUrl
-      );
-
-      // Xoa phien noi bo, khong cham vao phien khach
-      clearInternalSession();
+      await logoutStoredInternalSession(currentBaseUrl);
       setIsLoggingOut(false);
       navigate('/internal/login', { replace: true });
     } catch (err: unknown) {

@@ -87,6 +87,13 @@ export async function logoutInternal(
   });
 }
 
+// Keep credentials available for retry until the server acknowledges logout.
+export async function logoutStoredInternalSession(apiBaseUrl: string): Promise<void> {
+  const { session } = loadInternalSession(apiBaseUrl);
+  await logoutInternal(session, apiBaseUrl);
+  clearInternalSession();
+}
+
 // 5. Quan tri vien tao tai khoan nhan vien moi (POST /api/admin/staff)
 export async function createStaffAccount(
   accessToken: string,
