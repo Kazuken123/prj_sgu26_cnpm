@@ -1,0 +1,20 @@
+{
+  "repository": "rhasspy/piper-voices",
+  "revision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd",
+  "voices": {
+    "vi": {
+      "directory": "vi/vi_VN/vais1000/medium",
+      "model": "vi_VN-vais1000-medium.onnx",
+      "sha256": "ec7c89e2c85f4d1edc24b6120c18aaf1bda614f06b511567eb9c7c0de15e2dab",
+      "size": 63201294,
+      "sampleRate": 22050
+    },
+    "en": {
+      "directory": "en/en_US/ljspeech/medium",
+      "model": "en_US-ljspeech-medium.onnx",
+      "sha256": "6f52a751e2349abe7a76735eb09dc1875298c77ea2342ffd2fef79ff81b87f22",
+      "size": 63531379,
+      "sampleRate": 22050
+    }
+  }
+}

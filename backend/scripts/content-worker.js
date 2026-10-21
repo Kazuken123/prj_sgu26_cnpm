@@ -6,25 +6,39 @@ function parseOptions(args) {
     const flag = args[i];
     if (seen.has(flag)) throw new Error("INVALID_WORKER_ARGUMENTS");
     seen.add(flag);
-    if (flag === "--mock") continue;
+    if (["--mock", "--piper"].includes(flag)) continue;
     const spec = Object.hasOwn(flags, flag) ? flags[flag] : undefined, value = args[++i];
     if (!spec || !/^[1-9]\d*$/.test(value || "") || !Number.isSafeInteger(Number(value)) || Number(value) < spec[1] || Number(value) > spec[2]) throw new Error("INVALID_WORKER_ARGUMENTS");
     result[spec[0]] = Number(value);
   }
-  if (!seen.has("--mock")) throw new Error("WORKER_REQUIRES_EXPLICIT_MOCK");
+  if (seen.has("--mock") === seen.has("--piper")) throw new Error("WORKER_REQUIRES_EXPLICIT_PROVIDER");
+  if (seen.has("--piper")) {
+    if (result.concurrency !== 1) throw new Error("PIPER_REQUIRES_CONCURRENCY_ONE");
+    result.ttsProvider = "PIPER";
+  }
   return result;
 }
 async function main() {
   let options;
   try { options = parseOptions(process.argv.slice(2)); }
-  catch { console.error(JSON.stringify({ event: "configuration", code: "WORKER_REQUIRES_VALID_MOCK_OPTIONS" })); process.exitCode = 1; return; }
+  catch { console.error(JSON.stringify({ event: "configuration", code: "WORKER_REQUIRES_VALID_PROVIDER_OPTIONS" })); process.exitCode = 1; return; }
   require("dotenv").config({ quiet: true });
   const pool = require("../config/database");
   const path = require("node:path");
   const { PipelineService } = require("../services/pipeline.service");
   const { ContentWorker } = require("../workers/content-worker");
   const MockTranslation = require("../adapters/mock-translation"), MockTts = require("../adapters/mock-tts");
-  const worker = new ContentWorker(new PipelineService(undefined, { translator: new MockTranslation(), tts: new MockTts() }),
+  let adapters;
+  try {
+    if (options.ttsProvider === "PIPER") {
+      const { getPiperConfig } = require("../config/piper"), PiperTts = require("../adapters/piper-tts");
+      const settings = getPiperConfig(), tts = new PiperTts(settings);
+      await tts.assertConfigured();
+      // Reuse READY VI/EN only. Missing translations fail safely; never replace reviewed text with mock.
+      adapters = { tts, audioTimeoutMs: settings.timeoutMs };
+    } else adapters = { translator: new MockTranslation(), tts: new MockTts() };
+  } catch { console.error(JSON.stringify({ event: "configuration", code: "WORKER_TTS_CONFIGURATION_INVALID" })); await pool.end(); process.exitCode = 1; return; }
+  const worker = new ContentWorker(new PipelineService(undefined, adapters),
     { ...options, report: event => console.log(JSON.stringify(event)) });
   let deadline;
   const stop = () => {
@@ -39,7 +53,7 @@ async function main() {
   process.on("SIGINT", stop); process.on("SIGTERM", stop);
   try {
     if (!process.env.MEDIA_ROOT || !path.isAbsolute(process.env.MEDIA_ROOT)) throw new Error("MEDIA_ROOT_REQUIRED");
-    console.log(JSON.stringify({ event: "started", provider: "MOCK", concurrency: options.concurrency }));
+    console.log(JSON.stringify({ event: "started", provider: options.ttsProvider || "MOCK", concurrency: options.concurrency }));
     await worker.run();
   } catch { console.error(JSON.stringify({ event: "worker_failed", code: "CONTENT_WORKER_UNAVAILABLE" })); process.exitCode = 1; }
   finally {
