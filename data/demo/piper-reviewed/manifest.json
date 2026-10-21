@@ -1,0 +1,31 @@
+{
+  "approved": true,
+  "approvalId": "USER_PIPER_DEMO_20261022",
+  "provider": "PIPER",
+  "files": [
+    {
+      "poiKey": "giraffe",
+      "languageCode": "vi",
+      "key": "790ebd80-751d-47da-9c19-ca4181daa841.wav",
+      "sha256": "5441ec3cf1d97eccd019627696f861bd980a01e33e0a441cba2b9dd5739b5ad3"
+    },
+    {
+      "poiKey": "giraffe",
+      "languageCode": "en",
+      "key": "2d52a230-f5e2-4701-82cb-60f082ab2a98.wav",
+      "sha256": "582a25c12e365dfe452b3674204a8933a7a4ad144b1cc8d18968038a08b202a6"
+    },
+    {
+      "poiKey": "asian-elephant",
+      "languageCode": "vi",
+      "key": "8f20654b-a2c1-487d-91c1-fbb5e4bef756.wav",
+      "sha256": "b4497c440b62bc3ca9069ce7fcce4a3435aa6b327d8290ed94469670cf553ca5"
+    },
+    {
+      "poiKey": "asian-elephant",
+      "languageCode": "en",
+      "key": "55f4317c-775a-4501-b9cd-d482d9e5b2fe.wav",
+      "sha256": "9a3bb40117fce2f0af2cd45ed5b4068ebf88a19c436f2dfec6bc5f1fde8c1af4"
+    }
+  ]
+}

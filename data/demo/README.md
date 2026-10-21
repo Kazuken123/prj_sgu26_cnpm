@@ -6,6 +6,8 @@ Bộ này gồm hai POI Hươu cao cổ/Voi châu Á, tên/giới thiệu/kịch
 
 Không xác nhận node hươu là khu cạnh voi; chưa nghiệm thu GPS, đường đi hoặc khả năng tiếp cận. Tour không phải tuyến chính thức. Audio là **WAV âm thử mock một giây, không đọc kịch bản**; bản EN là nội dung biên soạn đã duyệt, không phải dịch bằng MockTranslation. Giá 50.000 VND là cấu hình thử cho quyền dùng hệ thống, không phải tuyên bố giá vé chính thức của Thảo Cầm Viên.
 
+Đoạn trên mô tả **lần seed ban đầu**. Bộ bốn giọng đọc Piper đã được người dùng nghe duyệt nằm trong [piper-reviewed](piper-reviewed/README.md); bước chuyển riêng có kiểm tra/quay lại tại [DEMO_AUDIO_PUBLICATION.md](../../docs/DEMO_AUDIO_PUBLICATION.md). Seed lặp không thay audio đã phát hành về âm thử; trạng thái sau chuyển phải đối chiếu audit phát hành, không suy từ nhãn seed ban đầu.
+
 ## 1. Chuẩn bị source và cấu hình riêng
 
 Cần Docker Desktop với Compose v2 và Internet để build image lần đầu. Dùng toàn bộ source có mốc này trong thư mục **ngoài OneDrive**. Không cài dependency hoặc chạy test trong OneDrive. Nếu mốc chưa được chủ đồ án commit/push, cần bản sao working tree đầy đủ; clone HEAD cũ từ GitHub chưa có những file mới này.

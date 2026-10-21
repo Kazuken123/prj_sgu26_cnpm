@@ -20,6 +20,8 @@ const schemas = {
   ONLINE_CHECKOUT_READY: { sessionId: uuid, paymentRef: uuid },
   ISSUE_VISITOR_TOKEN: { paymentRef: uuid, issueId: uuid },
   SEED_APPROVED_DEMO: { digest: hash, tourId: integer },
+  PUBLISH_DEMO_AUDIO: { operationId: uuid, digest: hash, provider: enumOf(["PIPER"]), audioCount: integer, rollback: boolean },
+  ROLLBACK_DEMO_AUDIO: { operationId: uuid, digest: hash, provider: enumOf(["PIPER"]), audioCount: integer, rollback: boolean },
 };
 for (const action of ["CONFIRM_ONLINE_PAYMENT", "FAIL_ONLINE_PAYMENT"]) schemas[action] = {
   ...schemas.CONFIRM_CASH_PAYMENT, previousStatus: enumOf(["PENDING", "PAID", "FAILED"]), status: enumOf(["PAID", "FAILED"]),
