@@ -1,8 +1,9 @@
 const AppError = require("../utils/app-error");
 const { id } = require("./poi.validation");
-function fail() { throw new AppError(400, "INVALID_REVIEWED_TRANSLATION", "Cần sourceVersion, name, description và audioScript hợp lệ; chỉ nhập bản EN đã duyệt."); }
+const reviewedLanguages = new Set(["en", "zh-Hans", "ko", "ja", "ru", "fr"]);
+function fail() { throw new AppError(400, "INVALID_REVIEWED_TRANSLATION", "Cần sourceVersion, name, description và audioScript hợp lệ của bản dịch đã duyệt."); }
 function language(value) {
-  if (value !== "en") throw new AppError(400, "UNSUPPORTED_MANUAL_LANGUAGE", "Mốc nhập thủ công hiện chỉ hỗ trợ EN; tiếng Việt dùng API nguồn POI.");
+  if (!reviewedLanguages.has(value)) throw new AppError(400, "UNSUPPORTED_MANUAL_LANGUAGE", "Chỉ nhập bản dịch en, zh-Hans, ko, ja, ru hoặc fr đã duyệt; tiếng Việt dùng API nguồn POI.");
   return value;
 }
 function text(value, max) {

@@ -9,7 +9,7 @@ const LocalMedia = require("../adapters/local-media"), MockTts = require("../ada
 const utcPool = require("../config/utc-pool");
 const reviewed = { sourceVersion: 1, name: "Test point", description: "This is reviewed test content, not information about the zoo.",
   audioScript: "This is a reviewed English narration used only to test the manual translation workflow." };
-if (process.env.RUN_DB_TESTS === "1") describe("Reviewed EN import with MySQL 8, version locks and private audio", () => {
+if (process.env.RUN_DB_TESTS === "1") describe("Reviewed multilingual import with MySQL 8, version locks and private audio", () => {
   const database = "tcv_translation_test_" + randomUUID().replaceAll("-", "");
   let admin, db, auth, actor, translations, pois, jobs, storage, root;
   before(async () => {
@@ -55,6 +55,61 @@ if (process.env.RUN_DB_TESTS === "1") describe("Reviewed EN import with MySQL 8,
   async function audits(poiId) {
     const [rows] = await db.query("SELECT * FROM AUDIT_LOGS WHERE action='IMPORT_REVIEWED_TRANSLATION' AND JSON_UNQUOTE(JSON_EXTRACT(details, '$.poiId'))=? ORDER BY log_id", [String(poiId)]); return rows;
   }
+  it("five new language routes preserve Unicode, serialize retries and reuse reviewed text with mock audio", async t => {
+    const samples = [
+      ["zh-Hans", "简体中文", "测试地点", "这是测试介绍。", "这是用于测试的讲解，不是动物园的正式内容。"],
+      ["ko", "한국어", "시험 장소", "시험용 소개입니다.", "이것은 동물원 안내가 아닌 시험용 음성 대본입니다."],
+      ["ja", "日本語", "テスト地点", "テスト用の紹介です。", "これは動物園の正式な案内ではなく、テスト用の原稿です。"],
+      ["ru", "Русский", "Тестовая точка", "Тестовое описание.", "Это тестовый текст, а не утверждённый рассказ о зоопарке."],
+      ["fr", "Français", "Point de test", "Présentation de test.", "Ce texte sert uniquement à tester le système, pas à présenter le zoo."],
+    ];
+    // Only this suite's randomly named database; no demo language registration.
+    for (const [code, name] of samples) await db.query("INSERT INTO LANGUAGES(code,name,is_active) VALUES(?,?,1)", [code, name]);
+    t.after(async () => { for (const [code] of samples) await db.query("UPDATE LANGUAGES SET is_active=0 WHERE code=?", [code]); });
+    const { createApp } = require("../server"), f = await fixture();
+    const server = http.createServer(createApp({ authService: auth, translationService: translations }));
+    await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+    t.after(async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); });
+    const login = await auth.login({ email: "manual-admin@example.invalid", password: "ManualTestOnly123" });
+    const headers = { Authorization: "Bearer " + login.accessToken, "Content-Type": "application/json" };
+    const base = `http://127.0.0.1:${server.address().port}/api/admin/pois/${f.poiId}/translations/`;
+    const sourceBefore = (await snapshot(f.poiId)).texts.find(row => row.language_code === "vi");
+    for (const [code, , name, description, audioScript] of samples) {
+      const body = { sourceVersion: 1, name, description, audioScript };
+      assert.equal((await fetch(base + code)).status, 401);
+      assert.equal((await fetch(base + code, { headers: { Authorization: "Bearer visitor-opaque-token" } })).status, 401);
+      const replies = await Promise.all(Array.from({ length: 4 }, () => fetch(base + code, { method: "PUT", headers, body: JSON.stringify(body) })));
+      assert.ok(replies.every(reply => reply.status === 200));
+      const outcomes = await Promise.all(replies.map(reply => reply.json()));
+      assert.equal(outcomes.filter(reply => reply.data.outcome === "IMPORTED").length, 1);
+      assert.equal(outcomes.filter(reply => reply.data.outcome === "UNCHANGED").length, 3);
+      assert.ok(replies.every(reply => reply.headers.get("cache-control") === "no-store"));
+      const get = await fetch(base + code, { headers });
+      assert.equal(get.status, 200); assert.equal((await get.json()).data.translation.audioScript, audioScript);
+      const before = await snapshot(f.poiId);
+      const conflict = await fetch(base + code, { method: "PUT", headers, body: JSON.stringify({ ...body, name: name + " changed" }) });
+      assert.equal(conflict.status, 409); assert.equal((await conflict.json()).code, "TRANSLATION_READY_CONFLICT");
+      assert.deepEqual(await snapshot(f.poiId), before);
+      const current = await translations.get(actor, f.poiId, code);
+      assert.equal((await worker().runJob(current.job.jobId)).completed, true);
+      const after = await translations.get(actor, f.poiId, code);
+      assert.deepEqual(after.translation, { ...body, status: "READY" });
+      const record = (await snapshot(f.poiId)).audios.find(row => row.translation_id === before.texts.find(row => row.language_code === code).translation_id);
+      assert.equal(record.status, "AVAILABLE"); assert.equal(record.source_version, 1);
+      const bytes = await storage.get(record.file_url.split("/").pop());
+      assert.ok(require("../utils/pcm-wav").inspectWav(bytes).duration > 0);
+    }
+    const final = await snapshot(f.poiId), logs = await audits(f.poiId);
+    assert.deepEqual(final.texts.find(row => row.language_code === "vi"), sourceBefore);
+    assert.equal(final.texts.filter(row => samples.some(([code]) => code === row.language_code)).length, 5);
+    assert.equal(final.audios.length, 5); assert.equal(logs.length, 5);
+    assert.deepEqual(logs.map(log => JSON.parse(log.details).languageCode).sort(), samples.map(([code]) => code).sort());
+    // Catalogue enablement alone must never expand the approved API allowlist.
+    await db.query("INSERT INTO LANGUAGES(code,name,is_active) VALUES('de','Deutsch',1)");
+    assert.equal((await fetch(base + "de", { headers })).status, 400);
+    assert.equal((await fetch(base + "zh", { headers })).status, 400);
+    assert.deepEqual(await snapshot(f.poiId), final);
+  });
   it("import and audit commit together, repeat leaves all rows unchanged and never requeues", async () => {
     const f = await fixture();
     const result = await translations.importReviewed(actor, f.poiId, "en", reviewed, { ipAddress: "192.0.2.240" });

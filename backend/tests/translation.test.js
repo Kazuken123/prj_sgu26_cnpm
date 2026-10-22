@@ -24,7 +24,7 @@ it("reviewed translation rejects unauthorized actors before validation or storag
   }
   assert.equal(f.reads(), 0);
 });
-it("translation input is EN only with exact fields, bounded text and explicit integer version", async () => {
+it("translation input requires approved language codes, exact fields, bounded text and integer version", async () => {
   const f = fixture();
   for (const input of [undefined, null, [], {}, { ...text, sourceVersion: "1" }, { ...text, sourceVersion: 0 },
     { ...text, sourceVersion: 1.5 }, { ...text, sourceVersion: 2147483648 }, { ...text, name: " " },
@@ -32,10 +32,29 @@ it("translation input is EN only with exact fields, bounded text and explicit in
     { ...text, status: "READY" }, { ...text, provider: "approved" }]) {
     await assert.rejects(f.service.importReviewed(actor, 1, "en", input), { status: 400 });
   }
-  for (const language of ["vi", "EN", "fr", "en' OR 1=1 --"]) {
+  for (const language of ["vi", "EN", "zh", "zh-CN", "zh-Hant", "zh-hans", "de", "es", "pt", "en' OR 1=1 --"]) {
     await assert.rejects(f.service.importReviewed(actor, 1, language, text), { status: 400 });
   }
   assert.equal(f.reads(), 0);
+});
+it("all six reviewed target languages retain version, enablement, processing and publication guards", async () => {
+  for (const language of ["en", "zh-Hans", "ko", "ja", "ru", "fr"]) {
+    const f = fixture();
+    const result = await f.service.importReviewed(actor, 1, language, text);
+    assert.equal(result.languageCode, language); assert.equal(result.outcome, "IMPORTED");
+    assert.equal((await f.service.get(actor, 1, language)).translation.audioScript, text.audioScript);
+    assert.equal((await f.service.importReviewed(actor, 1, language, text)).outcome, "UNCHANGED");
+    await assert.rejects(f.service.importReviewed(actor, 1, language, { ...text, name: "Different" }), { code: "TRANSLATION_READY_CONFLICT" });
+    f.state.parent.contentVersion = 2;
+    await assert.rejects(f.service.importReviewed(actor, 1, language, text), { code: "TRANSLATION_SOURCE_CONFLICT" });
+    f.state.parent.contentVersion = 1; f.state.language = undefined;
+    await assert.rejects(f.service.importReviewed(actor, 1, language, text), { code: "TRANSLATION_LANGUAGE_DISABLED" });
+    f.state.language = { active: 0 };
+    await assert.rejects(f.service.importReviewed(actor, 1, language, text), { code: "TRANSLATION_LANGUAGE_DISABLED" });
+    f.state.language.active = 1; f.state.job.status = "PROCESSING";
+    await assert.rejects(f.service.importReviewed(actor, 1, language, text), { code: "TRANSLATION_JOB_PROCESSING" });
+    assert.equal(f.state.writes, 1);
+  }
 });
 it("GET returns source, target and current job only; it does not import, retry or expose internal values", async () => {
   const f = fixture(); f.state.source.internalKey = "private";
