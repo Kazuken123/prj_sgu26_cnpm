@@ -1,0 +1,17 @@
+node_modules/
+dist/
+build/
+target/
+*.lock
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+*.log
+.git/
+*.pptx
+*.docx
+docs/slides_pdf_images/
+frontend/assets/fonts/
+frontend/_reference/
+frontend/assets/images/
+repomix-output.xml

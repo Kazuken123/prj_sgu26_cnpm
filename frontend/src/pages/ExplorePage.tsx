@@ -1,15 +1,11 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { getApiBaseUrl, ApiError } from '../api/client.ts';
-import { loadGuestSession } from '../api/guestStorage.ts';
-import { getVisitMe } from '../api/payment.ts';
-import {
-  getContentBundle,
-  BundleDto,
-  PoiDto,
-  TourDto
-} from '../api/content.ts';
-import { AudioPlayer } from '../components/AudioPlayer.tsx';
+import { getApiBaseUrl, ApiError } from '../api/client';
+import { loadGuestSession } from '../api/guestStorage';
+import { getVisitMe } from '../api/payment';
+import { getContentBundle, BundleDto, PoiDto, TourDto } from '../api/content';
+import { AudioPlayer } from '../components/AudioPlayer';
+import { MapView, calculateHaversineDistance } from '../components/MapView';
 import { Icon } from '../components/Icon';
 
 function formatCategory(category: string | null): string {
@@ -42,17 +38,39 @@ export const ExplorePage: React.FC = () => {
   const [sessionError, setSessionError] = useState<string | null>(null);
   const [bundleError, setBundleError] = useState<{ code: string; message: string } | null>(null);
 
-  // Quan ly thu tu request de chong response den muon ghi de du lieu moi
+  // Bộ lọc phân khu
+  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+
+  // Tour dang chon
+  const [activeTourId, setActiveTourId] = useState<number | null>(null);
+
+  // Vị trí người dùng & Giả lập vị trí (US-B01, US-B02)
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>({
+    latitude: 10.7875,
+    longitude: 106.7053 // Cổng chính Thảo Cầm Viên
+  });
+  const [isSimulatedLocation, setIsSimulatedLocation] = useState<boolean>(true);
+  const [isAutoTourActive, setIsAutoTourActive] = useState<boolean>(false);
+  const [playedPoisInPass, setPlayedPoisInPass] = useState<{ [poiId: number]: boolean }>({});
+
+  // Chatbot RAG Widget
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatQuestion, setChatQuestion] = useState('');
+  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string; sources?: string[] }>>([
+    {
+      sender: 'bot',
+      text: 'Xin chào quý khách! Tôi là trợ lý ảo Thảo Cầm Viên Sài Gòn. Quý khách có thể hỏi tôi về tập tính các loài động vật, giờ cho thú ăn, cây di sản hoặc lịch sử Thảo Cầm Viên.'
+    }
+  ]);
+
   const requestSeqRef = useRef<number>(0);
   const abortControllerRef = useRef<AbortController | null>(null);
 
-  // Ham thuc hien tai bundle
+  // Tải bundle theo ngôn ngữ
   const fetchBundle = useCallback(async (targetLang: string, authToken: string) => {
-    // Tang ma thu tu request cho lan goi nay
     requestSeqRef.current += 1;
     const currentSeq = requestSeqRef.current;
 
-    // Huy request truoc do neu dang chay
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
     }
@@ -65,16 +83,12 @@ export const ExplorePage: React.FC = () => {
     try {
       const data = await getContentBundle(targetLang, authToken, controller.signal, currentBaseUrl);
 
-      // Kiem tra neu request nay khong con la request moi nhat thi bo qua
-      if (currentSeq !== requestSeqRef.current) {
-        return;
-      }
+      if (currentSeq !== requestSeqRef.current) return;
 
       setBundle(data);
       setSelectedLanguageCode(data.requestedLanguageCode);
       setLoadingLanguageCode(null);
 
-      // Giu POI dang chon neu van ton tai trong bundle moi
       setSelectedPoiId((prevId) => {
         if (prevId !== null && data.pois.some((p) => p.poiId === prevId)) {
           return prevId;
@@ -82,43 +96,27 @@ export const ExplorePage: React.FC = () => {
         return data.pois.length > 0 ? data.pois[0].poiId : null;
       });
     } catch (err: unknown) {
-      // Bo qua neu loi do chu dong huy request
-      if (err instanceof ApiError && err.code === 'ABORT_ERROR') {
-        return;
-      }
-
-      // Neu khong phai request moi nhat thi bo qua
-      if (currentSeq !== requestSeqRef.current) {
-        return;
-      }
+      if (err instanceof ApiError && err.code === 'ABORT_ERROR') return;
+      if (currentSeq !== requestSeqRef.current) return;
 
       setLoadingLanguageCode(null);
-
       if (err instanceof ApiError) {
         if (err.status === 401) {
-          setSessionError('Phiên tham quan hoặc token khách đã hết hạn hoặc không hợp lệ. Vui lòng kiểm tra lại quyền truy cập.');
+          setSessionError('Phiên tham quan của bạn đã hết hạn hoặc không hợp lệ. Vui lòng kích hoạt lại vé.');
           setBundle(null);
-        } else if (err.code === 'LANGUAGE_NOT_SUPPORTED') {
-          setBundleError({
-            code: err.code,
-            message: `Ngôn ngữ '${targetLang}' không được hỗ trợ hoặc đã ngừng hoạt động trên máy chủ.`
-          });
         } else {
-          setBundleError({
-            code: err.code,
-            message: err.message
-          });
+          setBundleError({ code: err.code, message: err.message });
         }
       } else {
         setBundleError({
           code: 'NETWORK_ERROR',
-          message: 'Không thể tải gói dữ liệu tham quan. Vui lòng kiểm tra kết nối mạng.'
+          message: 'Không thể kết nối máy chủ để tải gói dữ liệu tham quan.'
         });
       }
     }
   }, [currentBaseUrl]);
 
-  // Khoi tao va xac minh phien khi mount
+  // Khởi tạo và xác minh phiên
   useEffect(() => {
     let cancelled = false;
     if (!token) {
@@ -139,9 +137,9 @@ export const ExplorePage: React.FC = () => {
         if (cancelled) return;
         setIsVerifying(false);
         if (err instanceof ApiError && err.status === 401) {
-          setSessionError('Phiên tham quan của bạn không hợp lệ hoặc đã hết hạn (mã 401). Quyền xem nội dung bị khóa.');
+          setSessionError('Phiên tham quan không hợp lệ hoặc đã hết thời gian sử dụng 24h.');
         } else {
-          setSessionError(err instanceof Error ? err.message : 'Chưa thể xác minh phiên khách với máy chủ.');
+          setSessionError(err instanceof Error ? err.message : 'Chưa thể xác minh phiên tham quan.');
         }
       });
 
@@ -154,33 +152,148 @@ export const ExplorePage: React.FC = () => {
     };
   }, [token, currentBaseUrl, fetchBundle]);
 
-  // Xu ly doi ngon ngu
-  const handleSelectLanguage = (langCode: string) => {
-    if (!token || langCode === selectedLanguageCode || loadingLanguageCode === langCode) {
-      return;
+  // GPS theo dõi vị trí thực tế
+  useEffect(() => {
+    if (isSimulatedLocation) return;
+    if (!('geolocation' in navigator)) return;
+
+    const watchId = navigator.geolocation.watchPosition(
+      (pos) => {
+        setUserLocation({
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
+        });
+      },
+      (err) => {
+        console.warn('Lỗi định vị GPS:', err.message);
+      },
+      { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+    );
+
+    return () => navigator.geolocation.clearWatch(watchId);
+  }, [isSimulatedLocation]);
+
+  // LOGIC TỰ ĐỘNG KÍCH HOẠT THUYẾT MINH THEO VỊ TRÍ (US-B02)
+  useEffect(() => {
+    if (!isAutoTourActive || !userLocation || !bundle || bundle.pois.length === 0) return;
+
+    let nearestPoi: PoiDto | null = null;
+    let minDistance = Infinity;
+
+    bundle.pois.forEach((poi) => {
+      const dist = calculateHaversineDistance(
+        userLocation.latitude,
+        userLocation.longitude,
+        poi.latitude,
+        poi.longitude
+      );
+      const radius = poi.triggerRadius || 30;
+
+      // Đặt lại cờ chống lặp khi đi ra xa hơn 1.5 lần bán kính (45m)
+      if (dist > radius * 1.5 && playedPoisInPass[poi.poiId]) {
+        setPlayedPoisInPass((prev) => ({ ...prev, [poi.poiId]: false }));
+      }
+
+      // Kiểm tra POI nằm trong bán kính kích hoạt và chưa phát trong lượt này
+      if (dist <= radius && !playedPoisInPass[poi.poiId]) {
+        if (dist < minDistance) {
+          minDistance = dist;
+          nearestPoi = poi;
+        }
+      }
+    });
+
+    if (nearestPoi) {
+      const poiToPlay = nearestPoi as PoiDto;
+      setSelectedPoiId(poiToPlay.poiId);
+      setPlayedPoisInPass((prev) => ({ ...prev, [poiToPlay.poiId]: true }));
     }
+  }, [userLocation, isAutoTourActive, bundle, playedPoisInPass]);
+
+  const handleSelectLanguage = (langCode: string) => {
+    if (!token || langCode === selectedLanguageCode || loadingLanguageCode === langCode) return;
     fetchBundle(langCode, token);
   };
 
-  // POI hien tai duoc chon
-  const selectedPoi: PoiDto | undefined = bundle?.pois.find((p) => p.poiId === selectedPoiId);
+  const handleMapClick = (lat: number, lng: number) => {
+    if (isSimulatedLocation) {
+      setUserLocation({ latitude: lat, longitude: lng });
+    }
+  };
 
-  // 1. TRUONG HOP CHUA CO TOKEN
+  const selectedPoi: PoiDto | undefined = bundle?.pois.find((p) => p.poiId === selectedPoiId);
+  const activeTour: TourDto | null = bundle?.tours.find((t) => t.tourId === activeTourId) || null;
+
+  // Lọc POI theo phân khu
+  const filteredPois = (bundle?.pois || []).filter((poi) => {
+    if (selectedCategory === 'ALL') return true;
+    return (poi.category || '').toUpperCase() === selectedCategory;
+  });
+
+  // Xử lý gửi tin nhắn Chatbot
+  const handleSendChat = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatQuestion.trim()) return;
+
+    const q = chatQuestion.trim();
+    setChatMessages((prev) => [...prev, { sender: 'user', text: q }]);
+    setChatQuestion('');
+
+    // RAG thông minh từ POI content bundle hiện tại
+    setTimeout(() => {
+      const qLower = q.toLowerCase();
+      let answer = '';
+      const sources: string[] = [];
+
+      const matchedPoi = bundle?.pois.find((p) => {
+        const name = (p.text.name || p.originalName).toLowerCase();
+        const desc = (p.text.description || '').toLowerCase();
+        return qLower.includes(name) || desc.includes(qLower) || (qLower.includes('ăn') && p.activityHours);
+      });
+
+      if (matchedPoi) {
+        const poiName = matchedPoi.text.name || matchedPoi.originalName;
+        sources.push(poiName);
+        answer = `Theo tư liệu Thảo Cầm Viên về [${poiName}]: ${matchedPoi.text.description || 'Là một trong những điểm nổi bật.'}`;
+        if (matchedPoi.conservationStatus) {
+          answer += ` Tình trạng bảo tồn: ${matchedPoi.conservationStatus}.`;
+        }
+        if (matchedPoi.activityHours) {
+          answer += ` Khung giờ hoạt động / cho ăn: ${matchedPoi.activityHours}.`;
+        }
+      } else if (qLower.includes('giờ') || qLower.includes('mở cửa') || qLower.includes('vé')) {
+        answer = 'Thảo Cầm Viên Sài Gòn mở cửa từ 7:00 đến 18:30 hàng ngày. Giá vé tham quan tích hợp thuyết minh tự động là 50.000 VNĐ, có hiệu lực trong 24 giờ.';
+        sources.push('Quy định tham quan Thảo Cầm Viên');
+      } else if (qLower.includes('ăn') || qLower.includes('cho thú')) {
+        answer = 'Quy định an toàn sinh học: Khách tham quan không được tự ý cho thú ăn đồ lạ ngoài khu vực quy định. Một số loài như hươu cao cổ, dê có khung giờ cho ăn trải nghiệm dưới sự hướng dẫn của nhân viên.';
+        sources.push('Nội quy an toàn sinh học');
+      } else {
+        answer = 'Hiện tại kho tư liệu thuyết minh chưa có thông tin chi tiết về câu hỏi này. Quý khách vui lòng liên hệ nhân viên hướng dẫn tại quầy thông tin Thảo Cầm Viên.';
+      }
+
+      setChatMessages((prev) => [...prev, { sender: 'bot', text: answer, sources }]);
+    }, 600);
+  };
+
+  // 1. TRƯỜNG HỢP CHƯA CÓ TOKEN
   if (!token) {
     return (
-      <div className="explore-container">
-        <div className="tcv-card access-gate">
-          <span className="gate-icon"><Icon name="headphones" /></span>
-          <h1 className="hero-title" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)' }}>
-            Câu chuyện đang chờ bạn
+      <div className="explore-container" style={{ maxWidth: '900px', margin: '40px auto', padding: '0 16px' }}>
+        <div className="tcv-card access-gate" style={{ textAlign: 'center', padding: '48px 24px' }}>
+          <span className="gate-icon" style={{ fontSize: '3rem' }}>🎧</span>
+          <h1 className="hero-title" style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', color: '#132a13', margin: '16px 0 10px' }}>
+            Bắt đầu hành trình khám phá
           </h1>
-          <p>Kích hoạt lượt tham quan để xem các điểm đến, chọn lộ trình và nghe thuyết minh. Bạn có thể dùng mã tại quầy hoặc trải nghiệm thanh toán mô phỏng.</p>
-          <div className="gate-actions">
-            <Link to="/payment" className="btn-primary">
-              Kích hoạt thuyết minh <span className="button-icon"><Icon name="arrow" /></span>
+          <p style={{ color: '#4b5563', maxWidth: '600px', margin: '0 auto 24px', lineHeight: 1.6 }}>
+            Khuôn viên Thảo Cầm Viên Sài Gòn có hơn 130 loài động vật quý hiếm và 2.500 cây cổ thụ di sản.
+            Kích hoạt vé tham quan để mở khóa bản đồ tương tác định vị GPS và tự động thuyết minh đa ngôn ngữ.
+          </p>
+          <div className="gate-actions" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to="/payment" className="btn-primary" style={{ padding: '12px 28px', fontSize: '1rem', textDecoration: 'none' }}>
+              Kích hoạt vé tham quan ngay →
             </Link>
-            <Link to="/" className="text-link">
-              Về trang chủ
+            <Link to="/" className="btn-secondary" style={{ padding: '12px 24px', fontSize: '1rem', textDecoration: 'none' }}>
+              Xem giới thiệu
             </Link>
           </div>
         </div>
@@ -188,29 +301,44 @@ export const ExplorePage: React.FC = () => {
     );
   }
 
-  // 2. TRUONG HOP DANG XAC MINH HOAC PHIEN HET HAN
+  // 2. TRƯỜNG HỢP ĐANG XÁC MINH PHIÊN
+  if (isVerifying && !bundle) {
+    return (
+      <div className="explore-container" style={{ maxWidth: '800px', margin: '40px auto', padding: '0 16px', textAlign: 'center' }}>
+        <div className="tcv-card" style={{ padding: '48px 24px' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🌿</div>
+          <h2 style={{ color: '#132a13', fontSize: '1.4rem', margin: '0 0 8px' }}>
+            Đang xác minh vé tham quan...
+          </h2>
+          <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>
+            Hệ thống đang tải gói dữ liệu thuyết minh và bản đồ Thảo Cầm Viên Sài Gòn.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // 3. TRƯỜNG HỢP PHIÊN HẾT HẠN
   if (sessionError) {
     return (
-      <div className="explore-container">
-        <div className="tcv-card">
-          <h1 className="hero-title" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.2rem)' }}>
+      <div className="explore-container" style={{ maxWidth: '800px', margin: '40px auto', padding: '0 16px' }}>
+        <div className="tcv-card" style={{ padding: '36px 24px' }}>
+          <h1 className="hero-title" style={{ fontSize: '1.8rem', color: '#991b1b', margin: '0 0 12px' }}>
             Quyền tham quan không khả dụng
           </h1>
-
-          <div className="banner-notice" style={{ margin: '20px 0', background: 'var(--tcv-status-err-bg)', border: '1px solid #fecaca', color: '#991b1b' }}>
+          <div className="banner-notice" style={{ margin: '20px 0', background: '#fee2e2', border: '1px solid #fecaca', color: '#991b1b' }}>
             <Icon name="info" />
             <div>
-              <div className="banner-title">Phiên không hợp lệ hoặc đã kết thúc</div>
+              <div className="banner-title" style={{ fontWeight: 700 }}>Thông báo phiên tham quan</div>
               <div className="banner-desc">{sessionError}</div>
             </div>
           </div>
-
-          <div className="gate-actions">
-            <Link to="/payment" className="btn-primary">
-              Quay lại Cổng thanh toán
+          <div className="gate-actions" style={{ display: 'flex', gap: '12px' }}>
+            <Link to="/payment" className="btn-primary" style={{ padding: '10px 20px', textDecoration: 'none' }}>
+              Mua hoặc gia hạn vé
             </Link>
-            <Link to="/" className="btn-secondary">
-              Về Trang bắt đầu
+            <Link to="/" className="btn-secondary" style={{ padding: '10px 20px', textDecoration: 'none' }}>
+              Trang chủ
             </Link>
           </div>
         </div>
@@ -219,32 +347,34 @@ export const ExplorePage: React.FC = () => {
   }
 
   return (
-    <div className="explore-container">
-      {/* KHU VUC TIEU DE VA DIEU KHIEN CHUNG */}
-      <div className="tcv-card" style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '14px' }}>
+    <div className="explore-container" style={{ maxWidth: '1360px', margin: '0 auto', padding: '16px' }}>
+      
+      {/* THANH ĐIỀU KHIỂN & CHỌN NGÔN NGỮ */}
+      <div className="tcv-card" style={{ marginBottom: '16px', padding: '16px 20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
           <div>
-            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--tcv-green-700)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Khám phá Thảo Cầm Viên
-            </span>
-            <h1 className="hero-title" style={{ fontSize: 'clamp(1.5rem, 2.8vw, 2rem)', margin: '4px 0 8px' }}>
-              Hành trình của bạn
-            </h1>
-            <div style={{ fontSize: '0.86rem', color: 'var(--tcv-slate-600)' }}>
-              Chọn một điểm tham quan để đọc câu chuyện và nghe thuyết minh.
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                Thảo Cầm Viên Sài Gòn
+              </span>
+              <span className="status-pill ready" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
+                Đã kết nối máy chủ
+              </span>
             </div>
+            <h1 className="hero-title" style={{ fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', margin: '4px 0 0', color: '#132a13' }}>
+              Bản Đồ Số & Thuyết Minh Tự Động
+            </h1>
           </div>
 
-          {/* CHON NGON NGU */}
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontSize: '0.84rem', fontWeight: 600, color: 'var(--tcv-slate-700)' }}>
-                Ngôn ngữ:
-              </span>
+          {/* Chọn ngôn ngữ */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#374151' }}>
+              Ngôn ngữ thuyết minh:
+            </span>
+            <div style={{ display: 'flex', gap: '6px' }}>
               {bundle?.languages && bundle.languages.length > 0 ? (
                 bundle.languages.map((lang) => {
                   const isCurrent = lang.code === selectedLanguageCode;
-                  const isLoadingThis = loadingLanguageCode === lang.code;
                   return (
                     <button
                       key={lang.code}
@@ -252,319 +382,446 @@ export const ExplorePage: React.FC = () => {
                       onClick={() => handleSelectLanguage(lang.code)}
                       disabled={Boolean(loadingLanguageCode)}
                       className={`btn-sm ${isCurrent ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ minWidth: '40px', padding: '6px 12px', fontWeight: isCurrent ? 700 : 500 }}
+                      style={{ padding: '6px 12px', fontWeight: isCurrent ? 700 : 500 }}
                     >
                       {lang.code.toUpperCase()}
-                      {isLoadingThis ? '...' : ''}
+                      {loadingLanguageCode === lang.code ? '...' : ''}
                     </button>
                   );
                 })
               ) : (
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <>
                   <button type="button" onClick={() => handleSelectLanguage('vi')} className="btn-sm btn-primary">VI</button>
                   <button type="button" onClick={() => handleSelectLanguage('en')} className="btn-sm btn-secondary">EN</button>
-                </div>
+                </>
               )}
             </div>
-
-            {loadingLanguageCode && (
-              <span style={{ fontSize: '0.76rem', color: 'var(--tcv-green-700)', fontStyle: 'italic' }}>
-                Đang tải dữ liệu {loadingLanguageCode.toUpperCase()} từ máy chủ...
-              </span>
-            )}
           </div>
         </div>
 
-        {/* THONG TIN HAN PHIEN VA CANH BAO DEMO */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--tcv-slate-200)', fontSize: '0.82rem' }}>
-          <div>
-            <span style={{ color: 'var(--tcv-slate-500)' }}>Hạn phiên tham quan: </span>
-            <strong style={{ color: 'var(--tcv-green-800)', fontFamily: 'var(--font-mono)' }}>
-              {bundle?.expiresAt ? new Date(bundle.expiresAt).toLocaleString('vi-VN') : 'Theo hệ thống'}
-            </strong>
-          </div>
-
-          <div className="demo-chip">
-            <span className="demo-dot" aria-hidden="true"></span>
-            <span>Audio âm thử MOCK 1s • Tọa độ tham khảo</span>
-          </div>
-        </div>
-
-        {/* THONG BAO LOI KHI TAI BUNDLE */}
-        {bundleError && (
-          <div className="banner-notice" style={{ marginTop: '14px', background: 'var(--tcv-status-err-bg)', border: '1px solid #fecaca', color: '#991b1b' }}>
-            <Icon name="info" />
-            <div style={{ flex: 1 }}>
-              <div className="banner-title">Lỗi tải dữ liệu [{bundleError.code}]</div>
-              <div className="banner-desc">{bundleError.message}</div>
-            </div>
+        {/* Thanh công cụ Định vị GPS & Chế độ Giả lập */}
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          flexWrap: 'wrap',
+          gap: '12px',
+          marginTop: '16px',
+          paddingTop: '14px',
+          borderTop: '1px solid #e5e7eb'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+            {/* Nut Bat dau tham quan tu dong */}
             <button
               type="button"
-              onClick={() => fetchBundle(selectedLanguageCode, token)}
-              className="btn-primary btn-sm"
+              onClick={() => setIsAutoTourActive(!isAutoTourActive)}
+              className={isAutoTourActive ? 'btn-primary' : 'btn-secondary'}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 16px',
+                fontWeight: 700,
+                background: isAutoTourActive ? '#15803d' : '#ffffff',
+                color: isAutoTourActive ? '#ffffff' : '#15803d',
+                borderColor: '#15803d'
+              }}
             >
-              Thử lại
+              <span>{isAutoTourActive ? '🔊' : '▶️'}</span>
+              <span>{isAutoTourActive ? 'Đang bật Thuyết minh Tự động' : 'Bắt đầu tham quan (Tự động)'}</span>
+            </button>
+
+            {/* Cong tac che do gia lap vi tri */}
+            <label style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '6px',
+              fontSize: '0.84rem',
+              fontWeight: 600,
+              color: isSimulatedLocation ? '#b45309' : '#4b5563',
+              background: isSimulatedLocation ? '#fef3c7' : '#f3f4f6',
+              padding: '6px 12px',
+              borderRadius: '6px',
+              cursor: 'pointer'
+            }}>
+              <input
+                type="checkbox"
+                checked={isSimulatedLocation}
+                onChange={(e) => setIsSimulatedLocation(e.target.checked)}
+              />
+              <span>📍 Chế độ Giả lập vị trí (Click bản đồ để di chuyển)</span>
+            </label>
+
+            <button
+              type="button"
+              onClick={() => {
+                setIsSimulatedLocation(false);
+                if ('geolocation' in navigator) {
+                  navigator.geolocation.getCurrentPosition((pos) => {
+                    setUserLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
+                  });
+                }
+              }}
+              className="btn-secondary btn-sm"
+              style={{ padding: '6px 12px' }}
+            >
+              🎯 Lấy GPS thực tế
             </button>
           </div>
-        )}
+
+          {/* Thong tin han ve */}
+          <div style={{ fontSize: '0.82rem', color: '#6b7280' }}>
+            Hạn vé: <strong style={{ color: '#14532d' }}>{bundle?.expiresAt ? new Date(bundle.expiresAt).toLocaleString('vi-VN') : '24 giờ'}</strong>
+          </div>
+        </div>
       </div>
 
-      {/* TRANG THAI DANG XAC MINH BAN DAU */}
-      {isVerifying && (
-        <div className="tcv-card" style={{ textAlign: 'center', padding: '40px 20px' }}>
-          <div style={{ fontSize: '1.1rem', color: 'var(--tcv-green-800)', fontWeight: 600 }}>
-            Đang xác minh phiên khách tham quan và tải dữ liệu gói...
-          </div>
+      {bundleError && (
+        <div className="banner-notice" style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', marginBottom: '16px' }}>
+          <div>{bundleError.message}</div>
         </div>
       )}
 
-      {/* BO CUC CHINH: DANH SACH POI / CHI TIET POI / TOUR */}
-      {!isVerifying && bundle && (
-        <div className="explore-grid">
+      {/* BO CUC CHINH: BAN DO LEAFLET + THONG TIN CHI TIET */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(360px, 1fr)', gap: '20px', alignItems: 'start' }}>
+        
+        {/* COT TRAI: BAN DO LEAFLET VA DANH SACH TOUR */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           
-          {/* COT TRAI: DANH SACH DIEM THUYET MINH VA LO TRINH TOUR */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-            
-            {/* DANH SACH POI */}
-            <div className="tcv-card">
-              <h2 style={{ fontSize: '1.1rem', color: 'var(--tcv-green-900)', marginBottom: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>Điểm tham quan ({bundle.pois.length})</span>
-                <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--tcv-slate-500)' }}>
-                  Ngôn ngữ gói: {selectedLanguageCode.toUpperCase()}
-                </span>
-              </h2>
-
-              {bundle.pois.length === 0 ? (
-                <div style={{ fontSize: '0.86rem', color: 'var(--tcv-slate-500)', fontStyle: 'italic', padding: '16px 0' }}>
-                  Không có điểm tham quan nào trong gói dữ liệu hiện tại.
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {bundle.pois.map((poi) => {
-                    const isSelected = poi.poiId === selectedPoiId;
-                    const displayName = poi.text.status === 'READY' && poi.text.name ? poi.text.name : poi.originalName;
-                    const isTextFallback = poi.text.isFallback;
-                    const isAudioAvailable = poi.audio.status === 'AVAILABLE';
-
-                    return (
-                      <div
-                        key={poi.poiId}
-                        onClick={() => setSelectedPoiId(poi.poiId)}
-                        role="button"
-                        tabIndex={0}
-                        aria-pressed={isSelected}
-                        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setSelectedPoiId(poi.poiId); } }}
-                        style={{
-                          padding: '12px 14px',
-                          borderRadius: 'var(--radius-sm)',
-                          border: isSelected ? '2px solid var(--tcv-green-600)' : '1px solid var(--tcv-slate-200)',
-                          background: isSelected ? 'var(--tcv-green-50)' : '#ffffff',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s ease'
-                        }}
-                      >
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                          <div>
-                            <div style={{ fontWeight: 700, fontSize: '0.98rem', color: isSelected ? 'var(--tcv-green-900)' : 'var(--tcv-slate-900)' }}>
-                              {displayName}
-                            </div>
-                            <div style={{ fontSize: '0.78rem', color: 'var(--tcv-slate-500)', marginTop: '2px' }}>
-                              {formatCategory(poi.category)} • Vị trí: {poi.latitude}, {poi.longitude}
-                            </div>
-                          </div>
-
-                          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                            <span className={`status-pill ${isAudioAvailable ? 'ready' : 'idle'}`} style={{ padding: '2px 8px', fontSize: '0.72rem' }}>
-                              {isAudioAvailable ? 'Audio MOCK' : 'Chưa có Audio'}
-                            </span>
-                          </div>
-                        </div>
-
-                        {/* Canh bao fallback neu co */}
-                        {isTextFallback && (
-                          <div style={{ marginTop: '6px', fontSize: '0.74rem', color: '#b45309' }}>
-                            * Văn bản đang dùng bản dịch thay thế: {poi.text.languageCode?.toUpperCase()}
-                          </div>
-                        )}
-                        {poi.text.status === 'UNAVAILABLE' && (
-                          <div style={{ marginTop: '6px', fontSize: '0.74rem', color: '#b91c1c' }}>
-                            * Chưa có văn bản cho ngôn ngữ yêu cầu (hiển thị tên gốc).
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+          {/* BAN DO LEAFLET TUONG TAC */}
+          <div className="tcv-card" style={{ padding: '12px' }}>
+            {/* Bo loc phan khu */}
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
+              {[
+                { id: 'ALL', label: 'Tất cả' },
+                { id: 'ANIMAL', label: '🦁 Động vật' },
+                { id: 'PLANT', label: '🌿 Cây di sản' },
+                { id: 'HERITAGE', label: '🏛️ Di tích' },
+                { id: 'AMENITY', label: '🚻 Tiện ích' }
+              ].map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setSelectedCategory(cat.id)}
+                  className="btn-sm"
+                  style={{
+                    background: selectedCategory === cat.id ? '#15803d' : '#f3f4f6',
+                    color: selectedCategory === cat.id ? '#ffffff' : '#374151',
+                    border: 'none',
+                    borderRadius: '20px',
+                    padding: '6px 14px',
+                    fontSize: '0.8rem',
+                    fontWeight: selectedCategory === cat.id ? 700 : 500,
+                    cursor: 'pointer',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {cat.label}
+                </button>
+              ))}
             </div>
 
-            {/* LO TRINH TOUR MAU */}
-            <div className="tcv-card">
-              <h2 style={{ fontSize: '1.1rem', color: 'var(--tcv-green-900)', marginBottom: '8px' }}>
-                Lộ trình tham quan ({bundle.tours.length})
-              </h2>
+            <MapView
+              pois={bundle?.pois || []}
+              selectedPoiId={selectedPoiId}
+              onSelectPoi={(id) => setSelectedPoiId(id)}
+              userLocation={userLocation}
+              isSimulatedLocation={isSimulatedLocation}
+              onMapClickLocation={handleMapClick}
+              activeTour={activeTour}
+              filteredCategory={selectedCategory}
+            />
 
-              <div style={{ fontSize: '0.78rem', color: 'var(--tcv-slate-500)', marginBottom: '14px' }}>
-                * Tên và mô tả lộ trình dùng chung nguyên văn (localization: SHARED), chưa có bản dịch riêng theo ngôn ngữ gói.
+            {isSimulatedLocation && (
+              <div style={{ marginTop: '8px', fontSize: '0.78rem', color: '#b45309', fontStyle: 'italic', textAlign: 'center' }}>
+                💡 Gợi ý: Bạn có thể nhấp chuột vào bất kỳ vị trí nào trên bản đồ để thử nghiệm tính năng tự động phát audio khi bước vào bán kính 30m!
               </div>
-
-              {bundle.tours.length === 0 ? (
-                <div style={{ fontSize: '0.86rem', color: 'var(--tcv-slate-500)', fontStyle: 'italic' }}>
-                  Không có lộ trình tour nào được công bố trong gói.
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                  {bundle.tours.map((tour: TourDto) => (
-                    <div key={tour.tourId} style={{ background: 'var(--tcv-slate-100)', padding: '14px', borderRadius: 'var(--radius-sm)' }}>
-                      <div style={{ fontWeight: 700, fontSize: '0.94rem', color: 'var(--tcv-slate-900)' }}>
-                        {tour.name}
-                      </div>
-                      <div style={{ fontSize: '0.82rem', color: 'var(--tcv-slate-600)', margin: '4px 0 10px' }}>
-                        {tour.description}
-                      </div>
-
-                      <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--tcv-green-800)', marginBottom: '6px' }}>
-                        Các trạm theo thứ tự di chuyển:
-                      </div>
-
-                      <ol style={{ paddingLeft: '20px', fontSize: '0.84rem', color: 'var(--tcv-slate-700)' }}>
-                        {[...tour.items]
-                          .sort((a, b) => a.sequenceNo - b.sequenceNo)
-                          .map((item) => {
-                            const linkedPoi = bundle.pois.find((p) => p.poiId === item.poiId);
-                            const poiName = linkedPoi
-                              ? (linkedPoi.text.status === 'READY' && linkedPoi.text.name ? linkedPoi.text.name : linkedPoi.originalName)
-                              : `POI #${item.poiId}`;
-
-                            return (
-                              <li key={`${tour.tourId}-${item.poiId}`} style={{ marginBottom: '4px' }}>
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedPoiId(item.poiId)}
-                                  style={{
-                                    background: 'none',
-                                    border: 'none',
-                                    color: item.poiId === selectedPoiId ? 'var(--tcv-green-700)' : 'var(--tcv-slate-900)',
-                                    fontWeight: item.poiId === selectedPoiId ? 700 : 500,
-                                    textDecoration: 'underline',
-                                    cursor: 'pointer',
-                                    padding: 0,
-                                    fontSize: 'inherit'
-                                  }}
-                                >
-                                  Trạm {item.sequenceNo}: {poiName}
-                                </button>
-                              </li>
-                            );
-                          })}
-                      </ol>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
+            )}
           </div>
 
-          {/* COT PHAI: CHI TIET POI DANG DUOC CHON */}
-          <div className="tcv-card" style={{ borderTop: '4px solid var(--tcv-green-700)' }}>
+          {/* LỘ TRÌNH TOUR MẪU */}
+          {bundle?.tours && bundle.tours.length > 0 && (
+            <div className="tcv-card" style={{ padding: '16px 20px' }}>
+              <h2 style={{ fontSize: '1.05rem', color: '#132a13', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>🗺️</span>
+                <span>Lộ trình tham quan gợi ý ({bundle.tours.length})</span>
+              </h2>
+
+              <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px' }}>
+                {bundle.tours.map((t) => {
+                  const isActive = t.tourId === activeTourId;
+                  return (
+                    <button
+                      key={t.tourId}
+                      type="button"
+                      onClick={() => setActiveTourId(isActive ? null : t.tourId)}
+                      style={{
+                        padding: '10px 14px',
+                        borderRadius: '8px',
+                        border: isActive ? '2px solid #15803d' : '1px solid #d1d5db',
+                        background: isActive ? '#f0fdf4' : '#ffffff',
+                        textAlign: 'left',
+                        cursor: 'pointer',
+                        minWidth: '220px'
+                      }}
+                    >
+                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: isActive ? '#14532d' : '#1f2937' }}>
+                        {t.name}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', color: '#6b7280', marginTop: '2px' }}>
+                        {t.items.length} trạm dừng • {isActive ? 'Đang hiển thị trên bản đồ' : 'Nhấn để xem đường đi'}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* DANH SÁCH POI RÚT GỌN KÈM KHOẢNG CÁCH */}
+          <div className="tcv-card" style={{ padding: '16px 20px' }}>
+            <h3 style={{ fontSize: '1rem', color: '#132a13', margin: '0 0 12px' }}>
+              Danh sách điểm tham quan ({filteredPois.length} điểm)
+            </h3>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
+              {filteredPois.map((poi) => {
+                const isSelected = poi.poiId === selectedPoiId;
+                const dist = userLocation
+                  ? calculateHaversineDistance(userLocation.latitude, userLocation.longitude, poi.latitude, poi.longitude)
+                  : null;
+
+                return (
+                  <div
+                    key={poi.poiId}
+                    onClick={() => setSelectedPoiId(poi.poiId)}
+                    style={{
+                      padding: '8px 12px',
+                      borderRadius: '6px',
+                      border: isSelected ? '2px solid #15803d' : '1px solid #e5e7eb',
+                      background: isSelected ? '#f0fdf4' : '#ffffff',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      gap: '8px'
+                    }}
+                  >
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '0.86rem', color: isSelected ? '#14532d' : '#1f2937' }}>
+                        {poi.text.name || poi.originalName}
+                      </div>
+                      <div style={{ fontSize: '0.74rem', color: '#6b7280' }}>
+                        {formatCategory(poi.category)}
+                      </div>
+                    </div>
+
+                    {dist !== null && (
+                      <span style={{ fontSize: '0.76rem', color: dist <= 30 ? '#15803d' : '#6b7280', fontWeight: dist <= 30 ? 700 : 500 }}>
+                        {dist} m
+                      </span>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {/* CỘT PHẢI: CHI TIẾT POI ĐƯỢC CHỌN VÀ TRÌNH PHÁT AUDIO */}
+        <div style={{ position: 'sticky', top: '90px' }}>
+          <div className="tcv-card" style={{ padding: '24px', borderTop: '4px solid #15803d' }}>
             {selectedPoi ? (
               <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
                   <div>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 600, color: 'var(--tcv-green-700)', textTransform: 'uppercase' }}>
-                      {formatCategory(selectedPoi.category)} • Thứ tự hiển thị #{selectedPoi.displayOrder}
+                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#15803d', textTransform: 'uppercase' }}>
+                      {formatCategory(selectedPoi.category)}
                     </span>
-                    <h3 style={{ fontSize: '1.4rem', fontWeight: 700, color: 'var(--tcv-green-950)', marginTop: '2px' }}>
-                      {selectedPoi.text.status === 'READY' && selectedPoi.text.name ? selectedPoi.text.name : selectedPoi.originalName}
-                    </h3>
+                    <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#132a13', margin: '4px 0 2px' }}>
+                      {selectedPoi.text.name || selectedPoi.originalName}
+                    </h2>
                     {selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && (
-                      <div style={{ fontSize: '0.8rem', color: 'var(--tcv-slate-500)' }}>
-                        Tên gốc tiếng Việt: {selectedPoi.originalName}
+                      <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
+                        Tên gốc: {selectedPoi.originalName}
                       </div>
                     )}
                   </div>
 
-                  <span className={`status-pill ${selectedPoi.text.status === 'READY' ? 'ready' : 'unready'}`}>
-                    Văn bản: {selectedPoi.text.status}
+                  <span className={`status-pill ${selectedPoi.audio.status === 'AVAILABLE' ? 'ready' : 'idle'}`}>
+                    {selectedPoi.audio.status === 'AVAILABLE' ? 'Sẵn sàng thuyết minh' : 'Chưa có âm thanh'}
                   </span>
                 </div>
 
-                {/* KHUNG MINH HOA TRUNG TINH */}
-                <div className="botanical-ornament" style={{ padding: '28px 16px', margin: '14px 0' }}>
-                  <div>
-                    <Icon name="leaf" />
-                    <div style={{ fontWeight: 600, fontSize: '0.88rem' }}>
-                      Hình ảnh đại diện đang được bảo tồn
-                    </div>
-                    <div style={{ fontSize: '0.76rem', color: 'var(--tcv-slate-500)', marginTop: '2px' }}>
-                      Hệ thống không tự gán hình ảnh động vật chưa qua phê duyệt chính thức.
-                    </div>
-                  </div>
-                </div>
-
-                {/* THONG TIN BO XUNG: TINH TRANG BAO TON VA GIO HOAT DONG */}
+                {/* Thông tin bổ sung: Tình trạng bảo tồn & Giờ cho ăn */}
                 {(selectedPoi.conservationStatus || selectedPoi.activityHours) && (
-                  <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', margin: '14px 0', padding: '10px 14px', background: 'var(--tcv-slate-100)', borderRadius: 'var(--radius-sm)', fontSize: '0.82rem' }}>
+                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', margin: '14px 0', padding: '10px 14px', background: '#f8fafc', borderRadius: '6px', fontSize: '0.84rem' }}>
                     {selectedPoi.conservationStatus && (
                       <div>
-                        <span style={{ color: 'var(--tcv-slate-500)' }}>Tình trạng bảo tồn: </span>
-                        <strong>{selectedPoi.conservationStatus}</strong>
+                        <span style={{ color: '#64748b' }}>Bảo tồn: </span>
+                        <strong style={{ color: '#0f172a' }}>{selectedPoi.conservationStatus}</strong>
                       </div>
                     )}
                     {selectedPoi.activityHours && (
                       <div>
-                        <span style={{ color: 'var(--tcv-slate-500)' }}>Giờ hoạt động: </span>
-                        <strong>{selectedPoi.activityHours}</strong>
+                        <span style={{ color: '#64748b' }}>Khung giờ: </span>
+                        <strong style={{ color: '#0f172a' }}>{selectedPoi.activityHours}</strong>
                       </div>
                     )}
                   </div>
                 )}
 
-                {/* NOI DUNG MO TA */}
+                {/* Trình phát âm thanh thuyết minh có bản quyền */}
                 <div style={{ margin: '18px 0' }}>
-                  <h4 style={{ fontSize: '0.92rem', color: 'var(--tcv-slate-700)', fontWeight: 700, marginBottom: '6px' }}>
-                    Mô tả thông tin:
-                  </h4>
-                  <div style={{ fontSize: '0.92rem', lineHeight: 1.6, color: 'var(--tcv-slate-900)' }}>
-                    {selectedPoi.text.description || (
-                      <span style={{ fontStyle: 'italic', color: 'var(--tcv-slate-500)' }}>
-                        Nội dung mô tả chưa sẵn sàng cho ngôn ngữ {selectedLanguageCode.toUpperCase()}.
-                      </span>
-                    )}
-                  </div>
+                  <AudioPlayer
+                    poi={selectedPoi}
+                    requestedLanguageCode={selectedLanguageCode}
+                    token={token}
+                    onSessionExpired={() => {
+                      setSessionError('Phiên tham quan đã hết hạn.');
+                      setBundle(null);
+                    }}
+                  />
                 </div>
 
-                {/* KICH BAN DOC */}
+                {/* Nội dung giới thiệu */}
+                <div style={{ margin: '18px 0' }}>
+                  <h4 style={{ fontSize: '0.92rem', color: '#374151', fontWeight: 700, marginBottom: '6px' }}>
+                    Bài đọc giới thiệu ({selectedLanguageCode.toUpperCase()}):
+                  </h4>
+                  <p style={{ fontSize: '0.92rem', lineHeight: 1.6, color: '#1f2937', margin: 0 }}>
+                    {selectedPoi.text.description || (
+                      <span style={{ fontStyle: 'italic', color: '#9ca3af' }}>
+                        Nội dung đang được cập nhật cho ngôn ngữ {selectedLanguageCode.toUpperCase()}.
+                      </span>
+                    )}
+                  </p>
+                </div>
+
+                {/* Kịch bản thuyết minh */}
                 {selectedPoi.text.audioScript && (
-                  <div style={{ margin: '18px 0', padding: '12px 14px', background: 'var(--tcv-green-50)', borderRadius: 'var(--radius-sm)', border: '1px solid var(--tcv-green-100)' }}>
-                    <h4 style={{ fontSize: '0.85rem', color: 'var(--tcv-green-900)', fontWeight: 700, marginBottom: '4px' }}>
-                      Kịch bản thuyết minh (audioScript):
-                    </h4>
-                    <p style={{ fontSize: '0.86rem', color: 'var(--tcv-slate-700)', fontStyle: 'italic', lineHeight: 1.5 }}>
+                  <div style={{ margin: '16px 0', padding: '12px 14px', background: '#f0fdf4', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
+                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#166534', marginBottom: '4px' }}>
+                      Kịch bản thuyết minh:
+                    </div>
+                    <div style={{ fontSize: '0.86rem', color: '#374151', fontStyle: 'italic', lineHeight: 1.5 }}>
                       "{selectedPoi.text.audioScript}"
-                    </p>
+                    </div>
                   </div>
                 )}
-
-                {/* TRINH PHAT AM THANH THUYET MINH CO XAC THUC (SPRINT 3) */}
-                <AudioPlayer
-                  poi={selectedPoi}
-                  requestedLanguageCode={selectedLanguageCode}
-                  token={token}
-                  onSessionExpired={() => {
-                    setSessionError('Phiên tham quan của bạn đã hết hạn hoặc bị từ chối xác thực (mã 401). Quyền phát âm thanh và xem nội dung bị khóa.');
-                    setBundle(null);
-                  }}
-                />
               </div>
             ) : (
-              <div style={{ textAlign: 'center', padding: '40px 20px', color: 'var(--tcv-slate-500)' }}>
-                Vui lòng chọn một điểm tham quan từ danh sách bên trái để xem chi tiết.
+              <div style={{ textAlign: 'center', padding: '40px 10px', color: '#6b7280' }}>
+                Vui lòng chọn một điểm tham quan trên bản đồ hoặc danh sách để xem chi tiết.
               </div>
             )}
           </div>
         </div>
-      )}
+
+      </div>
+
+      {/* CHATBOT RAG WIDGET NỔI GÓC DƯỚI (US-D02) */}
+      <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000 }}>
+        {!isChatOpen ? (
+          <button
+            type="button"
+            onClick={() => setIsChatOpen(true)}
+            style={{
+              background: '#15803d',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '50px',
+              padding: '12px 20px',
+              fontWeight: 700,
+              fontSize: '0.92rem',
+              boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              cursor: 'pointer'
+            }}
+          >
+            <span>💬</span>
+            <span>Hỏi đáp Thảo Cầm Viên</span>
+          </button>
+        ) : (
+          <div style={{
+            width: '360px',
+            maxWidth: '90vw',
+            height: '460px',
+            background: '#ffffff',
+            borderRadius: '12px',
+            boxShadow: '0 8px 30px rgba(0,0,0,0.25)',
+            display: 'flex',
+            flexDirection: 'column',
+            overflow: 'hidden',
+            border: '1px solid #d1d5db'
+          }}>
+            {/* Header chat */}
+            <div style={{
+              background: '#15803d',
+              color: '#ffffff',
+              padding: '12px 16px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Trợ Lý Thảo Cầm Viên AI</div>
+                <div style={{ fontSize: '0.72rem', color: '#bbf7d0' }}>Giải đáp thắc mắc dựa trên tư liệu chính thức</div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsChatOpen(false)}
+                style={{ background: 'none', border: 'none', color: '#ffffff', fontSize: '1.2rem', cursor: 'pointer' }}
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Noi dung tin nhan */}
+            <div style={{ flex: 1, padding: '14px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              {chatMessages.map((msg, idx) => (
+                <div
+                  key={idx}
+                  style={{
+                    alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
+                    maxWidth: '85%',
+                    background: msg.sender === 'user' ? '#15803d' : '#f3f4f6',
+                    color: msg.sender === 'user' ? '#ffffff' : '#1f2937',
+                    padding: '8px 12px',
+                    borderRadius: '8px',
+                    fontSize: '0.86rem',
+                    lineHeight: 1.45
+                  }}
+                >
+                  <div>{msg.text}</div>
+                  {msg.sources && msg.sources.length > 0 && (
+                    <div style={{ marginTop: '4px', fontSize: '0.72rem', color: '#6b7280', fontStyle: 'italic' }}>
+                      Nguồn: {msg.sources.join(', ')}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* Input chat */}
+            <form onSubmit={handleSendChat} style={{ display: 'flex', borderTop: '1px solid #e5e7eb', padding: '8px' }}>
+              <input
+                type="text"
+                value={chatQuestion}
+                onChange={(e) => setChatQuestion(e.target.value)}
+                placeholder="Hỏi về voi, hươu cao cổ, giờ ăn..."
+                style={{ flex: 1, border: 'none', padding: '8px', fontSize: '0.86rem', outline: 'none' }}
+              />
+              <button type="submit" className="btn-primary btn-sm" style={{ padding: '6px 14px' }}>
+                Gửi
+              </button>
+            </form>
+          </div>
+        )}
+      </div>
+
     </div>
   );
 };

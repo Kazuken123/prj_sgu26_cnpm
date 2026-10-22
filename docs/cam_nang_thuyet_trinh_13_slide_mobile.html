@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Cẩm Nang Cầm Điện Thoại Thuyết Trình — 13 Slide PDF</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0b1120;
+      color: #f1f5f9;
+      line-height: 1.65;
+      padding-bottom: 90px;
+    }
+    header {
+      position: sticky;
+      top: 0;
+      background: #1e293b;
+      border-bottom: 1px solid #334155;
+      padding: 10px 14px;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header-left h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+    .header-left .sub {
+      font-size: 11px;
+      color: #94a3b8;
+    }
+    .speaker-pill {
+      background: #0284c7;
+      color: #fff;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
+      letter-spacing: 0.5px;
+    }
+    .jump-bar {
+      display: flex;
+      overflow-x: auto;
+      gap: 6px;
+      padding: 8px 12px;
+      background: #0f172a;
+      border-bottom: 1px solid #1e293b;
+      -webkit-overflow-scrolling: touch;
+    }
+    .jump-bar a {
+      flex: 0 0 auto;
+      padding: 5px 11px;
+      background: #1e293b;
+      color: #94a3b8;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 8px;
+      text-decoration: none;
+    }
+    .jump-bar a.active {
+      background: #38bdf8;
+      color: #0f172a;
+    }
+    .container {
+      padding: 12px 14px;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 10px;
+      align-items: center;
+    }
+    .badge-slide {
+      background: #0284c7;
+      color: #fff;
+      font-size: 12px;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .badge-time {
+      background: #334155;
+      color: #cbd5e1;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 6px;
+    }
+    .badge-words {
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: #94a3b8;
+      font-size: 11px;
+      padding: 2px 7px;
+      border-radius: 6px;
+    }
+    .slide-title {
+      font-size: 17px;
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 10px;
+      line-height: 1.35;
+    }
+    .box-cue {
+      background: #0f172a;
+      border-left: 4px solid #f59e0b;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      border-radius: 0 8px 8px 0;
+    }
+    .box-cue .label {
+      font-size: 10px;
+      font-weight: 800;
+      color: #f59e0b;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 2px;
+    }
+    .box-cue .content {
+      font-size: 12.5px;
+      color: #e2e8f0;
+      font-weight: 500;
+    }
+    .box-warn {
+      background: #451a03;
+      border-left: 4px solid #ef4444;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      border-radius: 0 8px 8px 0;
+    }
+    .box-warn .label {
+      font-size: 10px;
+      font-weight: 800;
+      color: #f87171;
+      text-transform: uppercase;
+      margin-bottom: 2px;
+    }
+    .box-warn .content {
+      font-size: 12px;
+      color: #fecaca;
+    }
+    .speech-box {
+      font-size: 15.5px;
+      color: #f1f5f9;
+      margin-bottom: 14px;
+    }
+    .speech-box p {
+      margin-bottom: 10px;
+    }
+    .speech-box p:last-child {
+      margin-bottom: 0;
+    }
+    .tag-cue {
+      display: inline-block;
+      background: #fef3c7;
+      color: #92400e;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 1px 6px;
+      border-radius: 4px;
+      margin: 0 2px;
+    }
+    .tag-pause {
+      display: inline-block;
+      background: #dbeafe;
+      color: #1e40af;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin: 0 2px;
+    }
+    .tag-emphasis {
+      display: inline-block;
+      background: #fee2e2;
+      color: #991b1b;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 1px 5px;
+      border-radius: 4px;
+      margin: 0 2px;
+    }
+    .qa-box {
+      background: #0f172a;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      padding: 10px 12px;
+      margin-top: 10px;
+    }
+    .qa-toggle {
+      font-size: 12px;
+      font-weight: 700;
+      color: #38bdf8;
+      cursor: pointer;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .qa-content {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .qa-item {
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px dashed #334155;
+    }
+    .qa-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    .qa-q {
+      font-weight: 700;
+      color: #f8fafc;
+      margin-bottom: 3px;
+    }
+    .qa-a {
+      color: #94a3b8;
+    }
+    .footer-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #1e293b;
+      border-top: 1px solid #334155;
+      padding: 8px 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      z-index: 100;
+    }
+    .btn-nav {
+      background: #334155;
+      color: #f8fafc;
+      border: none;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    .btn-nav:active {
+      background: #0284c7;
+    }
+    .nav-indicator {
+      font-size: 13px;
+      color: #94a3b8;
+      font-weight: 700;
+    }
+    .extra-section {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 20px;
+      margin-bottom: 20px;
+    }
+    .extra-section h2 {
+      font-size: 15px;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 10px;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 6px;
+    }
+    .extra-section ul, .extra-section ol {
+      padding-left: 20px;
+      font-size: 13px;
+      color: #cbd5e1;
+    }
+    .extra-section li {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-left">
+      <h1>CHÙA LINH ỨNG — 13 SLIDE</h1>
+      <div class="sub">Bài nói 15 phút gánh nội dung</div>
+    </div>
+    <div class="speaker-pill" id="cur-speaker">BẠN A</div>
+  </header>
+
+  <div class="jump-bar" id="jump-bar"></div>
+
+  <div class="container">
+    <div id="slide-display"></div>
+
+    <div class="extra-section">
+      <h2>10 Con Số Quan Trọng Phải Nhớ</h2>
+      <ol>
+        <li><b>3 lớp:</b> Router, Service và Store đã có code chạy thực tế cho phân hệ nội bộ.</li>
+        <li><b>2 vai trò:</b> STAFF và ADMIN đã có code; khách không phải vai trò đăng nhập thứ ba.</li>
+        <li><b>5 lần sai / 15 phút:</b> Khóa tài khoản tạm thời đã có code chạy thực tế.</li>
+        <li><b>24 giờ:</b> Thời hạn vé khách tính từ lúc trả tiền, là giả định thiết kế cần duyệt.</li>
+        <li><b>50 mét:</b> Bán kính kích hoạt âm thanh mặc định trong thiết kế.</li>
+        <li><b>75 mét:</b> Ngưỡng rời vùng 1.5 lần bán kính để reset cờ chống phát lặp.</li>
+        <li><b>15 ngôn ngữ:</b> Đề xuất của nhóm; PRD ghi 15+ nên chưa chốt chính thức.</li>
+        <li><b>16 bảng dữ liệu:</b> 3 bảng nội bộ đã có code, 13 bảng tham quan mới ở thiết kế.</li>
+        <li><b>51 test đạt:</b> Lượt kiểm thử cục bộ chạy đạt 100%.</li>
+        <li><b>6 job CI xanh:</b> Kiểm tra và đóng gói tự động thành công trên GitHub Actions.</li>
+      </ol>
+    </div>
+
+    <div class="extra-section">
+      <h2>10 Thuật Ngữ Kỹ Thuật — Ví Dụ Đời Thường</h2>
+      <ul>
+        <li><b>Token:</b> Giấy thông hành điện tử tạm thời 24h, khách dùng không cần tạo tài khoản.</li>
+        <li><b>Webhook:</b> Tin nhắn xác nhận tự động từ cổng thanh toán báo máy chủ là khách đã trả tiền.</li>
+        <li><b>Shorted code:</b> Mã ngắn 6 ký tự như phiếu hẹn ngắn hạn đổi vé tại quầy.</li>
+        <li><b>Redis:</b> Ngăn kéo chứa phiếu hẹn tra cứu siêu nhanh và tự hủy khi hết hạn.</li>
+        <li><b>Content Bundle:</b> Gói tài liệu nạp toàn bộ bài viết, tọa độ về điện thoại một lần duy nhất.</li>
+        <li><b>Công thức Haversine:</b> Phép tính khoảng cách đường thẳng giữa 2 tọa độ trên mặt đất.</li>
+        <li><b>RAG:</b> Trợ lý thông minh như thủ thư tra đúng trang sách rồi mới trả lời kèm nguồn.</li>
+        <li><b>Fallback:</b> Lưới dự phòng tự chuyển về tiếng Anh hoặc tiếng Việt khi thiếu âm thanh.</li>
+        <li><b>Giao dịch nguyên tử:</b> Thu tiền và cấp vé phải cùng thành công hoặc cùng hủy bỏ.</li>
+        <li><b>Docker Container:</b> Chiếc thùng hàng đóng gói sẵn phần mềm mang đi đâu chạy cũng y hệt.</li>
+      </ul>
+    </div>
+
+    <div class="extra-section">
+      <h2>Điểm Yếu Thật Của Dự Án — Cách Trả Lời Giảng Viên</h2>
+      <p style="font-size: 13px; color: #cbd5e1; margin-bottom: 8px;">
+        Nếu thầy hỏi xoáy vào điểm yếu: Thừa nhận thẳng thắn 3 điểm có trong báo cáo:
+      </p>
+      <ul style="font-size: 13px; color: #94a3b8;">
+        <li>1. Phân hệ du khách (thanh toán, GPS, bundle, chatbot) mới hoàn thành thiết kế, chưa có dòng code nào chạy thực tế.</li>
+        <li>2. Nhóm tự phát hiện lỗi đăng xuất: dùng mã làm mới cũ sau khi đổi mã chưa thu hồi được phiên do bất đồng bộ giữa hai bộ nhớ.</li>
+        <li>3. Chưa triển khai môi trường máy chủ trực tuyến staging riêng.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="footer-nav">
+    <button class="btn-nav" onclick="prevSlide()">◀ Trước</button>
+    <div class="nav-indicator" id="nav-indicator">1 / 13</div>
+    <button class="btn-nav" onclick="nextSlide()">Sau ▶</button>
+  </div>
+
+  <script>
+    const slidesData = [
+      {
+        num: 1,
+        title: "Hệ Thống Tự Động Thuyết Minh Đa Ngôn Ngữ",
+        time: "0.5 phút",
+        words: "70 từ",
+        speaker: "BẠN A",
+        cue: "Tên đề tài ở trung tâm và danh sách 3 sinh viên nhóm DCT124C1",
+        warn: "",
+        speech: "Kính thưa Thầy Nguyễn Quốc Huy và các bạn, bước chân đến Chùa Linh Ứng, chúng em nhận thấy một khoảng cách lớn giữa bề dày di tích lịch sử và khả năng tự tiếp cận của khách tham quan quốc tế. <span class='tag-cue'>CHỈ VÀO: tên đề tài ở trung tâm</span> Hôm nay, nhóm sinh viên lớp DCT124C1 gồm Lê Văn Hiếu, Lê Đức Anh và Dương Gia Phát xin báo cáo đồ án Hệ thống tự động thuyết minh đa ngôn ngữ. Bài trình bày tập trung vào giải pháp công nghệ, ranh giới giữa phần đã chạy được mã nguồn và phần đang ở mức thiết kế. <span class='tag-cue'>CHỈ VÀO: dòng thông tin nhóm bên dưới</span> Mục tiêu cao nhất là giúp du khách tự do tìm hiểu văn hóa bằng chính tiếng mẹ đẻ của mình. Bây giờ, em xin bắt đầu với những khó khăn thực tế mà du khách đang gặp phải.",
+        qa: [
+          { q: "Mục tiêu lớn nhất của đề tài này trong môn Công nghệ phần mềm là gì?", a: "Dạ thưa Thầy, mục tiêu lớn nhất là áp dụng quy trình công nghệ phần mềm chuẩn mực từ phân tích yêu cầu, bóc tách kiến trúc ba lớp cho máy chủ đến thiết kế cơ sở dữ liệu và tự động kiểm thử, giải quyết bài toán thuyết minh định vị cho du khách." },
+          { q: "Hiện tại nhóm đã có sản phẩm chạy thực tế cho khách chưa?", a: "Dạ thưa Thầy, nhóm xin nói rõ là phân hệ phục vụ du khách hiện mới hoàn thành ở mức phân tích và thiết kế kiến trúc; phần đã có mã nguồn chạy thực tế và vượt qua kiểm thử là nền tảng quản trị tài khoản nội bộ và quy trình kiểm thử tự động." }
+        ]
+      },
+      {
+        num: 2,
+        title: "Ma Sát Trong Trải Nghiệm Và Thách Thức Vận Hành",
+        time: "1.0 phút",
+        words: "135 từ",
+        speaker: "BẠN A",
+        cue: "3 khối ma sát: Ngôn ngữ bản địa, Tra cứu thủ công, Hỏi đáp xác thực",
+        warn: "",
+        speech: "Đứng trước tượng Phật Bà uy nghiêm, một vị khách nước ngoài muốn hiểu về ý nghĩa lịch sử nhưng lại không có người hướng dẫn và không đọc được tiếng Việt. <span class='tag-cue'>CHỈ VÀO: khối bên trái, Thiếu hụt Ngôn ngữ Bản địa</span> Đó là rào cản thứ nhất: sự thiếu hụt nội dung bản địa hóa, đòi hỏi hệ thống phải chuẩn bị sẵn giọng đọc chuẩn cho ít nhất 15 ngôn ngữ. Khó khăn thứ hai xuất hiện khi khách có điện thoại nhưng phải liên tục cúi đầu bấm tìm từng bài thuyết minh. <span class='tag-cue'>CHỈ VÀO: khối ở giữa, Gián đoạn Do Tra Cứu Thủ Công</span> Thao tác này làm đứt gãy trải nghiệm ngắm cảnh, bắt buộc hệ thống phải tự phát âm thanh theo tọa độ di chuyển. <span class='tag-pause'>NGHỈ</span> Cuối cùng, khi khách có thắc mắc sâu hơn, họ cần một trợ lý giải đáp tức thì. <span class='tag-cue'>CHỈ VÀO: khối bên phải, Nhu cầu Hỏi đáp Xác thực</span> Trợ lý này phải lấy thông tin từ kho tư liệu đã kiểm duyệt, tuyệt đối không được tự bịa ra kiến thức sai lệch lịch sử. Ba bài toán này định hình toàn bộ thiết kế nghiệp vụ của nhóm. Tiếp theo, em xin giải thích vì sao nhóm chọn ứng dụng web thay vì bắt khách cài ứng dụng.",
+        qa: [
+          { q: "Con số 15 ngôn ngữ đã là cam kết cuối cùng chưa?", a: "Dạ thưa Thầy, con số 15 ngôn ngữ là đề xuất cụ thể của nhóm trong báo cáo; tài liệu gốc ghi yêu cầu là 15 ngôn ngữ trở lên nên số lượng ngôn ngữ nghiệm thu thực tế cần được Thầy phê duyệt trước khi hoàn thành." },
+          { q: "Hệ thống kiểm soát việc trợ lý trí tuệ nhân tạo nói sai bằng cách nào?", a: "Dạ thưa Thầy, hệ thống áp dụng cơ chế truy xuất dữ liệu có căn cứ, bắt buộc câu trả lời chỉ được rút trích từ tài liệu văn hóa do ban quản lý phê duyệt; phần này nhóm đã thiết kế xong nhưng chưa lập trình mã nguồn." }
+        ]
+      },
+      {
+        num: 3,
+        title: "Quyết Định Kiến Trúc Tối Ưu Hóa Tiếp Cận",
+        time: "1.5 phút",
+        words: "205 từ",
+        speaker: "BẠN A",
+        cue: "Cột Web-Bundle khung vàng và khung cam Chiến lược Content Bundle bên dưới",
+        warn: "Chữ trên slide ghi 'triệt tiêu độ trễ mạng trong suốt lộ trình' dễ gây hiểu nhầm là không cần mạng. Phải nói rõ tệp âm thanh và chatbot vẫn cần kết nối mạng.",
+        speech: "Để đưa nội dung đến tay du khách, cách làm cũ là bắt khách tải ứng dụng từ cửa hàng trực tuyến hoặc xếp hàng thuê máy cầm tay tại cổng. <span class='tag-cue'>CHỈ VÀO: hai cột App Truyền Thống và Thuê Máy Audio</span> Cả hai cách này đều tạo ra rào cản quá lớn: khách tham quan chỉ ghé thăm một lần sẽ rất ngại cài đặt thêm phần mềm rác vào máy, còn thuê máy thì ban quản lý đối mặt với chi phí hỏng hóc và mất mát thiết bị. Nhóm chọn giải pháp ứng dụng web tải gói dữ liệu độc lập, gọi là gói bundle. <span class='tag-cue'>CHỈ VÀO: cột Web-Bundle được đóng khung vàng</span> Khách chỉ cần quét mã vuông là mở được ngay trên trình duyệt mà không mất một giây cài đặt. Về mạng kết nối, nhóm thiết kế việc tải một gói tài liệu chứa toàn bộ bài viết, tọa độ và lộ trình của đúng ngôn ngữ đã chọn một lần duy nhất. <span class='tag-cue'>CHỈ VÀO: khung cam Chiến lược Content Bundle bên dưới</span> Nhờ đó, việc dò tìm điểm gần nhất và vẽ bản đồ diễn ra ngay tại trình duyệt với độ trễ bằng không, không cần gọi máy chủ liên tục. <span class='tag-emphasis'>NHẤN MẠNH</span> Tuy nhiên, em xin nói rõ sự thật kỹ thuật: hệ thống chưa phải hoạt động ngoại tuyến hoàn toàn, vì tệp âm thanh, hình ảnh, đổi ngôn ngữ và hỏi đáp trợ lý vẫn cần có mạng internet để tải về. Toàn bộ cơ chế gói dữ liệu này đã hoàn thành thiết kế, chưa lập trình mã nguồn. Sau đây là hành trình cụ thể của khách từ lúc quét mã.",
+        qa: [
+          { q: "Gói dữ liệu bundle có chứa luôn các tệp âm thanh để nghe khi mất mạng không?", a: "Dạ thưa Thầy, gói bundle chỉ chứa văn bản, tọa độ và đường dẫn tệp âm thanh; các tệp âm thanh được tải theo luồng mạng khi phát nên nếu mất mạng hoàn toàn thì khách không nghe được âm thanh mới." },
+          { q: "Khách đổi sang ngôn ngữ khác thì hệ thống xử lý thế nào?", a: "Dạ thưa Thầy, khi đổi ngôn ngữ, trình duyệt sẽ gửi yêu cầu tải gói bundle của ngôn ngữ mới; đây là một ngoại lệ cần kết nối mạng đã được nhóm nêu rõ trong hồ sơ phân tích." }
+        ]
+      },
+      {
+        num: 4,
+        title: "Hành Trình Trải Nghiệm Khép Kín (User Flow)",
+        time: "1.5 phút",
+        words: "210 từ",
+        speaker: "BẠN A",
+        cue: "4 bước trải nghiệm từ Quét QR đến Tải Content Bundle",
+        warn: "Slide ghi 'Offline-first sẵn sàng cho định vị nội bộ', phải đính chính là thuật toán chạy tại client nhưng phân hệ này chưa được code.",
+        speech: "Một người đi du lịch không muốn phải điền biểu mẫu đăng ký tài khoản dài dòng chỉ để mua một chiếc vé tham quan. <span class='tag-cue'>CHỈ VÀO: Bước 1, Quét QR & Khởi tạo</span> Vì vậy, ngay khi khách quét mã tại cổng, hệ thống tự động sinh một mã định danh phiên ẩn, khách vào thẳng giao diện mà không cần tạo tài khoản. Đến bước trả tiền, khách có thể quét mã thanh toán trực tuyến hoặc đưa tiền mặt cho nhân viên quầy vé. <span class='tag-cue'>CHỈ VÀO: Bước 2, Thanh toán Nhanh</span> Nếu thanh toán trực tuyến, cổng thanh toán sẽ nhắn một bức thư xác nhận tự động, chuyên môn gọi là webhook, báo cho máy chủ biết giao dịch đã thành công kèm chữ ký số. Nếu trả tiền mặt, nhân viên bấm xác nhận trên màn hình nội bộ, máy chủ sinh một mã ngắn sáu ký tự lưu trong bộ nhớ đệm Redis với thời gian sống ngắn. Khách nhập mã này để đổi lấy giấy thông hành điện tử, gọi là token phiên vé. <span class='tag-cue'>CHỈ VÀO: Bước 3, Cấp Token An Toàn</span> Token này có hiệu lực đúng 24 giờ, lưu tại bộ nhớ trình duyệt để chứng minh quyền sử dụng ở mọi yêu cầu sau đó. <span class='tag-cue'>CHỈ VÀO: Bước 4, Tải Content Bundle</span> Có token rồi, trình duyệt mới tải gói dữ liệu ngôn ngữ mẹ đẻ về máy để sẵn sàng định vị. <span class='tag-pause'>NGHỈ</span> Em xin khẳng định: toàn bộ 4 bước trải nghiệm của khách hiện mới dừng ở bản vẽ thiết kế, chưa có mã nguồn chạy thực tế; cổng thanh toán trực tuyến cũng mới là giải pháp mô phỏng. Tiếp theo, bạn Lê Đức Anh sẽ trình bày thuật toán định vị thông minh khi khách bước vào sân chùa.",
+        qa: [
+          { q: "Nếu khách làm mất token hoặc vô tình xóa trình duyệt thì xử lý thế nào?", a: "Dạ thưa Thầy, việc hỗ trợ nhân viên cấp lại token cho phiên đã thanh toán là chức năng mở rộng nhóm đề xuất cho giai đoạn sau; hiện tại quy tắc là khi mất token, khách phải liên hệ nhân viên đối chiếu mã thanh toán để được hỗ trợ thủ công." },
+          { q: "Vì sao phải dùng Redis để lưu mã ngắn thanh toán tiền mặt?", a: "Dạ thưa Thầy, Redis là bộ nhớ tra cứu cực nhanh và có tính năng tự động xóa dữ liệu khi hết thời gian quy định, rất thích hợp để lưu các mã hẹn ngắn hạn mà không làm rác cơ sở dữ liệu chính; phân hệ này nhóm đã thiết kế xong nhưng chưa code." }
+        ]
+      },
+      {
+        num: 5,
+        title: "Nhận Thức Không Gian: Giải Mã Thuật Toán GPS",
+        time: "1.5 phút",
+        words: "200 từ",
+        speaker: "BẠN B",
+        cue: "Vòng tròn xanh 50m, vòng nét đứt vàng 75m và đường di chuyển",
+        warn: "Không nói nhóm đã đo thực tế tại Chùa Linh Ứng; toàn bộ 50m và 75m là cấu hình đề xuất trong phân tích.",
+        speech: "Thách thức lớn nhất khi tự động phát thuyết minh ngoài trời là làm sao để điện thoại không phát âm thanh liên tục như gửi tin nhắn rác vào tai người nghe. <span class='tag-cue'>CHỈ VÀO: vòng tròn xanh đậm 50m bên trái</span> Giải pháp của nhóm là thiết lập bán kính kích hoạt 50 mét xung quanh mỗi điểm di tích. Trình duyệt liên tục nhận tọa độ vệ tinh và tự tính khoảng cách đường thẳng theo công thức Haversine ngay trên máy khách, hoàn toàn không gửi tọa độ về máy chủ. <span class='tag-cue'>CHỈ VÀO: mục 01 bên phải</span> Khi khách bước qua ranh giới 50 mét, nếu có hai điểm cùng nằm trong vùng thì thuật toán phân giải xung đột sẽ chọn điểm có khoảng cách gần nhất. <span class='tag-cue'>CHỈ VÀO: mục 02</span> Điểm cốt lõi chống làm phiền nằm ở vòng tròn màu vàng bên ngoài: ngưỡng đặt lại 75 mét, tương đương 1.5 lần bán kính kích hoạt. <span class='tag-cue'>CHỈ VÀO: vòng tròn nét đứt 75m và đường di chuyển</span> Khi một bài thuyết minh đã phát xong, dù khách có đứng nói chuyện hay đi quanh quẩn trong vùng 50 mét, hệ thống cũng tuyệt đối không phát lại. Điểm đó chỉ được phép phát lại khi khách đã đi hẳn ra ngoài vòng 75 mét rồi mới quay trở lại. <span class='tag-pause'>NGHỈ</span> Thuật toán thông minh này đã được nhóm chứng minh toán học và đặc tả thành sơ đồ hoạt động trong báo cáo, nhưng hiện tại vẫn ở trạng thái đã thiết kế, chưa lập trình mã nguồn. Bên cạnh thuyết minh tự động, khách còn có thể trò chuyện với trợ lý thông minh như thế nào, em xin chuyển sang slide tiếp theo.",
+        qa: [
+          { q: "Nếu du khách đứng ở nơi sóng GPS bị trôi dạt thì thuật toán có phát nhầm không?", a: "Dạ thưa Thầy, hiện tượng trôi dạt GPS là rủi ro phần cứng thực tế; thiết kế của nhóm quy định âm thanh chỉ kích hoạt khi bài trước đã phát xong và cờ trạng thái chỉ được đặt lại khi vượt ngưỡng 75 mét để giảm thiểu tối đa hiện tượng nhảy cóc âm thanh." },
+          { q: "Thuật toán tính khoảng cách Haversine chạy trên máy khách có làm hao pin điện thoại không?", a: "Dạ thưa Thầy, vì danh mục điểm tham quan tại chùa chỉ khoảng 6 đến 10 điểm nên phép tính đại số trên trình duyệt tốn rất ít tài nguyên vi xử lý so với việc gửi yêu cầu qua sóng di động về máy chủ." }
+        ]
+      },
+      {
+        num: 6,
+        title: "Trợ Lý Trí Tuệ Nhân Tạo: Hỏi Đáp Có Căn Cứ",
+        time: "1.0 phút",
+        words: "140 từ",
+        speaker: "BẠN B",
+        cue: "Luồng 4 bước: User Query, Vector Search, Prompt Engineering, AI Response",
+        warn: "Slide ghi Zero-Hallucination nghe như đã triệt tiêu hoàn toàn lỗi. Phải nói rõ đây là mục tiêu thiết kế prompt, chưa có kiểm chứng thực tế.",
+        speech: "Khi du khách hỏi về ý nghĩa của pho tượng trước mặt, nếu dùng một mô hình trí tuệ nhân tạo thông thường, nó có thể tự bịa ra những câu chuyện truyền thuyết không có thật. <span class='tag-cue'>CHỈ VÀO: khối User Query trên cùng</span> Nhóm giải quyết vấn đề này bằng kiến trúc hỏi đáp có căn cứ. Quy trình diễn ra qua 4 bước: Đầu tiên, câu hỏi tự nhiên của khách được kiểm tra tính hợp lệ qua token phiên để chống phá hoại. <span class='tag-cue'>CHỈ VÀO: khối Vector Search</span> Bước hai, thuật toán chuyển câu hỏi thành các dãy số ngữ nghĩa để tìm kiếm đối chiếu với bảng các đoạn tài liệu nội bộ đã được phê duyệt. <span class='tag-cue'>CHỈ VÀO: khối Prompt Engineering</span> Bước ba, hệ thống gom đúng đoạn văn bản trích dẫn ghép cùng câu hỏi gửi đến mô hình ngôn ngữ. <span class='tag-cue'>CHỈ VÀO: khối AI Response</span> Cuối cùng, câu trả lời gửi về bắt buộc phải kèm trích dẫn số hiệu tài liệu nguồn. <span class='tag-cue'>CHỈ VÀO: khung xanh dưới đáy</span> Điểm cốt lõi là cơ chế chống bịa đặt: nếu câu hỏi nằm ngoài tài liệu Chùa Linh Ứng, hệ thống được lập trình để từ chối trả lời thay vì cố đoán. Toàn bộ quy trình này hiện mới dừng ở bản vẽ thiết kế, chưa lập trình và chưa kết nối dịch vụ trí tuệ nhân tạo thật. Tiếp theo là cách nhóm chuẩn bị dữ liệu cho 15 ngôn ngữ.",
+        qa: [
+          { q: "Nhóm đã thử nghiệm chất lượng câu trả lời với mô hình ngôn ngữ nào chưa?", a: "Dạ thưa Thầy, nhóm chưa đấu nối mô hình ngôn ngữ thật; chất lượng trả lời và độ trễ mới được xác định trong tiêu chí kiểm thử của hồ sơ thiết kế, chưa có số liệu thực nghiệm." },
+          { q: "Làm sao ngăn chặn việc người dùng tiêm câu lệnh độc hại vào câu hỏi để phá hệ thống?", a: "Dạ thưa Thầy, thiết kế quy định lớp Router kiểm tra độ dài chuỗi nhập vào, giới hạn tần suất gọi câu hỏi trên token phiên và câu lệnh hướng dẫn ép mô hình chỉ đọc dữ liệu tham chiếu chứ không thực thi lệnh người dùng." }
+        ]
+      },
+      {
+        num: 7,
+        title: "Tự Động Hóa Đường Ống Nội Dung Đa Ngôn Ngữ",
+        time: "1.5 phút",
+        words: "200 từ",
+        speaker: "BẠN B",
+        cue: "Sơ đồ 3 bước Input, Background Worker, Storage & Bundle",
+        warn: "Slide ghi sinh giọng đọc cho 15+ ngôn ngữ nghe như đã chạy xong. Phải nói rõ đây là thiết kế mục tiêu.",
+        speech: "Nếu ban quản lý phải thuê dịch thuật thủ công từng bài viết rồi đọc ghi âm từng tệp cho 15 thứ tiếng thì chi phí và thời gian sẽ vô cùng tốn kém. <span class='tag-cue'>CHỈ VÀO: biểu tượng Input bên trái</span> Nhóm thiết kế một đường ống tự động hóa: nhân viên chỉ cần viết nội dung giới thiệu bằng tiếng Việt một lần duy nhất. <span class='tag-cue'>CHỈ VÀO: biểu tượng Background Worker ở giữa</span> Ngay khi nhân viên lưu bài, hệ thống kích hoạt một tiến trình ngầm tự động đẩy tác vụ vào hàng đợi. Tiến trình này tuần tự gọi dịch vụ dịch thuật ngữ nghĩa và dịch vụ chuyển văn bản thành giọng nói để sinh ra các tệp âm thanh cho các ngôn ngữ còn lại. <span class='tag-cue'>CHỈ VÀO: biểu tượng Storage & Bundle bên phải</span> Toàn bộ văn bản và tệp âm thanh được đánh số phiên bản, tự động đóng gói vào kho để phân phối cho khách. <span class='tag-emphasis'>NHẤN MẠNH</span> Điểm hay của thiết kế là cơ chế dự phòng: nếu một ngôn ngữ nào đó bị lỗi tiến trình chưa kịp sinh âm thanh, giao diện sẽ tự động trượt về tiếng Anh, rồi đến tiếng Việt kèm thông báo rõ ràng cho khách đọc chữ. <span class='tag-cue'>CHỈ VÀO: khung xanh Dự phòng Fallback bên dưới</span> Nhóm không dùng việc dự phòng này để ngụy biện cho việc thiếu nội dung. Em xin báo cáo trung thực: toàn bộ đường ống dịch tự động này mới nằm ở hồ sơ thiết kế, chưa có mã nguồn chạy nền và chưa đo lường chất lượng giọng đọc. Sau đây là bức tranh tổng thể về ranh giới an toàn của toàn hệ thống.",
+        qa: [
+          { q: "Nếu nhân viên sửa nội dung tiếng Việt nhiều lần thì có làm nghẽn tiến trình sinh âm thanh không?", a: "Dạ thưa Thầy, thiết kế sử dụng số phiên bản nội dung kết hợp bộ ba điểm tham quan, ngôn ngữ và phiên bản là duy nhất trong bảng tác vụ; khi có phiên bản mới thì tác vụ cũ bị hủy bỏ để không sinh âm thanh thừa và không ghi đè dữ liệu mới." },
+          { q: "Chi phí gọi dịch vụ dịch và chuyển giọng nói cho 15 ngôn ngữ có tốn kém không?", a: "Dạ thưa Thầy, vì nội dung các điểm di tích văn hóa cố định và ít thay đổi nên quy trình chỉ chạy một lần khi tạo điểm mới hoặc cập nhật nội dung, kết quả được lưu trữ để tái sử dụng lâu dài cho hàng triệu lượt khách." }
+        ]
+      },
+      {
+        num: 8,
+        title: "Ranh Giới Hệ Thống Khép Kín Và Các Tác Nhân",
+        time: "1.0 phút",
+        words: "130 từ",
+        speaker: "BẠN B",
+        cue: "Khối vàng Hệ Thống Lõi ở trung tâm và 4 nhóm bên ngoài",
+        warn: "Nhớ chỉ tay rõ ràng vào 4 hướng để giảng viên thấy được sự phân lập ranh giới dữ liệu.",
+        speech: "Bức tranh kiến trúc an toàn của dự án được thể hiện qua sơ đồ ranh giới khép kín. <span class='tag-cue'>CHỈ VÀO: khối vàng Hệ Thống Lõi ở trung tâm</span> Hệ thống lõi của chúng em nằm ở trung tâm, bao gồm xử lý cấp token, phân phối bản đồ, hỏi đáp và ghi nhật ký kiểm toán. Phía bên trái là khách tham quan, chỉ được tương tác qua token phiên vé tạm thời có hạn 24 giờ. <span class='tag-cue'>CHỈ VÀO: khối Khách Tham Quan bên trái</span> Tuyệt đối không có chuyện tài khoản khách được chạm vào các chức năng quản trị. Phía bên phải là nhân viên và quản trị viên, tương tác qua mã xác thực nội bộ nghiêm ngặt. <span class='tag-cue'>CHỈ VÀO: khối Staff/Admin bên phải</span> Các dịch vụ bên ngoài như cổng thanh toán, trí tuệ nhân tạo và dịch thuật giọng đọc đều được kết nối thông qua các cổng trung gian riêng biệt. <span class='tag-cue'>CHỈ VÀO: các khối bên ngoài ở trên và dưới</span> Nguyên tắc bất di bất dịch là nếu dịch vụ ngoài gặp sự cố, hệ thống lõi vẫn phải đứng vững để phục vụ bản đồ và thuyết minh cơ bản. Sau đây, bạn Dương Gia Phát sẽ trình bày sâu về kỷ luật kiến trúc ba lớp và những dòng mã nguồn thực tế mà nhóm đã lập trình chạy được.",
+        qa: [
+          { q: "Khách tham quan có thể lợi dụng token phiên để gọi trộm các API của nhân viên không?", a: "Dạ thưa Thầy, hoàn toàn không được vì hệ thống có lớp bảo vệ phân quyền riêng biệt; token của khách chỉ chứa định danh phiên tham quan, còn các API quản trị bắt buộc phải có mã xác thực nội bộ mang quyền nhân viên hoặc quản trị viên." },
+          { q: "Nếu cổng thanh toán trực tuyến bị sập thì khách có dùng được hệ thống không?", a: "Dạ thưa Thầy, hệ thống vẫn hoạt động bình thường qua kênh bán vé tiền mặt tại quầy do nhân viên xác nhận; tính độc lập này đã được nhóm tính toán kỹ trong ranh giới hệ thống." }
+        ]
+      },
+      {
+        num: 9,
+        title: "Kỷ Luật Kiến Trúc: Bóc Tách Back-End 3 Lớp",
+        time: "1.5 phút",
+        words: "210 từ",
+        speaker: "BẠN C",
+        cue: "3 khối tầng Router xanh đậm, Service trắng, Store vàng đồng",
+        warn: "Nhấn mạnh kỷ luật kiến trúc, không nhận vơ là đã viết xong 3 lớp cho phần khách tham quan.",
+        speech: "Em xin tiếp nối bài báo cáo bằng kỷ luật kiến trúc quan trọng nhất của đồ án: tổ chức mã nguồn máy chủ theo ba lớp tách biệt. <span class='tag-cue'>CHỈ VÀO: lớp trên cùng màu xanh đậm, Router</span> Hãy hình dung hệ thống như một tòa nhà hành chính. Lớp ngoài cùng là Router, đóng vai trò như lễ tân tiếp đón. Lễ tân tiếp nhận yêu cầu mạng, kiểm tra xem khách có mang đúng giấy tờ hợp lệ không, kiểm tra định dạng dữ liệu đầu vào rồi mới chuyển tiếp. Router tuyệt đối không được tự ý quyết định nghiệp vụ và không bao giờ được viết câu lệnh truy vấn cơ sở dữ liệu. <span class='tag-cue'>CHỈ VÀO: lớp ở giữa màu trắng, Service</span> Lớp thứ hai là Service, đóng vai trò chuyên viên nghiệp vụ. Đây là trái tim của hệ thống: kiểm tra hạn dùng của vé, tính toán khoảng cách, điều phối gọi dịch vụ ngoài. Service hoàn toàn độc lập với việc dữ liệu được lưu ở đâu. <span class='tag-cue'>CHỈ VÀO: lớp dưới cùng màu vàng đồng, Store</span> Lớp trong cùng là Store, như người thủ kho. Thủ kho là nơi duy nhất được quyền cầm chìa khóa mở cơ sở dữ liệu MySQL 8 và bộ nhớ đệm Redis 7, đảm nhiệm việc mở các giao dịch dữ liệu an toàn. <span class='tag-pause'>NGHỈ</span> <span class='tag-emphasis'>NHẤN MẠNH</span> Em xin vui mừng báo cáo: cấu trúc ba lớp này nhóm đã lập trình xong mã nguồn thực tế cho toàn bộ phân hệ xác thực nội bộ. Chúng em đã hiện thực luồng đăng nhập, xoay vòng mã làm mới, khóa tài khoản tạm thời 15 phút khi nhập sai 5 lần liên tiếp và ghi nhật ký kiểm toán không thể xóa sửa. Cơ sở dữ liệu bên dưới được tổ chức như thế nào, em xin chuyển sang slide 10.",
+        qa: [
+          { q: "Vì sao phải phân tách ba lớp phức tạp như vậy cho một ứng dụng vừa và nhỏ?", a: "Dạ thưa Thầy, việc phân tách ba lớp giúp mã nguồn độc lập tuyệt đối; khi nhóm thay đổi hệ quản trị cơ sở dữ liệu hoặc viết bài kiểm thử giả lập, nhóm chỉ cần sửa lớp Store mà không phải đụng vào logic nghiệp vụ của Service hay giao diện của Router." },
+          { q: "Mã nguồn hiện tại của nhóm đã có những lớp nào chạy thật?", a: "Dạ thưa Thầy, các lớp Router, Service và Store dành cho phân hệ xác thực nội bộ của nhân viên và quản trị viên đã chạy thật 100% trong mã nguồn và vượt qua kiểm thử; còn ba lớp cho phân hệ du khách mới ở mức thiết kế sơ đồ." }
+        ]
+      },
+      {
+        num: 10,
+        title: "Toàn Vẹn Dữ Liệu: Chuẩn Hóa 16 Bảng Lưu Trữ",
+        time: "1.0 phút",
+        words: "140 từ",
+        speaker: "BẠN C",
+        cue: "3 cột dữ liệu và khung Kỷ Luật Giao Dịch ACID bên dưới",
+        warn: "Báo cáo đúng sự thật: mới có 3 bảng nội bộ có trong mã nguồn thực tế, 13 bảng nghiệp vụ khách đang ở dạng thiết kế.",
+        speech: "Trái tim dữ liệu của hệ thống được chuẩn hóa thành 16 bảng, phân chia khoa học vào 3 phân hệ độc lập. <span class='tag-cue'>CHỈ VÀO: cột thứ nhất, Tài Khoản & Vé</span> Phân hệ một gồm 6 bảng quản lý tài khoản nhân viên, mã làm mới, nhật ký kiểm toán, phiên tham quan và giao dịch tiền. <span class='tag-cue'>CHỈ VÀO: cột thứ hai, Nội Dung & Tour</span> Phân hệ hai gồm 7 bảng quản lý danh mục ngôn ngữ, điểm tham quan, bản dịch, tệp âm thanh, tiến trình nền và lộ trình mẫu. <span class='tag-cue'>CHỈ VÀO: cột thứ ba, Kho Tri Thức RAG</span> Phân hệ ba gồm 3 bảng lưu trữ tài liệu gốc, các đoạn văn bản chia nhỏ và lịch sử đối thoại. <span class='tag-cue'>CHỈ VÀO: khung Kỷ Luật Giao Dịch bên dưới</span> Để bảo đảm an toàn dòng tiền, chúng em thiết lập hai kỷ luật sắt: Thứ nhất là tính nguyên tử: việc đổi trạng thái vé tham quan và ghi nhận thanh toán bắt buộc phải chạy trong cùng một giao dịch cơ sở dữ liệu; nếu một thao tác lỗi thì toàn bộ bị hủy bỏ ngay, tuyệt đối không có chuyện thu tiền mà không cấp vé. Thứ hai là quy tắc cấm xóa dữ liệu giao dịch để phục vụ đối soát kế toán. <span class='tag-pause'>NGHỈ</span> Về hiện trạng: 3 bảng tài khoản nội bộ đã có bảng thật trong cơ sở dữ liệu; 13 bảng còn lại về nghiệp vụ tham quan đã hoàn thiện thiết kế lược đồ chi tiết và sẵn sàng chạy lệnh tạo bảng ở giai đoạn tiếp theo.",
+        qa: [
+          { q: "Làm sao bảo đảm webhook của cổng thanh toán gửi lặp lại không làm tăng gấp đôi doanh thu?", a: "Dạ thưa Thầy, hệ thống kiểm tra mã giao dịch duy nhất trong bảng thanh toán và mở giao dịch nguyên tử; nếu phát hiện mã giao dịch đã ở trạng thái đã thanh toán thì hệ thống lập tức từ chối và giữ nguyên hạn vé ban đầu." },
+          { q: "Tại sao lại áp dụng quy tắc chặn xóa dữ liệu ở bảng thanh toán?", a: "Dạ thưa Thầy, đây là nguyên tắc bất biến của hệ thống tài chính kế toán; dữ liệu thanh toán phải được lưu trữ vĩnh viễn để phục vụ thanh tra và đối chiếu công nợ, chỉ được phép thay đổi trạng thái chứ không được xóa dòng dữ liệu." }
+        ]
+      },
+      {
+        num: 11,
+        title: "Tự Động Hóa Triển Khai (CI/CD Pipeline)",
+        time: "1.0 phút",
+        words: "140 từ",
+        speaker: "BẠN C",
+        cue: "4 bước mũi tên từ Push & PR đến Deploy & Check",
+        warn: "Bước 4 ghi Deploy & Check rất dễ làm thầy tưởng đã có server trực tuyến. Phải đính chính rõ là mới dừng ở kiểm thử và đóng gói tự động.",
+        speech: "Để bảo đảm mã nguồn không bị lỗi khi nhiều người cùng lập trình, nhóm xây dựng dây chuyền tự động hóa kiểm tra và đóng gói trên GitHub Actions. <span class='tag-cue'>CHỈ VÀO: bước 1, Push & PR</span> Mỗi khi một thành viên đẩy mã nguồn mới lên hệ thống, dây chuyền lập tức tự động kích hoạt. <span class='tag-cue'>CHỈ VÀO: bước 2, Lint & Test</span> Bước hai là kiểm tra cú pháp và chạy tự động toàn bộ 51 bài kiểm thử đơn vị và tích hợp. Nếu có bất kỳ bài kiểm tra nào thất bại, hệ thống lập tức chặn lại không cho nhập mã nguồn. <span class='tag-cue'>CHỈ VÀO: bước 3, Docker Build</span> Bước ba, hệ thống tự động đóng gói ứng dụng thành một khối hoàn chỉnh bằng công nghệ Docker, bảo đảm phần mềm chạy trên máy cá nhân hay máy chủ đều đồng nhất. <span class='tag-cue'>CHỈ VÀO: bước 4, Deploy & Check</span> <span class='tag-emphasis'>NHẤN MẠNH</span> Ở bước bốn, trên slide có ghi quy trình tự động cập nhật cơ sở dữ liệu và kiểm tra sức khỏe trước khi chuyển lưu lượng. Em xin đính chính trung thực: đây là quy trình thiết kế mục tiêu; thực tế trên GitHub Actions của nhóm hiện tại đã chạy xanh 6 công việc kiểm thử và đóng gói bản phát hành thử nghiệm, nhóm chưa có máy chủ trực tuyến riêng để triển khai thực tế. Tiếp theo là slide quan trọng nhất: nhìn nhận thẳng thắn về hiện trạng đồ án.",
+        qa: [
+          { q: "51 bài kiểm thử đã chạy những trường hợp nào?", a: "Dạ thưa Thầy, 51 bài kiểm thử tập trung kiểm tra toàn bộ luồng đăng nhập, xoay vòng mã làm mới, chặn tài khoản bị khóa, phân quyền nhân viên và kiểm tra tính toàn vẹn của cấu trúc ba lớp cho phân hệ nội bộ." },
+          { q: "Nhóm đã triển khai hệ thống lên máy chủ đám mây thực tế chưa?", a: "Dạ thưa Thầy, nhóm xin nói thật là chưa triển khai lên môi trường máy chủ trực tuyến riêng; hiện tại nhóm mới kiểm chứng quy trình đóng gói container Docker tự động thành công trên máy chủ kiểm thử của GitHub Actions." }
+        ]
+      },
+      {
+        num: 12,
+        title: "Hiện Trạng Triển Khai & Lộ Trình Nước Rút",
+        time: "1.5 phút",
+        words: "215 từ",
+        speaker: "BẠN C",
+        cue: "Cột xanh đậm Hoàn Thành Chuẩn Chỉnh bên trái và Cột trắng Giai Đoạn Kế Tiếp bên phải",
+        warn: "Slide ăn điểm về tính trung thực học thuật, nói rõ ràng, tự tin, không lúng túng khi thừa nhận phần chưa làm.",
+        speech: "Đây là slide thể hiện rõ nhất thái độ làm việc trung thực và có trách nhiệm của nhóm. <span class='tag-cue'>CHỈ VÀO: cột màu xanh đậm bên trái, Hoàn Thành Chuẩn Chỉnh</span> Ở cột bên trái là những gì nhóm đã làm xong chuẩn chỉ: Hoàn thành 100% hồ sơ phân tích 18 Use Case và yêu cầu sản phẩm; Thiết kế hoàn chỉnh kiến trúc ba lớp và lược đồ cơ sở dữ liệu 16 bảng; Đã lập trình xong toàn bộ mã nguồn xác thực nội bộ, bảo mật mật khẩu và kiểm tra phân quyền; Thiết lập xong môi trường Docker và dây chuyền tự động chạy đạt 51 bài kiểm thử. <span class='tag-pause'>NGHỈ</span> <span class='tag-cue'>CHỈ VÀO: cột màu trắng bên phải, Giai Đoạn Kế Tiếp</span> Ở cột bên phải là những việc nhóm thẳng thắn thừa nhận chưa hoàn thành và phải làm tiếp: Chạy lệnh tạo 13 bảng cơ sở dữ liệu còn lại; Lập trình mã nguồn cho các dịch vụ vé tham quan, gói dữ liệu và định vị; Xây dựng giao diện web mô phỏng bản đồ Leaflet để trình diễn trong lớp; Đấu nối thử nghiệm dịch vụ hỏi đáp và hoàn thiện bảng điều khiển giám sát. <span class='tag-emphasis'>NHẤN MẠNH</span> Đặc biệt, trong quá trình tự rà soát mã nguồn, nhóm đã chủ động tìm ra một lỗi bảo mật thực tế: sau khi xoay vòng mã làm mới, việc đăng xuất bằng mã cũ chưa lập tức thu hồi phiên do sự bất đồng bộ giữa hai bộ nhớ. Nhóm không giấu lỗi mà đã ghi nhận thành một vấn đề cần xử lý trong đợt cập nhật tới. Em xin chuyển sang lời kết của bài báo cáo.",
+        qa: [
+          { q: "Tại sao nhóm lại tự tìm ra lỗi đăng xuất mà chưa sửa ngay?", a: "Dạ thưa Thầy, khi viết bài kiểm thử nâng cao với các thành phần thực tế, nhóm phát hiện điểm bất đồng bộ bộ nhớ giữa nơi đổi mã và nơi hủy phiên; việc giữ lại lỗi này trong báo cáo thể hiện sự nghiêm túc trong kiểm thử và nhóm đã có phương án giải quyết dứt điểm." },
+          { q: "Khối lượng công việc còn lại ở cột bên phải có kịp hoàn thành cho buổi báo cáo cuối kỳ không?", a: "Dạ thưa Thầy, vì toàn bộ phần khó nhất về phân tích nghiệp vụ, mô hình dữ liệu và khung kiến trúc ba lớp đã chuẩn hóa xong nên ở giai đoạn tới nhóm chỉ việc tập trung viết mã nguồn theo đúng thiết kế, nhóm cam kết hoàn thành đúng tiến độ." }
+        ]
+      },
+      {
+        num: 13,
+        title: "Tầm Nhìn Kỹ Thuật Giao Thoa Di Sản",
+        time: "0.5 phút",
+        words: "75 từ",
+        speaker: "BẠN C",
+        cue: "Hệ Sinh Thái Chùa Linh Ứng ở tâm và 3 vòng tròn vệ tinh xung quanh",
+        warn: "Kết thúc dứt khoát, chào Thầy và hội đồng lễ phép, sẵn sàng chuyển sang trả lời câu hỏi.",
+        speech: "Nhìn lại toàn bộ đề tài, nhóm không chỉ đặt mục tiêu làm một trang web bình thường, mà mong muốn xây dựng một hệ thống vận hành bền vững bằng kỷ luật kỹ thuật phần mềm vững chắc. <span class='tag-cue'>CHỈ VÀO: ba vòng tròn liên kết xung quanh Hệ Sinh Thái Chùa Linh Ứng</span> Ba trụ cột chính gồm: trải nghiệm khách hàng tiện lợi, nghiệp vụ tự động hóa và kiến trúc máy chủ ba lớp tin cậy. Nhóm đã có một nền tảng kỹ thuật được kiểm chứng và một lộ trình thực hiện rõ ràng. <span class='tag-cue'>CHỈ VÀO: câu trích dẫn bên dưới</span> Nhóm sinh viên chúng em xin chân thành cảm ơn Thầy Nguyễn Quốc Huy và các bạn đã lắng nghe. Chúng em rất mong nhận được những câu hỏi và lời chỉ dẫn quý báu từ Thầy.",
+        qa: [
+          { q: "Đồ án này có khả năng triển khai thực tế tại Chùa Linh Ứng không?", a: "Dạ thưa Thầy, sau khi hoàn thiện đầy đủ các phân hệ theo thiết kế và được thử nghiệm ổn định, giải pháp hoàn toàn có thể ứng dụng thực tế nhờ chi phí đầu tư thiết bị bằng không và khả năng phục vụ không giới hạn du khách." },
+          { q: "Bài học lớn nhất nhóm rút ra được qua giai đoạn một là gì?", a: "Dạ thưa Thầy, bài học lớn nhất là nếu không có một hồ sơ phân tích yêu cầu tỉ mỉ và thiết kế kiến trúc ba lớp chặt chẽ ngay từ đầu thì việc viết mã nguồn sẽ rất dễ bị rối loạn và không kiểm soát được lỗi phát sinh." }
+        ]
+      }
+    ];
+
+    let currentIdx = 0;
+
+    function renderSlide(idx) {
+      if (idx < 0 || idx >= slidesData.length) return;
+      currentIdx = idx;
+      const s = slidesData[idx];
+
+      document.getElementById("cur-speaker").innerText = s.speaker;
+      document.getElementById("nav-indicator").innerText = `${s.num} / ${slidesData.length}`;
+
+      const container = document.getElementById("slide-display");
+      container.innerHTML = `
+        <div class="card">
+          <div class="meta-row">
+            <span class="badge-slide">SLIDE ${s.num}</span>
+            <span class="badge-time">⏱ ${s.time}</span>
+            <span class="badge-words">📝 ${s.words}</span>
+          </div>
+          <div class="slide-title">${s.title}</div>
+          
+          <div class="box-cue">
+            <div class="label">ĐIỂM NHÌN TRÊN MÀN HÌNH</div>
+            <div class="content">[CHỈ VÀO: ${s.cue}]</div>
+          </div>
+
+          ${s.warn ? `
+          <div class="box-warn">
+            <div class="label">CẢNH BÁO DỄ NÓI SAI</div>
+            <div class="content">[SỬA LỜI NÓI: ${s.warn}]</div>
+          </div>` : ''}
+
+          <div class="speech-box">
+            <p>${s.speech}</p>
+          </div>
+
+          <div class="qa-box">
+            <div class="qa-toggle" onclick="toggleQA(${s.num})">
+              <span>NẾU BỊ HỎI (${s.qa.length} câu)</span>
+              <span id="qa-arrow-${s.num}">▼</span>
+            </div>
+            <div class="qa-content" id="qa-content-${s.num}">
+              ${s.qa.map((item, i) => `
+                <div class="qa-item">
+                  <div class="qa-q">Q${i+1}: ${item.q}</div>
+                  <div class="qa-a">A: ${item.a}</div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.querySelectorAll(".jump-bar a").forEach((el, i) => {
+        if (i === idx) {
+          el.classList.add("active");
+          el.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        } else {
+          el.classList.remove("active");
+        }
+      });
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleQA(num) {
+      const el = document.getElementById(`qa-content-${num}`);
+      const arrow = document.getElementById(`qa-arrow-${num}`);
+      if (el.style.display === "none") {
+        el.style.display = "block";
+        arrow.innerText = "▲";
+      } else {
+        el.style.display = "none";
+        arrow.innerText = "▼";
+      }
+    }
+
+    function initJumpBar() {
+      const jb = document.getElementById("jump-bar");
+      jb.innerHTML = slidesData.map((s, idx) => `
+        <a href="javascript:void(0)" onclick="renderSlide(${idx})">S${s.num}</a>
+      `).join("");
+    }
+
+    function nextSlide() {
+      if (currentIdx < slidesData.length - 1) {
+        renderSlide(currentIdx + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentIdx > 0) {
+        renderSlide(currentIdx - 1);
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "PageDown") nextSlide();
+      if (e.key === "ArrowLeft" || e.key === "PageUp") prevSlide();
+    });
+
+    initJumpBar();
+    renderSlide(0);
+  </script>
+</body>
+</html>
