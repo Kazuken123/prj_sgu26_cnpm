@@ -1,7 +1,5 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { PoiDto, TourDto } from '../api/content';
-
-declare const L: any;
 
 interface MapViewProps {
   pois: PoiDto[];
@@ -25,6 +23,31 @@ export function calculateHaversineDistance(lat1: number, lon1: number, lat2: num
   return Math.round(R * c);
 }
 
+function loadLeafletLibrary(): Promise<any> {
+  const win = window as any;
+  if (win.L) return Promise.resolve(win.L);
+
+  return new Promise((resolve) => {
+    if (!document.getElementById('leaflet-css')) {
+      const link = document.createElement('link');
+      link.id = 'leaflet-css';
+      link.rel = 'stylesheet';
+      link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+      document.head.appendChild(link);
+    }
+
+    const script = document.createElement('script');
+    script.id = 'leaflet-js';
+    script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    script.onload = () => resolve((window as any).L);
+    script.onerror = () => {
+      console.warn('Khong the tai Leaflet tu CDN, ban do se hoat dong o che do du phong.');
+      resolve(null);
+    };
+    document.head.appendChild(script);
+  });
+}
+
 export const MapView: React.FC<MapViewProps> = ({
   pois,
   selectedPoiId,
@@ -41,51 +64,50 @@ export const MapView: React.FC<MapViewProps> = ({
   const circlesRef = useRef<{ [key: number]: any }>({});
   const userMarkerRef = useRef<any>(null);
   const tourPolylineRef = useRef<any>(null);
+  const [leafletLoaded, setLeafletLoaded] = useState(false);
 
-  // 1. Khoi tao ban do Leaflet mot lan
+  // 1. Khoi tao ban do Leaflet khi tai xong thu vien
   useEffect(() => {
-    if (!mapContainerRef.current) return;
-    if (typeof L === 'undefined') {
-      console.warn('Leaflet chua duoc tai tu CDN');
-      return;
-    }
+    let active = true;
 
-    if (!mapInstanceRef.current) {
-      // Toa do trung tam Thao Cam Vien Sai Gon
-      const defaultCenter = [10.7875, 106.7053];
-      const map = L.map(mapContainerRef.current, {
-        center: defaultCenter,
-        zoom: 17,
-        zoomControl: true,
-        attributionControl: false
-      });
+    loadLeafletLibrary().then((L) => {
+      if (!active || !L || !mapContainerRef.current) return;
+      setLeafletLoaded(true);
 
-      // Layer ban do OpenStreetMap
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19
-      }).addTo(map);
+      if (!mapInstanceRef.current) {
+        const defaultCenter = [10.7875, 106.7053];
+        const map = L.map(mapContainerRef.current, {
+          center: defaultCenter,
+          zoom: 17,
+          zoomControl: true,
+          attributionControl: false
+        });
 
-      // Su kien click de dat vi tri gia lap
-      map.on('click', (e: any) => {
-        if (onMapClickLocation) {
-          onMapClickLocation(e.latlng.lat, e.latlng.lng);
-        }
-      });
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          maxZoom: 19
+        }).addTo(map);
 
-      mapInstanceRef.current = map;
-    }
+        map.on('click', (e: any) => {
+          if (onMapClickLocation) {
+            onMapClickLocation(e.latlng.lat, e.latlng.lng);
+          }
+        });
+
+        mapInstanceRef.current = map;
+      }
+    });
 
     return () => {
-      // Khong huy map lien tuc de giu hieu nang
+      active = false;
     };
   }, []);
 
   // 2. Ve cac POI markers va trigger circles
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || typeof L === 'undefined') return;
+    const L = (window as any).L;
+    if (!map || !L || !leafletLoaded) return;
 
-    // Xoa markers cu
     Object.values(markersRef.current).forEach((m: any) => m.remove());
     Object.values(circlesRef.current).forEach((c: any) => c.remove());
     markersRef.current = {};
@@ -100,7 +122,6 @@ export const MapView: React.FC<MapViewProps> = ({
       const isSelected = poi.poiId === selectedPoiId;
       const radius = poi.triggerRadius || 30;
 
-      // Icon theo phan khu
       let iconEmoji = '📍';
       const cat = (poi.category || '').toUpperCase();
       if (cat === 'ANIMAL') iconEmoji = '🦁';
@@ -133,13 +154,12 @@ export const MapView: React.FC<MapViewProps> = ({
         iconAnchor: [isSelected ? 18 : 15, isSelected ? 18 : 15]
       });
 
-      // Marker
       const marker = L.marker([poi.latitude, poi.longitude], { icon: customIcon }).addTo(map);
       marker.on('click', () => {
         onSelectPoi(poi.poiId);
       });
 
-      const poiName = poi.text.name || poi.originalName;
+      const poiName = poi.text?.name || poi.originalName;
       marker.bindTooltip(`<strong>${poiName}</strong>`, {
         direction: 'top',
         offset: [0, -16]
@@ -147,7 +167,6 @@ export const MapView: React.FC<MapViewProps> = ({
 
       markersRef.current[poi.poiId] = marker;
 
-      // Vong tron ban kinh kich hoat (Trigger Radius)
       const circle = L.circle([poi.latitude, poi.longitude], {
         radius,
         color: isSelected ? '#15803d' : '#52b788',
@@ -158,9 +177,9 @@ export const MapView: React.FC<MapViewProps> = ({
 
       circlesRef.current[poi.poiId] = circle;
     });
-  }, [pois, selectedPoiId, filteredCategory]);
+  }, [pois, selectedPoiId, filteredCategory, leafletLoaded]);
 
-  // 3. Pan to selected POI khi duoc click
+  // 3. Pan to selected POI
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || selectedPoiId === null) return;
@@ -170,10 +189,11 @@ export const MapView: React.FC<MapViewProps> = ({
     }
   }, [selectedPoiId, pois]);
 
-  // 4. Ve vi tri cua du khach (User location)
+  // 4. Ve vi tri cua du khach
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || typeof L === 'undefined') return;
+    const L = (window as any).L;
+    if (!map || !L || !leafletLoaded) return;
 
     if (userMarkerRef.current) {
       userMarkerRef.current.remove();
@@ -218,12 +238,13 @@ export const MapView: React.FC<MapViewProps> = ({
       );
       userMarkerRef.current = marker;
     }
-  }, [userLocation, isSimulatedLocation]);
+  }, [userLocation, isSimulatedLocation, leafletLoaded]);
 
-  // 5. Ve duong noi lo trinh Tour (Polyline)
+  // 5. Ve duong noi lo trinh Tour
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || typeof L === 'undefined') return;
+    const L = (window as any).L;
+    if (!map || !L || !leafletLoaded) return;
 
     if (tourPolylineRef.current) {
       tourPolylineRef.current.remove();
@@ -253,12 +274,11 @@ export const MapView: React.FC<MapViewProps> = ({
         tourPolylineRef.current = polyline;
       }
     }
-  }, [activeTour, pois]);
+  }, [activeTour, pois, leafletLoaded]);
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '380px', borderRadius: '12px', overflow: 'hidden' }}>
-      <div ref={mapContainerRef} style={{ width: '100%', height: '100%', minHeight: '380px' }} />
-      {/* Chu thich ban do */}
+      <div ref={mapContainerRef} style={{ width: '100%', height: '100%', minHeight: '380px', background: '#e5e7eb' }} />
       <div style={{
         position: 'absolute',
         bottom: '10px',
@@ -275,7 +295,7 @@ export const MapView: React.FC<MapViewProps> = ({
         flexWrap: 'wrap'
       }}>
         <span>🦁 Động vật</span>
-        <span>🌿 Thực vật</span>
+        <span>🌿 Cây di sản</span>
         <span>🏛️ Di tích</span>
         <span>⭕ Vòng kích hoạt 30m</span>
       </div>

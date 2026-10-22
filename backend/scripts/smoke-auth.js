@@ -20,7 +20,7 @@ async function request(route, body, token) {
     assert.equal(page.status, 200, `React route ${route}`);
     const html = await page.text();
     assert.match(html, /id="root"/);
-    const script = html.match(/src="([^\"]+\.js)"/);
+    const script = html.match(/<script[^>]*src="(\/assets\/[^\"]+\.js)"/) || html.match(/src="([^\"]+\.js)"/);
     assert.ok(script, "The release must contain compiled React assets");
     const asset = await request(script[1]);
     assert.equal(asset.status, 200);
