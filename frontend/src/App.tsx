@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link, Routes, Route, useLocation } from 'react-router-dom';
 import { Navigation } from './components/Navigation';
+import { useScrollReveal } from './hooks/useScrollReveal';
+import { useMotionPreference } from './hooks/useMotionPreference';
 import { HomePage } from './pages/HomePage';
 import { PaymentPage } from './pages/PaymentPage';
 import { ExplorePage } from './pages/ExplorePage';
@@ -14,13 +16,22 @@ import { InternalPoiEditPage } from './pages/InternalPoiEditPage';
 import { InternalJobsPage } from './pages/InternalJobsPage';
 
 export const App: React.FC = () => {
-  const { pathname } = useLocation();
-  React.useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+  const { pathname, hash, key: locationKey } = useLocation();
+  const { reducedMotion, toggleMotion } = useMotionPreference();
+  const mainRef = useScrollReveal(pathname, reducedMotion);
+  const previousLocation = React.useRef(locationKey);
+  React.useEffect(() => {
+    if (previousLocation.current === locationKey) return;
+    previousLocation.current = locationKey;
+    if (hash) return;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    mainRef.current?.focus({ preventScroll: true });
+  }, [locationKey, hash, mainRef]);
   return (
     <>
       <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
       <Navigation />
-      <main id="main-content" className="main-content" tabIndex={-1}>
+      <main id="main-content" className="main-content" ref={mainRef} tabIndex={-1}>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/payment" element={<PaymentPage />} />
@@ -43,7 +54,10 @@ export const App: React.FC = () => {
           <div>
             <strong>Thảo Cầm Viên Sài Gòn</strong><span className="footer-caption">Lắng nghe thiên nhiên. Kết nối di sản.</span>
           </div>
-          <div className="footer-links"><span>Phiên bản thử nghiệm</span><Link to="/login">Dành cho nhân viên</Link></div>
+          <div className="footer-links">
+            <button type="button" className="motion-toggle" aria-label="Hiệu ứng chuyển động" aria-pressed={!reducedMotion} onClick={toggleMotion}><span className="motion-toggle-track" aria-hidden="true" />Hiệu ứng: {reducedMotion ? 'tắt' : 'bật'}</button>
+            <span>Phiên bản thử nghiệm</span><Link to="/login">Dành cho nhân viên</Link>
+          </div>
         </div>
       </footer>
     </>

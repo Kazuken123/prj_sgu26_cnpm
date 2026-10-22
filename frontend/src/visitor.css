@@ -171,6 +171,6 @@ p { text-wrap: pretty; }
   input, textarea, select { font-size: 16px !important; }
 }
 @media (prefers-reduced-motion: reduce) {
-  html { scroll-behavior: auto; }
-  *, *::before, *::after { animation: none !important; transition: none !important; }
+  html:not([data-motion='full']) { scroll-behavior: auto; }
+  html:not([data-motion='full']) *, html:not([data-motion='full']) *::before, html:not([data-motion='full']) *::after { animation: none !important; transition: none !important; }
 }

@@ -468,7 +468,7 @@ export const PaymentPage: React.FC = () => {
           </div>
 
           <p style={{ fontSize: '0.88rem', color: 'var(--tcv-slate-700)', marginBottom: '14px' }}>
-            Token khách tham quan đã sẵn sàng. Bạn có toàn quyền truy cập dữ liệu các điểm tham quan và thuyết minh âm thanh.
+            Lượt tham quan đã được kích hoạt. Chọn điểm đến và bắt đầu nghe thuyết minh theo cách của bạn.
           </p>
 
           <table className="status-detail-table" style={{ background: '#ffffff', borderRadius: 'var(--radius-sm)', marginBottom: '16px' }}>
@@ -494,7 +494,7 @@ export const PaymentPage: React.FC = () => {
 
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
             <Link to="/explore" className="btn-primary">
-              Đi tới trang Khám phá →
+              Đi tới trang Khám phá <span className="button-icon"><Icon name="arrow" /></span>
             </Link>
 
             <button
@@ -520,7 +520,7 @@ export const PaymentPage: React.FC = () => {
       )}
       {uiStep !== 'VISIT_ACTIVE' && !session.token && !mismatchedEnv && (
         <div>
-          <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', borderBottom: '2px solid var(--tcv-slate-200)', paddingBottom: '4px' }}>
+          <div className="payment-methods" role="group" aria-label="Hình thức kích hoạt">
             <button
               type="button"
               aria-pressed={paymentTab === 'ONLINE'}
@@ -528,18 +528,8 @@ export const PaymentPage: React.FC = () => {
                 setPaymentTab('ONLINE');
                 setErrorMessage(null);
               }}
-              style={{
-                padding: '8px 16px',
-                border: 'none',
-                background: 'none',
-                borderBottom: paymentTab === 'ONLINE' ? '3px solid var(--tcv-green-700)' : '3px solid transparent',
-                fontWeight: paymentTab === 'ONLINE' ? 700 : 500,
-                color: paymentTab === 'ONLINE' ? 'var(--tcv-green-800)' : 'var(--tcv-slate-600)',
-                cursor: 'pointer',
-                fontSize: '0.95rem'
-              }}
             >
-              Trực tuyến · Mô phỏng
+              <Icon name="globe" /> Trực tuyến mô phỏng
             </button>
             <button
               type="button"
@@ -548,18 +538,8 @@ export const PaymentPage: React.FC = () => {
                 setPaymentTab('CASH');
                 setErrorMessage(null);
               }}
-              style={{
-                padding: '8px 16px',
-                border: 'none',
-                background: 'none',
-                borderBottom: paymentTab === 'CASH' ? '3px solid var(--tcv-green-700)' : '3px solid transparent',
-                fontWeight: paymentTab === 'CASH' ? 700 : 500,
-                color: paymentTab === 'CASH' ? 'var(--tcv-green-800)' : 'var(--tcv-slate-600)',
-                cursor: 'pointer',
-                fontSize: '0.95rem'
-              }}
             >
-              Nhập mã tại quầy
+              <Icon name="ticket" /> Nhập mã tại quầy
             </button>
           </div>
 
@@ -572,7 +552,7 @@ export const PaymentPage: React.FC = () => {
                     Bắt đầu yêu cầu thanh toán
                   </h2>
                   <p style={{ color: 'var(--tcv-slate-600)', fontSize: '0.88rem', marginBottom: '20px' }}>
-                    Khởi tạo một phiên thanh toán trực tuyến mô phỏng. Máy chủ sẽ tự quyết định số tiền vé và sinh liên kết thanh toán mô phỏng.
+                    Tạo lượt tham quan để xem số tiền và kiểm tra trạng thái xác nhận. Đây là thanh toán mô phỏng, không thu tiền thật.
                   </p>
 
                   <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -668,7 +648,7 @@ export const PaymentPage: React.FC = () => {
               <form onSubmit={handleExchangeCashCode}>
                 <div style={{ marginBottom: '16px' }}>
                   <label htmlFor="cash-session-id" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                    Mã phiên tham quan (Session ID)
+                    Mã phiên tham quan
                   </label>
                   <input
                     id="cash-session-id"
@@ -680,13 +660,13 @@ export const PaymentPage: React.FC = () => {
                     style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--tcv-slate-300)', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.9rem' }}
                   />
                   <div style={{ fontSize: '0.78rem', color: 'var(--tcv-slate-500)', marginTop: '4px' }}>
-                    Chuỗi định dạng UUID v4 gồm 36 ký tự do nhân viên soát vé cung cấp.
+                    Sao chép đầy đủ mã phiên do nhân viên cung cấp.
                   </div>
                 </div>
 
                 <div style={{ marginBottom: '20px' }}>
                   <label htmlFor="cash-code" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                    Mã ngắn sáu chữ số (Cash Code)
+                    Mã xác nhận sáu chữ số
                   </label>
                   <input
                     id="cash-code"
@@ -712,7 +692,7 @@ export const PaymentPage: React.FC = () => {
                     disabled={isExchangingCash || uiStep === 'EXCHANGING_TOKEN' || uiStep === 'VERIFYING_VISIT'}
                     className="btn-primary"
                   >
-                    {isExchangingCash || uiStep === 'EXCHANGING_TOKEN' ? 'Đang đổi mã...' : 'Xác nhận đổi mã lấy quyền'}
+                    {isExchangingCash || uiStep === 'EXCHANGING_TOKEN' ? 'Đang đổi mã...' : 'Kích hoạt lượt tham quan'}
                   </button>
 
                   {session.sessionId && (
