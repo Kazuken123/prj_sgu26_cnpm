@@ -2,10 +2,6 @@
 :root { --motion-duration: 700ms; }
 .main-content:focus { outline: none; }
 .footer-links { flex-wrap: wrap; }
-.motion-toggle { display: inline-flex; gap: 8px; align-items: center; min-height: 44px; color: inherit; background: none; border: 0; cursor: pointer; font-size: inherit; }
-.motion-toggle-track { width: 28px; height: 17px; border: 1px solid #9eae90; border-radius: 99px; background: #d6dfcb; padding: 2px; }
-.motion-toggle-track::after { content: ''; display: block; width: 11px; height: 11px; border-radius: 50%; background: #5d744a; transition: transform 250ms var(--ease-spring); }
-.motion-toggle[aria-pressed='true'] .motion-toggle-track::after { transform: translateX(10px); }
 .nav-link { position: relative; }
 .nav-link::after { content: ''; position: absolute; height: 3px; bottom: 5px; left: 40%; right: 40%; border-radius: 5px; background: currentColor; transform: scaleX(0); transition: transform 300ms var(--ease-spring); }
 .nav-link.active::after { transform: scaleX(1); }

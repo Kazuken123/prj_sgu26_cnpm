@@ -17,7 +17,7 @@ import { InternalJobsPage } from './pages/InternalJobsPage';
 
 export const App: React.FC = () => {
   const { pathname, hash, key: locationKey } = useLocation();
-  const { reducedMotion, toggleMotion } = useMotionPreference();
+  const { reducedMotion } = useMotionPreference();
   const mainRef = useScrollReveal(pathname, reducedMotion);
   const previousLocation = React.useRef(locationKey);
   React.useEffect(() => {
@@ -55,7 +55,6 @@ export const App: React.FC = () => {
             <strong>Thảo Cầm Viên Sài Gòn</strong><span className="footer-caption">Lắng nghe thiên nhiên. Kết nối di sản.</span>
           </div>
           <div className="footer-links">
-            <button type="button" className="motion-toggle" aria-label="Hiệu ứng chuyển động" aria-pressed={!reducedMotion} onClick={toggleMotion}><span className="motion-toggle-track" aria-hidden="true" />Hiệu ứng: {reducedMotion ? 'tắt' : 'bật'}</button>
             <span>Phiên bản thử nghiệm</span><Link to="/login">Dành cho nhân viên</Link>
           </div>
         </div>
