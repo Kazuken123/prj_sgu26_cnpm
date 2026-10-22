@@ -111,7 +111,7 @@ if (process.env.RUN_PIPER_TESTS === "1") describe("Piper real local speech with 
   it("Piper mode never invents a missing English translation or calls TTS for it", async () => {
     const poiId = await fixture(draft.pois[0].text, false), [rows] = await db.query("SELECT job_id FROM CONTENT_JOBS WHERE poi_id=? AND language_code='en'", [poiId]);
     const result = await pipeline({ synthesize: () => assert.fail("No READY translation") }).runJob(rows[0].job_id);
-    assert.equal(result.reason, "TRANSLATION_PROVIDER_FAILED");
+    assert.equal(result.reason, "CONTENT_TRANSLATION_NOT_READY");
     assert.equal((await db.query("SELECT COUNT(*) AS total FROM POI_TRANSLATIONS WHERE poi_id=? AND language_code='en'", [poiId]))[0][0].total, 0);
   });
   it("a delayed Piper result cannot publish after lease recovery and retry assigns a new claim", async () => {

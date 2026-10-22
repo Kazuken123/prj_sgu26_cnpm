@@ -26,11 +26,13 @@ const errorHandler = require("./middlewares/error.middleware");
 const { getAuthConfig } = require("./config/auth");
 const path = require("node:path");
 const { createFrontendRouter } = require("./routers/frontend.router");
+const { createTranslationRouter } = require("./routers/translation.router");
+const defaultTranslationService = require("./services/translation.service");
 
 function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService,
   contentJobService = defaultContentJobService, paymentService = defaultPaymentService, mediaService = new MediaService(), contentService = new ContentService(),
   frontendDir = path.resolve(__dirname, "../frontend/dist"), tourService = defaultTourService, auditService = defaultAuditService,
-  monitoringService = defaultMonitoringService } = {}) {
+  monitoringService = defaultMonitoringService, translationService = defaultTranslationService } = {}) {
   const app = express();
   app.disable("x-powered-by");
   const origins = (process.env.CORS_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500").split(",").map(value => value.trim());
@@ -41,6 +43,7 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use(express.json({ limit: "32kb" }));
   app.use("/api/auth", createAuthRouter(authService));
   app.use("/api/admin", createAdminRouter(authService));
+  app.use("/api/admin/pois", createTranslationRouter(authService, translationService));
   app.use("/api/admin/pois", createPoiRouter(authService, poiService));
   app.use("/api/admin/tours", createTourRouter(authService, tourService));
   app.use("/api/admin/audit-logs", createAuditRouter(authService, auditService));

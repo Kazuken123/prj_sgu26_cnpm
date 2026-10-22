@@ -71,7 +71,7 @@ it("timeout configuration must be finite and positive before reading the Store",
 });
 it("an injected provider is required; no production default silently enables mock translations", async () => {
   const f = fixture(); f.service.translator = undefined;
-  assert.equal((await f.service.prepareTranslation(1, f.claimId)).reason, "TRANSLATION_PROVIDER_FAILED"); assert.equal(f.state.writes, 0);
+  assert.equal((await f.service.prepareTranslation(1, f.claimId)).reason, "CONTENT_TRANSLATION_NOT_READY"); assert.equal(f.state.writes, 0);
 });
 it("SQL failures expose no raw details and cannot report translation success", async () => {
   const service = new PipelineService({ withWorkerJob: async () => { throw new Error("SQL secret-key"); } });

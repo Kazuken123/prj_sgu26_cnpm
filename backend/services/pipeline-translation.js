@@ -43,7 +43,10 @@ async function prepareTranslation(service, rawId, claimId) {
   let timer, text, failure;
   try {
     const adapter = service.translator;
-    if (!adapter || typeof adapter.translate !== "function") throw new Error("NO_TRANSLATOR");
+    if (!adapter || typeof adapter.translate !== "function") {
+      failure = "CONTENT_TRANSLATION_NOT_READY";
+      throw new Error("NO_TRANSLATOR");
+    }
     text = await Promise.race([
       Promise.resolve().then(() => adapter.translate({ sourceLanguage: "vi", targetLanguage: input.job.languageCode,
         source: input.source, signal: controller.signal })),

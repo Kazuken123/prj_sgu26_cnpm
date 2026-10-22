@@ -12,6 +12,7 @@ const schemas = {
   CREATE_POI: { sourceChanged: boolean, contentVersion: integer },
   UPDATE_POI: { sourceChanged: boolean, contentVersion: integer },
   DEACTIVATE_POI: {},
+  IMPORT_REVIEWED_TRANSLATION: { ...job },
   CREATE_TOUR: {}, UPDATE_TOUR: { previousRevision: hash, revision: hash },
   CREATE_PENDING_PAYMENT: { sessionId: uuid, paymentMethod: enumOf(["CASH", "ONLINE"]) },
   CONFIRM_CASH_PAYMENT: { sessionId: uuid, amount: text(/^\d{1,12}(?:\.\d{1,2})?$/), currency: enumOf(["VND"]) },
