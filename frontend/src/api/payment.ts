@@ -98,3 +98,25 @@ export async function getVisitMe(
 
   return res.data.data;
 }
+export interface SimulateMockPaymentResult {
+  accepted: boolean;
+  paymentRef: string;
+  paymentStatus: string;
+  sessionStatus?: string;
+  duplicate?: boolean;
+}
+
+export async function simulateMockPayment(
+  paymentRef: string,
+  status: 'SUCCESS' | 'FAILED' = 'SUCCESS',
+  overrideBaseUrl?: string
+): Promise<SimulateMockPaymentResult> {
+  const res = await requestApi<BackendEnvelope<SimulateMockPaymentResult>>({
+    method: 'POST',
+    path: `/api/payments/mock-checkout/${encodeURIComponent(paymentRef)}/pay`,
+    body: { status },
+    overrideBaseUrl
+  });
+
+  return res.data.data;
+}

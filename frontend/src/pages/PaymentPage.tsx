@@ -6,7 +6,8 @@ import {
   createOnlineCheckout,
   getSessionStatus,
   exchangeOnlineCode,
-  getVisitMe
+  getVisitMe,
+  simulateMockPayment
 } from '../api/payment';
 import { exchangeCashCode } from '../api/cash';
 import {
@@ -51,6 +52,7 @@ export const PaymentPage: React.FC = () => {
   const [cashSessionIdInput, setCashSessionIdInput] = useState<string>('');
   const [cashShortedCodeInput, setCashShortedCodeInput] = useState<string>('');
   const [isExchangingCash, setIsExchangingCash] = useState<boolean>(false);
+  const [isSimulatingPayment, setIsSimulatingPayment] = useState<boolean>(false);
 
   const [uiStep, setUiStep] = useState<UiStep>('IDLE');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -231,6 +233,38 @@ export const PaymentPage: React.FC = () => {
         setErrorCode('NETWORK_ERROR');
         setErrorMessage('Không thể kiểm tra trạng thái phiên lúc này. Vui lòng kiểm tra kết nối mạng.');
       }
+    }
+  };
+
+  const handleSimulatePayment = async () => {
+    if (!session.paymentRef) return;
+    setErrorMessage(null);
+    setErrorCode(null);
+    setStatusNotice(null);
+    setIsSimulatingPayment(true);
+
+    try {
+      const res = await simulateMockPayment(session.paymentRef, 'SUCCESS', currentBaseUrl);
+      if (res.accepted && res.paymentStatus === 'PAID') {
+        updateAndPersistSession((prev) => ({
+          ...prev,
+          paymentStatus: 'PAID',
+          sessionStatus: 'ACTIVE'
+        }));
+        setStatusNotice('Mô phỏng thanh toán thành công! Bạn có thể nhấn "Nhận quyền truy cập" bên dưới để kích hoạt vé.');
+      } else {
+        setStatusNotice(`Kết quả mô phỏng: ${res.paymentStatus}`);
+      }
+    } catch (err: unknown) {
+      if (err instanceof ApiError) {
+        setErrorCode(err.code);
+        setErrorMessage(err.message);
+      } else {
+        setErrorCode('SIMULATION_ERROR');
+        setErrorMessage(err instanceof Error ? err.message : 'Không thể thực hiện mô phỏng thanh toán.');
+      }
+    } finally {
+      setIsSimulatingPayment(false);
     }
   };
 
@@ -605,6 +639,18 @@ export const PaymentPage: React.FC = () => {
                   </table>
 
                   <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginTop: '20px' }}>
+                    {session.paymentStatus === 'PENDING' && (
+                      <button
+                        type="button"
+                        onClick={handleSimulatePayment}
+                        disabled={isSimulatingPayment}
+                        className="btn-primary"
+                        style={{ backgroundColor: '#0284c7', borderColor: '#0369a1' }}
+                      >
+                        {isSimulatingPayment ? 'Đang gửi mô phỏng...' : 'Mô phỏng thanh toán thành công (Demo)'}
+                      </button>
+                    )}
+
                     <button
                       type="button"
                       onClick={handleCheckStatus}

@@ -24,6 +24,21 @@ function createPaymentRouter(paymentService) {
     try { res.json({ data: await paymentService.mockCheckout(req.params.paymentRef) }); }
     catch (error) { next(error); }
   });
+  router.post("/mock-checkout/:paymentRef/pay", async (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    try {
+      const summary = await paymentService.mockCheckout(req.params.paymentRef);
+      const gateway = paymentService.gateway;
+      const status = req.body?.status === "FAILED" ? "FAILED" : "SUCCESS";
+      const event = gateway.createWebhook({
+        paymentRef: summary.paymentRef,
+        amount: summary.amount,
+        currency: summary.currency,
+        status
+      });
+      res.json({ data: await paymentService.processMockWebhook(event.body, event.signature) });
+    } catch (error) { next(error); }
+  });
   router.post("/sessions/:sessionId/exchange-cash-code", async (req, res, next) => {
     res.set("Cache-Control", "no-store");
     try { res.json({ data: await paymentService.exchangeCashCode(req.params.sessionId, req.body, req.ip) }); }
