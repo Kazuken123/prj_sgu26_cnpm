@@ -8,7 +8,8 @@ const { createFrontendRouter } = require("../routers/frontend.router");
 
 test("compiled React app supports deep links without exposing source or masking API errors", async t => {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "tcv-web-test-"));
-  const dist = path.join(directory, "dist");
+  // The project may live below a hidden parent directory such as .gemini.
+  const dist = path.join(directory, ".hidden", "dist");
   await fs.mkdir(path.join(dist, "assets"), { recursive: true });
   await fs.writeFile(path.join(dist, "index.html"), '<html><div id="root"></div><script src="/assets/app.js"></script></html>');
   await fs.writeFile(path.join(dist, "assets/app.js"), 'console.log("compiled")');

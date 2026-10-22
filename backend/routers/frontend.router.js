@@ -22,7 +22,9 @@ function createFrontendRouter(distDirectory) {
       return res.status(503).json({ code: "FRONTEND_NOT_BUILT", error: "Run npm ci and npm run build in frontend before starting the web application." });
     }
     res.set("Cache-Control", "no-cache");
-    res.sendFile(indexFile);
+    // Resolve from the build root so hidden parent directories (e.g. .gemini)
+    // are not mistaken for a requested dotfile by Express/send on Windows.
+    res.sendFile("index.html", { root: distDirectory });
   });
   return router;
 }
