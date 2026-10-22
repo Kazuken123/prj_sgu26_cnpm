@@ -178,3 +178,24 @@ html[data-motion='reduce'] .reveal-pending, html[data-motion='reduce'] .reveal-v
 @media print {
   .reveal-pending, .reveal-visible { opacity: 1; transform: none; animation: none; }
 }
+
+/* Keep the sticky navigation distinct from the content while scrolling. */
+.site-header {
+  transition: background-color 300ms var(--ease-spring), border-color 300ms var(--ease-spring), box-shadow 300ms var(--ease-spring);
+}
+.site-header.is-scrolled {
+  background: #244b38;
+  border-color: #45664f;
+  color: #fffef5;
+  box-shadow: 0 8px 28px #152f2433;
+}
+.site-header.is-scrolled .brand-title { color: #fffef5; }
+.site-header.is-scrolled .brand-sub { color: #d7e3ce; }
+.site-header.is-scrolled .brand-badge-icon { background: #3a6047; color: #edf4e3; }
+.site-header.is-scrolled .nav-link,
+.site-header.is-scrolled .staff-link { color: #e0ead8; }
+.site-header.is-scrolled .nav-link:hover { background: #355d45; color: #fffef5; }
+.site-header.is-scrolled .nav-link.active { background: #e8efdf; color: #244b38; }
+.site-header.is-scrolled .staff-link:hover,
+.site-header.is-scrolled .staff-link.active { color: #fffef5; }
+.site-header.is-scrolled :focus-visible { outline-color: #d9eabe; }
