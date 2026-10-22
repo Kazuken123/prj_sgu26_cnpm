@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { VisitorNavigation } from './components/VisitorNavigation';
 import { InternalNavigation } from './components/InternalNavigation';
 import { InternalProtectedRoute } from './components/InternalProtectedRoute';
@@ -51,13 +51,14 @@ export const App: React.FC = () => {
 
       <main id="main-content" className="main-content" ref={mainRef} tabIndex={-1}>
         <Routes>
-          {/* PHÂN HỆ KHÁCH HÀNG (VISITOR PORTAL) */}
+          {/* PHÂN HỆ KHÁCH HÀNG (VISITOR PORTAL - HOÀN TOÀN CÁCH LY) */}
           <Route path="/" element={<HomePage />} />
           <Route path="/payment" element={<PaymentPage />} />
           <Route path="/explore" element={<ExplorePage />} />
 
           {/* PHÂN HỆ NỘI BỘ (INTERNAL / STAFF / ADMIN PORTAL) */}
-          <Route path="/login" element={<LoginPage />} />
+          <Route path="/login" element={<Navigate to="/internal/login" replace />} />
+          <Route path="/internal" element={<Navigate to="/internal/login" replace />} />
           <Route path="/internal/login" element={<LoginPage />} />
 
           <Route
@@ -205,8 +206,8 @@ export const App: React.FC = () => {
               <span className="footer-caption">Lắng nghe thiên nhiên. Kết nối di sản. Mở cửa 7:00 – 18:30 hàng ngày.</span>
             </div>
             <div className="footer-links">
-              <span>Số 2 Nguyễn Bỉnh Khiêm, Quận 1, TP.HCM</span>
-              <Link to="/internal/login">Cổng Nhân viên & Quản trị</Link>
+              <span>Số 2 Nguyễn Bỉnh Khiêm, Phường Bến Nghé, Quận 1, TP.HCM</span>
+              <span>Hotline: (028) 3829 1425</span>
             </div>
           </div>
         </footer>

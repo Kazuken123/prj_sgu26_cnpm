@@ -60,7 +60,7 @@ export const VisitorNavigation: React.FC = () => {
         </nav>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          {hasValidTicket && (
+          {hasValidTicket ? (
             <Link
               to="/explore"
               className="status-pill ready"
@@ -69,25 +69,36 @@ export const VisitorNavigation: React.FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: '6px',
-                padding: '4px 10px',
-                fontSize: '0.8rem',
-                fontWeight: 600
+                padding: '6px 14px',
+                fontSize: '0.84rem',
+                fontWeight: 600,
+                borderRadius: '999px'
               }}
-              title="Bạn đang có vé tham quan hoạt động"
+              title="Bạn đang có vé tham quan hoạt động — Nhấn để vào bản đồ"
             >
               <span>🎟️</span>
-              <span>Đã kích hoạt vé</span>
+              <span>Đang có vé</span>
+            </Link>
+          ) : (
+            <Link
+              to="/payment"
+              className="btn-primary"
+              style={{
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                fontSize: '0.84rem',
+                fontWeight: 600,
+                borderRadius: '999px'
+              }}
+              title="Mua vé trực tuyến hoặc đổi mã tiền mặt"
+            >
+              <span>🎟️</span>
+              <span>Kích hoạt vé</span>
             </Link>
           )}
-
-          <Link
-            to="/internal/login"
-            className="staff-link"
-            title="Dành riêng cho nhân viên & quản trị viên Thảo Cầm Viên"
-          >
-            <Icon name="lock" />
-            <span>Nhân viên</span>
-          </Link>
         </div>
       </div>
     </header>

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BackendStatus } from '../components/BackendStatus';
 import { Icon } from '../components/Icon';
 
 const stories = [
@@ -31,7 +30,6 @@ const stories = [
 ];
 
 export const HomePage: React.FC = () => {
-  const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [storyIndex, setStoryIndex] = useState(0);
   const story = stories[storyIndex];
 
@@ -105,10 +103,6 @@ export const HomePage: React.FC = () => {
 
       <aside className="demo-notice"><Icon name="info" /><p><strong>Bản trải nghiệm thử.</strong> Thanh toán được mô phỏng, không thu tiền thật. Nội dung và âm thanh phụ thuộc dữ liệu được triển khai trên máy chủ; tọa độ tham quan chưa được xác minh thực địa.</p></aside>
       <p className="photo-credit">Ảnh: <a href="https://silverkris.singaporeair.com/guide/vietnam/sgn/do-ho-chi-minh-city/saigon-zoo-and-botanical-gardens/" target="_blank" rel="noreferrer">SilverKris</a> / <a href="https://saigonzoo.vn/" target="_blank" rel="noreferrer">Thảo Cầm Viên Sài Gòn</a></p>
-      <details className="technical-details" onToggle={(event) => setShowDiagnostics(event.currentTarget.open)}>
-        <summary>Thông tin kết nối dành cho nhóm phát triển</summary>
-        {showDiagnostics && <BackendStatus />}
-      </details>
     </div>
   );
 };

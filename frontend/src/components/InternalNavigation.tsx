@@ -85,7 +85,7 @@ export const InternalNavigation: React.FC = () => {
                 Ban Quản Trị Thảo Cầm Viên Sài Gòn
               </div>
               <div style={{ fontSize: '0.75rem', color: '#90a955' }}>
-                Hệ thống Quản lý Vận hành & Thuyết minh Đa ngôn ngữ
+                Cổng Quản Trị & Vận Hành Nội Bộ
               </div>
             </div>
           </Link>
@@ -154,27 +154,6 @@ export const InternalNavigation: React.FC = () => {
               Đăng nhập nội bộ
             </Link>
           )}
-
-          <Link
-            to="/"
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{
-              color: '#d1fae5',
-              fontSize: '0.78rem',
-              textDecoration: 'none',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '4px',
-              padding: '4px 8px',
-              borderRadius: '4px',
-              background: 'rgba(255,255,255,0.06)'
-            }}
-            title="Mở trang dành cho khách du lịch"
-          >
-            <span>🌐</span>
-            <span>Trang khách</span>
-          </Link>
         </div>
       </div>
 

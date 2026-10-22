@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { getApiBaseUrl, ApiError } from '../api/client.ts';
 import { loginInternal } from '../api/auth.ts';
 import { loadInternalSession, saveInternalSession } from '../api/authStorage.ts';
@@ -93,7 +93,7 @@ export const LoginPage: React.FC = () => {
             Không gian làm việc nội bộ
           </span>
           <h1 className="hero-title" style={{ fontSize: '1.8rem', marginTop: '6px' }}>
-            Đăng nhập Nhân viên & Quản trị
+            Đăng nhập Cổng Quản trị & Vận hành
           </h1>
           <p style={{ fontSize: '0.86rem', color: 'var(--tcv-slate-600)', marginTop: '4px' }}>
             Dành cho nhân viên soát vé (STAFF) và quản trị viên (ADMIN) Thảo Cầm Viên Sài Gòn.
@@ -179,11 +179,9 @@ export const LoginPage: React.FC = () => {
         </form>
 
         <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--tcv-slate-200)', textAlign: 'center', fontSize: '0.82rem', color: 'var(--tcv-slate-500)' }}>
-          <div>* Hệ thống không mở tính năng tự đăng ký tài khoản công khai.</div>
-          <div style={{ marginTop: '8px' }}>
-            <Link to="/" style={{ color: 'var(--tcv-green-700)', textDecoration: 'underline' }}>
-              ← Quay về Trang bắt đầu dành cho khách
-            </Link>
+          <div>* Cổng thông tin nội bộ bảo mật, không hỗ trợ đăng ký công khai.</div>
+          <div style={{ marginTop: '6px', fontSize: '0.76rem', color: 'var(--tcv-slate-400)' }}>
+            Mọi thao tác đăng nhập và truy cập đều được ghi vết tự động vào hệ thống Audit Log.
           </div>
         </div>
       </div>
