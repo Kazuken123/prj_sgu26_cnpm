@@ -4,7 +4,8 @@ const RedisStore = require("../stores/redis.store");
 const { getVisitPrice, getLookupConfig, getVisitValidityMs, getCashCodeTtlMs, getCashExchangeConfig } = require("../config/payment");
 const AppError = require("../utils/app-error");
 const MockGateway = require("../adapters/mock-gateway");
-const { getOnlineCodeTtlMs, getOnlineExchangeConfig } = require("../config/online-payment");
+const { getOnlineCodeTtlMs, getOnlineExchangeConfig, isMockSimulationEnabled } = require("../config/online-payment");
+const { simulateMockPayment } = require("./mock-payment-simulation");
 const { initializeOnline } = require("./online-checkout");
 const { processMockWebhook } = require("./online-webhook");
 const { exchangeOnlineCode } = require("./online-exchange");
@@ -22,15 +23,18 @@ function authorize(actor) {
 class PaymentService {
   constructor(store = new PaymentStore(), redis = new RedisStore(), { price = getVisitPrice, lookupConfig = getLookupConfig,
     validityMs = getVisitValidityMs, cashCodeTtlMs = getCashCodeTtlMs, exchangeConfig = getCashExchangeConfig, now = () => Date.now(),
-    gateway = new MockGateway(), onlineCodeTtlMs = getOnlineCodeTtlMs, gatewayTimeoutMs = 2000, onlineExchangeConfig = getOnlineExchangeConfig } = {}) {
+    gateway = new MockGateway(), onlineCodeTtlMs = getOnlineCodeTtlMs, gatewayTimeoutMs = 2000, onlineExchangeConfig = getOnlineExchangeConfig,
+    simulationEnabled = isMockSimulationEnabled } = {}) {
     this.store = store; this.redis = redis; this.price = price; this.lookupConfig = lookupConfig; this.validityMs = validityMs;
     this.cashCodeTtlMs = cashCodeTtlMs; this.now = now;
     this.exchangeConfig = exchangeConfig;
     this.gateway = gateway; this.onlineCodeTtlMs = onlineCodeTtlMs; this.gatewayTimeoutMs = gatewayTimeoutMs;
     this.onlineExchangeConfig = onlineExchangeConfig;
+    this.simulationEnabled = simulationEnabled;
   }
   async initializeOnline(input, requestKey) { return initializeOnline(this, input, requestKey); }
   async processMockWebhook(body, signature) { return processMockWebhook(this, body, signature); }
+  async simulateMockPayment(paymentRef, input, ipAddress) { return simulateMockPayment(this, paymentRef, input, ipAddress); }
   async exchangeOnlineCode(sessionId, input, ipAddress) { return exchangeOnlineCode(this, sessionId, input, ipAddress); }
   async mockCheckout(paymentRef) {
     try { this.gateway.assertConfigured(); }

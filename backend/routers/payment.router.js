@@ -27,16 +27,7 @@ function createPaymentRouter(paymentService) {
   router.post("/mock-checkout/:paymentRef/pay", async (req, res, next) => {
     res.set("Cache-Control", "no-store");
     try {
-      const summary = await paymentService.mockCheckout(req.params.paymentRef);
-      const gateway = paymentService.gateway;
-      const status = req.body?.status === "FAILED" ? "FAILED" : "SUCCESS";
-      const event = gateway.createWebhook({
-        paymentRef: summary.paymentRef,
-        amount: summary.amount,
-        currency: summary.currency,
-        status
-      });
-      res.json({ data: await paymentService.processMockWebhook(event.body, event.signature) });
+      res.json({ data: await paymentService.simulateMockPayment(req.params.paymentRef, req.body, req.ip) });
     } catch (error) { next(error); }
   });
   router.post("/sessions/:sessionId/exchange-cash-code", async (req, res, next) => {

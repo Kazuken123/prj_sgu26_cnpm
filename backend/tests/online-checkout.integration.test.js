@@ -367,6 +367,43 @@ describe("ONLINE checkout SQL / " + (realRedis ? "real Redis" : "Redis replaceme
     await assert.rejects(limited.exchangeOnlineCode(checkout.sessionId, { authCode: checkout.authCode }, "192.0.2.222"), { status: 429 });
     assert.equal((await snapshot(checkout.sessionId)).visits[0].token_hash, null);
   });
+  it("browser simulation HTTP with SQL/Redis preserves pending refusal, failure, duplicate safety and one-time guest access", async t => {
+    const { createApp } = require("../server");
+    const demo = new PaymentService(new PaymentStore(db), redis, { gateway, price: () => "50000.00", simulationEnabled: () => true,
+      lookupConfig: () => ({ windowSeconds: 60, ipLimit: 100, sessionLimit: 100 }) });
+    const server = http.createServer(createApp({ paymentService: demo }));
+    await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+    t.after(async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); });
+    const base = `http://127.0.0.1:${server.address().port}`;
+    const post = (route, body) => fetch(base + route, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+    const checkout = (await demo.initializeOnline({}, randomUUID())).data;
+    const exchangePath = `/api/payments/sessions/${checkout.sessionId}/exchange-online-code`;
+    const simulatePath = `/api/payments/mock-checkout/${checkout.paymentRef}/pay`;
+    assert.equal((await post(exchangePath, { authCode: checkout.authCode })).status, 409);
+    assert.equal((await post(simulatePath, {})).status, 400);
+    demo.simulationEnabled = () => false;
+    assert.equal((await post(simulatePath, { status: "SUCCESS" })).status, 404);
+    demo.simulationEnabled = () => true;
+    const savedRedis = demo.redis;
+    demo.redis = { ...redis, consumeLookup: async () => { throw new Error("forced outage"); } };
+    assert.equal((await post(simulatePath, { status: "SUCCESS" })).status, 503);
+    demo.redis = savedRedis;
+    assert.equal((await snapshot(checkout.sessionId)).payments[0].status, "PENDING");
+    assert.equal((await (await post(simulatePath, { status: "FAILED" })).json()).data.paymentStatus, "FAILED");
+    assert.equal((await post(exchangePath, { authCode: checkout.authCode })).status, 409);
+    const results = await Promise.all(Array.from({ length: 10 }, async () => {
+      const response = await post(simulatePath, { status: "SUCCESS" });
+      assert.equal(response.status, 200); return (await response.json()).data;
+    }));
+    assert.equal(results.filter(result => !result.duplicate).length, 1);
+    const paid = await snapshot(checkout.sessionId);
+    assert.equal(paid.audits.filter(row => row.resource_id === checkout.paymentRef && row.action === "CONFIRM_ONLINE_PAYMENT").length, 1);
+    const issued = await post(exchangePath, { authCode: checkout.authCode });
+    assert.equal(issued.status, 200); const visitor = (await issued.json()).data;
+    assert.equal((await fetch(base + "/api/visits/me", { headers: { Authorization: "Bearer " + visitor.token } })).status, 200);
+    assert.equal((await fetch(base + "/api/visits/me", { headers: { Authorization: "Bearer invalid" } })).status, 401);
+    assert.equal((await post(exchangePath, { authCode: checkout.authCode })).status, 409);
+  });
   it("full HTTP ONLINE flow reaches protected guest API only after valid webhook and one-time code exchange", async t => {
     const { createApp } = require("../server"), { runMockPayment } = require("../scripts/mock-payment");
     const { createFixture, staff } = require("./helpers/auth.fixture");
