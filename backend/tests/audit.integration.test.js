@@ -63,6 +63,14 @@ describe("UC-17 read-only audit with real MySQL and internal authentication", { 
     assert.equal(new Set(all.map(row => row.logId)).size, 4);
     assert.equal((await request()).headers.get("cache-control"), "no-store"); assert.equal(await snapshot(), before);
   });
+  it("ADMIN can filter actual stored knowledge actions without leaking document contents", async () => {
+    for (const action of ["CREATE_KNOWLEDGE_DOCUMENT", "UPDATE_KNOWLEDGE_DOCUMENT", "DEACTIVATE_KNOWLEDGE_DOCUMENT", "PUBLISH_KNOWLEDGE_DOCUMENT", "FAIL_KNOWLEDGE_PROCESSING"]) {
+      await db.query("INSERT INTO AUDIT_LOGS(user_id,action,resource_type,resource_id,details) VALUES(?,?,'KNOWLEDGE_DOCUMENTS','1',?)", [adminId, action, JSON.stringify({ contentVersion: 2, content: "PRIVATE_DOCUMENT", token: "PRIVATE_TOKEN" })]);
+      const result = await data("?action=" + action);
+      assert.equal(result.total, 1); assert.deepEqual(result.items[0].details, { contentVersion: 2 });
+      assert.equal(result.items[0].detailsOmitted, true); assert.equal(JSON.stringify(result).includes("PRIVATE_"), false);
+    }
+  });
   it("time filters are inclusive UTC, combine with action and support one-sided bounds", async () => {
     const exact = await data("?from=2024-02-29T12:00:00Z&to=2024-02-29T12:00:00Z&action=UPDATE_TOUR");
     assert.equal(exact.total, 2); assert.equal(exact.items.length, 2);

@@ -33,6 +33,10 @@ class PaymentService {
     this.simulationEnabled = simulationEnabled;
   }
   async initializeOnline(input, requestKey) { return initializeOnline(this, input, requestKey); }
+  quote() {
+    try { return { amount: this.price(), currency: "VND" }; }
+    catch { throw new AppError(503, "VISIT_PRICE_NOT_CONFIGURED", "Giá vé chưa được cấu hình hợp lệ."); }
+  }
   async processMockWebhook(body, signature) { return processMockWebhook(this, body, signature); }
   async simulateMockPayment(paymentRef, input, ipAddress) { return simulateMockPayment(this, paymentRef, input, ipAddress); }
   async exchangeOnlineCode(sessionId, input, ipAddress) { return exchangeOnlineCode(this, sessionId, input, ipAddress); }

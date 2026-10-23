@@ -41,7 +41,7 @@ export interface MonitoringDto {
       total: number;
       byStatus: Record<string, number>;
     } | null>;
-    chatbot: MetricEnvelope<null>;
+    chatbot: MetricEnvelope<{ total: number; byStatus: Record<string, number> } | null>;
   };
   health: {
     liveness: { status: 'UP'; checkedAt: string };

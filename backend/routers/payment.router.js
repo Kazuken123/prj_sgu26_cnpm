@@ -2,6 +2,10 @@ const express = require("express");
 const { createAuthMiddleware, requireRole } = require("../middlewares/auth.middleware");
 function createPaymentRouter(paymentService) {
   const router = express.Router();
+  router.get("/price", (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    try { res.json({ data: paymentService.quote() }); } catch (error) { next(error); }
+  });
   router.post("/sessions/:sessionId/exchange-online-code", async (req, res, next) => {
     res.set("Cache-Control", "no-store");
     try { res.json({ data: await paymentService.exchangeOnlineCode(req.params.sessionId, req.body, req.ip) }); }

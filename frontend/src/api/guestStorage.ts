@@ -1,3 +1,4 @@
+import { GUEST_SESSION_CHANGED, notifySessionChanged } from './sessionEvents.ts';
 export interface StoredGuestSession {
   version: 1;
   apiBaseUrl: string;
@@ -131,6 +132,7 @@ export function saveGuestSession(session: StoredGuestSession): { success: boolea
       return { success: false, error: 'localStorage không khả dụng' };
     }
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    notifySessionChanged(GUEST_SESSION_CHANGED);
     return { success: true, error: null };
   } catch (err: unknown) {
     return {
@@ -146,4 +148,5 @@ export function clearGuestSession(): void {
     try { window[kind]?.removeItem(STORAGE_KEY); }
     catch { /* A blocked store must not prevent cleanup of the other copy. */ }
   }
+  notifySessionChanged(GUEST_SESSION_CHANGED);
 }

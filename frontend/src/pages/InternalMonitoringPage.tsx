@@ -226,6 +226,14 @@ export const InternalMonitoringPage: React.FC = () => {
             </div>
           </div>
 
+          <div className="tcv-card" style={{ padding: '20px' }}>
+            <h3>Lượt hỏi chatbot được ghi nhận</h3>
+            <p>Trong khoảng UTC đã chọn: <strong>{data.metrics.chatbot.value?.total ?? 'Không khả dụng'}</strong></p>
+            <p>Có câu trả lời: {data.metrics.chatbot.value?.byStatus.SUCCESS ?? 'Không khả dụng'}</p>
+            <p>Không có ngữ cảnh: {data.metrics.chatbot.value?.byStatus.NO_CONTEXT ?? 'Không khả dụng'}</p>
+            <p>Lỗi xử lý: {data.metrics.chatbot.value?.byStatus.FAILED ?? 'Không khả dụng'}</p>
+            <p>Đây là số lượt đã ghi trong nhật ký, không phải đánh giá độ đúng của câu trả lời.</p>
+          </div>
           {/* TIEN TRINH AUDIO & CONTENT JOBS */}
           <div className="tcv-card" style={{ padding: '20px' }}>
             <h3 style={{ fontSize: '1.05rem', color: '#14532d', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -255,11 +263,11 @@ export const InternalMonitoringPage: React.FC = () => {
 
             <div style={{ paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
               <div style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '4px' }}>
-                Tệp âm thanh MP3 thuyết minh: <strong>{data.metrics.audioRecords.value?.total ?? 'Không khả dụng'}</strong>
+                Bản ghi âm thanh: <strong>{data.metrics.audioRecords.value?.total ?? 'Không khả dụng'}</strong>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <span className="status-pill ready" style={{ fontSize: '0.75rem' }}>
-                  Sẵn sàng phát: {data.metrics.audioRecords.value?.byStatus?.AVAILABLE ?? 'Không khả dụng'}
+                  Trạng thái AVAILABLE: {data.metrics.audioRecords.value?.byStatus?.AVAILABLE ?? 'Không khả dụng'}
                 </span>
                 <span className="status-pill unready" style={{ fontSize: '0.75rem' }}>
                   Chờ tệp: {data.metrics.audioRecords.value?.byStatus?.PENDING ?? 'Không khả dụng'}

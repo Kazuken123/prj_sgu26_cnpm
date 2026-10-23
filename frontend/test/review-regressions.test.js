@@ -91,8 +91,8 @@ test('monitoring renders production health objects and audioRecords; unavailable
     urls.push(parsed);
     const service = monitoringService(down ? {
       activePaidVisits: async () => null, paidPayments: async () => null,
-      bundleTotals: async () => null, audios: async () => null
-    } : {}, down ? {
+      bundleTotals: async () => null, audios: async () => null, chatbot: async () => null
+    } : { chatbot: async () => [{ status: 'SUCCESS', total: 2 }, { status: 'NO_CONTEXT', total: 3 }, { status: 'FAILED', total: 1 }] }, down ? {
       ping: async () => { throw Error('db unavailable'); }, pingRedis: async () => { throw Error('redis unavailable'); }
     } : {});
     return serviceResponse(() => service.get(actor, Object.fromEntries(parsed.searchParams)));
@@ -101,6 +101,9 @@ test('monitoring renders production health objects and audioRecords; unavailable
   assert.equal(urls[0].searchParams.has('window'), false);
   assert.equal(new Date(urls[0].searchParams.get('to')) - new Date(urls[0].searchParams.get('from')), 86400000);
   assert.match(text(view), /27/);
+  assert.match(text(view), /Lượt hỏi chatbot được ghi nhận/);
+  assert.match(text(view), /không phải đánh giá độ đúng/);
+  assert.equal(view.root.findAllByType('p').some(node => nodeText(node).includes('Trong khoảng UTC đã chọn: 6')), true);
   assert.equal((text(view).match(/SẴN SÀNG \(READY\)/g) || []).length, 3);
   down = true;
   await act(async () => view.root.findByType('select').props.onChange({ target: { value: '7d' } }));

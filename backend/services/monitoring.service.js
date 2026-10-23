@@ -39,7 +39,7 @@ class MonitoringService {
         const payments = await reader.paidPayments("PAID", window.from, window.to);
         const bundle = await reader.bundleTotals(window.from, window.to);
         const languages = bundle === null ? null : await reader.bundleLanguages(window.from, window.to);
-        const jobs = await reader.jobs(), audios = await reader.audios();
+        const jobs = await reader.jobs(), audios = await reader.audios(), chat = await reader.chatbot(window.from, window.to);
         let paymentValue = null;
         if (payments !== null) {
           paymentValue = { count: count(payments.reduce((sum, row) => sum + count(row.total), 0)), totals: payments.map(row => {
@@ -55,11 +55,11 @@ class MonitoringService {
               byLanguage: languages.map(row => ({ languageCode: row.languageCode, total: count(row.total), uniqueSessions: count(row.uniqueSessions) })) }, "bundle_issuances", "WINDOW_CREATED_AT", asOf),
             contentJobs: metric(jobs === null ? null : states(jobs, ["PENDING", "PROCESSING", "COMPLETED", "FAILED"]), "jobs", "CURRENT_ALL_VERSIONS", asOf),
             audioRecords: metric(audios === null ? null : states(audios, ["PENDING", "AVAILABLE", "FAILED"]), "audio_records", "CURRENT_ALL_RECORDS", asOf),
-            chatbot: { status: "NOT_IMPLEMENTED", value: null, unit: "questions", scope: "NOT_INTEGRATED", updatedAt: null },
+            chatbot: metric(chat === null ? null : states(chat, ["SUCCESS", "NO_CONTEXT", "FAILED"]), "logged_questions", "WINDOW_CREATED_AT", asOf),
           } };
       }), this.health()]);
       const checkedAt = new Date().toISOString();
-      const sqlAvailable = Object.entries(snapshot.metrics).filter(([name]) => name !== "chatbot").every(([, value]) => value.status === "AVAILABLE");
+      const sqlAvailable = Object.values(snapshot.metrics).every(value => value.status === "AVAILABLE");
       health.readiness = { status: health.database.status === "READY" && health.redis.status === "READY" && sqlAvailable ? "READY" : "NOT_READY", checkedAt };
       return { ...snapshot, generatedAt: checkedAt, health };
     } catch { throw new AppError(503, "MONITORING_UNAVAILABLE", "Chưa thể xác minh thống kê; giữ bộ lọc và thử lại, không thay số liệu bằng 0."); }

@@ -6,6 +6,22 @@ const { PaymentService } = require("../services/payment.service");
 const { getVisitPrice, getLookupConfig } = require("../config/payment");
 const AppError = require("../utils/app-error");
 const staff = { userId: 7, role: "STAFF", status: "ACTIVE" };
+it("public price is read-only, no-store, server controlled and configuration errors are safe 503", async t => {
+  const f = fixture();
+  const server = http.createServer(require("../server").createApp({ paymentService: f.service }));
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  t.after(async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); });
+  const url = `http://127.0.0.1:${server.address().port}/api/payments/price`;
+  for (const suffix of ["", "?amount=1&currency=USD"]) {
+    const response = await fetch(url + suffix);
+    assert.equal(response.status, 200); assert.equal(response.headers.get("cache-control"), "no-store");
+    assert.deepEqual(await response.json(), { data: { amount: "50000.00", currency: "VND" } });
+  }
+  assert.equal(f.records.size, 0); assert.equal(f.calls.length, 0); assert.equal(f.limits.length, 0);
+  f.service.price = () => { throw Error("private configuration value"); };
+  const unavailable = await fetch(url);
+  assert.equal(unavailable.status, 503); assert.equal((await unavailable.json()).code, "VISIT_PRICE_NOT_CONFIGURED");
+});
 function fixture() {
   const records = new Map(), calls = [], limits = [];
   const store = {

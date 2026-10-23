@@ -40,6 +40,19 @@ interface BackendEnvelope<T> {
   data: T;
 }
 
+export interface VisitPrice { amount: string; currency: string }
+
+export async function getVisitPrice(overrideBaseUrl?: string): Promise<VisitPrice> {
+  const response = await requestApi<BackendEnvelope<VisitPrice>>({
+    method: 'GET', path: '/api/payments/price', overrideBaseUrl
+  });
+  const price = response.data.data;
+  if (!price || !/^[0-9]+\.[0-9]{2}$/.test(price.amount) || !Number.isFinite(Number(price.amount)) || Number(price.amount) <= 0 || price.currency !== 'VND') {
+    throw new Error('Giá vé không hợp lệ.');
+  }
+  return price;
+}
+
 export async function createOnlineCheckout(
   idempotencyKey: string,
   overrideBaseUrl?: string

@@ -18,8 +18,30 @@ it("health Store keeps existing SQL schema probes/timeouts and delegates Redis t
   const queries = []; let pings = 0;
   const store = new HealthStore({ query: async query => queries.push(query) }, { ping: async () => { pings++; } });
   await store.ping(); await store.pingRedis();
-  assert.equal(queries.length, 8); assert.ok(queries.every(query => query.timeout === 2000));
+  assert.equal(queries.length, 16); assert.ok(queries.every(query => query.timeout === 2000));
+  assert.equal(new Set(queries.map(query => query.sql.match(/FROM (\w+)/)[1])).size, 16);
   assert.match(queries[1].sql, /rotated_token_hashes/); assert.match(queries[7].sql, /request_key_hash/); assert.equal(pings, 1);
+});
+it("each newly required table fails readiness safely and recovery restores HTTP 200", async t => {
+  let missing = null;
+  const store = new HealthStore({ query: async ({ sql }) => { if (missing && sql.includes(`FROM ${missing} `)) throw Error("private SQL connection"); } }, { ping: async () => {} });
+  const server = http.createServer(require("../server").createApp({ healthService: new HealthService(store) }));
+  await new Promise(resolve => server.listen(0, "127.0.0.1", resolve));
+  t.after(async () => { server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); });
+  const url = `http://127.0.0.1:${server.address().port}/health/ready`;
+  assert.equal((await fetch(url)).status, 200);
+  for (const table of ["VISIT_SESSIONS", "AUDIOS", "TOURS", "TOUR_POIS", "KNOWLEDGE_DOCUMENTS", "KNOWLEDGE_CHUNKS", "CHAT_LOGS", "BUNDLE_ACCESS_LOGS"]) {
+    missing = table; const response = await fetch(url);
+    assert.equal(response.status, 503); assert.equal((await response.json()).code, "DATABASE_UNAVAILABLE");
+    missing = null; assert.equal((await fetch(url)).status, 200);
+  }
+});
+it("a stalled SQL driver cannot hold readiness beyond its overall deadline", async () => {
+  let calls = 0;
+  const store = new HealthStore({ query: () => { calls++; return new Promise(() => {}); } }, { ping: async () => {} });
+  const started = Date.now();
+  await assert.rejects(store.ping(), /READINESS_TIMEOUT/);
+  assert.ok(Date.now() - started < 7000); assert.equal(calls, 1);
 });
 it("Redis PING requires PONG, uses bounded no-reconnect settings and closes each client", async () => {
   for (const reply of ["PONG", "OK"]) {

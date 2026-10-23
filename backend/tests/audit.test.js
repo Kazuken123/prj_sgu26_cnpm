@@ -5,6 +5,17 @@ const { filters, ACTIONS } = require("../services/audit.validation");
 const { project } = require("../services/audit-details");
 const AppError = require("../utils/app-error");
 const admin = { userId: 1, role: "ADMIN", status: "ACTIVE" };
+it("knowledge audit actions are filterable and expose only approved processing metadata", () => {
+  for (const action of ["CREATE_KNOWLEDGE_DOCUMENT", "UPDATE_KNOWLEDGE_DOCUMENT", "DEACTIVATE_KNOWLEDGE_DOCUMENT", "PUBLISH_KNOWLEDGE_DOCUMENT", "FAIL_KNOWLEDGE_PROCESSING"]) {
+    assert.equal(filters({ action }).action, action);
+    const projected = project(action, { contentVersion: 2, content: "PRIVATE_CONTENT", apiKey: "PRIVATE_KEY" });
+    assert.deepEqual(projected.details, { contentVersion: 2 }); assert.equal(projected.detailsOmitted, true);
+  }
+  assert.deepEqual(project("PUBLISH_KNOWLEDGE_DOCUMENT", { contentVersion: 2, chunkCount: 3, embeddingModel: "mock-embedding-v1" }).details,
+    { contentVersion: 2, chunkCount: 3, embeddingModel: "mock-embedding-v1" });
+  assert.deepEqual(project("FAIL_KNOWLEDGE_PROCESSING", { contentVersion: 2, code: "PROVIDER_UNAVAILABLE", message: "PRIVATE" }).details,
+    { contentVersion: 2, code: "PROVIDER_UNAVAILABLE" });
+});
 it("audit defaults and supported actions are explicit without mutating filters", () => {
   assert.deepEqual(filters(), { from: null, to: null, action: null, page: 1, limit: 20 });
   const input = { page: "2", limit: "100", action: "UPDATE_TOUR", from: "2024-02-29T00:00:00Z", to: "2024-02-29T00:00:00Z" };

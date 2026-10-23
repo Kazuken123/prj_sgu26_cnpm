@@ -28,8 +28,8 @@ export const InternalAuditLogsPage: React.FC = () => {
           page: currentPage,
           limit,
           action: selectedAction || undefined,
-          from: fromDate ? new Date(fromDate).toISOString() : undefined,
-          to: toDate ? new Date(toDate).toISOString() : undefined
+          from: fromDate ? new Date(fromDate).toISOString().replace(/\.\d{3}Z$/, 'Z') : undefined,
+          to: toDate ? new Date(toDate).toISOString().replace(/\.\d{3}Z$/, 'Z') : undefined
         },
         token,
         baseUrl

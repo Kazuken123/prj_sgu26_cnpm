@@ -5,6 +5,8 @@ import { Icon } from '../components/Icon';
 import { getApiBaseUrl, ApiError } from '../api/client';
 import {
   createOnlineCheckout,
+  getVisitPrice,
+  VisitPrice,
   getSessionStatus,
   exchangeOnlineCode,
   getVisitMe,
@@ -45,6 +47,16 @@ const stepLabels: Record<UiStep, string> = {
 
 export const PaymentPage: React.FC = () => {
   const currentBaseUrl = getApiBaseUrl();
+  const [price, setPrice] = useState<VisitPrice | null>(null);
+  const [priceError, setPriceError] = useState(false);
+  const [priceAttempt, setPriceAttempt] = useState(0);
+  useEffect(() => {
+    let active = true;
+    setPrice(null); setPriceError(false);
+    getVisitPrice(currentBaseUrl).then(value => { if (active) setPrice(value); })
+      .catch(() => { if (active) setPriceError(true); });
+    return () => { active = false; };
+  }, [currentBaseUrl, priceAttempt]);
 
   const [session, setSession] = useState<StoredGuestSession>(() => {
     return loadGuestSession(currentBaseUrl).session;
@@ -171,6 +183,7 @@ export const PaymentPage: React.FC = () => {
 
   // 1. Tao checkout online moi hoac gui lai voi cung Idempotency-Key
   const handleStartCheckout = async () => {
+    if (!price) return;
     setErrorMessage(null);
     setErrorCode(null);
     setStatusNotice(null);
@@ -585,6 +598,11 @@ export const PaymentPage: React.FC = () => {
       )}
       {uiStep !== 'VISIT_ACTIVE' && !session.token && !mismatchedEnv && (
         <div>
+          <div aria-live="polite" className="tcv-card" style={{ padding: '16px', marginBottom: '16px' }}>
+            {price ? <p>Giá quyền sử dụng thuyết minh demo: <strong>{Number(price.amount).toLocaleString('vi-VN')} {price.currency}</strong>. Đây không phải vé vào cổng Thảo Cầm Viên.</p>
+              : priceError ? <><p role="alert">Chưa tải được giá. Vui lòng thử lại trước khi tạo thanh toán mới.</p><button type="button" onClick={() => setPriceAttempt(value => value + 1)}>Tải lại giá</button></>
+              : <p>Đang tải giá từ máy chủ…</p>}
+          </div>
           <div className="payment-methods" role="group" aria-label="Hình thức kích hoạt">
             <button
               type="button"
@@ -617,14 +635,14 @@ export const PaymentPage: React.FC = () => {
                     Bắt đầu yêu cầu thanh toán
                   </h2>
                   <p style={{ color: 'var(--tcv-slate-600)', fontSize: '0.88rem', marginBottom: '20px' }}>
-                    Tạo lượt tham quan để xem số tiền và kiểm tra trạng thái xác nhận. Đây là thanh toán mô phỏng, không thu tiền thật.
+                    Giá được máy chủ xác nhận lại khi tạo lượt tham quan. Đây là thanh toán mô phỏng, không thu tiền thật.
                   </p>
 
                   <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
                     <button
                       type="button"
                       onClick={handleStartCheckout}
-                      disabled={uiStep === 'CREATING_CHECKOUT'}
+                      disabled={!price || uiStep === 'CREATING_CHECKOUT'}
                       className="btn-primary"
                     >
                       {uiStep === 'CREATING_CHECKOUT' ? 'Đang tạo phiên thanh toán...' : 'Tạo yêu cầu thanh toán mô phỏng'}
