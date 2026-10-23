@@ -20,7 +20,7 @@ export interface TourDto {
   items: TourItemDto[];
   createdAt: string;
   updatedAt: string;
-  expectedRevision?: string;
+  revision: string;
 }
 
 export interface CreateTourPayload {

@@ -7,6 +7,7 @@ import { getContentBundle, BundleDto, PoiDto, TourDto } from '../api/content';
 import { AudioPlayer } from '../components/AudioPlayer';
 import { MapView, calculateHaversineDistance } from '../components/MapView';
 import { Icon } from '../components/Icon';
+import { searchBundleText } from '../api/bundleSearch';
 
 function formatCategory(category: string | null): string {
   if (!category) return 'Chưa phân loại';
@@ -44,22 +45,26 @@ export const ExplorePage: React.FC = () => {
   // Tour dang chon
   const [activeTourId, setActiveTourId] = useState<number | null>(null);
 
-  // Vị trí người dùng & Giả lập vị trí (US-B01, US-B02)
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>({
-    latitude: 10.7875,
-    longitude: 106.7053 // Cổng chính Thảo Cầm Viên
-  });
-  const [isSimulatedLocation, setIsSimulatedLocation] = useState<boolean>(true);
+  // Vị trí người dùng GPS thực tế (US-B01, US-B02)
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const [isAutoTourActive, setIsAutoTourActive] = useState<boolean>(false);
   const [playedPoisInPass, setPlayedPoisInPass] = useState<{ [poiId: number]: boolean }>({});
 
-  // Chatbot RAG Widget
+  const [autoPlayRequest, setAutoPlayRequest] = useState<{ id: number; poiId: number } | null>(null);
+  const autoPlaySequence = useRef(0);
+  const attemptedPois = useRef(new Set<number>());
+  const activeAutoPoi = useRef<number | null>(null);
+  const handlePlaybackStarted = useCallback((poiId: number) => {
+    setPlayedPoisInPass(prev => prev[poiId] ? prev : { ...prev, [poiId]: true });
+  }, []);
+
+  // Tra cứu từ khóa trong gói nội dung; chưa tích hợp chatbot RAG.
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatQuestion, setChatQuestion] = useState('');
-  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string; sources?: string[] }>>([
+  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string }>>([
     {
       sender: 'bot',
-      text: 'Xin chào quý khách! Tôi là trợ lý ảo Thảo Cầm Viên Sài Gòn. Quý khách có thể hỏi tôi về tập tính các loài động vật, giờ cho thú ăn, cây di sản hoặc lịch sử Thảo Cầm Viên.'
+      text: 'Tra cứu theo tên điểm tham quan trong gói nội dung đang tải. Đây là tìm kiếm từ khóa, chưa tích hợp chatbot RAG; nội dung không xác nhận thông tin thực địa hiện hành.'
     }
   ]);
 
@@ -152,9 +157,8 @@ export const ExplorePage: React.FC = () => {
     };
   }, [token, currentBaseUrl, fetchBundle]);
 
-  // GPS theo dõi vị trí thực tế
+  // GPS theo dõi vị trí thực tế liên tục
   useEffect(() => {
-    if (isSimulatedLocation) return;
     if (!('geolocation' in navigator)) return;
 
     const watchId = navigator.geolocation.watchPosition(
@@ -166,12 +170,13 @@ export const ExplorePage: React.FC = () => {
       },
       (err) => {
         console.warn('Lỗi định vị GPS:', err.message);
+        setUserLocation(null);
       },
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [isSimulatedLocation]);
+  }, []);
 
   // LOGIC TỰ ĐỘNG KÍCH HOẠT THUYẾT MINH THEO VỊ TRÍ (US-B02)
   useEffect(() => {
@@ -189,13 +194,21 @@ export const ExplorePage: React.FC = () => {
       );
       const radius = poi.triggerRadius || 30;
 
+      if (dist > radius * 1.5) {
+        attemptedPois.current.delete(poi.poiId);
+        if (activeAutoPoi.current === poi.poiId) {
+          activeAutoPoi.current = null;
+          setAutoPlayRequest(null);
+        }
+      }
+
       // Đặt lại cờ chống lặp khi đi ra xa hơn 1.5 lần bán kính (45m)
       if (dist > radius * 1.5 && playedPoisInPass[poi.poiId]) {
         setPlayedPoisInPass((prev) => ({ ...prev, [poi.poiId]: false }));
       }
 
       // Kiểm tra POI nằm trong bán kính kích hoạt và chưa phát trong lượt này
-      if (dist <= radius && !playedPoisInPass[poi.poiId]) {
+      if (dist <= radius && !playedPoisInPass[poi.poiId] && !attemptedPois.current.has(poi.poiId) && poi.audio.status === 'AVAILABLE' && poi.audio.url) {
         if (dist < minDistance) {
           minDistance = dist;
           nearestPoi = poi;
@@ -203,22 +216,18 @@ export const ExplorePage: React.FC = () => {
       }
     });
 
-    if (nearestPoi) {
+    if (nearestPoi && activeAutoPoi.current === null) {
       const poiToPlay = nearestPoi as PoiDto;
       setSelectedPoiId(poiToPlay.poiId);
-      setPlayedPoisInPass((prev) => ({ ...prev, [poiToPlay.poiId]: true }));
+      attemptedPois.current.add(poiToPlay.poiId);
+      activeAutoPoi.current = poiToPlay.poiId;
+      setAutoPlayRequest({ id: ++autoPlaySequence.current, poiId: poiToPlay.poiId });
     }
   }, [userLocation, isAutoTourActive, bundle, playedPoisInPass]);
 
   const handleSelectLanguage = (langCode: string) => {
     if (!token || langCode === selectedLanguageCode || loadingLanguageCode === langCode) return;
     fetchBundle(langCode, token);
-  };
-
-  const handleMapClick = (lat: number, lng: number) => {
-    if (isSimulatedLocation) {
-      setUserLocation({ latitude: lat, longitude: lng });
-    }
   };
 
   const selectedPoi: PoiDto | undefined = bundle?.pois.find((p) => p.poiId === selectedPoiId);
@@ -239,40 +248,8 @@ export const ExplorePage: React.FC = () => {
     setChatMessages((prev) => [...prev, { sender: 'user', text: q }]);
     setChatQuestion('');
 
-    // RAG thông minh từ POI content bundle hiện tại
-    setTimeout(() => {
-      const qLower = q.toLowerCase();
-      let answer = '';
-      const sources: string[] = [];
-
-      const matchedPoi = bundle?.pois.find((p) => {
-        const name = (p.text.name || p.originalName).toLowerCase();
-        const desc = (p.text.description || '').toLowerCase();
-        return qLower.includes(name) || desc.includes(qLower) || (qLower.includes('ăn') && p.activityHours);
-      });
-
-      if (matchedPoi) {
-        const poiName = matchedPoi.text.name || matchedPoi.originalName;
-        sources.push(poiName);
-        answer = `Theo tư liệu Thảo Cầm Viên về [${poiName}]: ${matchedPoi.text.description || 'Là một trong những điểm nổi bật.'}`;
-        if (matchedPoi.conservationStatus) {
-          answer += ` Tình trạng bảo tồn: ${matchedPoi.conservationStatus}.`;
-        }
-        if (matchedPoi.activityHours) {
-          answer += ` Khung giờ hoạt động / cho ăn: ${matchedPoi.activityHours}.`;
-        }
-      } else if (qLower.includes('giờ') || qLower.includes('mở cửa') || qLower.includes('vé')) {
-        answer = 'Thảo Cầm Viên Sài Gòn mở cửa từ 7:00 đến 18:30 hàng ngày. Giá vé tham quan tích hợp thuyết minh tự động là 50.000 VNĐ, có hiệu lực trong 24 giờ.';
-        sources.push('Quy định tham quan Thảo Cầm Viên');
-      } else if (qLower.includes('ăn') || qLower.includes('cho thú')) {
-        answer = 'Quy định an toàn sinh học: Khách tham quan không được tự ý cho thú ăn đồ lạ ngoài khu vực quy định. Một số loài như hươu cao cổ, dê có khung giờ cho ăn trải nghiệm dưới sự hướng dẫn của nhân viên.';
-        sources.push('Nội quy an toàn sinh học');
-      } else {
-        answer = 'Hiện tại kho tư liệu thuyết minh chưa có thông tin chi tiết về câu hỏi này. Quý khách vui lòng liên hệ nhân viên hướng dẫn tại quầy thông tin Thảo Cầm Viên.';
-      }
-
-      setChatMessages((prev) => [...prev, { sender: 'bot', text: answer, sources }]);
-    }, 600);
+    const answer = searchBundleText(q, bundle?.pois || []);
+    setChatMessages((prev) => [...prev, { sender: 'bot', text: answer }]);
   };
 
   // 1. TRƯỜNG HỢP CHƯA CÓ TOKEN
@@ -399,7 +376,7 @@ export const ExplorePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Thanh công cụ Định vị GPS & Chế độ Giả lập */}
+        {/* Thanh công cụ Định vị GPS */}
         <div style={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -414,7 +391,12 @@ export const ExplorePage: React.FC = () => {
             {/* Nut Bat dau tham quan tu dong */}
             <button
               type="button"
-              onClick={() => setIsAutoTourActive(!isAutoTourActive)}
+              onClick={() => {
+                attemptedPois.current.clear();
+                activeAutoPoi.current = null;
+                setAutoPlayRequest(null);
+                setIsAutoTourActive(!isAutoTourActive);
+              }}
               className={isAutoTourActive ? 'btn-primary' : 'btn-secondary'}
               style={{
                 display: 'inline-flex',
@@ -431,43 +413,9 @@ export const ExplorePage: React.FC = () => {
               <span>{isAutoTourActive ? 'Đang bật Thuyết minh Tự động' : 'Bắt đầu tham quan (Tự động)'}</span>
             </button>
 
-            {/* Cong tac che do gia lap vi tri */}
-            <label style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              fontSize: '0.84rem',
-              fontWeight: 600,
-              color: isSimulatedLocation ? '#b45309' : '#4b5563',
-              background: isSimulatedLocation ? '#fef3c7' : '#f3f4f6',
-              padding: '6px 12px',
-              borderRadius: '6px',
-              cursor: 'pointer'
-            }}>
-              <input
-                type="checkbox"
-                checked={isSimulatedLocation}
-                onChange={(e) => setIsSimulatedLocation(e.target.checked)}
-              />
-              <span>📍 Chế độ Giả lập vị trí (Click bản đồ để di chuyển)</span>
-            </label>
-
-            <button
-              type="button"
-              onClick={() => {
-                setIsSimulatedLocation(false);
-                if ('geolocation' in navigator) {
-                  navigator.geolocation.getCurrentPosition((pos) => {
-                    setUserLocation({ latitude: pos.coords.latitude, longitude: pos.coords.longitude });
-                  });
-                }
-              }}
-              className="btn-secondary btn-sm"
-              style={{ padding: '6px 12px' }}
-            >
-              🎯 Lấy GPS thực tế
-            </button>
           </div>
+
+          {!userLocation && <div role="status">Đang chờ vị trí GPS thực tế để tự động phát.</div>}
 
           {/* Thong tin han ve */}
           <div style={{ fontSize: '0.82rem', color: '#6b7280' }}>
@@ -526,17 +474,9 @@ export const ExplorePage: React.FC = () => {
               selectedPoiId={selectedPoiId}
               onSelectPoi={(id) => setSelectedPoiId(id)}
               userLocation={userLocation}
-              isSimulatedLocation={isSimulatedLocation}
-              onMapClickLocation={handleMapClick}
               activeTour={activeTour}
               filteredCategory={selectedCategory}
             />
-
-            {isSimulatedLocation && (
-              <div style={{ marginTop: '8px', fontSize: '0.78rem', color: '#b45309', fontStyle: 'italic', textAlign: 'center' }}>
-                💡 Gợi ý: Bạn có thể nhấp chuột vào bất kỳ vị trí nào trên bản đồ để thử nghiệm tính năng tự động phát audio khi bước vào bán kính 30m!
-              </div>
-            )}
           </div>
 
           {/* LỘ TRÌNH TOUR MẪU */}
@@ -674,6 +614,9 @@ export const ExplorePage: React.FC = () => {
                 {/* Trình phát âm thanh thuyết minh có bản quyền */}
                 <div style={{ margin: '18px 0' }}>
                   <AudioPlayer
+                    key={[selectedPoi.poiId, selectedLanguageCode, selectedPoi.audio.url, token].join(':')}
+                    autoPlayRequestId={isAutoTourActive && autoPlayRequest?.poiId === selectedPoi.poiId ? autoPlayRequest.id : null}
+                    onPlaybackStarted={handlePlaybackStarted}
                     poi={selectedPoi}
                     requestedLanguageCode={selectedLanguageCode}
                     token={token}
@@ -720,7 +663,7 @@ export const ExplorePage: React.FC = () => {
 
       </div>
 
-      {/* CHATBOT RAG WIDGET NỔI GÓC DƯỚI (US-D02) */}
+      {/* TRA CỨU NỘI DUNG ĐANG TẢI */}
       <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000 }}>
         {!isChatOpen ? (
           <button
@@ -742,7 +685,7 @@ export const ExplorePage: React.FC = () => {
             }}
           >
             <span>💬</span>
-            <span>Hỏi đáp Thảo Cầm Viên</span>
+            <span>Tra cứu điểm tham quan</span>
           </button>
         ) : (
           <div style={{
@@ -767,8 +710,8 @@ export const ExplorePage: React.FC = () => {
               alignItems: 'center'
             }}>
               <div>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Trợ Lý Thảo Cầm Viên AI</div>
-                <div style={{ fontSize: '0.72rem', color: '#bbf7d0' }}>Giải đáp thắc mắc dựa trên tư liệu chính thức</div>
+                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Tra cứu gói nội dung</div>
+                <div style={{ fontSize: '0.72rem', color: '#bbf7d0' }}>Tìm theo từ khóa · Chưa tích hợp chatbot RAG</div>
               </div>
               <button
                 type="button"
@@ -796,11 +739,6 @@ export const ExplorePage: React.FC = () => {
                   }}
                 >
                   <div>{msg.text}</div>
-                  {msg.sources && msg.sources.length > 0 && (
-                    <div style={{ marginTop: '4px', fontSize: '0.72rem', color: '#6b7280', fontStyle: 'italic' }}>
-                      Nguồn: {msg.sources.join(', ')}
-                    </div>
-                  )}
                 </div>
               ))}
             </div>
@@ -811,7 +749,7 @@ export const ExplorePage: React.FC = () => {
                 type="text"
                 value={chatQuestion}
                 onChange={(e) => setChatQuestion(e.target.value)}
-                placeholder="Hỏi về voi, hươu cao cổ, giờ ăn..."
+                placeholder="Nhập tên điểm tham quan..."
                 style={{ flex: 1, border: 'none', padding: '8px', fontSize: '0.86rem', outline: 'none' }}
               />
               <button type="submit" className="btn-primary btn-sm" style={{ padding: '6px 14px' }}>

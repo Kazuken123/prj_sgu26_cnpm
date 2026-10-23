@@ -6,14 +6,12 @@ interface MapViewProps {
   selectedPoiId: number | null;
   onSelectPoi: (poiId: number) => void;
   userLocation: { latitude: number; longitude: number } | null;
-  isSimulatedLocation: boolean;
-  onMapClickLocation?: (lat: number, lng: number) => void;
   activeTour: TourDto | null;
   filteredCategory: string;
 }
 
 export function calculateHaversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
-  const R = 6371000; // Ban kinh Trai Dat tinh theo met
+  const R = 6371000;
   const dLat = (lat2 - lat1) * (Math.PI / 180);
   const dLon = (lon2 - lon1) * (Math.PI / 180);
   const a =
@@ -53,8 +51,6 @@ export const MapView: React.FC<MapViewProps> = ({
   selectedPoiId,
   onSelectPoi,
   userLocation,
-  isSimulatedLocation,
-  onMapClickLocation,
   activeTour,
   filteredCategory
 }) => {
@@ -66,7 +62,7 @@ export const MapView: React.FC<MapViewProps> = ({
   const tourPolylineRef = useRef<any>(null);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
 
-  // 1. Khoi tao ban do Leaflet khi tai xong thu vien
+  // 1. Khoi tao ban do Leaflet
   useEffect(() => {
     let active = true;
 
@@ -75,7 +71,7 @@ export const MapView: React.FC<MapViewProps> = ({
       setLeafletLoaded(true);
 
       if (!mapInstanceRef.current) {
-        const defaultCenter = [10.7875, 106.7053];
+        const defaultCenter = [10.7875, 106.7053]; // Thao Cam Vien Sai Gon
         const map = L.map(mapContainerRef.current, {
           center: defaultCenter,
           zoom: 17,
@@ -86,12 +82,6 @@ export const MapView: React.FC<MapViewProps> = ({
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           maxZoom: 19
         }).addTo(map);
-
-        map.on('click', (e: any) => {
-          if (onMapClickLocation) {
-            onMapClickLocation(e.latlng.lat, e.latlng.lng);
-          }
-        });
 
         mapInstanceRef.current = map;
       }
@@ -189,7 +179,7 @@ export const MapView: React.FC<MapViewProps> = ({
     }
   }, [selectedPoiId, pois]);
 
-  // 4. Ve vi tri cua du khach
+  // 4. Ve vi tri nguoi dung (GPS thuc te)
   useEffect(() => {
     const map = mapInstanceRef.current;
     const L = (window as any).L;
@@ -210,7 +200,7 @@ export const MapView: React.FC<MapViewProps> = ({
               width: 24px;
               height: 24px;
               border-radius: 50%;
-              background: ${isSimulatedLocation ? '#f59e0b' : '#3b82f6'};
+              background: #3b82f6;
               opacity: 0.4;
               animation: ping 1.5s cubic-bezier(0, 0, 0.2, 1) infinite;
             "></div>
@@ -221,7 +211,7 @@ export const MapView: React.FC<MapViewProps> = ({
               width: 16px;
               height: 16px;
               border-radius: 50%;
-              background: ${isSimulatedLocation ? '#d97706' : '#1d4ed8'};
+              background: #1d4ed8;
               border: 2px solid #ffffff;
               box-shadow: 0 2px 6px rgba(0,0,0,0.3);
             "></div>
@@ -232,13 +222,10 @@ export const MapView: React.FC<MapViewProps> = ({
       });
 
       const marker = L.marker([userLocation.latitude, userLocation.longitude], { icon: userIcon }).addTo(map);
-      marker.bindTooltip(
-        isSimulatedLocation ? '📍 Vị trí du khách (Giả lập)' : '👤 Vị trí hiện tại của bạn',
-        { permanent: false, direction: 'top' }
-      );
+      marker.bindTooltip('👤 Vị trí hiện tại của bạn', { permanent: false, direction: 'top' });
       userMarkerRef.current = marker;
     }
-  }, [userLocation, isSimulatedLocation, leafletLoaded]);
+  }, [userLocation, leafletLoaded]);
 
   // 5. Ve duong noi lo trinh Tour
   useEffect(() => {

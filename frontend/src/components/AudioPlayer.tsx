@@ -18,18 +18,28 @@ export interface AudioPlayerProps {
   requestedLanguageCode: string;
   token: string;
   onSessionExpired: () => void;
+  autoPlayRequestId?: number | null;
+  onPlaybackStarted?: (poiId: number) => void;
 }
 
 export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   poi,
   requestedLanguageCode,
   token,
-  onSessionExpired
+  onSessionExpired,
+  autoPlayRequestId = null,
+  onPlaybackStarted
 }) => {
   const [playerState, setPlayerState] = useState<PlayerState>('IDLE');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState<number>(0);
   const [duration, setDuration] = useState<number>(poi.audio.duration || 1);
+
+  const startedCallbackRef = useRef(onPlaybackStarted);
+  startedCallbackRef.current = onPlaybackStarted;
+  const currentPoiIdRef = useRef(poi.poiId);
+  currentPoiIdRef.current = poi.poiId;
+  const handledAutoRequest = useRef<number | null>(null);
 
   // Quan ly audio element va Blob URL
   const audioElementRef = useRef<HTMLAudioElement | null>(null);
@@ -46,7 +56,9 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     audioElementRef.current = audio;
 
     const handlePlaying = () => {
+      if (!activeBlobUrlRef.current || audio.src !== activeBlobUrlRef.current) return;
       setPlayerState('PLAYING');
+      startedCallbackRef.current?.(currentPoiIdRef.current);
     };
 
     const handlePause = () => {
@@ -87,6 +99,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     audio.addEventListener('error', handleError);
 
     return () => {
+      mediaSeqRef.current += 1;
+      handledAutoRequest.current = null;
       // Don dep khi component bi thao
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
@@ -149,6 +163,8 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       return;
     }
 
+    if (playerState === 'LOADING') return;
+
     // Neu dang o trang thai PLAYING thi tam dung
     if (playerState === 'PLAYING') {
       audioElementRef.current?.pause();
@@ -165,9 +181,11 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       if (playerState === 'ENDED') {
         audioElementRef.current.currentTime = 0;
       }
+      const currentSeq = mediaSeqRef.current;
       try {
         await audioElementRef.current.play();
       } catch (err: unknown) {
+        if (currentSeq !== mediaSeqRef.current) return;
         if (err instanceof Error && err.name === 'NotAllowedError') {
           setPlayerState('NEED_GESTURE');
         } else {
@@ -224,6 +242,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       try {
         await audio.play();
       } catch (playErr: unknown) {
+        if (currentSeq !== mediaSeqRef.current) return;
         if (playErr instanceof Error && playErr.name === 'NotAllowedError') {
           setPlayerState('NEED_GESTURE');
         } else {
@@ -263,6 +282,23 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
       }
     }
   }, [poi.audio.status, poi.audio.url, playerState, token, onSessionExpired]);
+
+  // Consume each explicit request once; blocked playback waits for a manual gesture.
+  useEffect(() => {
+    if (autoPlayRequestId === null) {
+      if (handledAutoRequest.current !== null) {
+        mediaSeqRef.current += 1;
+        abortControllerRef.current?.abort();
+        audioElementRef.current?.pause();
+        setPlayerState(prev => prev === 'LOADING' ? 'IDLE' : prev);
+      }
+      handledAutoRequest.current = null;
+      return;
+    }
+    if (handledAutoRequest.current === autoPlayRequestId) return;
+    handledAutoRequest.current = autoPlayRequestId;
+    if (playerState !== 'PLAYING' && playerState !== 'LOADING') void handlePlayAudio();
+  }, [autoPlayRequestId, handlePlayAudio, playerState]);
 
   // Ham phat lai tu dau
   const handleReplay = () => {

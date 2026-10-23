@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { getMonitoringData, MonitoringDto } from '../api/monitoring';
+import React, { useState, useEffect, useRef } from 'react';
+import { getMonitoringData, monitoringRange, MonitoringDto, MonitoringWindow } from '../api/monitoring';
 import { loadInternalSession } from '../api/authStorage';
 import { getApiBaseUrl } from '../api/client';
 
@@ -13,19 +13,23 @@ export const InternalMonitoringPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastRefreshed, setLastRefreshed] = useState<string>('');
 
-  const [windowOption, setWindowOption] = useState<'1h' | '24h' | '7d' | '30d'>('24h');
+  const [windowOption, setWindowOption] = useState<MonitoringWindow>('24h');
+  const requestSeq = useRef(0);
 
   const fetchMonitoring = async () => {
+    const seq = ++requestSeq.current;
     setLoading(true);
     setError(null);
     try {
-      const res = await getMonitoringData({ window: windowOption }, token, baseUrl);
+      const res = await getMonitoringData(monitoringRange(windowOption), token, baseUrl);
+      if (seq !== requestSeq.current) return;
       setData(res);
       setLastRefreshed(new Date().toLocaleTimeString('vi-VN'));
     } catch (err) {
+      if (seq !== requestSeq.current) return;
       setError(err instanceof Error ? err.message : 'Không thể tải dữ liệu giám sát hệ thống');
     } finally {
-      setLoading(false);
+      if (seq === requestSeq.current) setLoading(false);
     }
   };
 
@@ -33,8 +37,8 @@ export const InternalMonitoringPage: React.FC = () => {
     fetchMonitoring();
     // Polling moi 30 giay
     const interval = setInterval(fetchMonitoring, 30000);
-    return () => clearInterval(interval);
-  }, [windowOption]);
+    return () => { clearInterval(interval); requestSeq.current += 1; };
+  }, [windowOption, token, baseUrl]);
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
@@ -51,7 +55,7 @@ export const InternalMonitoringPage: React.FC = () => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <select
             value={windowOption}
-            onChange={(e) => setWindowOption(e.target.value as any)}
+            onChange={(e) => { setData(null); setLastRefreshed(''); setWindowOption(e.target.value as MonitoringWindow); }}
             style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #d1d5db', fontSize: '0.86rem' }}
           >
             <option value="1h">1 Giờ gần nhất</option>
@@ -80,42 +84,42 @@ export const InternalMonitoringPage: React.FC = () => {
 
       {error && (
         <div className="banner-notice" style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', marginBottom: '16px' }}>
-          <div>{error}</div>
+          <div>{error}{data && ' Đang hiển thị dữ liệu của lần tải thành công trước.'}</div>
         </div>
       )}
 
       {/* SUC KHOE HE THONG (LIVENESS / READINESS) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <div className="tcv-card" style={{ padding: '18px', borderLeft: `5px solid ${data?.health.status === 'healthy' ? '#16a34a' : '#dc2626'}` }}>
+        <div className="tcv-card" style={{ padding: '18px', borderLeft: `5px solid ${data?.health.readiness.status === 'READY' ? '#16a34a' : '#dc2626'}` }}>
           <div style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
             Trạng thái máy chủ
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: data?.health.status === 'healthy' ? '#15803d' : '#b91c1c', marginTop: '4px' }}>
-            {data?.health.status === 'healthy' ? 'HOẠT ĐỘNG TỐT (HEALTHY)' : data?.health.status || 'ĐANG TẢI...'}
+          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: data?.health.readiness.status === 'READY' ? '#15803d' : '#b91c1c', marginTop: '4px' }}>
+            {data ? (data.health.readiness.status === 'READY' ? 'SẴN SÀNG (READY)' : 'CHƯA SẴN SÀNG (NOT_READY)') : 'CHƯA CÓ DỮ LIỆU'}
           </div>
           <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '6px' }}>
-            API Backend phản hồi bình thường
+            Liveness: {data?.health.liveness.status ?? 'CHƯA XÁC ĐỊNH'}
           </div>
         </div>
 
-        <div className="tcv-card" style={{ padding: '18px', borderLeft: `5px solid ${data?.health.database ? '#16a34a' : '#dc2626'}` }}>
+        <div className="tcv-card" style={{ padding: '18px', borderLeft: `5px solid ${data?.health.database.status === 'READY' ? '#16a34a' : '#dc2626'}` }}>
           <div style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
             Cơ sở dữ liệu MySQL
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: data?.health.database ? '#15803d' : '#b91c1c', marginTop: '4px' }}>
-            {data?.health.database ? 'SẴN SÀNG (READY)' : 'MẤT KẾT NỐI'}
+          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: data?.health.database.status === 'READY' ? '#15803d' : '#b91c1c', marginTop: '4px' }}>
+            {data ? (data.health.database.status === 'READY' ? 'SẴN SÀNG (READY)' : 'KHÔNG KHẢ DỤNG') : 'CHƯA CÓ DỮ LIỆU'}
           </div>
           <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '6px' }}>
             Bộ lưu trữ dữ liệu 16 bảng nghiệp vụ
           </div>
         </div>
 
-        <div className="tcv-card" style={{ padding: '18px', borderLeft: `5px solid ${data?.health.redis ? '#16a34a' : '#dc2626'}` }}>
+        <div className="tcv-card" style={{ padding: '18px', borderLeft: `5px solid ${data?.health.redis.status === 'READY' ? '#16a34a' : '#dc2626'}` }}>
           <div style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
             Bộ nhớ tạm Redis
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: data?.health.redis ? '#15803d' : '#b91c1c', marginTop: '4px' }}>
-            {data?.health.redis ? 'SẴN SÀNG (READY)' : 'MẤT KẾT NỐI'}
+          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: data?.health.redis.status === 'READY' ? '#15803d' : '#b91c1c', marginTop: '4px' }}>
+            {data ? (data.health.redis.status === 'READY' ? 'SẴN SÀNG (READY)' : 'KHÔNG KHẢ DỤNG') : 'CHƯA CÓ DỮ LIỆU'}
           </div>
           <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '6px' }}>
             Quản lý mã truy cập có TTL & Rate limit
@@ -138,14 +142,14 @@ export const InternalMonitoringPage: React.FC = () => {
               <div style={{ flex: 1, padding: '12px', background: '#f0fdf4', borderRadius: '6px' }}>
                 <div style={{ fontSize: '0.8rem', color: '#166534' }}>Phiên Active hiện tại</div>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#14532d', marginTop: '2px' }}>
-                  {data.metrics.activePaidVisits.value ?? 0}
+                  {data.metrics.activePaidVisits.value ?? 'Không khả dụng'}
                 </div>
               </div>
 
               <div style={{ flex: 1, padding: '12px', background: '#eff6ff', borderRadius: '6px' }}>
                 <div style={{ fontSize: '0.8rem', color: '#1e40af' }}>Giao dịch thành công ({windowOption})</div>
                 <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#1e3a8a', marginTop: '2px' }}>
-                  {data.metrics.paidPayments.value?.count ?? 0}
+                  {data.metrics.paidPayments.value?.count ?? 'Không khả dụng'}
                 </div>
               </div>
             </div>
@@ -162,7 +166,7 @@ export const InternalMonitoringPage: React.FC = () => {
                 ))
               ) : (
                 <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                  0 VND trong khoảng thời gian này
+                  {data.metrics.paidPayments.value === null ? 'Doanh thu không khả dụng' : 'Không có giao dịch trong khoảng thời gian này'}
                 </div>
               )}
             </div>
@@ -179,13 +183,13 @@ export const InternalMonitoringPage: React.FC = () => {
               <div style={{ flex: 1 }}>
                 <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Tổng lượt cấp gói: </span>
                 <strong style={{ fontSize: '1.1rem', color: '#0f172a' }}>
-                  {data.metrics.bundleAccess.value?.total ?? 0}
+                  {data.metrics.bundleAccess.value?.total ?? 'Không khả dụng'}
                 </strong>
               </div>
               <div style={{ flex: 1 }}>
                 <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Khách duy nhất: </span>
                 <strong style={{ fontSize: '1.1rem', color: '#0f172a' }}>
-                  {data.metrics.bundleAccess.value?.uniqueSessions ?? 0}
+                  {data.metrics.bundleAccess.value?.uniqueSessions ?? 'Không khả dụng'}
                 </strong>
               </div>
             </div>
@@ -218,7 +222,7 @@ export const InternalMonitoringPage: React.FC = () => {
                 ))
               ) : (
                 <div style={{ fontSize: '0.84rem', color: '#94a3b8', fontStyle: 'italic', padding: '10px 0' }}>
-                  Chưa có lượt tải bundle nào trong khoảng thời gian này.
+                  {data.metrics.bundleAccess.value === null ? 'Thống kê lượt tải không khả dụng' : 'Chưa có lượt tải bundle nào trong khoảng thời gian này.'}
                 </div>
               )}
             </div>
@@ -233,34 +237,34 @@ export const InternalMonitoringPage: React.FC = () => {
 
             <div style={{ marginBottom: '16px' }}>
               <div style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '4px' }}>
-                Tổng tác vụ đa ngôn ngữ: <strong>{data.metrics.contentJobs.value?.total ?? 0}</strong>
+                Tổng tác vụ đa ngôn ngữ: <strong>{data.metrics.contentJobs.value?.total ?? 'Không khả dụng'}</strong>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <span className="status-pill ready" style={{ fontSize: '0.75rem' }}>
-                  Hoàn tất: {data.metrics.contentJobs.value?.byStatus?.COMPLETED ?? 0}
+                  Hoàn tất: {data.metrics.contentJobs.value?.byStatus?.COMPLETED ?? 'Không khả dụng'}
                 </span>
                 <span className="status-pill idle" style={{ fontSize: '0.75rem' }}>
-                  Đang xử lý: {data.metrics.contentJobs.value?.byStatus?.PROCESSING ?? 0}
+                  Đang xử lý: {data.metrics.contentJobs.value?.byStatus?.PROCESSING ?? 'Không khả dụng'}
                 </span>
                 <span className="status-pill unready" style={{ fontSize: '0.75rem' }}>
-                  Chờ: {data.metrics.contentJobs.value?.byStatus?.PENDING ?? 0}
+                  Chờ: {data.metrics.contentJobs.value?.byStatus?.PENDING ?? 'Không khả dụng'}
                 </span>
                 <span style={{ background: '#fee2e2', color: '#991b1b', padding: '2px 8px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 }}>
-                  Lỗi: {data.metrics.contentJobs.value?.byStatus?.FAILED ?? 0}
+                  Lỗi: {data.metrics.contentJobs.value?.byStatus?.FAILED ?? 'Không khả dụng'}
                 </span>
               </div>
             </div>
 
             <div style={{ paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
               <div style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '4px' }}>
-                Tệp âm thanh MP3 thuyết minh: <strong>{data.metrics.audios.value?.total ?? 0}</strong>
+                Tệp âm thanh MP3 thuyết minh: <strong>{data.metrics.audioRecords.value?.total ?? 'Không khả dụng'}</strong>
               </div>
               <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                 <span className="status-pill ready" style={{ fontSize: '0.75rem' }}>
-                  Sẵn sàng phát: {data.metrics.audios.value?.byStatus?.AVAILABLE ?? 0}
+                  Sẵn sàng phát: {data.metrics.audioRecords.value?.byStatus?.AVAILABLE ?? 'Không khả dụng'}
                 </span>
                 <span className="status-pill unready" style={{ fontSize: '0.75rem' }}>
-                  Chờ tệp: {data.metrics.audios.value?.byStatus?.PENDING ?? 0}
+                  Chờ tệp: {data.metrics.audioRecords.value?.byStatus?.PENDING ?? 'Không khả dụng'}
                 </span>
               </div>
             </div>

@@ -26,7 +26,10 @@ jobs:
       - name: Install frontend dependencies
         working-directory: frontend
         run: npm ci
-      - name: Frontend API and auth regression tests
+      - name: Install backend dependencies for frontend contract tests
+        working-directory: backend
+        run: npm ci --ignore-scripts
+      - name: Frontend API, component and backend contract regression tests
         working-directory: frontend
         run: npm test
       - name: Type check and build frontend

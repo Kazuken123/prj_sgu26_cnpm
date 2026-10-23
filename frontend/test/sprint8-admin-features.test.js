@@ -2,7 +2,8 @@ import { test, describe } from 'node:test';
 import assert from 'node:assert/strict';
 import { getTours, getTourDetail, createTour, updateTour } from '../src/api/tour.ts';
 import { getAuditLogs } from '../src/api/audit.ts';
-import { getMonitoringData } from '../src/api/monitoring.ts';
+import { actor, monitoringService, serviceResponse } from './helpers/backend-contracts.js';
+import { getMonitoringData, monitoringRange } from '../src/api/monitoring.ts';
 
 describe('Kiểm thử Mở rộng Phân hệ Quản trị (Tours, Audit Logs, Monitoring)', () => {
   const originalFetch = globalThis.fetch;
@@ -119,34 +120,26 @@ describe('Kiểm thử Mở rộng Phân hệ Quản trị (Tours, Audit Logs, M
     }
   });
 
-  test('4. getMonitoringData gọi đúng GET /api/admin/monitoring với window', async () => {
-    let capturedUrl = '';
-
-    globalThis.fetch = async (url) => {
-      capturedUrl = String(url);
-      return new Response(JSON.stringify({
-        data: {
-          asOf: '2026-10-22T00:00:00.000Z',
-          window: { from: '2026-10-21T00:00:00.000Z', to: '2026-10-22T00:00:00.000Z', timezone: 'UTC', interval: '24h' },
-          metrics: {
-            activePaidVisits: { value: 12, source: 'sessions', scope: 'CURRENT', asOf: '2026-10-22T00:00:00.000Z' },
-            paidPayments: { value: { count: 12, totals: [{ currency: 'VND', amount: '600000.00' }] }, source: 'payments', scope: 'WINDOW', asOf: '2026-10-22T00:00:00.000Z' },
-            bundleAccess: { value: { total: 45, uniqueSessions: 12, byLanguage: [] }, source: 'logs', scope: 'WINDOW', asOf: '2026-10-22T00:00:00.000Z' },
-            contentJobs: { value: { total: 30, byStatus: { COMPLETED: 30 } }, source: 'jobs', scope: 'CURRENT', asOf: '2026-10-22T00:00:00.000Z' },
-            audios: { value: { total: 30, byStatus: { AVAILABLE: 30 } }, source: 'audios', scope: 'CURRENT', asOf: '2026-10-22T00:00:00.000Z' }
-          },
-          health: { status: 'healthy', database: true, redis: true, checkedAt: '2026-10-22T00:00:00.000Z' }
-        }
-      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  test('4. monitoring query and response follow the production backend service', async () => {
+    const service = monitoringService();
+    let capturedUrl;
+    globalThis.fetch = async url => {
+      capturedUrl = new URL(url);
+      return serviceResponse(() => service.get(actor, Object.fromEntries(capturedUrl.searchParams)));
     };
-
     try {
-      const res = await getMonitoringData({ window: '24h' }, adminToken, baseUrl);
-      assert.ok(capturedUrl.includes('/api/admin/monitoring?window=24h'));
-      assert.equal(res.health.status, 'healthy');
-      assert.equal(res.metrics.activePaidVisits.value, 12);
-    } finally {
-      globalThis.fetch = originalFetch;
-    }
+      for (const window of ['1h', '24h', '7d', '30d']) {
+        const query = monitoringRange(window, new Date('2026-10-23T12:00:00Z'));
+        const res = await getMonitoringData(query, adminToken, baseUrl);
+        assert.deepEqual(Object.fromEntries(capturedUrl.searchParams), query);
+        assert.equal(res.window.from, query.from);
+        assert.equal(res.window.to, query.to);
+        assert.equal(res.health.readiness.status, 'READY');
+        assert.equal(res.metrics.audioRecords.value.total, 27);
+        assert.equal(res.metrics.activePaidVisits.value, 12);
+      }
+      const defaults = await getMonitoringData({}, adminToken, baseUrl);
+      assert.equal(new Date(defaults.window.to) - new Date(defaults.window.from), 86400000);
+    } finally { globalThis.fetch = originalFetch; }
   });
 });

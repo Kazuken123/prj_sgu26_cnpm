@@ -37,7 +37,7 @@ export const InternalTourEditPage: React.FC = () => {
           const tourRes = await getTourDetail(tourId, token, baseUrl);
           setName(tourRes.name);
           setDescription(tourRes.description || '');
-          setExpectedRevision(tourRes.expectedRevision || '');
+          setExpectedRevision(tourRes.revision);
           const sorted = [...tourRes.items]
             .sort((a, b) => a.sequenceNo - b.sequenceNo)
             .map((item) => item.poiId);
@@ -81,6 +81,10 @@ export const InternalTourEditPage: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isEditMode && !expectedRevision) {
+      setError('Chưa có phiên bản tour để đối chiếu. Vui lòng tải lại trang trước khi lưu.');
+      return;
+    }
     if (!name.trim()) {
       setError('Vui lòng nhập tên lộ trình');
       return;
