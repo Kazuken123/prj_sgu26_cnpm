@@ -1,16 +1,6 @@
 const mysql = require("mysql2/promise");
 const utcPool = require("./utc-pool");
+const { databaseOptions } = require("./database-options");
 require("dotenv").config({ quiet: true });
-const pool = mysql.createPool({
-  host: process.env.DB_HOST || "localhost",
-  port: Number(process.env.DB_PORT || 3306),
-  user: process.env.DB_USER || "root",
-  password: process.env.DB_PASSWORD || "",
-  database: process.env.DB_NAME || "food_tour_db",
-  timezone: "Z",
-  waitForConnections: true,
-  connectionLimit: 10,
-  connectTimeout: 3000,
-  queueLimit: 0,
-});
+const pool = mysql.createPool(databaseOptions());
 module.exports = utcPool(pool);
