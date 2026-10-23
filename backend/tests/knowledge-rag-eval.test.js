@@ -1,7 +1,9 @@
-// NFR-17 evaluation harness. With the MOCK adapters it only proves backend
-// invariants (sources come from retrieval, no forbidden output, every turn logged)
-// and prints per-group scores as a flow baseline. Those scores are NOT RAG quality:
-// grounded answers, refusals and language must be judged with a real embedding/LLM.
+// NFR-17 evaluation harness. Default: MOCK adapters, which only prove backend
+// invariants (sources come from retrieval, no forbidden output, every turn logged);
+// their per-group scores are a flow baseline, NOT RAG quality.
+// RAG_EVAL_REAL=1 + RAG_* provider settings runs the same 18 questions against the
+// configured provider (sends the illustrative dataset out; needs approval and budget).
+// Answer language is not auto-graded: the report keeps answers for manual review.
 const { it } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
@@ -9,9 +11,8 @@ const path = require("node:path");
 const { randomUUID } = require("node:crypto");
 const { ChatService } = require("../services/chat.service");
 const { getRagConfig } = require("../services/rag.config");
-const { chunkText } = require("../services/rag-support");
-const MockEmbeddingAdapter = require("../adapters/mock-embedding");
-const MockChatModelAdapter = require("../adapters/mock-llm");
+const { chunkText, checkEmbeddings, withDeadline } = require("../services/rag-support");
+const { createEmbeddingAdapter, createChatAdapter } = require("../services/rag-adapters");
 
 const dataset = JSON.parse(fs.readFileSync(path.join(__dirname, "fixtures/knowledge-rag-eval.json"), "utf8"));
 function score(question, result, keyById) {
@@ -21,29 +22,35 @@ function score(question, result, keyById) {
   if (["answerable", "multilingual"].includes(question.group)) {
     checks.status = result.status === "SUCCESS";
     checks.sources = question.expectedDocuments.every(key => docs.includes(key));
+    checks.facts = (question.expectedFacts ?? []).every(fact => answer.toLowerCase().includes(fact.toLowerCase()));
   } else {
     checks.status = result.status === "NO_CONTEXT";
     checks.sources = result.sources.length === 0;
   }
-  return { id: question.id, group: question.group, status: result.status, documents: docs, pass: Object.values(checks).every(Boolean), checks };
+  return { id: question.id, group: question.group, language: question.language, status: result.status, documents: docs, answer,
+    pass: Object.values(checks).every(Boolean), checks };
 }
-it("NFR-17 dataset runs end to end; MOCK scores are reported as a flow baseline only", async t => {
-  const config = getRagConfig({});
-  const embedding = new MockEmbeddingAdapter({ model: config.embeddingModel, dimensions: config.embeddingDimensions });
+const real = process.env.RAG_EVAL_REAL === "1";
+it(`NFR-17 dataset runs end to end (${real ? "configured provider" : "MOCK: flow baseline only"})`, { timeout: 600000 }, async t => {
+  const config = real ? getRagConfig(process.env) : getRagConfig({});
+  if (real) assert.notEqual(config.provider, "MOCK", "RAG_EVAL_REAL=1 needs RAG_PROVIDER set to a real provider");
+  const embedding = createEmbeddingAdapter(config);
   const keyById = new Map(), rows = [];
-  dataset.documents.forEach((document, index) => {
+  for (const [index, document] of dataset.documents.entries()) {
     keyById.set(index + 1, document.key);
-    for (const text of chunkText(document.content, config)) {
-      rows.push({ chunkId: String(rows.length + 1), documentId: index + 1, sourceVersion: 1, title: document.title, source: document.source, text,
-        embedding: embedding.vector(document.title + "\n" + text) });
-    }
-  });
+    const texts = chunkText(document.content, config);
+    const reply = await withDeadline(config.embeddingTimeoutMs, signal => embedding.embed(texts.map(text => document.title + "\n" + text), { signal }));
+    checkEmbeddings(reply, texts.length, config).forEach((vector, i) => rows.push({ chunkId: String(rows.length + 1), documentId: index + 1,
+      sourceVersion: 1, title: document.title, source: document.source, text: texts[i], embedding: vector }));
+  }
   const logs = [];
-  const service = new ChatService({ config, embedding, llm: new MockChatModelAdapter(),
+  const service = new ChatService({ config, embedding, llm: createChatAdapter(config),
     store: { candidates: async () => rows, createLog: async entry => { logs.push(entry); } }, redis: { consumeLookup: async () => true } });
   const results = [];
   for (const question of dataset.questions) {
-    const result = await service.ask({ sessionId: randomUUID() }, { question: question.question }, "192.0.2.50");
+    let result;
+    try { result = await service.ask({ sessionId: randomUUID() }, { question: question.question }, "192.0.2.50"); }
+    catch (error) { result = { status: "FAILED", answer: null, sources: [], code: error.code }; }
     // Invariants that must hold whatever the provider: sources are real retrieved chunks.
     for (const source of result.sources) assert.ok(rows.some(row => row.chunkId === source.chunkId && row.documentId === source.documentId));
     assert.ok(!/CANARY-7731|pay\.invalid/.test(result.answer), question.id + " must not leak injected content");
@@ -55,10 +62,12 @@ it("NFR-17 dataset runs end to end; MOCK scores are reported as a flow baseline 
     groups[result.group] ??= { pass: 0, total: 0 };
     groups[result.group].total++; if (result.pass) groups[result.group].pass++;
   }
-  t.diagnostic("provider=MOCK (flow only, not RAG quality) " + JSON.stringify(groups));
+  const label = config.provider === "MOCK" ? "provider=MOCK (flow only, not RAG quality)" : `provider=${config.provider} embedding=${config.embeddingModel} llm=${config.llmModel}`;
+  t.diagnostic(label + " " + JSON.stringify(groups));
   for (const result of results) t.diagnostic(`${result.id} ${result.group} ${result.status} docs=${result.documents.join(",") || "-"} ${result.pass ? "PASS" : "FAIL"}`);
   if (process.env.RAG_EVAL_REPORT) {
-    fs.writeFileSync(process.env.RAG_EVAL_REPORT, JSON.stringify({ provider: "MOCK", embeddingModel: config.embeddingModel, datasetVersion: dataset.version,
+    fs.writeFileSync(process.env.RAG_EVAL_REPORT, JSON.stringify({ provider: config.provider, embeddingModel: config.embeddingModel, llmModel: config.llmModel,
+      datasetVersion: dataset.version, languageGrading: "manual",
       ranAt: new Date().toISOString(), groups, results }, null, 2));
   }
 });

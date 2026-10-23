@@ -1,5 +1,5 @@
 const KnowledgeStore = require("../stores/knowledge.store");
-const MockEmbeddingAdapter = require("../adapters/mock-embedding");
+const { createEmbeddingAdapter } = require("./rag-adapters");
 const AppError = require("../utils/app-error");
 const validation = require("./knowledge.validation");
 const { assertContentEditor } = require("./internal-access");
@@ -14,12 +14,15 @@ class KnowledgeService {
   constructor({ store = new KnowledgeStore(), embedding, config } = {}) {
     this.store = store; this.embeddingAdapter = embedding; this.ragConfig = config;
   }
-  // Lazy so that importing the module never fails on configuration.
-  config() { return this.ragConfig ??= getRagConfig(); }
-  embedding() {
-    const config = this.config();
-    return this.embeddingAdapter ??= new MockEmbeddingAdapter({ model: config.embeddingModel, dimensions: config.embeddingDimensions });
+  // Lazy, so an invalid RAG setup disables only this feature, never the whole app.
+  config() {
+    try { return this.ragConfig ??= getRagConfig(); }
+    catch (error) {
+      console.error("RAG configuration invalid:", error.message); // variable name only, never its value
+      throw new AppError(503, "RAG_NOT_CONFIGURED", "Trợ lý AI chưa được cấu hình hợp lệ.");
+    }
   }
+  embedding() { return this.embeddingAdapter ??= createEmbeddingAdapter(this.config()); }
   authorize(actor) { assertContentEditor(actor); }
   // ACTIVE/INACTIVE is all the schema stores; the rest is derived from this document's audit trail.
   view(row) {
@@ -45,6 +48,7 @@ class KnowledgeService {
   async create(actor, input, { ipAddress = null } = {}) {
     this.authorize(actor);
     const data = validation.document(input);
+    this.config(); // fail before phase 1 rather than after the document is saved
     const actorId = actor.userId ?? actor.user_id;
     const saved = await this.store.mutate(actorId, null, user => this.authorize(user), ({ persist }) =>
       persist({ ...data, status: "INACTIVE", contentVersion: 1 },
@@ -54,6 +58,7 @@ class KnowledgeService {
   async update(actor, rawId, input, { ipAddress = null } = {}) {
     this.authorize(actor);
     const id = validation.id(rawId), data = validation.document(input, true);
+    this.config();
     const actorId = actor.userId ?? actor.user_id;
     // UC-15 A2: every save is a new version; chunks of the previous one stop being retrievable at once.
     const saved = await this.store.mutate(actorId, id, user => this.authorize(user), ({ current, persist }) => {
@@ -82,7 +87,9 @@ class KnowledgeService {
   }
   async reprocess(actor, rawId, { ipAddress = null } = {}) {
     this.authorize(actor);
-    const row = await this.store.get(validation.id(rawId));
+    const id = validation.id(rawId);
+    this.config();
+    const row = await this.store.get(id);
     if (!row) throw notFound();
     if (row.lifecycleAction === "DEACTIVATE_KNOWLEDGE_DOCUMENT") {
       throw new AppError(409, "KNOWLEDGE_DOCUMENT_DEACTIVATED", "Tài liệu đã ngừng sử dụng; hãy sửa tài liệu để dùng lại.");
