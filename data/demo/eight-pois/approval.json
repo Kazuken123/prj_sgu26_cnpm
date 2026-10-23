@@ -1,0 +1,9 @@
+{
+    "approvedOn":  "2026-10-23",
+    "contentApproval":  "User: Duyệt nội dung VI/EN DRAFT-02",
+    "importInstruction":  "User: nên mở rộng thêm 8 poi nha, triển khai",
+    "locationApproval":  "User: Duyệt vị trí minh họa khi thiếu nguồn",
+    "manifestSha256":  "93f042f8c4611117da0bafb39a853e1290d151a4d310b8285eceda75ab37ce13",
+    "sourceDocumentSha256":  "650391b0bf4382b251b771bba98f32210b42419a230a1e27737e4d0f46f51eb5",
+    "scope":  "Eight additional POIs VI/EN; simulation coordinates only; preserve previous dataset/tour. Other five language jobs await reviewed translations."
+}

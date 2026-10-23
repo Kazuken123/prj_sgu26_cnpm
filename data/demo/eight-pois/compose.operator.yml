@@ -1,0 +1,4 @@
+# One-shot operator image only. Do not use up to replace the frontend backend.
+services:
+  backend:
+    image: tcv-piper-demo7:local

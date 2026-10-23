@@ -1,0 +1,254 @@
+{
+    "datasetId":  "TCV_DEMO_EIGHT_POIS_V1",
+    "database":  "tcv_demo_review_20261020",
+    "approved":  true,
+    "contentApproval":  "User approved VI/EN DRAFT-02 in this chat",
+    "sourceDocumentSha256":  "650391b0bf4382b251b771bba98f32210b42419a230a1e27737e4d0f46f51eb5",
+    "locationApproval":  "User: Duyệt vị trí minh họa khi thiếu nguồn",
+    "scope":  "Eight additional POIs, VI/EN first; preserve original giraffe/elephant and tour; five other language jobs wait PENDING",
+    "audio":  "PIPER_SPEECH_WAV_NOT_MOCK_TONE",
+    "pois":  [
+                 {
+                     "key":  "hippopotamus",
+                     "category":  "ANIMAL",
+                     "displayOrder":  3,
+                     "latitude":  10.78800,
+                     "longitude":  106.7071,
+                     "locationEvidence":  {
+                                              "mode":  "SIMULATED_BROWSER_DEMO",
+                                              "label":  "Vị trí minh họa cho demo trình duyệt, không phải vị trí trưng bày/cây đã xác minh; không nghiệm thu GPS hoặc đường đi.",
+                                              "approvedOn":  "2026-10-23",
+                                              "sourceUrl":  null,
+                                              "osmCheckedAt":  null,
+                                              "note":  "Layout do nhóm đặt gần vùng demo Hươu/Voi; không gán cho OSM hoặc bản đồ chính thức."
+                                          },
+                     "sources":  [
+                                     "https://saigonzoo.vn/dong-vat/ha-ma-clv8.html"
+                                 ],
+                     "text":  {
+                                  "vi":  {
+                                             "name":  "Hà mã",
+                                             "description":  "Hà mã có thân hình lớn, chân ngắn và dành nhiều thời gian trong nước. Mắt, tai và lỗ mũi nằm cao trên đầu.",
+                                             "audioScript":  "Vì sao hà mã ngâm mình lâu trong nước? Da của chúng nhạy cảm với ánh nắng; ở dưới nước giúp bảo vệ da và điều hòa thân nhiệt. Khi phần lớn cơ thể chìm xuống, mắt và lỗ mũi ở cao vẫn giúp chúng quan sát và thở. Một điều thú vị là hà mã thường lên cạn để ăn cỏ."
+                                         },
+                                  "en":  {
+                                             "name":  "Common hippopotamus",
+                                             "description":  "The common hippopotamus has a large body, short legs and spends much of its time in water. Its eyes, ears and nostrils sit high on its head.",
+                                             "audioScript":  "Why do hippos spend so long in water? Their skin is sensitive to sunlight; being in water helps protect it and regulate body temperature. With much of the body submerged, their high-set eyes and nostrils still let them see and breathe. Interestingly, hippos usually go onto land to graze."
+                                         }
+                              }
+                 },
+                 {
+                     "key":  "white-rhinoceros",
+                     "category":  "ANIMAL",
+                     "displayOrder":  4,
+                     "latitude":  10.788,
+                     "longitude":  106.7073,
+                     "locationEvidence":  {
+                                              "mode":  "SIMULATED_BROWSER_DEMO",
+                                              "label":  "Vị trí minh họa cho demo trình duyệt, không phải vị trí trưng bày/cây đã xác minh; không nghiệm thu GPS hoặc đường đi.",
+                                              "approvedOn":  "2026-10-23",
+                                              "sourceUrl":  null,
+                                              "osmCheckedAt":  null,
+                                              "note":  "Layout do nhóm đặt gần vùng demo Hươu/Voi; không gán cho OSM hoặc bản đồ chính thức."
+                                          },
+                     "sources":  [
+                                     "https://saigonzoo.vn/dong-vat/te-giac-trang-clv6.html"
+                                 ],
+                     "text":  {
+                                  "vi":  {
+                                             "name":  "Tê giác trắng",
+                                             "description":  "Tê giác trắng có da xám và hai sừng trên mõm. Môi rộng, bè phù hợp với việc gặm cỏ.",
+                                             "audioScript":  "Điểm đáng chú ý không chỉ là cặp sừng, mà còn là chiếc môi bè rộng. Nó thích nghi với việc gặm cỏ, thức ăn chủ yếu của loài. Dù tên là tê giác trắng, da chúng có màu xám. Ngoài ăn cỏ, chúng còn tắm bùn; nước và bãi bùn là một phần môi trường sống của chúng."
+                                         },
+                                  "en":  {
+                                             "name":  "White rhinoceros",
+                                             "description":  "The white rhinoceros has grey skin and two horns on its snout. Its broad, square lip is suited to grazing.",
+                                             "audioScript":  "Look beyond the horns to the broad, square lip. It is adapted for grazing on grass, the species\u0027 main food. Despite the name, white rhinos have grey skin. They also bathe in mud; water and muddy areas are part of their habitat."
+                                         }
+                              }
+                 },
+                 {
+                     "key":  "agarwood",
+                     "category":  "PLANT",
+                     "displayOrder":  5,
+                     "latitude":  10.788,
+                     "longitude":  106.7075,
+                     "locationEvidence":  {
+                                              "mode":  "SIMULATED_BROWSER_DEMO",
+                                              "label":  "Vị trí minh họa cho demo trình duyệt, không phải vị trí trưng bày/cây đã xác minh; không nghiệm thu GPS hoặc đường đi.",
+                                              "approvedOn":  "2026-10-23",
+                                              "sourceUrl":  null,
+                                              "osmCheckedAt":  null,
+                                              "note":  "Layout do nhóm đặt gần vùng demo Hươu/Voi; không gán cho OSM hoặc bản đồ chính thức."
+                                          },
+                     "sources":  [
+                                     "https://saigonzoo.vn/thuc-vat/cay-tram-huong-clv30.html",
+                                     "https://publications.cirad.fr/une_notice.php?dk=618124"
+                                 ],
+                     "text":  {
+                                  "vi":  {
+                                             "name":  "Trầm hương",
+                                             "description":  "Trầm hương là cây thường xanh có thể tạo phần gỗ thơm gọi là trầm. Phần gỗ này được dùng làm hương liệu.",
+                                             "audioScript":  "Điều đặc biệt của trầm hương nằm bên trong thân cây. Khi bị tổn thương, cây có thể tạo phần gỗ sẫm màu, chứa chất thơm; quá trình này còn liên quan đến nấm và điều kiện môi trường. Đó là lý do không thể nhìn một cây rồi khẳng định bên trong có trầm. Vỏ cây còn có sợi dai, được dùng làm sợi hoặc giấy đặc biệt."
+                                         },
+                                  "en":  {
+                                             "name":  "Aquilaria crassna",
+                                             "description":  "Aquilaria crassna is an evergreen tree that can form fragrant wood known as agarwood. This wood is used in fragrances.",
+                                             "audioScript":  "What makes this tree special lies inside its trunk. After injury, it can form dark, fragrant wood; fungi and environmental conditions also play a role. Seeing the tree alone does not establish that it contains agarwood. Its bark also has tough fibres used for cordage or special paper."
+                                         }
+                              }
+                 },
+                 {
+                     "key":  "white-champaca",
+                     "category":  "PLANT",
+                     "displayOrder":  6,
+                     "latitude":  10.788,
+                     "longitude":  106.7077,
+                     "locationEvidence":  {
+                                              "mode":  "SIMULATED_BROWSER_DEMO",
+                                              "label":  "Vị trí minh họa cho demo trình duyệt, không phải vị trí trưng bày/cây đã xác minh; không nghiệm thu GPS hoặc đường đi.",
+                                              "approvedOn":  "2026-10-23",
+                                              "sourceUrl":  null,
+                                              "osmCheckedAt":  null,
+                                              "note":  "Layout do nhóm đặt gần vùng demo Hươu/Voi; không gán cho OSM hoặc bản đồ chính thức."
+                                          },
+                     "sources":  [
+                                     "https://saigonzoo.vn/thuc-vat/cay-ngoc-lan-clv28.html"
+                                 ],
+                     "text":  {
+                                  "vi":  {
+                                             "name":  "Ngọc lan",
+                                             "description":  "Ngọc lan có hoa trắng thơm và lá thuôn dài. Cây thường được trồng làm cảnh trong vườn, công viên.",
+                                             "audioScript":  "Hoa ngọc lan có một chi tiết dễ bỏ qua: những mảnh trắng không chia thành đài và cánh hoa riêng biệt như nhiều loài quen thuộc. Chúng xếp theo đường xoắn ốc. Hương thơm còn khiến hoa được dùng làm nước hoa và ướp trà. Vẻ đẹp của loài cây này vì thế gắn cả với hình dáng lẫn mùi hương."
+                                         },
+                                  "en":  {
+                                             "name":  "White champaca",
+                                             "description":  "White champaca has fragrant white flowers and elongated leaves. It is often grown as an ornamental tree in gardens and parks.",
+                                             "audioScript":  "White champaca flowers have an easily missed feature: their white floral parts are not separated into distinct sepals and petals as in many familiar flowers. They are arranged in a spiral. The fragrance also makes the flowers useful for perfume and scenting tea. Their appeal involves both form and scent."
+                                         }
+                              }
+                 },
+                 {
+                     "key":  "canarium-album",
+                     "category":  "PLANT",
+                     "displayOrder":  7,
+                     "latitude":  10.78775,
+                     "longitude":  106.7071,
+                     "locationEvidence":  {
+                                              "mode":  "SIMULATED_BROWSER_DEMO",
+                                              "label":  "Vị trí minh họa cho demo trình duyệt, không phải vị trí trưng bày/cây đã xác minh; không nghiệm thu GPS hoặc đường đi.",
+                                              "approvedOn":  "2026-10-23",
+                                              "sourceUrl":  null,
+                                              "osmCheckedAt":  null,
+                                              "note":  "Layout do nhóm đặt gần vùng demo Hươu/Voi; không gán cho OSM hoặc bản đồ chính thức."
+                                          },
+                     "sources":  [
+                                     "https://saigonzoo.vn/thuc-vat/cay-tram-trang-clv32.html"
+                                 ],
+                     "text":  {
+                                  "vi":  {
+                                             "name":  "Trám trắng",
+                                             "description":  "Trám trắng có lá kép và quả nhọn ở hai đầu. Loài cây này còn cho nhựa được dùng trong công nghiệp.",
+                                             "audioScript":  "Trám trắng không chỉ cho gỗ. Nhựa cây còn được dùng làm hương, chế tinh dầu và tùng hương phục vụ ngành sơn, in. Nhìn vào một loài cây vì thế cũng có thể thấy mối liên hệ với vật liệu quanh ta. Một chi tiết khác: hạt trám có thể dùng để ép dầu."
+                                         },
+                                  "en":  {
+                                             "name":  "Canarium album",
+                                             "description":  "Canarium album has compound leaves and fruits pointed at both ends. Its resin also has industrial uses.",
+                                             "audioScript":  "Canarium album provides more than timber. Its resin is used for incense and processed into essential oil and rosin for paint and printing industries. A tree can therefore reveal connections with everyday materials. Another detail is that its seeds can be pressed for oil."
+                                         }
+                              }
+                 },
+                 {
+                     "key":  "brownea-ariza",
+                     "category":  "PLANT",
+                     "displayOrder":  8,
+                     "latitude":  10.78775,
+                     "longitude":  106.7073,
+                     "locationEvidence":  {
+                                              "mode":  "SIMULATED_BROWSER_DEMO",
+                                              "label":  "Vị trí minh họa cho demo trình duyệt, không phải vị trí trưng bày/cây đã xác minh; không nghiệm thu GPS hoặc đường đi.",
+                                              "approvedOn":  "2026-10-23",
+                                              "sourceUrl":  null,
+                                              "osmCheckedAt":  null,
+                                              "note":  "Layout do nhóm đặt gần vùng demo Hươu/Voi; không gán cho OSM hoặc bản đồ chính thức."
+                                          },
+                     "sources":  [
+                                     "https://saigonzoo.vn/thuc-vat/cay-cat-anh-clv29.html"
+                                 ],
+                     "text":  {
+                                  "vi":  {
+                                             "name":  "Cát anh",
+                                             "description":  "Cát anh có tán rộng và hoa đỏ thành cụm rủ xuống. Loài cây có nguồn gốc từ Colombia được trồng làm cảnh nhờ hoa đẹp.",
+                                             "audioScript":  "Sau những cụm hoa đỏ, cát anh còn có một câu chuyện ở quả. Quả thuộc dạng quả đậu và có khả năng tự phát tán hạt. Đây là một cách cây đưa hạt ra khỏi quả để bắt đầu thế hệ mới. Vì vậy, tìm hiểu cát anh có thể đi từ vẻ đẹp của hoa đến cách duy trì nòi giống."
+                                         },
+                                  "en":  {
+                                             "name":  "Brownea ariza",
+                                             "description":  "Brownea ariza has a broad canopy and hanging clusters of red flowers. Native to Colombia, it is grown ornamentally for its flowers.",
+                                             "audioScript":  "Beyond its red flower clusters, Brownea ariza has a story in its fruit. The fruit is a pod that can disperse its seeds itself. This releases seeds from the fruit to begin a new generation. Learning about the tree connects the beauty of its flowers with reproduction."
+                                         }
+                              }
+                 },
+                 {
+                     "key":  "animal-plant-museum",
+                     "category":  "HERITAGE",
+                     "displayOrder":  9,
+                     "latitude":  10.78775,
+                     "longitude":  106.7075,
+                     "locationEvidence":  {
+                                              "mode":  "SIMULATED_BROWSER_DEMO",
+                                              "label":  "Vị trí minh họa cho demo trình duyệt, không phải vị trí trưng bày/cây đã xác minh; không nghiệm thu GPS hoặc đường đi.",
+                                              "approvedOn":  "2026-10-23",
+                                              "sourceUrl":  null,
+                                              "osmCheckedAt":  null,
+                                              "note":  "Layout do nhóm đặt gần vùng demo Hươu/Voi; không gán cho OSM hoặc bản đồ chính thức."
+                                          },
+                     "sources":  [
+                                     "https://saigonzoo.vn/index.php/bao-tang-dong-thuc-vat-noi-thoi-gian-ngung-dong-lai-186.html"
+                                 ],
+                     "text":  {
+                                  "vi":  {
+                                             "name":  "Bảo tàng Động–Thực vật",
+                                             "description":  "Bảo tàng Động–Thực vật lưu giữ các tiêu bản phục vụ tìm hiểu thiên nhiên. Bên cạnh động vật tạo hình còn có bộ xương và mẫu thực vật.",
+                                             "audioScript":  "Ở bảo tàng, một bộ xương cho thấy những chi tiết thường bị lớp da che khuất, giúp ta tìm hiểu cấu tạo động vật. Với thực vật, việc giữ mẫu lại là cuộc hẹn với thời gian: hoa và quả xuất hiện theo mùa, nên người sưu tập phải theo dõi để thu đúng lúc. Mỗi tiêu bản vì thế còn chứa công sức quan sát và bảo quản."
+                                         },
+                                  "en":  {
+                                             "name":  "Animal and Plant Museum",
+                                             "description":  "The Animal and Plant Museum preserves specimens for learning about nature. Alongside mounted animals are skeletons and plant specimens.",
+                                             "audioScript":  "In a museum, a skeleton reveals details normally hidden beneath the skin, helping us understand animal anatomy. Collecting plants involves timing: flowers and fruits appear seasonally, so collectors must follow their development to gather suitable samples. Each specimen also represents careful observation and preservation."
+                                         }
+                              }
+                 },
+                 {
+                     "key":  "nhan-huong",
+                     "category":  "HERITAGE",
+                     "displayOrder":  10,
+                     "latitude":  10.78775,
+                     "longitude":  106.7077,
+                     "locationEvidence":  {
+                                              "mode":  "SIMULATED_BROWSER_DEMO",
+                                              "label":  "Vị trí minh họa cho demo trình duyệt, không phải vị trí trưng bày/cây đã xác minh; không nghiệm thu GPS hoặc đường đi.",
+                                              "approvedOn":  "2026-10-23",
+                                              "sourceUrl":  null,
+                                              "osmCheckedAt":  null,
+                                              "note":  "Layout do nhóm đặt gần vùng demo Hươu/Voi; không gán cho OSM hoặc bản đồ chính thức."
+                                          },
+                     "sources":  [
+                                     "https://saigonzoo.vn/mot-ngay-tai-thao-cam-vien-56.html",
+                                     "https://congan.com.vn/tin-chinh/chinh-tri-thoi-su/dau-nam-tham-hau-cu-cua-su-kien-tet-mau-than-giua-long-thao-cam-vien_159023.html"
+                                 ],
+                     "text":  {
+                                  "vi":  {
+                                             "name":  "Quán Nhan Hương",
+                                             "description":  "Quán Nhan Hương là di tích lịch sử trong Thảo Cầm Viên. Nơi đây từng là cơ sở bí mật của lực lượng Biệt động Sài Gòn.",
+                                             "audioScript":  "Một quán giải khát bình thường từng che giấu hoạt động bí mật ngay trong Thảo Cầm Viên. Trong giai đoạn 1963–1975, Nhan Hương là nơi nuôi giấu cán bộ và trao đổi thông tin của lực lượng Biệt động Sài Gòn. Chi tiết đáng nhớ là tên quán được đặt theo người vợ đã mất của ông Nguyễn Văn Tửng, người lập quán."
+                                         },
+                                  "en":  {
+                                             "name":  "Nhan Huong historical site",
+                                             "description":  "Nhan Huong is a historical site within Saigon Zoo and Botanical Gardens. It was once a clandestine base for the Saigon Special Forces.",
+                                             "audioScript":  "An ordinary refreshment shop once concealed clandestine activity within the zoo. From 1963 to 1975, Nhan Huong sheltered operatives and served as a place to exchange information for the Saigon Special Forces. One memorable detail is its name: founder Nguyen Van Tung named it after his late wife."
+                                         }
+                              }
+                 }
+             ]
+}

@@ -1,0 +1,2 @@
+*.json -text whitespace=cr-at-eol
+SOURCE_DRAFT02_APPROVED.md -text whitespace=cr-at-eol,-blank-at-eof
