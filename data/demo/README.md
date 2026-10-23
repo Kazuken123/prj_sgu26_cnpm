@@ -1,5 +1,7 @@
 # Backend có dữ liệu DRAFT-03 cho frontend — demo trình duyệt
 
+Bộ mở rộng hai POI lên **bảy ngôn ngữ** đã được đóng gói tại [reviewed-seven](reviewed-seven/README.md), gồm bản dịch đã duyệt, nguồn/duyệt và công cụ nhập chạy lặp. Phần hướng dẫn bên dưới là bước nền VI/EN; đọc hướng dẫn mở rộng trước khi bổ sung năm ngôn ngữ và không chạy ép seed hai ngôn ngữ trên bộ đã mở rộng.
+
 Bộ này gồm hai POI Hươu cao cổ/Voi châu Á, tên/giới thiệu/kịch bản đọc VI và EN đã được chủ đồ án duyệt, một **lộ trình demo do nhóm đề xuất** theo thứ tự Hươu → Voi. Dữ liệu không chứa tài khoản, mật khẩu, token hoặc giao dịch. `draft03.json`, `OSM_SAVED_RECORDS.md`, `compose.demo.yml` và code seed nằm trong repo, không phụ thuộc manifest bên ngoài máy tác giả.
 
 **Tọa độ tham khảo từ bản ghi nguồn đã lưu, chưa tái xác minh tại lần nhập, chưa khảo sát thực địa.** Giữ `osmCheckedAt=null`; quyết định dùng nguồn cũ được ghi bằng `locationEvidence.mode=SAVED_SOURCE_ACCEPTED` và xác nhận dùng cho demo trình duyệt. Không tự điền ngày kiểm tra mới. Bằng chứng cũ và nguồn nội dung ở [OSM_SAVED_RECORDS.md](OSM_SAVED_RECORDS.md).

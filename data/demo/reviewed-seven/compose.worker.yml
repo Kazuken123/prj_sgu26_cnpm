@@ -1,0 +1,6 @@
+# Optional overlay; use AFTER compose.demo.yml from the repository root.
+# Build the image using docs/PIPER_DEMO7.md before enabling this worker.
+services:
+  worker:
+    image: tcv-piper-demo7:local
+    command: [node, scripts/content-worker.js, --piper, --concurrency, '1', --poll-ms, '250']

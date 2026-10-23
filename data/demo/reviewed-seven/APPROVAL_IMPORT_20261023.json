@@ -1,0 +1,9 @@
+﻿{
+    "authorizedOn":  "2026-10-23",
+    "userInstruction":  "ok chấp nhận, nhập dữ liệu đi",
+    "scope":  "Add exactly five approved languages and ten reviewed translations/audio jobs to the two existing POIs in tcv_demo_review_20261020; preserve VI/EN, version, locations and tour",
+    "draftSha256":  "3a7ebcc0fd53eaf2fdf421ca354e84234b495b06a1c8a94ea2b8b91b99e37b27",
+    "textApprovalSha256":  "43a8fdb213d9ede82ef37088bc88f2e4ebc3f9542c56def0b94aea0a2626d36b",
+    "voiceApprovalSha256":  "6c99ad54c52d8c40c4682ff14bec4d89a49d9ff88e46f4b357be4a42dac6bac5",
+    "limits":  "Demo only; Japanese female; no native-language independent review, no GPS/15+ acceptance, WAV exception retained"
+}

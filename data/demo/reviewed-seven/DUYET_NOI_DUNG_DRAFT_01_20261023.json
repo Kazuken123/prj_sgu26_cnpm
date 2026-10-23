@@ -1,0 +1,14 @@
+{
+  "approvedOn": "2026-10-23",
+  "approvalSource": "User reply in this chat: Duyệt nội dung DRAFT-01 để làm mẫu audio sau",
+  "scope": "10 text sets for giraffe and Asian elephant: zh-Hans, ko, ja, ru, fr; approved to prepare future audio samples",
+  "markdownFile": "BAN_DICH_HUOU_VOI_DRAFT_01.md",
+  "markdownSha256": "22709d78c95bfa588cf5857644c8a96d096f5a9a35bd714de89742bd4bb22fe0",
+  "jsonFile": "TRANSLATIONS_DRAFT_01.json",
+  "jsonSha256": "3a7ebcc0fd53eaf2fdf421ca354e84234b495b06a1c8a94ea2b8b91b99e37b27",
+  "sourceManifestSha256": "1a6dc42342a6c1b934aead42346fc9e3294acf2d89d42129ad7307f259413b98",
+  "audioApproved": false,
+  "independentNativeLanguageReview": false,
+  "databaseImportAuthorizedAtThisMilestone": false,
+  "notes": "Preserve original draft files, including approved=false and sourceVersion=null in draft JSON. This separate approval record identifies the exact approved text; the JSON is not directly importable. No model download, code changes, database import, commit or push authorized by this approval."
+}

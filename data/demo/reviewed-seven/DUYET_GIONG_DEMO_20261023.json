@@ -1,0 +1,123 @@
+{
+  "approvedOn": "2026-10-23",
+  "approvalScope": "Provisional listening approval for demo only",
+  "approvalSource": [
+    "User: Tạm duyệt bốn giọng cho demo (zh-Hans, ko, ru, fr)",
+    "User: Nhật chọn nữ"
+  ],
+  "languages": [
+    "zh-Hans",
+    "ko",
+    "ja",
+    "ru",
+    "fr"
+  ],
+  "japaneseSpeakerId": 0,
+  "japaneseSpeakerLabel": "female",
+  "independentLanguageReview": false,
+  "productionAcceptance": false,
+  "databaseImportPerformed": false,
+  "records": [
+    {
+      "poiKey": "giraffe",
+      "languageCode": "fr",
+      "speakerId": null,
+      "file": "samples/giraffe-fr.wav",
+      "fileSha256": "f268cb157cc80b180caed40b5e864de1befa663ef56a62583e318fb8624761dc",
+      "scriptSha256": "37def8a795fb044ecd84fdf7b89e430404ca202974f3349e9cede35ab3d22135",
+      "modelSha256": "641d1ab097da2b81128c076810edb052b385decc8be3381814802a64a73baf99",
+      "modelRevision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd"
+    },
+    {
+      "poiKey": "giraffe",
+      "languageCode": "ru",
+      "speakerId": null,
+      "file": "samples/giraffe-ru.wav",
+      "fileSha256": "84059a2d6b95ae5d7c786784b026d521a9d70e473cb31cebe760d25ea3da0ce7",
+      "scriptSha256": "fca3bf32297e2225fcf50a35c1884dca6521b82fbb0e763b03b61da0803ace34",
+      "modelSha256": "15fab56e11a097858ee115545d0f697fc2a316c41a291a5362349fb870411b0a",
+      "modelRevision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd"
+    },
+    {
+      "poiKey": "giraffe",
+      "languageCode": "ko",
+      "speakerId": null,
+      "file": "samples/giraffe-ko.wav",
+      "fileSha256": "bdbbd03e7a5e22a8f3b866f032721c0c9364b57933a892083b49744ecc9689ef",
+      "scriptSha256": "b1540e7151d3e4e913ccd619abb91403542d30e84edaf89143408e168e24cfa8",
+      "modelSha256": "624fd774e26895f24bebae1bd9a3379e3394baeade4b584924f83e414096e2c9",
+      "modelRevision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd"
+    },
+    {
+      "poiKey": "asian-elephant",
+      "languageCode": "fr",
+      "speakerId": null,
+      "file": "samples/asian-elephant-fr.wav",
+      "fileSha256": "397fd8808a4d421aa807fa11e148c3771b3db6dd76885f4565713b6020568c72",
+      "scriptSha256": "f6d14f391d09f026ba49f48f422fcd57043af5863cf78b9a5407900b4b92a929",
+      "modelSha256": "641d1ab097da2b81128c076810edb052b385decc8be3381814802a64a73baf99",
+      "modelRevision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd"
+    },
+    {
+      "poiKey": "asian-elephant",
+      "languageCode": "ru",
+      "speakerId": null,
+      "file": "samples/asian-elephant-ru.wav",
+      "fileSha256": "ad6271c15378464b1b566aa42c63bea844a2a2da1c2af5b818ad536d6596feda",
+      "scriptSha256": "32fbbea342bd59c5c2d7f39827a119b0baccbb02327fd9ac756470ee2da27ebd",
+      "modelSha256": "15fab56e11a097858ee115545d0f697fc2a316c41a291a5362349fb870411b0a",
+      "modelRevision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd"
+    },
+    {
+      "poiKey": "asian-elephant",
+      "languageCode": "ko",
+      "speakerId": null,
+      "file": "samples/asian-elephant-ko.wav",
+      "fileSha256": "5e1a59b72c35a5a9f0061e746e27691bb2f5dbc7d50470643fac4a1215b89bfd",
+      "scriptSha256": "a09e915133171a2d5139977d74acce54ad58b0df5a43265d950a3b95e8f82760",
+      "modelSha256": "624fd774e26895f24bebae1bd9a3379e3394baeade4b584924f83e414096e2c9",
+      "modelRevision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd"
+    },
+    {
+      "poiKey": "giraffe",
+      "languageCode": "ja",
+      "speakerId": 0,
+      "file": "samples/giraffe-ja-female.wav",
+      "fileSha256": "1645c9204ff279d1752d1ebce66b9f58f9816b953ad037326d8613b28f6e4e9e",
+      "scriptSha256": "19f1f4b9718f328edd37ba400f0864b9190fc17af30c51b7d8136586af2120f2",
+      "modelSha256": "5eafa1610fc7a0ff2e7fde9cbe0972d876266e23d8db331727eb2466f19460eb",
+      "modelRevision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd"
+    },
+    {
+      "poiKey": "asian-elephant",
+      "languageCode": "ja",
+      "speakerId": 0,
+      "file": "samples/asian-elephant-ja-female.wav",
+      "fileSha256": "6e1532dc21299a08b474f1d6a5c51e0f934441b101fa389a706602394a738cd0",
+      "scriptSha256": "38d65357de3941ba6d2679fc4b586e96525b76dd642a7a98d635d31f1fd83db8",
+      "modelSha256": "5eafa1610fc7a0ff2e7fde9cbe0972d876266e23d8db331727eb2466f19460eb",
+      "modelRevision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd"
+    },
+    {
+      "poiKey": "giraffe",
+      "languageCode": "zh-Hans",
+      "speakerId": null,
+      "file": "samples/giraffe-zh-Hans.wav",
+      "fileSha256": "f290d28268e577f555e3e1be8a1aeeb182ea2f3a213a14cd16a520953fd8a5ce",
+      "scriptSha256": "c90df3f5fa25219e056e0e92630e8996f6af90ab4e752595cd6bc72f68eab83b",
+      "modelSha256": "820d64ac16048fbcf38dd0823d37fab5f5e0c2bd71b01ca5a50f553fac19e746",
+      "modelRevision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd"
+    },
+    {
+      "poiKey": "asian-elephant",
+      "languageCode": "zh-Hans",
+      "speakerId": null,
+      "file": "samples/asian-elephant-zh-Hans.wav",
+      "fileSha256": "e163c04613ec599792519cc925ce8ab3aff51bd440085a8dd66ba02615deb731",
+      "scriptSha256": "e8edc6215e110d21999eaa8c4dcf83392c0608e61e6280ffa540ed750741e8b2",
+      "modelSha256": "820d64ac16048fbcf38dd0823d37fab5f5e0c2bd71b01ca5a50f553fac19e746",
+      "modelRevision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd"
+    }
+  ],
+  "notes": "Approval applies to these exact demo samples. Japanese male samples are retained for comparison but not selected. No backend integration, database import, commit or push performed by this recording step."
+}

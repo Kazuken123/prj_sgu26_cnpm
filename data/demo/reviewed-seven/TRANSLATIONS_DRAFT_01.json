@@ -1,0 +1,79 @@
+{
+  "status": "DRAFT_NOT_APPROVED_NOT_IMPORTABLE",
+  "preparedOn": "2026-10-23",
+  "source": "data/demo/draft03.json",
+  "sourceManifestSha256": "1a6dc42342a6c1b934aead42346fc9e3294acf2d89d42129ad7307f259413b98",
+  "sourceVersion": null,
+  "sourceVersionNote": "Read the current sourceVersion and compare exact VI text before any import; no database read or import performed.",
+  "languageCodes": [
+    "zh-Hans",
+    "ko",
+    "ja",
+    "ru",
+    "fr"
+  ],
+  "approved": false,
+  "audioStatus": "NO_NEW_AUDIO_GENERATED",
+  "pois": [
+    {
+      "key": "giraffe",
+      "translations": {
+        "zh-Hans": {
+          "name": "长颈鹿",
+          "description": "长颈鹿最显著的特征是长长的脖子、修长的腿和带有斑纹的皮毛。长脖子和长腿帮助它们够到高处的树叶。每只长颈鹿的皮毛花纹都不相同。",
+          "audioScript": "长颈鹿以长脖子和带有斑纹的皮毛而引人注目。长脖子和长腿帮助它们采食高处的树叶。不同个体的花纹各不相同。这里介绍的是长颈鹿的一般知识，并非西贡动植物园内某只动物的具体情况。"
+        },
+        "ko": {
+          "name": "기린",
+          "description": "기린은 긴 목과 긴 다리, 얼룩무늬 털이 특징입니다. 긴 목과 다리는 높은 곳의 나뭇잎에 닿는 데 도움이 됩니다. 털의 무늬는 개체마다 다릅니다.",
+          "audioScript": "기린은 긴 목과 얼룩무늬 털이 눈에 띕니다. 긴 목과 다리는 높은 곳의 나뭇잎을 먹는 데 도움이 됩니다. 무늬는 개체마다 다릅니다. 이는 기린에 관한 일반적인 지식이며, 사이공 동식물원의 특정 동물에 대한 정보는 아닙니다."
+        },
+        "ja": {
+          "name": "キリン",
+          "description": "キリンの特徴は、長い首、長い脚、そして斑点模様の毛です。長い首と脚を使って、高いところにある木の葉に届きます。体の模様は一頭ごとに異なります。",
+          "audioScript": "キリンは長い首と斑点模様の毛が特徴です。長い首と脚を使って、高いところにある木の葉を食べます。その模様は一頭ごとに異なります。これはキリンについての一般的な知識であり、サイゴン動植物園の特定の個体についての情報ではありません。"
+        },
+        "ru": {
+          "name": "Жираф",
+          "description": "Жирафы выделяются длинной шеей, длинными ногами и пятнистой шерстью. Длинные шея и ноги помогают им дотягиваться до листьев высоко на деревьях. Рисунок шерсти у каждой особи свой.",
+          "audioScript": "Жирафы выделяются длинной шеей и пятнистой шерстью. Длинные шея и ноги помогают им доставать листья высоко на деревьях. Рисунок пятен различается у разных особей. Это общие сведения о жирафах, а не информация об отдельном животном в Сайгонском зоопарке и ботаническом саду."
+        },
+        "fr": {
+          "name": "Girafe",
+          "description": "Les girafes se distinguent par leur long cou, leurs longues pattes et leur pelage tacheté. Leur cou et leurs pattes leur permettent d'atteindre les feuilles en hauteur. Le motif du pelage diffère d'un individu à l'autre.",
+          "audioScript": "Les girafes se distinguent par leur long cou et leur pelage tacheté. Leur cou et leurs pattes leur permettent de se nourrir de feuilles en hauteur. Ces motifs diffèrent d'un individu à l'autre. Il s'agit de connaissances générales sur les girafes, et non d'informations sur un animal particulier du zoo et jardin botanique de Saïgon."
+        }
+      }
+    },
+    {
+      "key": "asian-elephant",
+      "translations": {
+        "zh-Hans": {
+          "name": "亚洲象",
+          "description": "亚洲象的象鼻由鼻子和上唇形成。它们用象鼻取食、吸水，再把水送入口中。亚洲象是植食动物。",
+          "audioScript": "象鼻是亚洲象的一个显著特征。大象用象鼻抓取食物、吸水，再把水送入口中。它们的食物包括草和树叶。这段介绍讲的是这个物种，并不描述西贡动植物园内的喂食安排或饲养时间表。"
+        },
+        "ko": {
+          "name": "아시아코끼리",
+          "description": "아시아코끼리의 긴 코는 코와 윗입술이 합쳐져 형성된 기관입니다. 코로 먹이를 집고 물을 빨아들인 뒤 입으로 옮깁니다. 아시아코끼리는 초식동물입니다.",
+          "audioScript": "긴 코는 아시아코끼리의 두드러진 특징입니다. 코끼리는 코로 먹이를 잡고 물을 빨아들인 뒤 입으로 옮깁니다. 먹이에는 풀과 나뭇잎이 포함됩니다. 이 소개는 종에 관한 설명이며, 사이공 동식물원의 먹이 구성이나 사육 일정을 설명하는 것은 아닙니다."
+        },
+        "ja": {
+          "name": "アジアゾウ",
+          "description": "アジアゾウの長い鼻は、鼻と上唇が一体となってできています。鼻で食べ物を取り、水を吸い上げてから口へ運びます。アジアゾウは草食動物です。",
+          "audioScript": "長い鼻はアジアゾウの大きな特徴です。ゾウは鼻で食べ物をつかみ、水を吸い上げてから口へ運びます。食べ物には草や木の葉が含まれます。この紹介は種についての説明であり、サイゴン動植物園での餌の内容や飼育日程を説明するものではありません。"
+        },
+        "ru": {
+          "name": "Азиатский слон",
+          "description": "Хобот азиатского слона образован носом и верхней губой. Слоны используют его, чтобы брать пищу и набирать воду, которую затем переносят в рот. Азиатские слоны — растительноядные животные.",
+          "audioScript": "Хобот — отличительная черта азиатского слона. Слоны используют его, чтобы захватывать пищу и набирать воду, а затем переносить её в рот. В их рацион входят травы и листья. Этот рассказ посвящён виду, а не рациону или графику ухода за животными в Сайгонском зоопарке и ботаническом саду."
+        },
+        "fr": {
+          "name": "Éléphant d'Asie",
+          "description": "La trompe de l'éléphant d'Asie est formée par le nez et la lèvre supérieure. Les éléphants l'utilisent pour prendre de la nourriture et aspirer de l'eau, qu'ils portent ensuite à leur bouche. Les éléphants d'Asie sont herbivores.",
+          "audioScript": "La trompe est une caractéristique marquante de l'éléphant d'Asie. Les éléphants l'utilisent pour saisir la nourriture et aspirer l'eau, puis porter celle-ci à leur bouche. Ils mangent notamment des herbes et des feuilles. Cette présentation concerne l'espèce, et non le régime alimentaire ou les horaires de soins au zoo et jardin botanique de Saïgon."
+        }
+      }
+    }
+  ]
+}

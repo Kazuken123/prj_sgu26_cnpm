@@ -1,0 +1,3 @@
+# Approved artifacts are hashed as exact bytes, including original line endings.
+*.json -text whitespace=cr-at-eol
+BAN_DICH_HUOU_VOI_DRAFT_01.md -text whitespace=-blank-at-eof

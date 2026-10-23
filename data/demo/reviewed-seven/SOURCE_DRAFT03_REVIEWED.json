@@ -1,0 +1,78 @@
+{
+  "datasetId": "TCV_DEMO_POIS_V1",
+  "database": "tcv_demo_review_20261020",
+  "approved": true,
+  "approvedOn": "2026-10-20",
+  "approvalSource": "User explicitly approved DRAFT-03 in this chat",
+  "draft03Sha256": "fc328314c50c900d43f11ed14c414c8cf54e763af27e872c7ed7c404e72271a5",
+  "audio": "MOCK_TEST_TONE_NOT_SPEECH",
+  "locationLabel": "Tọa độ tham khảo từ bản ghi nguồn đã lưu, chưa tái xác minh tại lần nhập, chưa khảo sát thực địa.",
+  "osmCheckedAt": null,
+  "importStatus": "AUTHORIZED_SAVED_SOURCE_BROWSER_DEMO",
+  "pois": [
+    {
+      "key": "giraffe",
+      "osmNode": "6045633938",
+      "latitude": 10.7880953,
+      "longitude": 106.7078014,
+      "text": {
+        "vi": {
+          "name": "Hươu cao cổ",
+          "description": "Hươu cao cổ nổi bật với chiếc cổ dài, đôi chân dài và bộ lông có đốm. Cổ và chân dài giúp chúng vươn tới lá cây trên cao. Hoa văn trên bộ lông của mỗi cá thể khác nhau.",
+          "audioScript": "Hươu cao cổ nổi bật với chiếc cổ dài và bộ lông có đốm. Cổ và chân dài giúp chúng kiếm lá trên cao. Những hoa văn ấy khác nhau giữa các cá thể. Đây là kiến thức chung về hươu cao cổ, không phải thông tin riêng về một con vật tại Thảo Cầm Viên."
+        },
+        "en": {
+          "name": "Giraffe",
+          "description": "Giraffes stand out for their long necks, long legs and spotted coats. Their long necks and legs help them reach leaves high in trees. Each individual has a different coat pattern.",
+          "audioScript": "Giraffes are recognizable by their long necks and spotted coats. Their long necks and legs help them reach leaves high in trees. Each individual has a different coat pattern. These are general facts about giraffes, rather than details about a particular animal at Saigon Zoo and Botanical Gardens."
+        }
+      },
+      "savedOsmSource": {
+        "nodeId": "6045633938",
+        "url": "https://www.openstreetmap.org/node/6045633938",
+        "version": 5,
+        "readOn": "2026-10-20",
+        "name": "Hươu cao cổ",
+        "zoo": "enclosure",
+        "latitude": 10.7880953,
+        "longitude": 106.7078014
+      }
+    },
+    {
+      "key": "asian-elephant",
+      "osmNode": "6045634869",
+      "latitude": 10.7886498,
+      "longitude": 106.7071674,
+      "text": {
+        "vi": {
+          "name": "Voi châu Á",
+          "description": "Voi châu Á có chiếc vòi hình thành từ mũi và môi trên. Chúng dùng vòi để lấy thức ăn, hút nước rồi đưa nước vào miệng. Voi châu Á là động vật ăn thực vật.",
+          "audioScript": "Chiếc vòi là một đặc điểm nổi bật của voi châu Á. Voi dùng vòi để cầm nắm thức ăn và hút nước, rồi đưa nước vào miệng. Thức ăn của loài này có cỏ và lá cây. Đoạn giới thiệu này nói về loài, không mô tả khẩu phần hay lịch chăm sóc tại Thảo Cầm Viên."
+        },
+        "en": {
+          "name": "Asian elephant",
+          "description": "Asian elephants have a trunk formed from the nose and upper lip. They use it to collect food and draw up water before putting the water into their mouths. Asian elephants are herbivores.",
+          "audioScript": "The trunk is a distinctive feature of Asian elephants. They use it to grasp food and draw up water, then put the water into their mouths. Their diet includes grasses and leaves. This introduction describes the species, not the feeding plan or care schedule at Saigon Zoo and Botanical Gardens."
+        }
+      },
+      "savedOsmSource": {
+        "nodeId": "6045634869",
+        "url": "https://www.openstreetmap.org/node/6045634869",
+        "version": 3,
+        "readOn": "2026-10-20",
+        "name": "Voi",
+        "zoo": "enclosure",
+        "latitude": 10.7886498,
+        "longitude": 106.7071674
+      }
+    }
+  ],
+  "tour": {
+    "name": "Lộ trình demo do nhóm đề xuất — Hươu cao cổ và Voi châu Á",
+    "description": "Thứ tự nội dung Hươu cao cổ → Voi châu Á trong lộ trình demo do nhóm đề xuất. Đây không phải tour chính thức hoặc đường đi bộ đã kiểm chứng. Tọa độ tham khảo từ bản ghi nguồn đã lưu, chưa tái xác minh tại lần nhập, chưa khảo sát thực địa. Chưa nghiệm thu GPS, tuyến đi hoặc khả năng tiếp cận."
+  },
+  "locationEvidence": {
+    "mode": "SAVED_SOURCE_ACCEPTED",
+    "acceptedForBrowserDemo": true
+  }
+}
