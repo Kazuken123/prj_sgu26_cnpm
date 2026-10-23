@@ -32,6 +32,7 @@ const { createKnowledgeRouter } = require("./routers/knowledge.router");
 const defaultKnowledgeService = require("./services/knowledge.service");
 const { createChatRouter } = require("./routers/chat.router");
 const defaultChatService = require("./services/chat.service");
+const { deploymentMetadata } = require("./config/deployment");
 
 function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService,
   contentJobService = defaultContentJobService, paymentService = defaultPaymentService, mediaService = new MediaService(), contentService = new ContentService(),
@@ -61,9 +62,12 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use("/api/admin/payments", createStaffPaymentRouter(authService, paymentService));
   app.use("/api/admin/knowledge-documents", createKnowledgeRouter(authService, knowledgeService));
   app.use("/api/chat", createChatRouter(paymentService, chatService));
-  app.get("/health", (req, res) => res.json({ status: "ok", service: "food-tour-api", timestamp: new Date().toISOString() }));
+  app.get("/health", (req, res) => res.set("Cache-Control", "no-store").json({
+    status: "ok", service: "food-tour-api", timestamp: new Date().toISOString(), ...deploymentMetadata(),
+  }));
   app.get("/health/ready", async (req, res, next) => {
-    try { res.json(await healthService.ready()); } catch (error) { next(error); }
+    res.set("Cache-Control", "no-store");
+    try { res.json({ ...await healthService.ready(), ...deploymentMetadata() }); } catch (error) { next(error); }
   });
   app.get("/", (req, res, next) => {
     if ((req.get("Accept") || "").includes("text/html")) return next();

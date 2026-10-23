@@ -190,3 +190,48 @@ jobs:
       - name: Remove disposable CI containers
         if: always()
         run: docker compose down -v
+
+  deploy-render-staging:
+    name: CD - Render staging (exact commit and new process)
+    needs: release-smoke-test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    concurrency:
+      group: render-tcv-staging
+      cancel-in-progress: false
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20.x
+      - name: Refuse to deploy a superseded main commit
+        id: head
+        shell: bash
+        run: |
+          set -euo pipefail
+          CURRENT_MAIN=$(git ls-remote origin refs/heads/main | cut -f1)
+          if [ "$CURRENT_MAIN" = "$GITHUB_SHA" ]; then
+            echo "current=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "current=false" >> "$GITHUB_OUTPUT"
+            echo "Main advanced: this run does not deploy or claim staging success." >> "$GITHUB_STEP_SUMMARY"
+          fi
+      - name: Require the protected Render deploy hook
+        if: steps.head.outputs.current == 'true'
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "Missing RENDER_DEPLOY_HOOK_URL repository secret. No deploy was triggered."
+            exit 1
+          fi
+      - name: Build the staging Dockerfile before triggering Render
+        if: steps.head.outputs.current == 'true'
+        run: docker build -f deploy/render/Dockerfile -t tcv-staging:${{ github.sha }} .
+      - name: Deploy the checked commit and verify the new running process
+        if: steps.head.outputs.current == 'true'
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          STAGING_URL: https://tcv-staging.onrender.com
+        run: node backend/scripts/deploy-render.js
