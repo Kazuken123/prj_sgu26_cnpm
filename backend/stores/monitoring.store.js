@@ -24,6 +24,8 @@ class MonitoringStore {
           FROM BUNDLE_ACCESS_LOGS WHERE created_at >= ? AND created_at < ? GROUP BY language_code ORDER BY language_code`, [from, to]),
         jobs: () => query("SELECT status, COUNT(*) AS total FROM CONTENT_JOBS GROUP BY status ORDER BY status"),
         audios: () => query("SELECT status, COUNT(*) AS total FROM AUDIOS GROUP BY status ORDER BY status"),
+        chatbot: (from, to) => query(`SELECT status, COUNT(*) AS total FROM CHAT_LOGS
+          WHERE created_at >= ? AND created_at < ? GROUP BY status ORDER BY status`, [from, to]),
       });
     }, { repeatableRead: true });
   }

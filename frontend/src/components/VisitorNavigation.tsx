@@ -3,29 +3,49 @@ import { Link, NavLink } from 'react-router-dom';
 import { Icon } from './Icon';
 import { loadGuestSession } from '../api/guestStorage';
 import { getApiBaseUrl } from '../api/client';
+import { getVisitMe } from '../api/payment';
+import { GUEST_SESSION_CHANGED } from '../api/sessionEvents';
+import { useVisitExpiry } from '../hooks/useVisitExpiry';
 
 export const VisitorNavigation: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(() => window.scrollY > 40);
   const [hasValidTicket, setHasValidTicket] = useState(false);
+  const [ticketExpiry, setTicketExpiry] = useState<string | null>(null);
+  useVisitExpiry(ticketExpiry, () => setHasValidTicket(false));
 
   useEffect(() => {
     const updateScrollState = () => setIsScrolled(window.scrollY > 40);
     window.addEventListener('scroll', updateScrollState, { passive: true });
 
-    // Kiểm tra vé khách
-    try {
+    let active = true, sequence = 0;
+    const checkTicket = async () => {
+      const request = ++sequence;
+      setHasValidTicket(false);
+      setTicketExpiry(null);
+      try {
       const baseUrl = getApiBaseUrl();
       const { session, mismatchedBaseUrl } = loadGuestSession(baseUrl);
       if (!mismatchedBaseUrl && session?.token) {
-        setHasValidTicket(true);
-      } else {
-        setHasValidTicket(false);
+        const visit = await getVisitMe(session.token, baseUrl);
+        if (!active || request !== sequence) return;
+        const valid = visit.status === 'ACTIVE' && Date.parse(visit.expiresAt || '') > Date.now();
+        setHasValidTicket(valid);
+        setTicketExpiry(valid ? visit.expiresAt! : null);
       }
-    } catch {
-      setHasValidTicket(false);
-    }
+      } catch { if (active && request === sequence) setHasValidTicket(false); }
+    };
+    void checkTicket();
+    window.addEventListener(GUEST_SESSION_CHANGED, checkTicket);
+    window.addEventListener('storage', checkTicket);
+    window.addEventListener('focus', checkTicket);
 
-    return () => window.removeEventListener('scroll', updateScrollState);
+    return () => {
+      active = false; sequence++;
+      window.removeEventListener('scroll', updateScrollState);
+      window.removeEventListener(GUEST_SESSION_CHANGED, checkTicket);
+      window.removeEventListener('storage', checkTicket);
+      window.removeEventListener('focus', checkTicket);
+    };
   }, []);
 
   return (

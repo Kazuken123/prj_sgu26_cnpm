@@ -14,6 +14,7 @@ export function monitoringService(overrides = {}, checks = {}) {
     bundleLanguages: async () => [],
     jobs: async () => [{ status: 'COMPLETED', total: 30 }],
     audios: async () => [{ status: 'AVAILABLE', total: 27 }],
+    chatbot: async () => [],
     ...overrides
   };
   return new MonitoringService({ snapshot: work => work(reader) }, {

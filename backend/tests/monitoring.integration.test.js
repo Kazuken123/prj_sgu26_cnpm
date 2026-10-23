@@ -70,7 +70,8 @@ describe("UC-18 real MySQL/Redis statistics and ADMIN HTTP authorization", { ski
     assert.equal(result.health.readiness.status, "READY"); assert.equal(result.metrics.activePaidVisits.value, 0);
     assert.equal(result.metrics.paidPayments.value.count, 0); assert.equal(result.metrics.bundleAccess.value.total, 0);
     assert.equal(new Date(result.window.to) - new Date(result.window.from), 86400000);
-    assert.equal(result.window.to, result.asOf); assert.equal(result.metrics.chatbot.status, "NOT_IMPLEMENTED");
+    assert.equal(result.window.to, result.asOf); assert.equal(result.metrics.chatbot.status, "AVAILABLE");
+    assert.equal(result.metrics.chatbot.value.total, 0);
   });
   it("current active paid visits include unexchanged tokens, exclude unpaid/revoked/expired sessions independently of the window", async () => {
     firstSession = await fixturePayment();
@@ -94,6 +95,24 @@ describe("UC-18 real MySQL/Redis statistics and ADMIN HTTP authorization", { ski
     }
     assert.deepEqual((await data()).metrics.bundleAccess.value, { total: 3, uniqueSessions: 1, byLanguage: [
       { languageCode: "en", total: 1, uniqueSessions: 1 }, { languageCode: "vi", total: 2, uniqueSessions: 1 }] });
+  });
+  it("chatbot counts all three logged outcomes in UTC [from,to), never exposes question or answer", async () => {
+    for (const [status, at] of [["SUCCESS", "2024-02-29 00:00:00"], ["NO_CONTEXT", "2024-02-29 12:00:00"], ["FAILED", "2024-02-29 23:59:59"], ["SUCCESS", "2024-03-01 00:00:00"], ["FAILED", "2024-02-28 23:59:59"]]) {
+      await db.query("INSERT INTO CHAT_LOGS(session_id,question,answer,status,created_at) VALUES(?,'PRIVATE_QUESTION','PRIVATE_ANSWER',?,?)", [firstSession, status, at]);
+    }
+    const result = await data();
+    assert.deepEqual(result.metrics.chatbot.value, { total: 3, byStatus: { SUCCESS: 1, NO_CONTEXT: 1, FAILED: 1 } });
+    assert.equal(result.metrics.chatbot.scope, "WINDOW_CREATED_AT");
+    assert.equal(JSON.stringify(result).includes("PRIVATE_"), false);
+    assert.equal((await data("?from=2024-03-01T00:00:00Z&to=2024-03-02T00:00:00Z")).metrics.chatbot.value.total, 1);
+    let missing = true;
+    const wrapped = wrapQuery((c, sql, query, args) => sql.includes("FROM CHAT_LOGS") && missing ? c.query("SELECT * FROM UC18_TEST_MISSING_CHAT") : c.query(query, args));
+    const monitor = new MonitoringService(new MonitoringStore(wrapped), checks);
+    const unavailable = await monitor.get(actor(), window);
+    assert.equal(unavailable.metrics.chatbot.value, null);
+    assert.equal(unavailable.health.readiness.status, "NOT_READY");
+    missing = false;
+    assert.equal((await monitor.get(actor(), window)).metrics.chatbot.value.total, 3);
   });
   it("jobs include old versions and inactive POIs, audio counts stored state rather than playable files", async () => {
     const [insert] = await db.query("INSERT INTO POIS(name,latitude,longitude,content_version) VALUES('TEST ONLY',0,0,9)");

@@ -6,7 +6,7 @@ const actor = { userId: 1, role: "ADMIN", status: "ACTIVE" };
 const health = { ping: async () => {}, pingRedis: async () => {} };
 function reader(overrides = {}) {
   return { now: new Date("2026-10-21T12:00:00Z"), activePaidVisits: async () => [{ total: 0 }], paidPayments: async () => [],
-    bundleTotals: async () => [{ total: 0, uniqueSessions: 0 }], bundleLanguages: async () => [], jobs: async () => [], audios: async () => [], ...overrides };
+    bundleTotals: async () => [{ total: 0, uniqueSessions: 0 }], bundleLanguages: async () => [], jobs: async () => [], audios: async () => [], chatbot: async () => [], ...overrides };
 }
 const service = (overrides, checks = health) => new MonitoringService({ snapshot: work => work(reader(overrides)) }, checks);
 it("monitoring default is exactly 24 hours using database UTC clock; explicit window is preserved", () => {
@@ -31,21 +31,22 @@ it("monitoring rejects unauthorized actors and invalid filters before accessing 
   }
   await assert.rejects(api.get(actor, { to: "bad" }), e => e.status === 400); assert.equal(calls, 0);
 });
-it("empty sources are available zeros, chatbot is explicitly not implemented", async () => {
+it("empty sources including logged chatbot questions are available zeros", async () => {
   const data = await service().get(actor);
   assert.equal(data.health.readiness.status, "READY"); assert.equal(data.window.interval, "[from,to)");
   assert.equal(data.metrics.activePaidVisits.value, 0);
   assert.deepEqual(data.metrics.paidPayments.value, { count: 0, totals: [] });
   assert.deepEqual(data.metrics.bundleAccess.value, { total: 0, uniqueSessions: 0, byLanguage: [] });
   assert.equal(data.metrics.contentJobs.value.total, 0); assert.equal(data.metrics.audioRecords.value.total, 0);
-  assert.equal(data.metrics.chatbot.status, "NOT_IMPLEMENTED"); assert.equal(data.metrics.chatbot.value, null);
+  assert.equal(data.metrics.chatbot.status, "AVAILABLE");
+  assert.deepEqual(data.metrics.chatbot.value, { total: 0, byStatus: { SUCCESS: 0, NO_CONTEXT: 0, FAILED: 0 } });
 });
 it("revenue retains exact decimal strings by currency and does not add different currencies", async () => {
   const data = await service({ paidPayments: async () => [{ currency: "USD", total: 2, amount: "12345678901234567890.12" }, { currency: "VND", total: "3", amount: "150000.00" }] }).get(actor);
   assert.deepEqual(data.metrics.paidPayments.value, { count: 5, totals: [{ currency: "USD", amount: "12345678901234567890.12" }, { currency: "VND", amount: "150000.00" }] });
 });
 it("an unavailable source remains null, never zero; other current metrics stay available", async () => {
-  for (const missing of ["activePaidVisits", "paidPayments", "bundleTotals", "bundleLanguages", "jobs", "audios"]) {
+  for (const missing of ["activePaidVisits", "paidPayments", "bundleTotals", "bundleLanguages", "jobs", "audios", "chatbot"]) {
     const data = await service({ [missing]: async () => null }).get(actor);
     const key = ({ bundleTotals: "bundleAccess", bundleLanguages: "bundleAccess", jobs: "contentJobs", audios: "audioRecords" })[missing] || missing;
     assert.equal(data.metrics[key].status, "UNAVAILABLE"); assert.equal(data.metrics[key].value, null); assert.equal(data.metrics[key].updatedAt, null);
@@ -65,7 +66,7 @@ it("dependency failure and recovery are checked anew without hiding available st
 it("bad counts, unknown states, money and clocks produce safe 503 instead of misleading data", async () => {
   for (const overrides of [
     ...[null, true, "", -1, 1.5, "9007199254740992"].map(total => ({ activePaidVisits: async () => [{ total }] })),
-    { jobs: async () => [{ status: "UNKNOWN", total: 1 }] }, { paidPayments: async () => [{ currency: "VND", amount: 1.5, total: 1 }] },
+    { jobs: async () => [{ status: "UNKNOWN", total: 1 }] }, { chatbot: async () => [{ status: "UNKNOWN", total: 1 }] }, { paidPayments: async () => [{ currency: "VND", amount: 1.5, total: 1 }] },
     { now: new Date("bad") }, { audios: async () => { throw Error("SQL private detail"); } },
   ]) await assert.rejects(service(overrides).get(actor), e => e.status === 503 && e.code === "MONITORING_UNAVAILABLE" && !e.message.includes("private"));
 });

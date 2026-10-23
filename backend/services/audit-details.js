@@ -8,6 +8,11 @@ const hash = text(/^[a-f0-9]{64}$/);
 const enumOf = values => value => values.includes(value);
 const job = { poiId: integer, languageCode: text(/^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})?$/), sourceVersion: integer, currentVersion: integer };
 const schemas = {
+  CREATE_KNOWLEDGE_DOCUMENT: { contentVersion: integer },
+  UPDATE_KNOWLEDGE_DOCUMENT: { previousVersion: integer, contentVersion: integer },
+  DEACTIVATE_KNOWLEDGE_DOCUMENT: { previousVersion: integer, contentVersion: integer },
+  PUBLISH_KNOWLEDGE_DOCUMENT: { contentVersion: integer, chunkCount: integer, embeddingModel: text(/^[A-Za-z0-9._:/@-]{1,100}$/) },
+  FAIL_KNOWLEDGE_PROCESSING: { contentVersion: integer, code: text(/^[A-Z][A-Z0-9_]{0,99}$/) },
   CREATE_STAFF: { email: text(/^[^\s@<>]{1,200}@[^\s@<>]{1,200}\.[^\s@<>]{1,63}$/) },
   CREATE_POI: { sourceChanged: boolean, contentVersion: integer },
   UPDATE_POI: { sourceChanged: boolean, contentVersion: integer },

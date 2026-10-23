@@ -1,3 +1,4 @@
+import { INTERNAL_SESSION_CHANGED, notifySessionChanged } from './sessionEvents.ts';
 export interface InternalUser {
   id: number;
   email: string;
@@ -89,6 +90,7 @@ export function saveInternalSession(session: StoredInternalSession): { success: 
       return { success: false, error: 'sessionStorage không khả dụng' };
     }
     window.sessionStorage.setItem(INTERNAL_STORAGE_KEY, JSON.stringify(session));
+    notifySessionChanged(INTERNAL_SESSION_CHANGED);
     return { success: true, error: null };
   } catch (err: unknown) {
     return {
@@ -102,6 +104,7 @@ export function clearInternalSession(): void {
   try {
     if (typeof window !== 'undefined' && window.sessionStorage) {
       window.sessionStorage.removeItem(INTERNAL_STORAGE_KEY);
+      notifySessionChanged(INTERNAL_SESSION_CHANGED);
     }
   } catch {
     // Bo qua loi xoa
