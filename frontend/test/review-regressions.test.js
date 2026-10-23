@@ -348,6 +348,8 @@ test('cash desk clears the previous code on session switch and cannot issue befo
 });
 
 test('tour list uses only supported pagination and shared refresh when its access token expires', async t => {
+  const { createRequire } = await import('node:module');
+  const { TourService } = createRequire(import.meta.url)('../../backend/services/tour.service.js');
   browser(t);
   let refreshes = 0, receivedQuery;
   t.mock.method(globalThis, 'fetch', async (url, options) => {
@@ -356,8 +358,6 @@ test('tour list uses only supported pagination and shared refresh when its acces
     if (options.headers.Authorization !== 'Bearer rotated') return jsonResponse({ code: 'INVALID_ACCESS_TOKEN', error: 'expired' }, 401);
     if (path.pathname.endsWith('/tours')) {
       receivedQuery = Object.fromEntries(path.searchParams);
-      const { createRequire } = await import('node:module');
-      const { TourService } = createRequire(import.meta.url)('../../../backend/services/tour.service.js');
       const service = new TourService({ list: async query => ({ items: [], total: 0, ...query }) });
       return serviceResponse(() => service.list(actor, receivedQuery));
     }
