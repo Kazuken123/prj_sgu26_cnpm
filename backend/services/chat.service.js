@@ -1,8 +1,7 @@
 const { createHash } = require("node:crypto");
 const ChatStore = require("../stores/chat.store");
 const RedisStore = require("../stores/redis.store");
-const MockEmbeddingAdapter = require("../adapters/mock-embedding");
-const MockChatModelAdapter = require("../adapters/mock-llm");
+const { createEmbeddingAdapter, createChatAdapter } = require("./rag-adapters");
 const AppError = require("../utils/app-error");
 const validation = require("./chat.validation");
 const { buildPrompt } = require("./chat-prompt");
@@ -30,12 +29,16 @@ class ChatService {
   constructor({ store = new ChatStore(), redis = new RedisStore(), embedding, llm, config } = {}) {
     this.store = store; this.redis = redis; this.embeddingAdapter = embedding; this.llmAdapter = llm; this.ragConfig = config;
   }
-  config() { return this.ragConfig ??= getRagConfig(); }
-  embedding() {
-    const config = this.config();
-    return this.embeddingAdapter ??= new MockEmbeddingAdapter({ model: config.embeddingModel, dimensions: config.embeddingDimensions });
+  // Lazy, so an invalid RAG setup disables only this feature, never the whole app.
+  config() {
+    try { return this.ragConfig ??= getRagConfig(); }
+    catch (error) {
+      console.error("RAG configuration invalid:", error.message); // variable name only, never its value
+      throw new AppError(503, "RAG_NOT_CONFIGURED", "Trợ lý AI chưa được cấu hình hợp lệ.");
+    }
   }
-  llm() { return this.llmAdapter ??= new MockChatModelAdapter(); }
+  embedding() { return this.embeddingAdapter ??= createEmbeddingAdapter(this.config()); }
+  llm() { return this.llmAdapter ??= createChatAdapter(this.config()); }
   async ask(visit, input, ipAddress) {
     if (!visit || typeof visit.sessionId !== "string") throw new AppError(401, "MISSING_VISITOR_TOKEN", "Thiếu phiên tham quan hợp lệ.");
     const question = validation.question(input), config = this.config();

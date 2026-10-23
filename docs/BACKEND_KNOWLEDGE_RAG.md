@@ -1,77 +1,179 @@
 # Backend kho kiến thức và chatbot RAG — UC-15 / UC-08
 
-Phạm vi: phần bổ sung của người nhận việc theo `GIAO_VIEC_KHO_TRI_THUC_RAG.md`. Toàn bộ backend có sẵn trước đó là đóng góp của người giao việc. Trạng thái: **chưa tích hợp** (router chưa gắn vào `server.js`), **chỉ kiểm bằng adapter MOCK**, chưa kiểm chứng chất lượng RAG với embedding/LLM thật. Code gốc: `76f1603` (cần người giao việc xác nhận là commit gốc; mốc tham chiếu trong tài liệu giao việc là `b6120c8`).
+Phạm vi: phần bổ sung của Lê Đức Anh theo `GIAO_VIEC_KHO_TRI_THUC_RAG.md`. Backend có sẵn trước đó là đóng góp của người giao việc.
 
-## 1. File bổ sung (không sửa file có sẵn, không migration, không dependency)
+Trạng thái ngày 23/10/2026:
+- Đã gắn vào `server.js` và chạy qua `docker compose` chính thức.
+- Kiểm thử bằng adapter MOCK và provider giả lập trên máy.
+- **Chưa kiểm chứng chất lượng RAG với embedding/LLM thật**, vì chưa có provider được duyệt.
+- Nhánh `codex/knowledge-rag`, gốc từ `main` `76f1603`. Nhánh chưa được merge vào `main`.
+
+## 1. Thay đổi
+
+**File mới**
 
 | File | Vai trò |
 | --- | --- |
-| `backend/routers/knowledge.router.js` | API quản trị kho kiến thức, `createAuthMiddleware` + `requireRole("STAFF","ADMIN")` |
-| `backend/routers/chat.router.js` | API hỏi đáp, `createVisitorMiddleware(paymentService)`; `Cache-Control: no-store` |
-| `backend/services/knowledge.service.js`, `knowledge.validation.js` | UC-15: Pha 1, chia đoạn, embedding ngoài transaction, Pha 2, xử lý lại, trạng thái dẫn xuất |
-| `backend/services/chat.service.js`, `chat.validation.js`, `chat-prompt.js` | UC-08: kiểm tra, rate limit, truy hồi, gọi LLM, nguồn, NO_CONTEXT/FAILED, CHAT_LOGS |
-| `backend/services/rag-support.js` | Timeout hữu hạn, kiểm vector, cosine, chia đoạn, che token/khóa |
-| `backend/services/rag.config.js` | Cấu hình RAG/rate limit từ env, có mặc định (đặt tạm trong `services/` vì `config/` là phần dùng chung) |
-| `backend/stores/knowledge.store.js`, `chat.store.js` | SQL tham số hóa, transaction qua `AuthStore.transaction`, audit qua `AuditLogStore.create(entry, connection)` |
-| `backend/adapters/mock-embedding.js`, `mock-llm.js` | Adapter MOCK (chỉ kiểm luồng) |
-| `backend/tests/knowledge.test.js`, `chat.test.js` | Unit/HTTP (Store giả lập, auth thật của fixture, `PaymentService.authenticateVisitor` thật) |
-| `backend/tests/knowledge-rag.integration.test.js` | MySQL 8 + Redis thật, JWT nội bộ thật, token khách qua luồng tiền mặt thật |
-| `backend/tests/knowledge-rag-eval.test.js`, `tests/fixtures/knowledge-rag-eval.json` | Bộ đánh giá NFR-17 (18 câu, 4 nhóm, tiêu chí cố định trước) |
+| `backend/routers/knowledge.router.js` | `/api/admin/knowledge-documents`, `createAuthMiddleware` + `requireRole("STAFF","ADMIN")` |
+| `backend/routers/chat.router.js` | `/api/chat`, `createVisitorMiddleware(paymentService)`, `Cache-Control: no-store` |
+| `backend/services/knowledge.service.js`, `knowledge.validation.js` | UC-15: Pha 1 → chia đoạn và embedding ngoài transaction → Pha 2; xử lý lại; trạng thái dẫn xuất |
+| `backend/services/chat.service.js`, `chat.validation.js`, `chat-prompt.js` | UC-08: kiểm tra, rate limit, truy hồi, LLM, nguồn, NO_CONTEXT/FAILED, CHAT_LOGS |
+| `backend/services/rag.config.js`, `rag-adapters.js`, `rag-support.js` | Cấu hình/kiểm tra env, chọn adapter, timeout, kiểm vector, cosine, chia đoạn, che bí mật |
+| `backend/stores/knowledge.store.js`, `chat.store.js` | SQL tham số hóa; transaction `AuthStore.transaction`; audit qua `AuditLogStore.create(entry, connection)` |
+| `backend/adapters/mock-embedding.js`, `mock-llm.js` | Adapter MOCK (mặc định; không gửi dữ liệu ra ngoài) |
+| `backend/adapters/openai-compatible.js` | Adapter HTTP `/embeddings` + `/chat/completions` cho provider thật (tắt mặc định) |
+| `backend/tests/knowledge.test.js`, `chat.test.js`, `rag-provider.test.js`, `knowledge-rag.server.test.js` | Unit/HTTP; provider giả lập trên 127.0.0.1; route qua `createApp()` |
+| `backend/tests/knowledge-rag.integration.test.js` | MySQL 8 + Redis thật, JWT thật, token khách qua luồng tiền mặt thật |
+| `backend/tests/knowledge-rag-eval.test.js`, `tests/fixtures/knowledge-rag-eval.json` | Bộ đánh giá NFR-17: 18 câu, 4 nhóm, tiêu chí cố định trước |
 
-## 2. Contract đề xuất (chưa phải contract đã chốt)
+**File dùng chung được sửa (thay đổi tối thiểu, chỉ thêm, không đổi hành vi cũ)**
+
+| File | Thay đổi |
+| --- | --- |
+| `backend/server.js` | Thêm 4 import, 2 tham số inject `knowledgeService`/`chatService`, 2 dòng `app.use(...)` đặt sau `/api/admin/payments`, trước frontend router và `errorHandler` |
+| `docker-compose.yml` | Chuyển các biến `RAG_*`/`CHAT_RATE_*` vào backend; mặc định `MOCK` |
+| `.env.example`, `backend/.env.example` | Biến RAG với giá trị mặc định hoặc để trống, không có secret |
+
+Không có migration, không thêm dependency, không sửa schema/frontend/Word/worker. `compose.demo.yml` giữ nguyên: stack demo vẫn chạy được với mặc định MOCK.
+
+## 2. API
 
 Lỗi theo quy ước có sẵn: `{ "code": "...", "error": "..." }`.
 
-**Kho kiến thức** — `/api/admin/knowledge-documents`, Bearer JWT nội bộ, STAFF/ADMIN.
+### Kho kiến thức
 
-| Method | Path | Body | Kết quả |
+`/api/admin/knowledge-documents`, Bearer JWT nội bộ, chỉ STAFF/ADMIN.
+
+| Method | Path | Body / query | Kết quả |
 | --- | --- | --- | --- |
-| GET | `/` | query `status?=ACTIVE\|INACTIVE`, `page?`, `limit?≤100` | `{data:{items,total,page,limit}}` |
+| GET | `/` | `status?=ACTIVE\|INACTIVE`, `page?`, `limit?≤100` | `{data:{items,total,page,limit}}` |
 | GET | `/:id` | — | `{data: document}` (kèm `content`) |
 | POST | `/` | `{title, content, source?}` | 201 `{data:{document, processing}}` |
 | PUT | `/:id` | `{title, content, source?, expectedVersion}` | `{data:{document, processing}}`; 409 `KNOWLEDGE_VERSION_CONFLICT` |
 | POST | `/:id/deactivate` | — | `{data: document}` (lặp lại là no-op) |
 | POST | `/:id/reprocess` | — | `{data:{document, processing}}`; 409 `KNOWLEDGE_DOCUMENT_DEACTIVATED` |
 
-`document`: `documentId, title, source, status (ACTIVE|INACTIVE), contentVersion, processingStatus (READY|PENDING|FAILED|DEACTIVATED), lastError, chunkCount, embeddingModel, createdAt, updatedAt`.
-`processing`: `{result: PUBLISHED|FAILED|SUPERSEDED, code?, chunkCount?}`. Tài liệu đã lưu ở Pha 1 vẫn trả 201/200 khi embedding lỗi (UC-15 E4), để nhân viên bấm "Xử lý lại".
-Giới hạn: tiêu đề ≤ 255, nội dung ≤ 20 000 ký tự, nguồn ≤ 1 000 (không bắt buộc), không nhận trường lạ. Body JSON còn bị giới hạn 32 KB bởi `server.js`.
+- **`document`:** `documentId, title, source, status (ACTIVE|INACTIVE), contentVersion, processingStatus (READY|PENDING|FAILED|DEACTIVATED), lastError, chunkCount, embeddingModel, createdAt, updatedAt`.
+- **`processing`:** `{result: PUBLISHED|FAILED|SUPERSEDED, code?, chunkCount?}`. Khi embedding lỗi, tài liệu đã lưu ở Pha 1 vẫn trả 201/200, theo UC-15 E4.
+- **Giới hạn đầu vào:** tiêu đề ≤ 255, nội dung ≤ 20 000 ký tự, nguồn ≤ 1 000 (không bắt buộc). Không nhận trường lạ. Body JSON tối đa 32 KB (giới hạn chung của `server.js`, quá thì trả 413).
+- **Lỗi khác:** 400 `VALIDATION_ERROR`, 401/403 từ middleware có sẵn, 404 `KNOWLEDGE_DOCUMENT_NOT_FOUND`, 503 `RAG_NOT_CONFIGURED` (kiểm tra trước Pha 1, nên không có dữ liệu nào bị ghi).
 
-**Chat** — `POST /api/chat/questions`, Bearer token khách `tcv_visit_…`, body đúng một trường `{ "question": "..." }` (≤ 1 000 ký tự). Phiên lấy từ `req.visit`, không nhận `sessionId/role` từ body.
+### Chat
+
+`POST /api/chat/questions`, Bearer token khách `tcv_visit_…`. Body đúng một trường `{"question": "..."}`, tối đa 1 000 ký tự. Phiên lấy từ `req.visit`; body có `sessionId` hay `role` thì trả 400.
 
 ```json
 { "data": { "status": "SUCCESS", "answer": "…",
-  "sources": [{ "documentId": 12, "chunkId": "345", "sourceVersion": 3, "title": "Voi châu Á", "source": "…" }] } }
+  "sources": [{ "documentId": 1, "chunkId": "3", "sourceVersion": 2, "title": "…", "source": "…" }] } }
 ```
 
-| HTTP | code | Khi nào | Ghi CHAT_LOGS |
+| HTTP | code | Khi nào | CHAT_LOGS |
 | --- | --- | --- | --- |
-| 200 | — | `status` SUCCESS hoặc NO_CONTEXT (`sources: []`) | Có |
+| 200 | — | `SUCCESS`, hoặc `NO_CONTEXT` với `sources: []` (ngoài kho hoặc bị từ chối theo phạm vi) | Có |
 | 400 | `INVALID_QUESTION` | Rỗng, quá dài, ký tự điều khiển, trường lạ | Không |
-| 401 | `MISSING_VISITOR_TOKEN`, `INVALID_VISITOR_TOKEN`, `INVALID_VISITOR_SESSION`, `VISIT_SESSION_EXPIRED` | Từ middleware khách có sẵn | Không |
+| 401 | `MISSING_VISITOR_TOKEN`, `INVALID_VISITOR_TOKEN`, `INVALID_VISITOR_SESSION`, `VISIT_SESSION_EXPIRED` | Middleware khách có sẵn: sai, hết hạn, chưa trả tiền, JWT nội bộ | Không |
 | 429 | `CHAT_RATE_LIMITED` | Vượt giới hạn theo phiên hoặc IP | Không |
-| 503 | `CHAT_PROTECTION_UNAVAILABLE` | Redis lỗi: không bỏ giới hạn | Không |
-| 503 | `CHAT_PROVIDER_UNAVAILABLE` | Embedding/LLM lỗi, timeout, trả sai định dạng; đọc truy hồi lỗi | Có, `FAILED`, `answer` NULL |
-| 503 | `CHAT_LOG_UNAVAILABLE` | Không ghi được CHAT_LOGS | — |
+| 503 | `CHAT_PROTECTION_UNAVAILABLE` | Redis lỗi (fail-closed) | Không |
+| 503 | `CHAT_PROVIDER_UNAVAILABLE` | Embedding/LLM lỗi, timeout, sai định dạng; lỗi đọc truy hồi | Có, `FAILED`, `answer` NULL |
+| 503 | `CHAT_LOG_UNAVAILABLE` / `RAG_NOT_CONFIGURED` | Không ghi được log / cấu hình RAG sai | — |
 
-`sources` luôn dựng từ các đoạn đã truy hồi mà mô hình trích dẫn; chunk id lạ bị loại, và câu trả lời không còn trích dẫn hợp lệ trở thành NO_CONTEXT. Liên kết trong câu trả lời không xuất hiện trong nguồn sẽ bị loại. Frontend phải hiển thị `answer` dạng text, không phải HTML.
+Về nguồn và nội dung trả lời:
+- `sources` chỉ gồm các đoạn đã truy hồi mà mô hình trích dẫn. Chunk id lạ bị loại.
+- Câu trả lời không còn trích dẫn hợp lệ được chuyển thành NO_CONTEXT.
+- Liên kết không có trong nguồn bị xóa khỏi câu trả lời.
+- Frontend phải hiển thị `answer` dạng text, không render thành HTML.
 
-## 3. Cách xử lý chính
+## 3. Cơ chế chính
 
-- **UC-15 Pha 1:** khóa tài liệu, kiểm tra lại tài khoản trong transaction, lưu `INACTIVE` (tạo mới: version 1; sửa: version + 1), ghi `CREATE_/UPDATE_KNOWLEDGE_DOCUMENT` trong cùng transaction.
-- **Ngoài transaction:** chia đoạn cố định có chồng lặp (800/120 ký tự, ngắt theo đoạn, câu, từ), embedding có timeout.
-- **Pha 2:** kiểm tra lại version và tài liệu chưa bị ngừng; xóa toàn bộ đoạn cũ của tài liệu, chèn bộ đoạn mới, chuyển `ACTIVE`, ghi `PUBLISH_KNOWLEDGE_DOCUMENT`, tất cả trong một transaction. Lệch version → `SUPERSEDED`, không ghi gì.
-- **Ngừng sử dụng (A1):** `INACTIVE` + tăng version + `DEACTIVATE_KNOWLEDGE_DOCUMENT` cùng transaction, nên tác vụ đang chạy không kích hoạt lại được.
-- **Xử lý đồng bộ trong request:** không thêm cơ chế nền, không dùng `CONTENT_JOBS`. Tiến trình dừng giữa chừng thì tài liệu ở `PENDING` và nhân viên chạy lại (NFR-09).
-- **Truy hồi:** chỉ `status='ACTIVE'`, `source_version = content_version`, `embedding_model` = mô hình cấu hình. Từng vector được kiểm là mảng số hữu hạn, đúng số chiều, khác vector 0. Lấy top-k theo cosine với ngưỡng tối thiểu. Mô hình phải khớp cả khi tạo embedding và khi hỏi.
-- **Rate limit:** dùng `RedisStore.consumeLookup` có sẵn với key riêng `chat:ip:<sha256>`, `chat:session:<sha256>`; không đụng key hay TTL của phân hệ khác.
-- **An toàn:** prompt đặt tài liệu/câu hỏi trong khối dữ liệu đã escape; chatbot không có công cụ. Token khách, JWT, `Bearer …`, `sk-…`, chuỗi hex 64 ký tự, `api_key=` bị che trước khi ghi log và trước khi gửi cho provider.
+- **Pha 1:** khóa dòng tài liệu, kiểm tra lại tài khoản trong transaction, lưu `INACTIVE` (tạo mới: version 1; sửa: version + 1), ghi audit trong cùng transaction.
+- **Ngoài transaction:** chia đoạn 800 ký tự, chồng lặp 120; ưu tiên ngắt theo đoạn, rồi câu, rồi từ. Tạo embedding có timeout.
+- **Pha 2:** kiểm tra lại version và tài liệu chưa bị ngừng. Thay toàn bộ đoạn, chuyển `ACTIVE`, ghi `PUBLISH_KNOWLEDGE_DOCUMENT` trong một transaction. Lệch version thì trả `SUPERSEDED` và không ghi gì.
+- **Ngừng sử dụng:** chuyển `INACTIVE`, tăng version, ghi audit trong cùng transaction. Vì vậy tác vụ đang chạy dở không kích hoạt lại được tài liệu, và lệnh xử lý lại bị từ chối.
+- **Xử lý đồng bộ trong request:** không thêm cơ chế nền, không dùng `CONTENT_JOBS`. Tiến trình dừng giữa chừng thì tài liệu nằm ở `PENDING`, nhân viên bấm xử lý lại.
+- **Truy hồi:** chỉ lấy đoạn có `status='ACTIVE'`, `source_version = content_version` và đúng `embedding_model` đang cấu hình. Vector phải là mảng số hữu hạn, đúng số chiều, khác 0. Chọn top-k theo cosine có ngưỡng tối thiểu.
+- **Rate limit:** dùng `RedisStore.consumeLookup` có sẵn với key `chat:ip:<sha256>` và `chat:session:<sha256>`.
+- **Bảo mật:**
+  - Prompt đặt tài liệu và câu hỏi trong khối dữ liệu đã escape; chatbot không có công cụ nào.
+  - Token khách, JWT, `Bearer`, `sk-…`, chuỗi hex 64 ký tự, `api_key=` bị che trước khi ghi log và trước khi gửi provider.
+  - Khóa API không serialize ra ngoài, lỗi provider không chứa body hoặc khóa.
 
-## 4. Biến cấu hình (mặc định dùng được, chưa đưa vào `.env.example`)
+**Mâu thuẫn đặc tả và cách đã chọn:**
+- US-D01 AC1 ghi tài liệu "có nguồn", trong khi UC-15 bước 5 ghi "khuyến nghị", E2 và schema chỉ bắt buộc tiêu đề và nội dung. Đang chọn: **nguồn không bắt buộc** (theo UC chi tiết và schema). Đổi được bằng 1 dòng trong `knowledge.validation.js`.
+- Schema chỉ có `ACTIVE/INACTIVE`. `PENDING/FAILED/DEACTIVATED` được dẫn xuất từ AUDIT_LOGS của tài liệu (ghi nguyên tử cùng thay đổi), nên không cần migration. Nếu muốn tách hẳn, phương án là migration thêm `processing_status` và `last_error_code`; việc này cần duyệt.
 
-`RAG_PROVIDER=MOCK` (chỉ chấp nhận MOCK), `RAG_EMBEDDING_MODEL=mock-hash-v1`, `RAG_EMBEDDING_DIMENSIONS=256`, `RAG_EMBEDDING_TIMEOUT_MS=10000`, `RAG_LLM_TIMEOUT_MS=20000`, `RAG_CHUNK_SIZE=800`, `RAG_CHUNK_OVERLAP=120`, `RAG_MAX_CHUNKS=64`, `RAG_TOP_K=4`, `RAG_MIN_SCORE=0.2`, `CHAT_RATE_WINDOW_SECONDS=60`, `CHAT_RATE_SESSION_LIMIT=10`, `CHAT_RATE_IP_LIMIT=30`. Các ngưỡng là đề xuất, chưa được chốt; `RAG_MIN_SCORE` chỉ hiệu chỉnh cho mock.
+## 4. Chạy cho nhóm trưởng (đã kiểm chứng ngày 23/10/2026 bằng compose project riêng)
 
-## 5. Chạy kiểm thử (ngoài OneDrive, bản sao không có `.git`, `node_modules`, `.env`)
+Yêu cầu: Docker có Compose v2, hoặc Node 20 + MySQL 8 + Redis 7.
+
+```sh
+cp .env.example .env       # điền MYSQL_ROOT_PASSWORD, DB_PASSWORD, JWT_SECRET (≥32 byte), VISIT_PRICE_VND
+docker compose up -d --build
+docker compose exec backend npm run db:migrate
+docker compose exec -e BOOTSTRAP_ADMIN_EMAIL=admin@example.com -e BOOTSTRAP_ADMIN_PASSWORD='<mật khẩu mạnh>' backend npm run bootstrap:admin
+```
+
+Không cần biến RAG nào: mặc định là `RAG_PROVIDER=MOCK`, không gọi dịch vụ ngoài.
+
+**Kiểm tra UC-15/UC-08 sau khi khởi động** (thay `<...>`):
+
+```sh
+B=http://127.0.0.1:3000
+T=$(curl -s -X POST $B/api/auth/login -H 'Content-Type: application/json' -d '{"email":"admin@example.com","password":"<...>"}' | jq -r .data.accessToken)
+curl -s -X POST $B/api/admin/knowledge-documents -H "Authorization: Bearer $T" -H 'Content-Type: application/json' \
+  -d '{"title":"Voi châu Á","content":"Voi châu Á ăn cỏ, lá cây và trái cây.","source":"Dữ liệu minh họa"}'   # processing.result = PUBLISHED
+# Token khách theo luồng tiền mặt có sẵn:
+SID=$(curl -s -X POST $B/api/payments -H 'Content-Type: application/json' -H "Idempotency-Key: $(uuidgen)" -d '{"paymentMethod":"CASH"}' | jq -r .data.sessionId)
+curl -s -X POST $B/api/admin/payments/sessions/$SID/confirm-cash -H "Authorization: Bearer $T" -H 'Content-Type: application/json' -d '{}'
+CODE=$(curl -s -X POST $B/api/admin/payments/sessions/$SID/cash-code -H "Authorization: Bearer $T" -H 'Content-Type: application/json' -d '{}' | jq -r .data.shortedCode)
+V=$(curl -s -X POST $B/api/payments/sessions/$SID/exchange-cash-code -H 'Content-Type: application/json' -d "{\"shortedCode\":\"$CODE\"}" | jq -r .data.token)
+curl -s -X POST $B/api/chat/questions -H "Authorization: Bearer $V" -H 'Content-Type: application/json' -d '{"question":"Voi châu Á ăn gì?"}'   # status SUCCESS + sources
+```
+
+**Kết quả thực tế trên stack `docker compose` chính thức** (project `kbragcheck`, cổng riêng, đã gỡ sau khi thử):
+
+| Bước | Kết quả |
+| --- | --- |
+| `/health/ready` | 200 |
+| Đăng nhập | đạt |
+| Tạo tài liệu | `PUBLISHED`/`READY`, v1 |
+| Sửa với version cũ | `KNOWLEDGE_VERSION_CONFLICT` |
+| Sửa với version đúng | `PUBLISHED`, v2 |
+| Danh sách | `total = 1` |
+| Không có token | 401 |
+| id `1 OR 1=1` | `VALIDATION_ERROR` |
+| Khách hỏi câu trong kho | `SUCCESS`, nguồn `(document 1, version 2)` |
+| Khách hỏi câu ngoài kho | `NO_CONTEXT`, `[]` |
+| JWT nội bộ gọi chat | `INVALID_VISITOR_TOKEN` |
+| Không có token gọi chat | `MISSING_VISITOR_TOKEN` |
+| Body có `sessionId`/`role` | `INVALID_QUESTION` |
+| Ngừng sử dụng | `DEACTIVATED`, v3 |
+| Xử lý lại tài liệu đã ngừng | `KNOWLEDGE_DOCUMENT_DEACTIVATED` |
+| Hỏi lại sau khi ngừng | `NO_CONTEXT` |
+| Gửi liên tục | câu thứ 11 trong 60 giây bị 429 |
+| CHAT_LOGS | có `SUCCESS`/`NO_CONTEXT`; câu hỏi chứa token khách không lưu token |
+| AUDIT_LOGS | CREATE/UPDATE/PUBLISH×2/DEACTIVATE |
+| Route cũ `/api/visits/me`, `/api/admin/pois` | 200 |
+
+## 5. Cấu hình AI
+
+| Biến | Mặc định | Ghi chú |
+| --- | --- | --- |
+| `RAG_PROVIDER` | `MOCK` | `MOCK` hoặc `OPENAI_COMPATIBLE` |
+| `RAG_ALLOW_EXTERNAL_PROVIDER` | `false` | Bắt buộc là `true` mới được gửi tài liệu/câu hỏi ra provider |
+| `RAG_API_BASE_URL` | — | Ví dụ `https://<provider>/v1`; chỉ HTTPS (HTTP chỉ cho localhost); không chứa user/pass |
+| `RAG_API_KEY` | — | Chỉ đặt trong `.env`/secret của môi trường; không ghi vào Git |
+| `RAG_EMBEDDING_MODEL`, `RAG_EMBEDDING_DIMENSIONS`, `RAG_LLM_MODEL` | MOCK: `mock-hash-v1`, 256 | Bắt buộc với provider thật; nên dùng embedding **đa ngôn ngữ** |
+| `RAG_EMBEDDING_TIMEOUT_MS`, `RAG_LLM_TIMEOUT_MS` | 10000, 20000 | Timeout hữu hạn |
+| `RAG_CHUNK_SIZE`, `RAG_CHUNK_OVERLAP`, `RAG_MAX_CHUNKS`, `RAG_TOP_K`, `RAG_MIN_SCORE` | 800, 120, 64, 4, 0.2 | `RAG_MIN_SCORE` mới chỉ hiệu chỉnh cho MOCK; phải hiệu chỉnh lại với mô hình thật |
+| `CHAT_RATE_WINDOW_SECONDS`, `CHAT_RATE_SESSION_LIMIT`, `CHAT_RATE_IP_LIMIT` | 60, 10, 30 | Ngưỡng đề xuất, chưa phải ngưỡng nghiệm thu |
+
+Lưu ý khi bật provider thật:
+- Adapter gọi `POST {base}/embeddings` (`model`, `input`, `encoding_format: "float"`) và `POST {base}/chat/completions` (`temperature: 0`, `response_format: json_object`). Mô hình phải trả về JSON `{decision, answer, citations}`.
+- Đổi mô hình embedding thì các đoạn cũ không còn được truy hồi. Khi đó cần bấm "Xử lý lại" từng tài liệu.
+
+## 6. Kiểm thử
+
+Chạy trong bản sao ngoài OneDrive (không có `.git`, `node_modules`, `.env`), MySQL/Redis riêng:
 
 ```sh
 docker network create kb-rag-test-net
@@ -83,89 +185,65 @@ docker run --rm --network kb-rag-test-net -v "$COPY":/app -w /app/backend \
   -e JWT_SECRET=ci-test-only-secret-at-least-32-bytes node:20 sh -c "npm ci && npm run lint && npm run test:coverage"
 ```
 
-Mật khẩu và secret trên chỉ dùng cho container thử, không phải bí mật thật. Integration test tự tạo rồi xóa database `tcv_knowledge_test_<uuid>`, Redis dùng prefix riêng. Đặt `RAG_EVAL_REPORT=<file>` để xuất báo cáo bộ đánh giá ra JSON.
+Các mật khẩu ở trên chỉ dùng cho container thử. Phải có `NODE_ENV=test`, vì test cũ `data/demo/eight-pois` yêu cầu biến này.
 
-**Kết quả ngày 23/10/2026 (Node 20.20.2, MySQL 8.0, Redis 7, local):** `npm run lint` đạt; `npm run test:coverage` **661/661 đạt**, 0 lỗi, 0 bỏ qua. Trong đó 55 test mới: 44 unit/HTTP, 10 integration MySQL/Redis, 1 bộ đánh giá. Toàn bộ test cũ vẫn đạt. Chưa xác minh CI GitHub vì chưa commit/push. Lưu ý: nếu thiếu `NODE_ENV=test`, 11 test cũ `data/demo/eight-pois` thất bại do chính điều kiện của chúng, không liên quan đến code mới.
+**Kết quả (23/10/2026, Node 20.20.2, MySQL 8.0, Redis 7):**
+- `npm run lint` đạt.
+- `npm run test:coverage` **670/670 đạt**, 0 lỗi, 0 bỏ qua; toàn bộ test cũ vẫn đạt.
+- Test của phân hệ:
 
-**Smoke với server thật (23/10/2026, Node 20, MySQL 8 + Redis 7 trong container thử, DB `tcv_kb_smoke` riêng):**
-- Chuẩn bị: `init_db.sql` → `npm run db:migrate` → `npm run bootstrap:admin`.
-- Script tạm (không commit) dựng `express()` gồm `express.json` → 2 router mới (singleton mặc định, nối MySQL/Redis qua `DB_*`, `REDIS_URL`) → nguyên `createApp()` của `server.js` → `errorHandler`.
-- Kết quả:
-
-| Bước | Kết quả |
-| --- | --- |
-| `/health/ready` | 200 |
-| Đăng nhập ADMIN | 200 |
-| Tạo tài liệu | 201 `PUBLISHED`/`READY` |
-| Danh sách tài liệu | `total = 1` |
-| Không có token | 401 |
-| Khách (token từ luồng tiền mặt `VISIT_PRICE_VND=50000`) hỏi | 200 `SUCCESS`, có nguồn |
-| JWT nội bộ gọi chat | 401 |
-| Route cũ `/api/admin/pois` | 200 |
-| CHAT_LOGS | 1 dòng `SUCCESS` |
-
-`server.js` gốc chưa có 2 route này cho tới khi áp dụng mục 8.1.
-
-## 6. Bộ đánh giá NFR-17 — kết quả MOCK (không phải chất lượng RAG)
-
-| Nhóm | MOCK đạt | Ý nghĩa |
+| Nhóm test | File | Môi trường |
 | --- | --- | --- |
-| answerable (5) | 5/5 | Luồng truy hồi và nguồn đúng trên dữ liệu có kiểm soát |
-| out_of_kb (4) | 4/4 | Ngưỡng điểm loại câu ngoài kho trên dữ liệu này |
-| multilingual (4) | 0/4 | Mock bag-of-words không hiểu đa ngôn ngữ: cần embedding đa ngôn ngữ thật |
-| privilege (5) | 2/5 | Mock không biết từ chối. Invariant backend vẫn đạt cả 18 câu: không lộ nội dung injection, nguồn chỉ từ truy hồi, không có công cụ để gọi |
+| Unit/HTTP | `knowledge.test.js`, `chat.test.js` | Store giả lập |
+| Provider | `rag-provider.test.js` | Provider HTTP giả lập trên 127.0.0.1, khóa giả |
+| Route | `knowledge-rag.server.test.js` | `createApp()` chính thức |
+| Integration | `knowledge-rag.integration.test.js` | MySQL/Redis thật: rollback Pha 1/Pha 2 bằng trigger SQL, sửa/ngừng khi đang xử lý, đồng thời, truy hồi theo version/model, HTTP end-to-end, hết hạn vé, Redis không truy cập được |
+| Đánh giá | `knowledge-rag-eval.test.js` | MOCK |
 
-Ngôn ngữ câu trả lời, độ đúng sự kiện và khả năng từ chối **chưa kiểm chứng**. Dữ liệu trong bộ đánh giá là dữ liệu minh họa.
+- CI GitHub đã xanh ở commit `7f7c239`. Commit tích hợp cần xác minh lại CI trên đúng hash mới.
 
-## 7. Đối chiếu yêu cầu
+## 7. Bộ đánh giá NFR-17
+
+Mặc định chạy bằng MOCK cùng các test khác. Muốn chạy với provider thật (sẽ gửi 5 tài liệu minh họa và 18 câu hỏi ra provider, nên cần duyệt dữ liệu và ngân sách trước):
+
+```sh
+RAG_EVAL_REAL=1 RAG_PROVIDER=OPENAI_COMPATIBLE RAG_ALLOW_EXTERNAL_PROVIDER=true RAG_API_BASE_URL=... RAG_API_KEY=... \
+RAG_EMBEDDING_MODEL=... RAG_EMBEDDING_DIMENSIONS=... RAG_LLM_MODEL=... RAG_EVAL_REPORT=rag-eval.json \
+node --test tests/knowledge-rag-eval.test.js
+```
+
+Báo cáo JSON ghi provider, mô hình, thời điểm chạy, kết quả từng câu kèm câu trả lời. **Ngôn ngữ trả lời phải chấm thủ công.**
+
+| Nhóm | Kết quả MOCK (không phải chất lượng RAG) | Kết quả model thật |
+| --- | --- | --- |
+| answerable (5) | 2/5 (đúng tài liệu 5/5; câu trích chưa chứa đủ `expectedFacts`) | **Chưa chạy** |
+| out_of_kb (4) | 4/4 | **Chưa chạy** |
+| multilingual (4) | 0/4 (mock bag-of-words không hiểu đa ngôn ngữ) | **Chưa chạy** |
+| privilege (5) | 2/5 (mock không biết từ chối) | **Chưa chạy** |
+
+Với cả 18 câu, các ràng buộc phía backend vẫn đạt: nguồn chỉ lấy từ đoạn truy hồi, nội dung injection không bị lộ, lượt nào cũng được ghi log.
+
+## 8. Đối chiếu yêu cầu
 
 | Mã | Trạng thái | Bằng chứng / ghi chú |
 | --- | --- | --- |
-| US-D01 AC1 (STAFF/ADMIN tạo/sửa/ngừng; tiêu đề, nội dung, nguồn) | Đạt một phần (mock) | `knowledge.test.js` quyền/validation; nguồn **không bắt buộc**, xem mục 8.4 |
-| US-D01 AC2 (xử lý, trạng thái/lỗi, không dùng nội dung cũ) | Đạt (mock), trạng thái dẫn xuất từ audit | integration "edit during embedding", "deactivation during embedding", "retrieval excludes…" |
-| US-D01 AC3 (truy hồi được, bị loại sau khi ngừng) | Đạt với mock | integration HTTP + "retrieval excludes…"; chưa kiểm embedding thật |
-| US-D02 AC1 (chỉ phiên hợp lệ; dữ liệu, tần suất) | Đạt | `chat.test.js` HTTP 401; integration hết hạn, 429, Redis lỗi |
-| US-D02 AC2 (truy hồi, ngôn ngữ, nguồn, thiếu căn cứ) | Đạt một phần | Nguồn/NO_CONTEXT đạt với mock; **ngôn ngữ trả lời chưa kiểm chứng** |
-| US-D02 AC3 (không công cụ; log thời điểm/phiên/nguồn/trạng thái, không secret) | Đạt (mock) | Test che token, CHAT_LOGS không chứa token |
-| US-D02 AC4 (provider lỗi/timeout; bộ đánh giá; kiểm chứng thật) | Đạt một phần | Lỗi/timeout đạt; bộ đánh giá có; **chưa chạy provider thật** |
-| UC-15 luồng chính, A1, A2, E1–E4 | Đạt (mock) | `knowledge.test.js`, integration (trigger SQL gây lỗi chunks/audit) |
-| UC-08 luồng chính, A1, A2, E1–E3 | Đạt luồng với mock; A2 phụ thuộc LLM thật | `chat.test.js`, integration |
-| QT-01 | Đạt | Token khách → API quản trị 401; JWT → chat 401 |
-| QT-11 | Đạt về cơ chế | Chỉ dùng nguồn ACTIVE/version hiện hành; không có công cụ |
-| QT-12 | Đạt ghi audit | Hành động mới **chưa lọc/đọc được** qua API audit (mục 8.5) |
-| NFR-07 | Đạt | Tại ngưỡng/vượt ngưỡng, Redis lỗi → 503 |
-| NFR-08 | Đạt cho phần mới | SQL tham số hóa; che token; frontend cần hiển thị text |
-| NFR-09 | Đạt | Lưu lặp, tác vụ cũ gặp bản mới, xử lý lại không trùng |
-| NFR-11 | Đạt (mock) | Timeout hữu hạn, lỗi chat không ảnh hưởng API khác |
-| NFR-13 | Đạt | `npm run lint` kiểm tra phân lớp |
-| NFR-17 | Có bộ đánh giá + harness; **chưa kiểm chứng thật** | `knowledge-rag-eval.test.js` |
+| US-D01 AC1 | Đạt; nguồn không bắt buộc (mục 3) | Quyền/validation trong unit, HTTP, compose |
+| US-D01 AC2 | Đạt với MOCK | Integration: sửa/ngừng khi đang xử lý, trạng thái/lỗi |
+| US-D01 AC3 | Đạt với MOCK; chưa kiểm embedding thật | Integration + compose: truy hồi được, sau khi ngừng thì NO_CONTEXT |
+| US-D02 AC1 | Đạt | 401/400/429, Redis lỗi → 503 (unit, integration, compose) |
+| US-D02 AC2 | Đạt một phần | Nguồn/NO_CONTEXT đạt; **ngôn ngữ trả lời chưa kiểm chứng** |
+| US-D02 AC3 | Đạt (cơ chế) | Không có công cụ; CHAT_LOGS không có token (đã kiểm DB compose) |
+| US-D02 AC4 | Đạt một phần | Lỗi/timeout đạt; có bộ đánh giá + chế độ thật; **chưa chạy model thật** |
+| UC-15 (luồng chính, A1, A2, E1–E4) | Đạt với MOCK | Unit + integration + compose |
+| UC-08 (luồng chính, A1, E1–E3) | Đạt luồng với MOCK; A2 phụ thuộc LLM thật | Unit + integration + compose |
+| QT-01, QT-11, QT-12 | Đạt (QT-12: ghi audit) | Hành động audit mới chưa lọc được qua API audit chung (mục 9.4) |
+| NFR-07, 08, 09, 11, 13 | Đạt cho phần mới | Xem mục 6 |
+| NFR-17 | Có bộ đánh giá + harness thật; **chưa kiểm chứng thật** | Mục 7 |
 
-## 8. Việc cần người giao việc quyết định hoặc tích hợp
+## 9. Còn lại / cần nhóm trưởng
 
-1. **Gắn router (`server.js`, file dùng chung — chưa sửa, chờ người điều phối duyệt):** thay đổi tối thiểu gồm 3 chỗ.
-   ```js
-   // đầu file
-   const { createKnowledgeRouter } = require("./routers/knowledge.router");
-   const defaultKnowledgeService = require("./services/knowledge.service");
-   const { createChatRouter } = require("./routers/chat.router");
-   const defaultChatService = require("./services/chat.service");
-   // tham số createApp({...}): thêm
-   knowledgeService = defaultKnowledgeService, chatService = defaultChatService
-   // sau dòng app.use("/api/admin/payments", ...), trước createFrontendRouter/errorHandler
-   app.use("/api/admin/knowledge-documents", createKnowledgeRouter(authService, knowledgeService));
-   app.use("/api/chat", createChatRouter(paymentService, chatService));
-   ```
-   - Import các module mới không tạo kết nối DB/Redis (pool của mysql2 kết nối lười; cấu hình RAG đọc khi có request đầu tiên).
-   - Cấu hình RAG sai thì request đầu tiên trả 500 `INTERNAL_ERROR`, không làm sập tiến trình.
-   - Nên chạy lại `server.test.js` và `frontend.http.test.js` sau khi gắn.
-2. **Provider thật (blocker cho NFR-17 / US-D02 AC4):** cần chốt nhà cung cấp, mô hình embedding (đa ngôn ngữ), số chiều, LLM, dữ liệu được phép gửi và ngân sách. Sau đó chỉ cần thêm adapter HTTP (`fetch` có sẵn trong Node 20, không thêm dependency) cùng `getRagConfig` cho provider mới.
-3. **Trạng thái xử lý (đề xuất migration, chưa thực hiện):** schema chỉ có ACTIVE/INACTIVE. Hiện `PENDING/FAILED/DEACTIVATED` và `lastError` được dẫn xuất từ AUDIT_LOGS của tài liệu (ghi nguyên tử cùng thay đổi). Phương án sạch hơn là thêm cột `processing_status`, `last_error_code` vào KNOWLEDGE_DOCUMENTS (và chỉ mục `(resource_type, resource_id)` nếu tiếp tục dẫn xuất từ audit).
-4. **Nguồn bắt buộc hay không:** US-D01 AC1 ghi "tài liệu có … nguồn", UC-15 bước 5 ghi "khuyến nghị", E2 và schema chỉ bắt buộc tiêu đề/nội dung. Hiện đang **không bắt buộc**; đổi được bằng một dòng trong `knowledge.validation.js`.
-5. **API audit:** `services/audit.validation.js` / `audit-details.js` có danh sách action cố định, nên các action mới không lọc được và `details` bị ẩn. Đây là phần tra cứu audit chung, không thuộc gói này.
-6. **Cấu hình:** có chuyển `services/rag.config.js` sang `config/` không, và đưa biến nào vào `.env.example`.
-7. **Monitoring** vẫn trả `chatbot: NOT_IMPLEMENTED` (không thuộc gói). CHAT_LOGS đã có dữ liệu để thống kê.
-8. **Phiên hết hạn giữa lúc xử lý:** quyền khách được kiểm tra khi request bắt đầu (như các API khách có sẵn); câu trả lời của request đó vẫn được trả.
-
-## 9. Mục báo cáo Word cần cập nhật (không sửa Word gốc)
-
-Chương 5–6: phần đã xây dựng của UC-15/UC-08, contract mục 2, kết quả test mục 5, kết quả đánh giá mock mục 6 với ghi chú "chưa kiểm chứng provider thật". Mục 4.4.4: cách hiển thị trạng thái xử lý (dẫn xuất từ AUDIT_LOGS) nếu không duyệt migration.
+1. **Merge:** nhánh `codex/knowledge-rag` cần PR vào `main` và nhóm trưởng duyệt. Theo tài liệu giao việc, người nhận không tự đẩy `main`.
+2. **Provider thật:** chọn nhà cung cấp tương thích OpenAI (embedding đa ngôn ngữ + LLM), chốt dữ liệu được phép gửi và ngân sách, cấp `RAG_API_KEY` qua `.env` hoặc secret. Sau đó chạy mục 7 và hiệu chỉnh `RAG_MIN_SCORE`.
+3. **Quyết định đặc tả:** nguồn có bắt buộc không; có duyệt migration trạng thái xử lý không (mục 3).
+4. **Ngoài phạm vi gói:** `audit.validation.js`/`audit-details.js` cần thêm các action `*_KNOWLEDGE_*` nếu muốn lọc và xem qua API audit; monitoring vẫn trả `chatbot: NOT_IMPLEMENTED` (dữ liệu CHAT_LOGS đã sẵn sàng).
+5. **Báo cáo Word (không sửa bản gốc):** cập nhật chương 5–6 bằng contract mục 2, kết quả mục 4, 6, 7 kèm ghi chú "chưa kiểm chứng provider thật"; mục 4.4.4 bổ sung cách hiển thị trạng thái xử lý.

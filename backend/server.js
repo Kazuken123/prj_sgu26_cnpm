@@ -28,11 +28,16 @@ const path = require("node:path");
 const { createFrontendRouter } = require("./routers/frontend.router");
 const { createTranslationRouter } = require("./routers/translation.router");
 const defaultTranslationService = require("./services/translation.service");
+const { createKnowledgeRouter } = require("./routers/knowledge.router");
+const defaultKnowledgeService = require("./services/knowledge.service");
+const { createChatRouter } = require("./routers/chat.router");
+const defaultChatService = require("./services/chat.service");
 
 function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService,
   contentJobService = defaultContentJobService, paymentService = defaultPaymentService, mediaService = new MediaService(), contentService = new ContentService(),
   frontendDir = path.resolve(__dirname, "../frontend/dist"), tourService = defaultTourService, auditService = defaultAuditService,
-  monitoringService = defaultMonitoringService, translationService = defaultTranslationService } = {}) {
+  monitoringService = defaultMonitoringService, translationService = defaultTranslationService,
+  knowledgeService = defaultKnowledgeService, chatService = defaultChatService } = {}) {
   const app = express();
   app.disable("x-powered-by");
   const origins = (process.env.CORS_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500").split(",").map(value => value.trim());
@@ -54,6 +59,8 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use("/api/media", createMediaRouter(paymentService, mediaService));
   app.use("/api/content", createContentRouter(paymentService, contentService));
   app.use("/api/admin/payments", createStaffPaymentRouter(authService, paymentService));
+  app.use("/api/admin/knowledge-documents", createKnowledgeRouter(authService, knowledgeService));
+  app.use("/api/chat", createChatRouter(paymentService, chatService));
   app.get("/health", (req, res) => res.json({ status: "ok", service: "food-tour-api", timestamp: new Date().toISOString() }));
   app.get("/health/ready", async (req, res, next) => {
     try { res.json(await healthService.ready()); } catch (error) { next(error); }
