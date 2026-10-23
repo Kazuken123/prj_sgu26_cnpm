@@ -1,0 +1,265 @@
+{
+    "datasetId":  "TCV_DEMO_EIGHT_POIS_FIVE_LANG_V1",
+    "database":  "tcv_demo_review_20261020",
+    "sourceManifestSha256":  "93f042f8c4611117da0bafb39a853e1290d151a4d310b8285eceda75ab37ce13",
+    "languageCodes":  [
+                          "zh-Hans",
+                          "ko",
+                          "ja",
+                          "ru",
+                          "fr"
+                      ],
+    "review":  "AI_COMPARED_WITH_APPROVED_VI",
+    "independentNativeLanguageReview":  false,
+    "authorizedForDemo":  true,
+    "pois":  [
+                 {
+                     "key":  "hippopotamus",
+                     "sourceVersion":  1,
+                     "translations":  {
+                                          "zh-Hans":  {
+                                                          "name":  "河马",
+                                                          "description":  "河马体形庞大、腿短，大部分时间生活在水中。眼睛、耳朵和鼻孔位于头部较高的位置。",
+                                                          "audioScript":  "河马为什么长时间泡在水里？它们的皮肤对阳光敏感，待在水中有助于保护皮肤和调节体温。身体大部分浸入水中时，位置较高的眼睛和鼻孔仍能让它们观察和呼吸。有趣的是，河马通常会上岸吃草。"
+                                                      },
+                                          "ko":  {
+                                                     "name":  "하마",
+                                                     "description":  "하마는 몸집이 크고 다리가 짧으며 물속에서 많은 시간을 보냅니다. 눈과 귀, 콧구멍은 머리의 높은 부분에 있습니다.",
+                                                     "audioScript":  "하마는 왜 오랫동안 물에 몸을 담그고 있을까요? 피부가 햇빛에 민감하기 때문에 물속에 있으면 피부를 보호하고 체온을 조절하는 데 도움이 됩니다. 몸 대부분이 잠겨 있어도 높은 곳에 있는 눈과 콧구멍 덕분에 주변을 보고 숨을 쉴 수 있습니다. 흥미롭게도 하마는 보통 땅으로 올라와 풀을 먹습니다."
+                                                 },
+                                          "ja":  {
+                                                     "name":  "カバ",
+                                                     "description":  "カバは体が大きく脚が短く、多くの時間を水中で過ごします。目、耳、鼻の穴は頭の高い位置にあります。",
+                                                     "audioScript":  "カバはなぜ長い時間、水に浸かっているのでしょうか。皮膚が日光に敏感なため、水中にいることは皮膚の保護と体温の調節に役立ちます。体の大部分が水に沈んでいても、高い位置にある目と鼻の穴で周囲を見たり呼吸したりできます。興味深いことに、カバは通常、陸に上がって草を食べます。"
+                                                 },
+                                          "ru":  {
+                                                     "name":  "Обыкновенный бегемот",
+                                                     "description":  "У бегемота крупное тело и короткие ноги, и он проводит много времени в воде. Глаза, уши и ноздри расположены высоко на голове.",
+                                                     "audioScript":  "Почему бегемоты подолгу находятся в воде? Их кожа чувствительна к солнечному свету, а вода помогает защищать её и регулировать температуру тела. Даже когда большая часть тела погружена, высоко расположенные глаза и ноздри позволяют смотреть по сторонам и дышать. Интересно, что кормиться травой бегемоты обычно выходят на сушу."
+                                                 },
+                                          "fr":  {
+                                                     "name":  "Hippopotame commun",
+                                                     "description":  "L\u0027hippopotame commun a un corps massif, des pattes courtes et passe beaucoup de temps dans l\u0027eau. Ses yeux, ses oreilles et ses narines se trouvent sur le haut de sa tête.",
+                                                     "audioScript":  "Pourquoi les hippopotames restent-ils si longtemps dans l\u0027eau ? Leur peau est sensible au soleil ; l\u0027eau aide à la protéger et à réguler leur température corporelle. Même lorsque le corps est en grande partie immergé, leurs yeux et leurs narines placés en hauteur leur permettent de voir et de respirer. Fait intéressant, les hippopotames sortent généralement sur la terre ferme pour brouter."
+                                                 }
+                                      }
+                 },
+                 {
+                     "key":  "white-rhinoceros",
+                     "sourceVersion":  1,
+                     "translations":  {
+                                          "zh-Hans":  {
+                                                          "name":  "白犀牛",
+                                                          "description":  "白犀牛的皮肤是灰色的，吻部有两只角。宽阔、平展的嘴唇适合吃草。",
+                                                          "audioScript":  "值得注意的不只是两只角，还有宽阔、平展的嘴唇。这种嘴唇适合啃食草，而草正是这一物种的主要食物。虽然名字叫白犀牛，它们的皮肤却是灰色的。除了吃草，它们还会洗泥浴；水和泥地是其栖息环境的一部分。"
+                                                      },
+                                          "ko":  {
+                                                     "name":  "흰코뿔소",
+                                                     "description":  "흰코뿔소는 회색 피부를 지녔으며 주둥이 위에 뿔이 두 개 있습니다. 넓고 평평한 입술은 풀을 뜯어 먹기에 알맞습니다.",
+                                                     "audioScript":  "두 개의 뿔뿐 아니라 넓고 평평한 입술에도 주목해 보세요. 이 입술은 주된 먹이인 풀을 뜯는 데 적응한 모습입니다. 흰코뿔소라는 이름과 달리 피부는 회색입니다. 풀을 먹는 것 외에도 진흙 목욕을 하며, 물과 진흙이 있는 곳은 이들의 서식 환경을 이루는 일부입니다."
+                                                 },
+                                          "ja":  {
+                                                     "name":  "シロサイ",
+                                                     "description":  "シロサイの皮膚は灰色で、鼻先には二本の角があります。幅広く平らな唇は草を食べるのに適しています。",
+                                                     "audioScript":  "二本の角だけでなく、幅広く平らな唇にも注目してみましょう。この唇は、主な食べ物である草を食べることに適応しています。シロサイという名前ですが、皮膚は灰色です。草を食べるほかに泥浴びもします。水や泥のある場所は、生息環境の一部です。"
+                                                 },
+                                          "ru":  {
+                                                     "name":  "Белый носорог",
+                                                     "description":  "У белого носорога серая кожа и два рога на морде. Широкая плоская губа приспособлена к поеданию травы.",
+                                                     "audioScript":  "Внимания заслуживают не только два рога, но и широкая плоская губа. Она приспособлена к поеданию травы — основной пищи этого вида. Несмотря на название «белый носорог», кожа у него серая. Помимо кормления травой, носороги принимают грязевые ванны; вода и грязевые участки являются частью их среды обитания."
+                                                 },
+                                          "fr":  {
+                                                     "name":  "Rhinocéros blanc",
+                                                     "description":  "Le rhinocéros blanc a une peau grise et deux cornes sur le museau. Sa lèvre large et plate est adaptée au pâturage.",
+                                                     "audioScript":  "Au-delà des deux cornes, remarquez sa lèvre large et plate. Elle est adaptée au broutage de l\u0027herbe, l\u0027aliment principal de l\u0027espèce. Malgré son nom, le rhinocéros blanc a la peau grise. Il prend aussi des bains de boue ; l\u0027eau et les zones boueuses font partie de son habitat."
+                                                 }
+                                      }
+                 },
+                 {
+                     "key":  "agarwood",
+                     "sourceVersion":  1,
+                     "translations":  {
+                                          "zh-Hans":  {
+                                                          "name":  "沉香树（Aquilaria crassna）",
+                                                          "description":  "Aquilaria crassna 是一种常绿树，能够形成称为沉香的芳香木材。这种木材可用作香料。",
+                                                          "audioScript":  "这种树的特别之处藏在树干内部。受到损伤后，树木可能形成颜色较深、含有芳香物质的木材；这个过程还与真菌和环境条件有关。因此，不能仅凭看到一棵树，就断言它内部有沉香。树皮还含有坚韧的纤维，可用于制作绳线或特殊纸张。"
+                                                      },
+                                          "ko":  {
+                                                     "name":  "Aquilaria crassna",
+                                                     "description":  "Aquilaria crassna는 침향이라고 부르는 향기로운 목재를 형성할 수 있는 상록수입니다. 이 목재는 향료로 사용됩니다.",
+                                                     "audioScript":  "이 나무의 특별함은 줄기 안에 있습니다. 상처를 입으면 색이 짙고 향기 성분이 있는 목재가 형성될 수 있으며, 이 과정에는 균류와 환경 조건도 관련됩니다. 따라서 나무를 보기만 하고 그 안에 침향이 있다고 단정할 수는 없습니다. 나무껍질에는 질긴 섬유도 있어 끈이나 특수 종이를 만드는 데 사용됩니다."
+                                                 },
+                                          "ja":  {
+                                                     "name":  "Aquilaria crassna",
+                                                     "description":  "Aquilaria crassna は、沈香と呼ばれる香りのある木材を形成することがある常緑樹です。この木材は香料に使われます。",
+                                                     "audioScript":  "この木の特別なところは、幹の内部にあります。傷を受けると、色が濃く香りの成分を含む木材が形成されることがあり、その過程には菌類や環境条件も関わります。そのため、木を見ただけで内部に沈香があると断言することはできません。樹皮には丈夫な繊維もあり、ひもや特殊な紙に使われます。"
+                                                 },
+                                          "ru":  {
+                                                     "name":  "Aquilaria crassna",
+                                                     "description":  "Aquilaria crassna — вечнозелёное дерево, способное образовывать ароматную древесину, известную как агаровая древесина. Её используют для получения ароматических материалов.",
+                                                     "audioScript":  "Особенность этого дерева скрыта внутри ствола. После повреждения в нём может образоваться тёмная древесина, содержащая ароматические вещества; с этим процессом также связаны грибы и условия окружающей среды. Поэтому по одному виду дерева нельзя утверждать, что внутри есть агаровая древесина. Кора также содержит прочные волокна, которые используют для изготовления верёвок или специальной бумаги."
+                                                 },
+                                          "fr":  {
+                                                     "name":  "Aquilaria crassna",
+                                                     "description":  "Aquilaria crassna est un arbre à feuillage persistant qui peut former un bois odorant appelé bois d\u0027agar. Ce bois est utilisé en parfumerie.",
+                                                     "audioScript":  "La particularité de cet arbre se cache à l\u0027intérieur de son tronc. Après une blessure, il peut former un bois sombre contenant des substances odorantes ; les champignons et les conditions du milieu jouent aussi un rôle. On ne peut donc pas affirmer qu\u0027un arbre contient du bois d\u0027agar simplement en le regardant. Son écorce possède également des fibres résistantes utilisées pour fabriquer des cordages ou des papiers spéciaux."
+                                                 }
+                                      }
+                 },
+                 {
+                     "key":  "white-champaca",
+                     "sourceVersion":  1,
+                     "translations":  {
+                                          "zh-Hans":  {
+                                                          "name":  "白兰（Michelia alba）",
+                                                          "description":  "白兰的花洁白芳香，叶片细长。这种树常被种植在花园和公园中作为观赏植物。",
+                                                          "audioScript":  "白兰的花有一个容易被忽略的细节：那些白色的花部并不像许多常见植物那样，明显分成花萼和花瓣。它们呈螺旋状排列。花香还使它们被用于制作香水和窨制茶叶。因此，这种树的魅力既来自形态，也来自香气。"
+                                                      },
+                                          "ko":  {
+                                                     "name":  "백란（Michelia alba）",
+                                                     "description":  "백란은 향기로운 흰 꽃과 길쭉한 잎을 지녔습니다. 정원이나 공원에서 관상수로 흔히 심습니다.",
+                                                     "audioScript":  "백란의 꽃에는 놓치기 쉬운 특징이 있습니다. 흰 꽃 부분이 익숙한 여러 식물처럼 꽃받침과 꽃잎으로 뚜렷이 나뉘지 않습니다. 이 부분들은 나선형으로 배열됩니다. 꽃의 향기 때문에 향수나 차에 향을 입히는 데에도 쓰입니다. 이 나무의 아름다움은 모양뿐 아니라 향기와도 이어져 있습니다."
+                                                 },
+                                          "ja":  {
+                                                     "name":  "ギンコウボク（Michelia alba）",
+                                                     "description":  "ギンコウボクは、香りのよい白い花と細長い葉を持ちます。庭園や公園で観賞用によく植えられています。",
+                                                     "audioScript":  "この花には見落としやすい特徴があります。白い花の部分は、身近な多くの植物のように、がくと花びらにはっきり分かれていません。それらはらせん状に並んでいます。香りがよいため、花は香水や茶の香り付けにも使われます。この木の魅力は、形と香りの両方にあるのです。"
+                                                 },
+                                          "ru":  {
+                                                     "name":  "Michelia alba",
+                                                     "description":  "У Michelia alba ароматные белые цветки и продолговатые листья. Это дерево часто выращивают как декоративное в садах и парках.",
+                                                     "audioScript":  "У цветков есть деталь, которую легко не заметить: белые части цветка не разделены отчётливо на чашелистики и лепестки, как у многих привычных растений. Они расположены по спирали. Благодаря аромату цветки также используют в парфюмерии и для ароматизации чая. Привлекательность этого дерева связана и с формой, и с запахом."
+                                                 },
+                                          "fr":  {
+                                                     "name":  "Michelia alba",
+                                                     "description":  "Michelia alba porte des fleurs blanches parfumées et des feuilles allongées. Cet arbre est souvent planté pour l\u0027ornement dans les jardins et les parcs.",
+                                                     "audioScript":  "Ses fleurs présentent un détail facile à manquer : les parties blanches ne sont pas nettement séparées en sépales et en pétales, comme chez de nombreuses fleurs familières. Elles sont disposées en spirale. Leur parfum permet aussi de les utiliser en parfumerie et pour parfumer le thé. La beauté de cet arbre tient donc autant à sa forme qu\u0027à son odeur."
+                                                 }
+                                      }
+                 },
+                 {
+                     "key":  "canarium-album",
+                     "sourceVersion":  1,
+                     "translations":  {
+                                          "zh-Hans":  {
+                                                          "name":  "橄榄（Canarium album）",
+                                                          "description":  "Canarium album 有复叶，果实两端尖。这种树还能提供用于工业的树脂。",
+                                                          "audioScript":  "Canarium album 的用途不仅是提供木材。它的树脂还可用来制香，并加工成用于油漆和印刷行业的精油及松香。因此，了解一种树，也能看到它与日常材料之间的联系。另一个有趣的细节是，它的种子可以用来榨油。"
+                                                      },
+                                          "ko":  {
+                                                     "name":  "Canarium album",
+                                                     "description":  "Canarium album은 겹잎을 지니며 열매의 양 끝이 뾰족합니다. 이 나무의 수지는 산업용으로도 사용됩니다.",
+                                                     "audioScript":  "Canarium album은 목재만 제공하는 나무가 아닙니다. 수지는 향을 만드는 데 쓰이며, 페인트와 인쇄 산업에 사용되는 정유와 로진으로도 가공됩니다. 따라서 한 나무를 살펴보는 일은 주변의 재료와 어떤 관련이 있는지 알아보는 일이기도 합니다. 또 다른 흥미로운 점은 씨앗에서 기름을 짤 수 있다는 것입니다."
+                                                 },
+                                          "ja":  {
+                                                     "name":  "Canarium album",
+                                                     "description":  "Canarium album は複葉を持ち、果実の両端はとがっています。この木の樹脂には工業用途もあります。",
+                                                     "audioScript":  "Canarium album がもたらすものは木材だけではありません。樹脂は香を作るほか、塗料や印刷の分野で使う精油やロジンに加工されます。このように、一種類の木を知ることから、身の回りの素材とのつながりも見えてきます。もう一つ興味深いのは、種子から油を搾れることです。"
+                                                 },
+                                          "ru":  {
+                                                     "name":  "Canarium album",
+                                                     "description":  "У Canarium album сложные листья и плоды, заострённые с обоих концов. Смолу этого дерева также используют в промышленности.",
+                                                     "audioScript":  "Canarium album даёт не только древесину. Его смолу используют для изготовления благовоний, а также перерабатывают в эфирное масло и канифоль для лакокрасочной и печатной промышленности. Изучая одно дерево, можно увидеть его связь с окружающими нас материалами. Ещё одна интересная деталь: из семян можно отжимать масло."
+                                                 },
+                                          "fr":  {
+                                                     "name":  "Canarium album",
+                                                     "description":  "Canarium album possède des feuilles composées et des fruits pointus aux deux extrémités. Sa résine a également des usages industriels.",
+                                                     "audioScript":  "Canarium album fournit plus que du bois. Sa résine sert à fabriquer de l\u0027encens et est transformée en huile essentielle et en colophane pour les secteurs de la peinture et de l\u0027imprimerie. Observer une espèce d\u0027arbre permet ainsi de découvrir ses liens avec les matériaux qui nous entourent. Autre détail intéressant : ses graines peuvent être pressées pour en extraire de l\u0027huile."
+                                                 }
+                                      }
+                 },
+                 {
+                     "key":  "brownea-ariza",
+                     "sourceVersion":  1,
+                     "translations":  {
+                                          "zh-Hans":  {
+                                                          "name":  "Brownea ariza",
+                                                          "description":  "Brownea ariza 的树冠宽阔，红花成簇下垂。这种原产于哥伦比亚的树因花朵美丽而被作为观赏植物栽培。",
+                                                          "audioScript":  "除了成簇的红花，Brownea ariza 的果实也有值得了解的地方。它的果实是豆荚，能够自行散播种子。这是植物让种子离开果实、开始下一代的一种方式。因此，了解这种树，可以从花的美丽延伸到它如何繁衍后代。"
+                                                      },
+                                          "ko":  {
+                                                     "name":  "Brownea ariza",
+                                                     "description":  "Brownea ariza는 수관이 넓고 붉은 꽃송이가 아래로 늘어집니다. 콜롬비아가 원산지인 이 나무는 아름다운 꽃 때문에 관상용으로 재배됩니다.",
+                                                     "audioScript":  "붉은 꽃송이뿐 아니라 Brownea ariza의 열매에도 이야기가 있습니다. 열매는 꼬투리 형태이며 스스로 씨앗을 퍼뜨릴 수 있습니다. 이는 씨앗을 열매 밖으로 내보내 다음 세대를 시작하게 하는 한 가지 방법입니다. 따라서 이 나무를 알아가는 일은 꽃의 아름다움에서 번식 방식으로 이어질 수 있습니다."
+                                                 },
+                                          "ja":  {
+                                                     "name":  "Brownea ariza",
+                                                     "description":  "Brownea ariza は樹冠が広く、赤い花の房が垂れ下がります。コロンビア原産で、美しい花を楽しむ観賞用の木として植えられています。",
+                                                     "audioScript":  "赤い花の房のほかに、Brownea ariza の果実にも注目してみましょう。果実はさやの形をしており、自ら種子を散布することができます。これは種子を果実の外へ送り出し、次の世代を始める方法の一つです。この木について学ぶと、花の美しさから子孫の残し方へと理解が広がります。"
+                                                 },
+                                          "ru":  {
+                                                     "name":  "Brownea ariza",
+                                                     "description":  "У Brownea ariza широкая крона и свисающие соцветия красных цветков. Это дерево родом из Колумбии выращивают как декоративное благодаря красивым цветкам.",
+                                                     "audioScript":  "Помимо красных соцветий, интерес представляют и плоды Brownea ariza. Плод имеет форму боба и способен самостоятельно распространять семена. Так растение высвобождает семена из плода, давая начало новому поколению. Поэтому знакомство с этим деревом может вести от красоты цветков к способу продолжения рода."
+                                                 },
+                                          "fr":  {
+                                                     "name":  "Brownea ariza",
+                                                     "description":  "Brownea ariza possède une large couronne et des grappes de fleurs rouges retombantes. Originaire de Colombie, cet arbre est cultivé pour la beauté de ses fleurs.",
+                                                     "audioScript":  "Au-delà de ses grappes de fleurs rouges, Brownea ariza a aussi une histoire à raconter par ses fruits. Le fruit est une gousse capable de disperser elle-même ses graines. C\u0027est une façon de libérer les graines du fruit pour donner naissance à une nouvelle génération. Découvrir cet arbre relie ainsi la beauté des fleurs à la reproduction."
+                                                 }
+                                      }
+                 },
+                 {
+                     "key":  "animal-plant-museum",
+                     "sourceVersion":  1,
+                     "translations":  {
+                                          "zh-Hans":  {
+                                                          "name":  "动植物博物馆",
+                                                          "description":  "动植物博物馆保存用于了解自然的标本。除了制作成形的动物标本，还有骨骼和植物标本。",
+                                                          "audioScript":  "在博物馆里，一副骨骼能展示通常被皮肤遮住的细节，帮助我们了解动物的身体结构。对于植物，采集标本还需要把握时机：花和果实随季节出现，采集者必须持续观察，才能在合适的时候采集。因此，每一件标本也包含了观察和保存的心血。"
+                                                      },
+                                          "ko":  {
+                                                     "name":  "동식물 박물관",
+                                                     "description":  "동식물 박물관은 자연을 알아보는 데 쓰이는 표본을 보존합니다. 동물 박제뿐 아니라 골격과 식물 표본도 있습니다.",
+                                                     "audioScript":  "박물관에서 골격은 평소 피부에 가려 보이지 않는 세부 구조를 드러내 동물의 몸을 이해하도록 돕습니다. 식물 표본을 모을 때는 시기를 맞추는 일이 중요합니다. 꽃과 열매는 계절에 따라 나타나므로 수집자는 알맞은 때에 채집하기 위해 변화를 지켜봐야 합니다. 따라서 표본 하나하나에는 관찰과 보존에 들인 노력도 담겨 있습니다."
+                                                 },
+                                          "ja":  {
+                                                     "name":  "動植物博物館",
+                                                     "description":  "動植物博物館は、自然について学ぶための標本を保存しています。動物の剥製のほかに、骨格や植物の標本もあります。",
+                                                     "audioScript":  "博物館では、骨格を見ることで普段は皮膚に隠れている細部が分かり、動物の体の構造を学べます。植物の標本集めには、時機を見極めることが必要です。花や果実は季節に応じて現れるため、収集する人は適切な時に採集できるよう観察を続けなければなりません。一つ一つの標本には、観察と保存の努力も込められています。"
+                                                 },
+                                          "ru":  {
+                                                     "name":  "Музей животных и растений",
+                                                     "description":  "Музей животных и растений хранит образцы, помогающие изучать природу. Помимо чучел животных, здесь представлены скелеты и растительные образцы.",
+                                                     "audioScript":  "В музее скелет показывает детали, обычно скрытые под кожей, и помогает понять строение животного. При сборе растительных образцов важно выбрать время: цветки и плоды появляются по сезонам, поэтому собиратели должны наблюдать за развитием растений, чтобы собрать материал в подходящий момент. Каждый образец хранит в себе и труд, вложенный в наблюдение и сохранение."
+                                                 },
+                                          "fr":  {
+                                                     "name":  "Musée des animaux et des plantes",
+                                                     "description":  "Le musée des animaux et des plantes conserve des spécimens pour découvrir la nature. Aux côtés des animaux naturalisés se trouvent des squelettes et des spécimens végétaux.",
+                                                     "audioScript":  "Au musée, un squelette révèle des détails normalement cachés sous la peau et nous aide à comprendre l\u0027anatomie des animaux. Pour les plantes, la collecte demande de choisir le bon moment : fleurs et fruits apparaissent selon les saisons, et les collecteurs doivent suivre leur développement pour les prélever à temps. Chaque spécimen témoigne donc aussi d\u0027un travail d\u0027observation et de conservation."
+                                                 }
+                                      }
+                 },
+                 {
+                     "key":  "nhan-huong",
+                     "sourceVersion":  1,
+                     "translations":  {
+                                          "zh-Hans":  {
+                                                          "name":  "Nhan Hương 历史遗址",
+                                                          "description":  "Nhan Hương 是西贡动植物园内的一处历史遗址。这里曾是 Biệt động Sài Gòn 的秘密据点。",
+                                                          "audioScript":  "动植物园里一家普通的饮料店，曾经掩护着秘密活动。在1963年至1975年间，Nhan Hương 为 Biệt động Sài Gòn 的人员提供藏身之所，也是交换信息的地点。一个值得记住的细节是店名：开店的 Nguyễn Văn Tửng 先生用已故妻子的名字为店铺命名。"
+                                                      },
+                                          "ko":  {
+                                                     "name":  "Nhan Hương 유적",
+                                                     "description":  "Nhan Hương은 사이공 동식물원 안에 있는 역사 유적입니다. 이곳은 한때 Biệt động Sài Gòn의 비밀 거점이었습니다.",
+                                                     "audioScript":  "동식물원 안의 평범한 음료 가게가 한때 비밀 활동을 감추는 장소였습니다. 1963년부터 1975년까지 Nhan Hương은 Biệt động Sài Gòn의 활동가들을 숨겨 주고 정보를 교환하는 곳이었습니다. 기억할 만한 점은 가게 이름입니다. 가게를 세운 Nguyễn Văn Tửng은 세상을 떠난 아내의 이름을 따서 가게 이름을 지었습니다."
+                                                 },
+                                          "ja":  {
+                                                     "name":  "Nhan Hương 史跡",
+                                                     "description":  "Nhan Hương はサイゴン動植物園内にある史跡です。かつて Biệt động Sài Gòn の秘密拠点でした。",
+                                                     "audioScript":  "動植物園内の一見普通の飲み物の店が、かつて秘密の活動を隠していました。1963年から1975年にかけて、Nhan Hương は Biệt động Sài Gòn の活動員をかくまい、情報を交換する場所でした。覚えておきたいのは店の名前です。創業者の Nguyễn Văn Tửng は、亡くなった妻の名前を店に付けました。"
+                                                 },
+                                          "ru":  {
+                                                     "name":  "Историческое место Nhan Hương",
+                                                     "description":  "Nhan Hương — историческое место на территории Сайгонского зоопарка и ботанического сада. Когда-то здесь находилась тайная база Biệt động Sài Gòn.",
+                                                     "audioScript":  "Обычная лавка прохладительных напитков когда-то служила прикрытием для тайной деятельности прямо на территории зоопарка. С 1963 по 1975 год Nhan Hương укрывала участников Biệt động Sài Gòn и служила местом обмена информацией. Запоминается и происхождение названия: основатель лавки Nguyễn Văn Tửng назвал её в честь своей покойной жены."
+                                                 },
+                                          "fr":  {
+                                                     "name":  "Site historique Nhan Hương",
+                                                     "description":  "Nhan Hương est un site historique situé dans le zoo et jardin botanique de Saïgon. Il fut autrefois une base clandestine de Biệt động Sài Gòn.",
+                                                     "audioScript":  "Un simple commerce de boissons dissimulait autrefois des activités clandestines au sein même du zoo. De 1963 à 1975, Nhan Hương a abrité des membres de Biệt động Sài Gòn et servi de lieu d\u0027échange d\u0027informations. Un détail marquant concerne son nom : le fondateur, Nguyễn Văn Tửng, l\u0027a choisi en souvenir de son épouse décédée."
+                                                 }
+                                      }
+                 }
+             ]
+}

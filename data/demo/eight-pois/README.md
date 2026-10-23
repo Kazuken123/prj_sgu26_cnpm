@@ -2,6 +2,8 @@
 
 Bổ sung Hà mã, Tê giác trắng, Trầm hương, Ngọc lan, Trám trắng, Cát anh, Bảo tàng Động–Thực vật và Quán Nhan Hương. Giữ nguyên Hươu/Voi và tour Hươu → Voi. Mục tiêu của mốc này là **10 POI có VI/EN**, chưa phải 10 POI đủ bảy ngôn ngữ.
 
+**Bước hoàn tất năm ngôn ngữ còn lại:** bộ `languages-five.json` bổ sung40 bản dịch Trung giản thể/Hàn/Nhật/Nga/Pháp theo nguồn VI đã duyệt. Chủ đồ án giao AI rà và nhập demo, sau đó kiểm tra trên web; quyết định/phạm vi và hash nằm trong `languages-five-authorization.json`. Dùng `operator/languages.run.cjs` theo mục cuối để tiếp tục từ30 lên70 bộ nội dung/audio, không thay bản VI/EN hoặc tạo thêm job. Những số40 PENDING ở phần nền bên dưới mô tả trạng thái trước bước này.
+
 `approved.json` chứa tên, giới thiệu và kịch bản đọc VI/EN nguyên nội dung DRAFT-02 đã được chủ đồ án duyệt. `SOURCE_DRAFT02_APPROVED.md` giữ văn bản nguồn và URL tham khảo của từng POI. Trạng thái “chờ duyệt” trong bản nguồn là lịch sử; quyết định duyệt và hash nằm riêng tại `approval.json`. Không sửa bản nguồn để làm giả lịch sử phê duyệt. `.gitattributes` giữ nguyên byte của các file có hash trên Windows/Linux.
 
 ## Vị trí và dữ kiện chưa xác minh
@@ -69,3 +71,23 @@ Bundle VI/EN phải trả10 POI, audio đúng mã ngôn ngữ và isFallback=fal
 `operator/operator.test.cjs` chạy trên database UUID riêng qua entry `backend/tests/eight-poi-demo.test.js` khi RUN_DB_TESTS=1, NODE_ENV=test. Gồm hash sai, đích database sai, ADMIN không hợp lệ, nội dung không thuộc dataset, audit thất bại rollback nguyên bộ, nhiều yêu cầu đồng thời và nguồn đã thay đổi không bị seed ghi đè. Fixture có nhãn TEST và không dùng DB demo; metadata audio fixture không phải bằng chứng speech.
 
 Nguồn và độ tin cậy: nội dung DRAFT-02 do chủ đồ án duyệt; nguồn tham khảo nằm trong hồ sơ; các tọa độ mới là minh họa được chấp nhận riêng. Chưa nghiệm thu GPS, mobile, bản dịch người bản ngữ hoặc15+ ngôn ngữ. Không sửa schema, Word, frontend hoặc tự commit/push.
+
+## Hoàn tất40 job năm ngôn ngữ còn lại
+
+Sau khi xong VI/EN, giữ worker quét cả hàng đợi dừng cho tới khi đã nhập đủ40 bản dịch. Dùng cùng tham số/env-file/project/volume của phần nền; chỉ đổi entry point CLI:
+
+```powershell
+$languageArgs = @($toolArgs)
+$languageArgs[$languageArgs.Length - 1] = '/work/data/demo/eight-pois/operator/languages.run.cjs'
+$languageRenderArgs = @($renderArgs)
+$languageRenderArgs[$languageRenderArgs.Length - 1] = '/work/data/demo/eight-pois/operator/languages.run.cjs'
+& docker @languageArgs plan "languages-plan-$runId.json"
+& docker @languageArgs inventory "languages-before-$runId.json"
+& docker @languageArgs apply "languages-apply-$runId.json"
+& docker @languageArgs apply "languages-repeat-$runId.json"
+& docker @languageRenderArgs render "languages-audio-$runId.json"
+```
+
+Công cụ dùng nguyên Store/transaction và TranslationService/PipelineService hiện có. Guard mới đối chiếu nguồn VI/EN, phiên bản, toàn bộ40 bản dịch theo hash, không lọc bỏ các ngôn ngữ lạ. Các guard VI/EN cũ giữ nguyên; không chạy lại CLI nền sau khi đã thêm40 bản dịch vì guard nền cố ý chỉ nhận giai đoạn VI/EN. Dùng CLI languages cho plan/replay/inventory/render tiếp theo. READY khác nội dung, nguồn đổi, job PROCESSING/FAILED đều dừng đối soát, không ghi đè hoặc tự retry.
+
+Kết quả cần xác minh sau render: **10 POI ×7 ngôn ngữ =70 bản READY,70 WAV AVAILABLE,70 job COMPLETED**, không còn40 PENDING hoặc fallback trong ma trận này. Giữ nguyên30 nội dung/audio cũ và tour hai điểm. Bản dịch là nội dung AI đối chiếu thủ công, không phải tính năng dịch tự động và không đồng nghĩa đã được người bản ngữ nghiệm thu.

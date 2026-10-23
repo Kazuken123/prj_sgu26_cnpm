@@ -1,0 +1,8 @@
+{
+    "authorizedOn":  "2026-10-23",
+    "userInstruction":  "bạn cứ rà nhập demo đi, k cần note lại, sau đó mình vào web kiểm tra các thông tin dịch sau",
+    "manifestSha256":  "c279505af67a0cb9b16f073b2905358d327ef7bacf46695850de8d7f0244dad6",
+    "sourceManifestSha256":  "93f042f8c4611117da0bafb39a853e1290d151a4d310b8285eceda75ab37ce13",
+    "contentReview":  "AI comparison to approved VI; user will inspect website after import",
+    "scope":  "Forty translations and speech audio using forty existing PENDING jobs; preserve thirty existing texts/audio, POIs and tour"
+}

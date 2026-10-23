@@ -2,7 +2,7 @@
 
 Bộ mở rộng hai POI lên **bảy ngôn ngữ** đã được đóng gói tại [reviewed-seven](reviewed-seven/README.md), gồm bản dịch đã duyệt, nguồn/duyệt và công cụ nhập chạy lặp. Phần hướng dẫn bên dưới là bước nền VI/EN; đọc hướng dẫn mở rộng trước khi bổ sung năm ngôn ngữ và không chạy ép seed hai ngôn ngữ trên bộ đã mở rộng.
 
-Bộ [tám POI bổ sung VI/EN](eight-pois/README.md) là bước sau Hươu/Voi bảy ngôn ngữ; tọa độ mới chỉ là vị trí minh họa đã được chấp nhận cho demo. Bộ này giữ40 job của năm ngôn ngữ khác ở PENDING chờ nội dung được duyệt, không tự chạy worker mock cho chúng.
+Bộ [tám POI bổ sung](eight-pois/README.md) là bước sau Hươu/Voi bảy ngôn ngữ; tọa độ mới chỉ là vị trí minh họa đã được chấp nhận cho demo. Bước nền VI/EN tạo40 job PENDING; bộ `languages-five.json` và CLI `languages.run.cjs` tiếp tục nhập/tạo audio cho đúng40 job đó để hoàn tất10 POI ×7 ngôn ngữ. Không chạy worker mock để lấp các bản dịch còn thiếu.
 
 Bộ này gồm hai POI Hươu cao cổ/Voi châu Á, tên/giới thiệu/kịch bản đọc VI và EN đã được chủ đồ án duyệt, một **lộ trình demo do nhóm đề xuất** theo thứ tự Hươu → Voi. Dữ liệu không chứa tài khoản, mật khẩu, token hoặc giao dịch. `draft03.json`, `OSM_SAVED_RECORDS.md`, `compose.demo.yml` và code seed nằm trong repo, không phụ thuộc manifest bên ngoài máy tác giả.
 
