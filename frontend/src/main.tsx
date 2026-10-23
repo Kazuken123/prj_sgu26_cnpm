@@ -5,6 +5,7 @@ import App from './App';
 import './index.css';
 import './visitor.css';
 import './experience.css';
+import './discovery.css';
 
 const rootElement = document.getElementById('root');
 

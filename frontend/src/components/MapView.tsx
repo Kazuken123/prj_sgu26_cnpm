@@ -3,6 +3,7 @@ import { PoiDto, TourDto } from '../api/content';
 
 interface MapViewProps {
   pois: PoiDto[];
+  tourPois?: PoiDto[];
   selectedPoiId: number | null;
   onSelectPoi: (poiId: number) => void;
   userLocation: { latitude: number; longitude: number } | null;
@@ -21,11 +22,12 @@ export function calculateHaversineDistance(lat1: number, lon1: number, lat2: num
   return Math.round(R * c);
 }
 
+let leafletPromise: Promise<any> | null = null;
 function loadLeafletLibrary(): Promise<any> {
   const win = window as any;
   if (win.L) return Promise.resolve(win.L);
-
-  return new Promise((resolve) => {
+  if (leafletPromise) return leafletPromise;
+  leafletPromise = new Promise((resolve) => {
     if (!document.getElementById('leaflet-css')) {
       const link = document.createElement('link');
       link.id = 'leaflet-css';
@@ -33,21 +35,20 @@ function loadLeafletLibrary(): Promise<any> {
       link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
       document.head.appendChild(link);
     }
-
     const script = document.createElement('script');
     script.id = 'leaflet-js';
     script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    script.onload = () => resolve((window as any).L);
-    script.onerror = () => {
-      console.warn('Khong the tai Leaflet tu CDN, ban do se hoat dong o che do du phong.');
-      resolve(null);
-    };
+    const timeout = window.setTimeout(() => { script.remove(); leafletPromise = null; resolve(null); }, 15000);
+    script.onload = () => { window.clearTimeout(timeout); resolve(win.L || null); };
+    script.onerror = () => { window.clearTimeout(timeout); script.remove(); leafletPromise = null; resolve(null); };
     document.head.appendChild(script);
   });
+  return leafletPromise;
 }
 
 export const MapView: React.FC<MapViewProps> = ({
   pois,
+  tourPois = pois,
   selectedPoiId,
   onSelectPoi,
   userLocation,
@@ -61,14 +62,17 @@ export const MapView: React.FC<MapViewProps> = ({
   const userMarkerRef = useRef<any>(null);
   const tourPolylineRef = useRef<any>(null);
   const [leafletLoaded, setLeafletLoaded] = useState(false);
+  const [mapError, setMapError] = useState(false);
 
   // 1. Khoi tao ban do Leaflet
   useEffect(() => {
     let active = true;
+    let resizeObserver: ResizeObserver | null = null;
 
     loadLeafletLibrary().then((L) => {
-      if (!active || !L || !mapContainerRef.current) return;
-      setLeafletLoaded(true);
+      if (!active) return;
+      if (!L) { setMapError(true); return; }
+      if (!mapContainerRef.current) return;
 
       if (!mapInstanceRef.current) {
         const defaultCenter = [10.7875, 106.7053]; // Thao Cam Vien Sai Gon
@@ -76,19 +80,32 @@ export const MapView: React.FC<MapViewProps> = ({
           center: defaultCenter,
           zoom: 17,
           zoomControl: true,
-          attributionControl: false
+          attributionControl: true
         });
 
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          maxZoom: 19
+          maxZoom: 19,
+          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }).addTo(map);
 
         mapInstanceRef.current = map;
+        if (typeof ResizeObserver !== 'undefined') {
+          resizeObserver = new ResizeObserver(() => map.invalidateSize());
+          resizeObserver.observe(mapContainerRef.current);
+        }
+        setLeafletLoaded(true);
       }
     });
 
     return () => {
       active = false;
+      resizeObserver?.disconnect();
+      mapInstanceRef.current?.remove();
+      mapInstanceRef.current = null;
+      markersRef.current = {};
+      circlesRef.current = {};
+      userMarkerRef.current = null;
+      tourPolylineRef.current = null;
     };
   }, []);
 
@@ -123,7 +140,7 @@ export const MapView: React.FC<MapViewProps> = ({
         className: 'poi-map-marker',
         html: `
           <div style="
-            background: ${isSelected ? '#15803d' : '#2d6a4f'};
+            background: ${isSelected ? '#a57434' : '#315c43'};
             color: #ffffff;
             width: ${isSelected ? '36px' : '30px'};
             height: ${isSelected ? '36px' : '30px'};
@@ -144,13 +161,15 @@ export const MapView: React.FC<MapViewProps> = ({
         iconAnchor: [isSelected ? 18 : 15, isSelected ? 18 : 15]
       });
 
-      const marker = L.marker([poi.latitude, poi.longitude], { icon: customIcon }).addTo(map);
+      const marker = L.marker([poi.latitude, poi.longitude], { icon: customIcon, title: poi.text?.name || poi.originalName, alt: poi.text?.name || poi.originalName }).addTo(map);
       marker.on('click', () => {
         onSelectPoi(poi.poiId);
       });
 
       const poiName = poi.text?.name || poi.originalName;
-      marker.bindTooltip(`<strong>${poiName}</strong>`, {
+      const tooltip = document.createElement('strong');
+      tooltip.textContent = poiName;
+      marker.bindTooltip(tooltip, {
         direction: 'top',
         offset: [0, -16]
       });
@@ -167,7 +186,7 @@ export const MapView: React.FC<MapViewProps> = ({
 
       circlesRef.current[poi.poiId] = circle;
     });
-  }, [pois, selectedPoiId, filteredCategory, leafletLoaded]);
+  }, [pois, selectedPoiId, filteredCategory, leafletLoaded, onSelectPoi]);
 
   // 3. Pan to selected POI
   useEffect(() => {
@@ -177,7 +196,7 @@ export const MapView: React.FC<MapViewProps> = ({
     if (target) {
       map.panTo([target.latitude, target.longitude], { animate: true, duration: 0.5 });
     }
-  }, [selectedPoiId, pois]);
+  }, [selectedPoiId, pois, leafletLoaded]);
 
   // 4. Ve vi tri nguoi dung (GPS thuc te)
   useEffect(() => {
@@ -243,7 +262,7 @@ export const MapView: React.FC<MapViewProps> = ({
       const latlngs: [number, number][] = [];
 
       sorted.forEach((item) => {
-        const poi = pois.find((p) => p.poiId === item.poiId);
+        const poi = tourPois.find((p) => p.poiId === item.poiId);
         if (poi) {
           latlngs.push([poi.latitude, poi.longitude]);
         }
@@ -261,31 +280,13 @@ export const MapView: React.FC<MapViewProps> = ({
         tourPolylineRef.current = polyline;
       }
     }
-  }, [activeTour, pois, leafletLoaded]);
+  }, [activeTour, tourPois, leafletLoaded]);
 
   return (
-    <div style={{ position: 'relative', width: '100%', height: '100%', minHeight: '380px', borderRadius: '12px', overflow: 'hidden' }}>
-      <div ref={mapContainerRef} style={{ width: '100%', height: '100%', minHeight: '380px', background: '#e5e7eb' }} />
-      <div style={{
-        position: 'absolute',
-        bottom: '10px',
-        left: '10px',
-        zIndex: 500,
-        background: 'rgba(255, 255, 255, 0.92)',
-        padding: '6px 10px',
-        borderRadius: '6px',
-        fontSize: '0.72rem',
-        boxShadow: '0 2px 6px rgba(0,0,0,0.15)',
-        display: 'flex',
-        gap: '10px',
-        alignItems: 'center',
-        flexWrap: 'wrap'
-      }}>
-        <span>🦁 Động vật</span>
-        <span>🌿 Cây di sản</span>
-        <span>🏛️ Di tích</span>
-        <span>⭕ Vòng kích hoạt 30m</span>
-      </div>
+    <div className="leaflet-map-shell">
+      <div ref={mapContainerRef} className="leaflet-map-canvas" aria-label="Bản đồ điểm tham quan Thảo Cầm Viên" />
+      {!leafletLoaded && <div className="map-load-notice" role="status">{mapError ? 'Chưa tải được bản đồ. Bạn vẫn có thể chọn điểm trong danh sách để xem giới thiệu và nghe thuyết minh.' : 'Đang mở bản đồ khu vườn…'}</div>}
+      {leafletLoaded && <div className="map-legend"><span>🦁 Động vật</span><span>🌿 Thực vật</span><span>🏛️ Di tích</span><span>Vòng tròn: vùng kích hoạt</span></div>}
     </div>
   );
 };

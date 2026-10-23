@@ -6,6 +6,8 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { InternalTourEditPage } from '../src/pages/InternalTourEditPage.tsx';
 import { InternalMonitoringPage } from '../src/pages/InternalMonitoringPage.tsx';
 import { AudioPlayer } from '../src/components/AudioPlayer.tsx';
+import { MapView } from '../src/components/MapView.tsx';
+import { PoiImage } from '../src/components/PoiImage.tsx';
 import { ExplorePage } from '../src/pages/ExplorePage.tsx';
 import { searchBundleText } from '../src/api/bundleSearch.ts';
 import { actor, monitoringService, tourService, jsonResponse, serviceResponse } from './helpers/backend-contracts.js';
@@ -230,4 +232,43 @@ test('bundle lookup quotes only available text and never invents opening hours, 
   assert.match(answer, /Nội dung từ bundle thử nghiệm/);
   assert.match(answer, /chưa xác minh/);
   assert.doesNotMatch(searchBundleText('voi', [{ ...poi(), text: { ...poi().text, status: 'UNAVAILABLE' } }]), /Nội dung từ bundle thử nghiệm/);
+});
+
+
+test('discovery filters and unaccented search share map results while preserving the full tour data', async t => {
+  browser(t);
+  audioMock(t);
+  const deer = { ...poi(1), originalName: 'Hươu Sao', category: 'ANIMAL', text: { ...poi().text, name: 'Hươu Sao' } };
+  const tree = { ...poi(2), originalName: 'Cây dầu', category: 'PLANT', text: { ...poi().text, name: 'Cây dầu' } };
+  t.mock.method(globalThis, 'fetch', async url => jsonResponse({ data: String(url).includes('/bundle') ? {
+    requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Vietnamese' }], pois: [tree, deer], tours: [], expiresAt: '2026-10-24T00:00:00Z'
+  } : {} }));
+  const view = await mount(t, h(MemoryRouter, { initialEntries: ['/explore?category=ANIMAL'], future: { v7_startTransition: true, v7_relativeSplatPath: true } }, h(ExplorePage)));
+  const map = () => view.root.findByType(MapView);
+  assert.deepEqual(map().props.pois.map(p => p.poiId), [1]);
+  assert.equal(map().props.selectedPoiId, 1, 'category entry selects a relevant POI');
+  assert.equal(map().props.tourPois.length, 2, 'filters must not truncate route coordinates');
+  await act(async () => button(view, 'Tất cả').props.onClick());
+  const search = view.root.findByProps({ 'aria-label': 'Tìm điểm tham quan' });
+  await act(async () => search.props.onChange({ target: { value: 'huou sao' } }));
+  assert.deepEqual(map().props.pois.map(p => p.poiId), [1]);
+  await act(async () => search.props.onChange({ target: { value: 'khong ton tai' } }));
+  assert.equal(map().props.pois.length, 0);
+  assert.match(text(view), /Không tìm thấy điểm phù hợp/);
+  await act(async () => button(view, 'Xóa bộ lọc').props.onClick());
+  assert.equal(map().props.pois.length, 2);
+  const treeButton = view.root.findAllByType('button').find(node => node.props.className === 'poi-list-item' && nodeText(node).includes('Cây dầu'));
+  await act(async () => treeButton.props.onClick());
+  assert.equal(map().props.selectedPoiId, 2);
+  assert.match(nodeText(view.root.findByProps({ id: 'selected-poi-detail' })), /Cây dầu/);
+});
+
+test('POI imagery falls back on a failed image and recovers for a different source', async t => {
+  const props = { src: '/missing.webp', name: 'Hươu Sao', category: 'ANIMAL' };
+  const view = await mount(t, h(PoiImage, props));
+  await act(async () => view.root.findByType('img').props.onError());
+  assert.equal(view.root.findAllByType('img').length, 0);
+  assert.match(text(view), /Chưa có ảnh Hươu Sao/);
+  await act(async () => view.update(h(PoiImage, { ...props, src: '/new.webp' })));
+  assert.equal(view.root.findByType('img').props.src, '/new.webp');
 });

@@ -326,7 +326,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
           </span>
         </div>
         <p style={{ fontSize: '0.84rem', color: 'var(--tcv-slate-500)', fontStyle: 'italic' }}>
-          Hiện chưa có tệp âm thanh thuyết minh cho điểm tham quan này. Bạn vẫn có thể đọc toàn bộ thông tin văn bản giới thiệu ở trên.
+          Hiện chưa có tệp âm thanh thuyết minh cho điểm tham quan này. Bạn vẫn có thể đọc thông tin trong phần Giới thiệu.
         </p>
       </div>
     );
