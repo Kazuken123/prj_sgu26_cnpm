@@ -51,15 +51,57 @@ it("invalid process bounds and missing Piper CLI configuration fail before any w
   assert.equal(await new Promise(resolve => child.once("exit", resolve)), 1);
   assert.match(output, /WORKER_TTS_CONFIGURATION_INVALID/); assert.ok(!output.includes("DB_PASSWORD"));
 });
-async function fixture(t, run) {
+async function fixture(t, run, voiceSet) {
   const root = await fs.mkdtemp(path.join(os.tmpdir(), "tcv-piper-unit-"));
   t.after(async () => { if (path.dirname(root) === os.tmpdir() && path.basename(root).startsWith("tcv-piper-unit-")) await fs.rm(root, { recursive: true, force: true }); });
-  for (const voice of Object.values(manifest.voices)) {
+  const adapter = new Piper({ modelDir: root, resourceDir: root, voiceSet, python: executable, ffmpeg: executable, timeoutMs: 5000 }, run);
+  for (const voice of Object.values(adapter.voices)) {
+    await fs.mkdir(path.dirname(path.join(root, voice.model)), { recursive: true });
     await fs.writeFile(path.join(root, voice.model), "UNIT TEST MODEL PLACEHOLDER");
-    await fs.writeFile(path.join(root, voice.model + ".json"), JSON.stringify({ audio: { sample_rate: voice.sampleRate }, num_speakers: 1 }));
+    await fs.writeFile(path.join(root, voice.model + ".json"), JSON.stringify({ audio: { sample_rate: voice.sampleRate },
+      num_speakers: voice.numSpeakers ?? 1, phoneme_type: voice.phonemeType,
+      speaker_id_map: voice.speakerName ? { [voice.speakerName]: voice.speakerId } : {} }));
   }
-  return new Piper({ modelDir: root, python: executable, ffmpeg: executable, timeoutMs: 5000 }, run);
+  return adapter;
 }
+it("demo7 is explicit and requires an absolute resource directory; VI/EN remains the default", () => {
+  const env = { PIPER_PYTHON: executable, PIPER_FFMPEG: executable, PIPER_MODEL_DIR: os.tmpdir() };
+  assert.equal(getPiperConfig(env).voiceSet, "vi-en");
+  for (const extra of [{ PIPER_VOICE_SET: "all" }, { PIPER_VOICE_SET: "demo7" }, { PIPER_VOICE_SET: "demo7", PIPER_RESOURCE_DIR: "relative" }]) {
+    assert.throws(() => getPiperConfig({ ...env, ...extra }));
+  }
+  assert.equal(getPiperConfig({ ...env, PIPER_VOICE_SET: "demo7", PIPER_RESOURCE_DIR: os.tmpdir() }).voiceSet, "demo7");
+});
+it("demo7 uses the checked offline helper and Japanese female speaker without putting script in arguments", async t => {
+  const calls = [], adapter = await fixture(t, async (file, args, bytes, options) => {
+    calls.push({ args, bytes, options });
+    return args.includes("--check") ? Buffer.from("PIPER_RUNTIME_READY\n") : Buffer.alloc(args.includes("--model") ? 44100 : 32000);
+  }, "demo7");
+  await adapter.assertConfigured(); assert.ok(calls[0].args.includes(adapter.config.resourceDir));
+  for (const languageCode of ["vi", "en", "zh-Hans", "ko", "ja", "ru", "fr"]) {
+    assert.equal(inspectWav(await adapter.synthesize({ text: "Reviewed script", languageCode })).duration, 1);
+    const speech = calls.at(-2);
+    assert.ok(speech.args[0].endsWith("piper-synthesize.py"));
+    assert.equal(speech.args[speech.args.indexOf("--speaker") + 1], "0");
+    assert.equal(speech.bytes.toString(), "Reviewed script\n");
+    assert.ok(!speech.args.join(" ").includes("Reviewed script"));
+  }
+});
+it("speaker count, selected female mapping and phonemizer must match before spawning", async t => {
+  const adapter = await fixture(t, () => assert.fail("Do not synthesize invalid models"), "demo7");
+  const filename = path.join(adapter.config.modelDir, adapter.voices.ja.model + ".json");
+  for (const patch of [{ num_speakers: 1 }, { speaker_id_map: { female: 1, male: 0 } }, { phoneme_type: "espeak" }]) {
+    await fs.writeFile(filename, JSON.stringify({ audio: { sample_rate: 22050 }, num_speakers: 2,
+      phoneme_type: "japanese", speaker_id_map: { female: 0, male: 1 }, ...patch }));
+    await assert.rejects(adapter.synthesize({ text: "test", languageCode: "ja" }), /PIPER_TTS_FAILED/);
+  }
+});
+it("missing offline resources or failed preflight stops demo7 startup", async t => {
+  const adapter = await fixture(t, async () => Buffer.from("not ready"), "demo7");
+  await assert.rejects(adapter.assertConfigured(), /PIPER_RUNTIME_NOT_READY/);
+  adapter.run = async () => { throw Error("TTS_PROCESS_FAILED"); };
+  await assert.rejects(adapter.assertConfigured(), /TTS_PROCESS_FAILED/);
+});
 it("Piper selects VI/EN models, performs explicit resampling and returns validated canonical WAV", async t => {
   const calls = [], adapter = await fixture(t, async (file, args, bytes, options) => {
     calls.push({ args, bytes, options }); return Buffer.alloc(args.includes("piper") ? 44100 : 32000);

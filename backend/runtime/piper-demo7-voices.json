@@ -1,0 +1,11 @@
+{
+  "repository": "rhasspy/piper-voices",
+  "revision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd",
+  "voices": {
+    "zh-Hans": {"directory":"zh/zh_CN/chaowen/medium","model":"zh_CN-chaowen-medium.onnx","sha256":"820d64ac16048fbcf38dd0823d37fab5f5e0c2bd71b01ca5a50f553fac19e746","size":63221984,"sampleRate":22050,"numSpeakers":1,"phonemeType":"pinyin"},
+    "ko": {"directory":"ko/ko_KR/kss/medium","model":"ko_KR-kss-medium.onnx","sha256":"624fd774e26895f24bebae1bd9a3379e3394baeade4b584924f83e414096e2c9","size":63221984,"sampleRate":22050,"numSpeakers":1,"phonemeType":"espeak"},
+    "ja": {"directory":"ja/ja_JP/hi_fi_captain/medium","model":"ja_JP-hi_fi_captain-medium.onnx","sha256":"5eafa1610fc7a0ff2e7fde9cbe0972d876266e23d8db331727eb2466f19460eb","size":76753841,"sampleRate":22050,"numSpeakers":2,"phonemeType":"japanese","speakerName":"female","speakerId":0},
+    "ru": {"directory":"ru/ru_RU/denis/medium","model":"ru_RU-denis-medium.onnx","sha256":"15fab56e11a097858ee115545d0f697fc2a316c41a291a5362349fb870411b0a","size":63201294,"sampleRate":22050,"numSpeakers":1,"phonemeType":"espeak"},
+    "fr": {"directory":"fr/fr_FR/siwis/medium","model":"fr_FR-siwis-medium.onnx","sha256":"641d1ab097da2b81128c076810edb052b385decc8be3381814802a64a73baf99","size":63201294,"sampleRate":22050,"numSpeakers":1,"phonemeType":"espeak"}
+  }
+}

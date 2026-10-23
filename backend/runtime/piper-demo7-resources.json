@@ -1,0 +1,12 @@
+{
+  "g2pw": {"url":"https://huggingface.co/datasets/rhasspy/piper-checkpoints/resolve/37d1bea250e21ca0d617818d2bef1db724edb80c/zh/zh_CN/_resources/g2pw.tar.gz","size":112991734,"sha256":"252c6f561c11014fbb243d70aec993a816d82109887b91edcda0261ab9967060"},
+  "tokenizer": {
+    "repository":"google-bert/bert-base-chinese",
+    "revision":"8f23c25b06e129b6c986331a13d8d025a92cf0ea",
+    "files":[
+      {"name":"tokenizer.json","size":268943,"sha256":"55c5edcfb8936895e019b2d8f97dcb547734f25b29f95009155f4c8c15649aae"},
+      {"name":"tokenizer_config.json","size":49,"sha256":"0f6d13e6f4da6f9e24f22ada6bc3be571123d858d7c0c05a8a7cd55a9c23c2e8"},
+      {"name":"vocab.txt","size":109540,"sha256":"45bbac6b341c319adc98a532532882e91a9cefc0329aa57bac9ae761c27b291c"}
+    ]
+  }
+}

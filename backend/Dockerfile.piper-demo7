@@ -1,0 +1,10 @@
+# Build the current optional VI/EN worker first; default deployment stays unchanged.
+ARG PIPER_BASE_IMAGE=tcv-piper-worker:local
+FROM ${PIPER_BASE_IMAGE}
+COPY backend/runtime/piper-demo7-requirements.txt /opt/tcv-runtime/
+RUN /opt/piper/bin/pip install --no-cache-dir -r /opt/tcv-runtime/piper-demo7-requirements.txt
+COPY backend/runtime/piper-demo7-voices.json backend/runtime/piper-demo7-resources.json backend/runtime/install-piper-resources.py /opt/tcv-runtime/
+RUN /opt/piper/bin/python /opt/tcv-runtime/install-piper-voices.py /opt/tcv-runtime/piper-demo7-voices.json /opt/piper-models/demo7 \
+    && /opt/piper/bin/python /opt/tcv-runtime/install-piper-resources.py /opt/tcv-runtime/piper-demo7-resources.json /opt/piper-resources
+ENV PIPER_VOICE_SET=demo7 PIPER_RESOURCE_DIR=/opt/piper-resources
+RUN /opt/piper/bin/python /app/runtime/piper-synthesize.py --resource-dir /opt/piper-resources --check

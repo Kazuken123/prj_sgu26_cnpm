@@ -12,7 +12,7 @@ const draft = require("../../data/demo/draft03.json");
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
 // Optional provider acceptance. Default CI still runs all mock/process-boundary tests;
 // the dedicated Piper runtime enables this suite explicitly, with real MySQL/Redis.
-if (process.env.RUN_PIPER_TESTS === "1") describe("Piper real local speech with isolated SQL and authenticated guest HTTP", { timeout: 240000 }, () => {
+if (process.env.RUN_PIPER_TESTS === "1") describe("Piper real local speech with isolated SQL and authenticated guest HTTP", { timeout: 600000 }, () => {
   const database = "tcv_piper_test_" + randomUUID().replaceAll("-", "");
   let connection, db, auth, actor, pois, jobs, root, storage, server, base, gateway, payment;
   const children = new Set(), piper = new Piper(), ids = [];
@@ -32,6 +32,15 @@ if (process.env.RUN_PIPER_TESTS === "1") describe("Piper real local speech with 
     children.add(child); let output = "", errors = "";
     child.stdout.on("data", bytes => { output += bytes; }); child.stderr.on("data", bytes => { errors += bytes; });
     const exited = new Promise(resolve => child.once("exit", code => resolve(code)));
+    // demo7 preflight loads phonemizers before signal handlers/polling are ready.
+    // A restart check must observe real startup, rather than killing preflight.
+    const startupDeadline = Date.now() + getPiperConfig().timeoutMs + 5000;
+    while (!output.includes('"event":"started"')) {
+      assert.equal(child.exitCode, null, "Worker exited before startup");
+      assert.equal(child.signalCode, null, "Worker was interrupted before startup");
+      assert.ok(Date.now() < startupDeadline, "Worker startup deadline exceeded");
+      await pause(50);
+    }
     return { child, stop: async () => { child.kill("SIGTERM"); assert.equal(await exited, 0); children.delete(child); assert.ok(!errors, "Worker emitted an error"); assert.match(output, /"provider":"PIPER"/); } };
   }
   before(async () => {
@@ -151,5 +160,58 @@ if (process.env.RUN_PIPER_TESTS === "1") describe("Piper real local speech with 
     }
     await db.query("UPDATE VISIT_SESSIONS SET expires_at=UTC_TIMESTAMP()-INTERVAL 1 SECOND WHERE session_id=?", [c.sessionId]);
     assert.equal((await json("/api/content/bundle?languageCode=vi", "GET", undefined, token)).response.status, 401);
+  });
+  if (process.env.RUN_PIPER_DEMO7_TESTS === "1") it("demo7 actual worker preserves reviewed Unicode through restart and serves seven exact-language audio bundles", { timeout: 300000 }, async () => {
+    assert.equal(getPiperConfig().voiceSet, "demo7");
+    const samples = [
+      ["zh-Hans", "简体中文", "这是测试，不是正式导览。"],
+      ["ko", "한국어", "이것은 시험용 음성입니다."],
+      ["ja", "日本語", "これはテスト用の音声です。"],
+      ["ru", "Русский", "Это тестовая запись."],
+      ["fr", "Français", "Ceci est un test audio."],
+    ];
+    for (const [code, name] of samples) await db.query("INSERT INTO LANGUAGES(code,name,is_active) VALUES(?,?,1)", [code, name]);
+    const poiId = await fixture(draft.pois[0].text);
+    const translations = new (require("../services/translation.service").TranslationService)(new (require("../stores/translation.store"))(db));
+    for (const [code, name, script] of samples) await translations.importReviewed(actor, poiId, code,
+      { sourceVersion: 1, name, description: script, audioScript: script });
+    const before = await textRows(), worker = await startWorker();
+    try {
+      // The worker also drains pending VI fixtures from the preceding error cases.
+      // This queue deadline is separate from each unchanged provider timeout.
+      const deadline = Date.now() + 180000;
+      while (Date.now() < deadline) {
+        const [rows] = await db.query("SELECT status FROM CONTENT_JOBS WHERE poi_id=?", [poiId]);
+        if (rows.every(row => row.status === "COMPLETED")) break;
+        if (rows.some(row => row.status === "FAILED")) assert.fail("A real demo7 job failed");
+        await pause(200);
+      }
+      const [rows] = await db.query("SELECT status FROM CONTENT_JOBS WHERE poi_id=?", [poiId]);
+      assert.equal(rows.length, 7); assert.ok(rows.every(row => row.status === "COMPLETED"));
+    } finally { await worker.stop(); }
+    assert.deepEqual(await textRows(), before);
+    const original = (await audioRows()).filter(row => row.poi_id === poiId);
+    assert.equal(original.length, 7);
+    const restarted = await startWorker();
+    await pause(1000); await restarted.stop();
+    assert.deepEqual((await audioRows()).filter(row => row.poi_id === poiId), original);
+    const checkout = (await payment.initializeOnline({}, randomUUID())).data;
+    const event = gateway.createWebhook({ paymentRef: checkout.paymentRef, amount: checkout.amount, currency: checkout.currency, status: "SUCCESS" });
+    await payment.processMockWebhook(event.body, event.signature);
+    const visit = await payment.exchangeOnlineCode(checkout.sessionId, { authCode: checkout.authCode }, "192.0.2.246");
+    const headers = { Authorization: "Bearer " + visit.token };
+    for (const code of ["vi", "en", ...samples.map(row => row[0])]) {
+      const response = await fetch(base + "/api/content/bundle?languageCode=" + code, { headers });
+      assert.equal(response.status, 200);
+      const poi = (await response.json()).data.pois.find(row => row.poiId === poiId);
+      assert.equal(poi.text.languageCode, code); assert.equal(poi.audio.languageCode, code);
+      const audio = await fetch(base + poi.audio.url, { headers }); assert.equal(audio.status, 200);
+      assert.ok(inspectWav(Buffer.from(await audio.arrayBuffer())).duration > 0);
+      assert.equal((await fetch(base + poi.audio.url)).status, 401);
+    }
+    await db.query("UPDATE VISIT_SESSIONS SET status='REVOKED' WHERE session_id=?", [checkout.sessionId]);
+    const url = original[0].file_url;
+    assert.equal((await fetch(base + url, { headers })).status, 401);
+    assert.deepEqual(await textRows(), before);
   });
 });
