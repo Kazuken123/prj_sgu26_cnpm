@@ -18,7 +18,7 @@ test("TLS cannot downgrade to permissive modes or silently ignore a supplied CA"
   assert.throws(() => databaseOptions({ DB_SSL_CA: ca }), /DB_TLS_MODE_REQUIRED/);
 });
 test("missing, corrupted, extraneous or oversized CA input fails without revealing configuration", () => {
-  for (const bad of [undefined, "", "TEST secret text", "-----BEGIN CERTIFICATE-----\nbad\n-----END CERTIFICATE-----", ca + "unexpected", ca.repeat(100)]) {
+  for (const bad of [undefined, "", "TEST secret text", "-----BEGIN CERTIFICATE-----\nbad\n-----END CERTIFICATE-----", ca + "unexpected", ca.repeat(Math.ceil(131073 / ca.length))]) {
     assert.throws(() => databaseOptions({ DB_HOST: "db.example.test", DB_SSL_MODE: "verify_identity", DB_SSL_CA: bad, DB_PASSWORD: "TEST must not leak" }),
       error => error.message === "INVALID_DB_TLS_CONFIG");
   }
