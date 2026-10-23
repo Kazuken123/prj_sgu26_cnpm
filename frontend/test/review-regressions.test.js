@@ -1,4 +1,4 @@
-﻿import { test } from 'node:test';
+import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import React from 'react';
 import { create, act } from 'react-test-renderer';
@@ -9,6 +9,11 @@ import { AudioPlayer } from '../src/components/AudioPlayer.tsx';
 import { MapView } from '../src/components/MapView.tsx';
 import { PoiImage } from '../src/components/PoiImage.tsx';
 import { ExplorePage } from '../src/pages/ExplorePage.tsx';
+import { InternalCashPage } from '../src/pages/InternalCashPage.tsx';
+import { InternalToursPage } from '../src/pages/InternalToursPage.tsx';
+import { InternalAuditLogsPage } from '../src/pages/InternalAuditLogsPage.tsx';
+import { PaymentPage } from '../src/pages/PaymentPage.tsx';
+import { useVisitExpiry } from '../src/hooks/useVisitExpiry.ts';
 import { searchBundleText } from '../src/api/bundleSearch.ts';
 import { actor, monitoringService, tourService, jsonResponse, serviceResponse } from './helpers/backend-contracts.js';
 
@@ -30,12 +35,14 @@ function setGlobal(t, name, value) {
 function browser(t) {
   // Node 20 has no global navigator; browser tests must supply their own.
   setGlobal(t, 'navigator', {});
+  const entries = new Map([
+    ['tcv_internal_session_v1', JSON.stringify({ version: 1, apiBaseUrl: origin, accessToken: 'admin-test', refreshToken: 'refresh-test', user: actor })],
+    ['tcv_guest_session_v1', JSON.stringify({ version: 1, apiBaseUrl: origin, token: 'guest-test' })]
+  ]);
+  const storage = { getItem: key => entries.get(key) ?? null, setItem: (key, value) => entries.set(key, value), removeItem: key => entries.delete(key) };
   setGlobal(t, 'window', {
     location: { origin }, L: {},
-    sessionStorage: { getItem: key => JSON.stringify({
-      version: 1, apiBaseUrl: origin,
-      ...(key.includes('internal') ? { accessToken: 'admin-test', user: actor } : { token: 'guest-test' })
-    }) }
+    sessionStorage: storage, localStorage: storage
   });
 }
 async function mount(t, element) {
@@ -205,7 +212,7 @@ test('Explore uses real GPS, auto-plays once per pass and rearms after leaving t
   t.mock.method(globalThis, 'fetch', async url => {
     if (String(url).includes('/api/media/')) return mediaResponse();
     if (String(url).includes('/bundle')) return jsonResponse({ data: {
-      requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Vietnamese' }], pois: [poi()], tours: [], expiresAt: '2026-10-24T00:00:00Z'
+      requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Vietnamese' }], pois: [poi()], tours: [], expiresAt: new Date(Date.now() + 86400000).toISOString()
     } });
     return jsonResponse({ data: {} });
   });
@@ -243,7 +250,7 @@ test('discovery filters and unaccented search share map results while preserving
   const deer = { ...poi(1), originalName: 'Hươu Sao', category: 'ANIMAL', text: { ...poi().text, name: 'Hươu Sao' } };
   const tree = { ...poi(2), originalName: 'Cây dầu', category: 'PLANT', text: { ...poi().text, name: 'Cây dầu' } };
   t.mock.method(globalThis, 'fetch', async url => jsonResponse({ data: String(url).includes('/bundle') ? {
-    requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Vietnamese' }], pois: [tree, deer], tours: [], expiresAt: '2026-10-24T00:00:00Z'
+    requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Vietnamese' }], pois: [tree, deer], tours: [], expiresAt: new Date(Date.now() + 86400000).toISOString()
   } : {} }));
   const view = await mount(t, h(MemoryRouter, { initialEntries: ['/explore?category=ANIMAL'], future: { v7_startTransition: true, v7_relativeSplatPath: true } }, h(ExplorePage)));
   const map = () => view.root.findByType(MapView);
@@ -274,3 +281,154 @@ test('POI imagery falls back on a failed image and recovers for a different sour
   await act(async () => view.update(h(PoiImage, { ...props, src: '/new.webp' })));
   assert.equal(view.root.findByType('img').props.src, '/new.webp');
 });
+
+test('expiry while a tab is suspended stops loaded audio, clears guest access and stops GPS without polling', async t => {
+  browser(t);
+  const audios = audioMock(t), listeners = new Map();
+  let now = Date.now(), stopped = 0, calls = 0;
+  t.mock.method(Date, 'now', () => now);
+  window.addEventListener = (name, callback) => listeners.set(name, callback);
+  window.removeEventListener = name => listeners.delete(name);
+  setGlobal(t, 'navigator', { geolocation: { watchPosition: () => 1, clearWatch: () => { stopped++; } } });
+  t.mock.method(globalThis, 'fetch', async url => {
+    calls++;
+    if (String(url).includes('/api/media/')) return mediaResponse();
+    return jsonResponse({ data: String(url).includes('/bundle') ? {
+      requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Vietnamese' }], pois: [poi()], tours: [], expiresAt: new Date(now + 10000).toISOString()
+    } : {} });
+  });
+  const view = await mount(t, h(MemoryRouter, null, h(ExplorePage)));
+  await act(async () => button(view, 'Nghe thuyết minh').props.onClick());
+  assert.match(audios[0].src, /^blob:/);
+  const count = calls;
+  now += 10001;
+  await act(async () => listeners.get('focus')());
+  assert.match(text(view), /Vé đã hết hạn/);
+  assert.equal(audios[0].src, '');
+  assert.equal(window.localStorage.getItem('tcv_guest_session_v1'), null);
+  assert.equal(calls, count, 'expiry must not poll the server');
+  assert.equal(stopped, 1);
+});
+
+test('text fallback is labelled separately from real-language audio and no longer claims one-second mock', async t => {
+  browser(t); audioMock(t);
+  const fallback = { ...poi(), text: { ...poi().text, languageCode: 'en', isFallback: true } };
+  t.mock.method(globalThis, 'fetch', async url => jsonResponse({ data: String(url).includes('/bundle') ? {
+    requestedLanguageCode: 'vi', languages: [], pois: [fallback], tours: [], expiresAt: new Date(Date.now() + 60000).toISOString()
+  } : {} }));
+  const view = await mount(t, h(MemoryRouter, null, h(ExplorePage)));
+  assert.match(text(view), /Văn bản thay thế bằng/);
+  assert.match(text(view), /Âm thanh phục vụ demo/);
+  assert.doesNotMatch(text(view), /Âm thử MOCK|một giây|Phát âm thử/);
+});
+
+test('cash desk clears the previous code on session switch and cannot issue before confirmation', async t => {
+  browser(t);
+  const first = '11111111-1111-4111-8111-111111111111', second = '22222222-2222-4222-8222-222222222222';
+  let issued = 0;
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    if (String(url).endsWith('/me')) return jsonResponse({ data: actor });
+    if (String(url).endsWith('/cash-code')) { issued++; assert.ok(String(url).includes(first)); return jsonResponse({ data: { sessionId: first, shortedCode: '654321', codeExpiresAt: 'TEST deadline' } }); }
+    const sessionId = String(url).includes(second) ? second : first;
+    const paid = String(url).endsWith('/confirm-cash');
+    return jsonResponse({ data: { sessionId, paymentRef: 'TEST payment', paymentMethod: 'CASH', amount: '50000.00', currency: 'VND', paymentStatus: paid ? 'PAID' : 'PENDING', sessionStatus: paid ? 'ACTIVE' : 'PENDING' } }, options.method === 'POST' && String(url).endsWith('/payments') ? 201 : 200);
+  });
+  const view = await mount(t, h(MemoryRouter, null, h(InternalCashPage)));
+  await act(async () => button(view, 'Tạo phiên tiền mặt mới').props.onClick());
+  assert.equal(button(view, 'Cấp mã ngắn 6 số').props.disabled, true);
+  await act(async () => button(view, 'Xác nhận đã nhận tiền mặt').props.onClick());
+  await act(async () => button(view, 'Cấp mã ngắn 6 số').props.onClick());
+  assert.match(text(view), /654321/);
+  await act(async () => view.root.findByType('input').props.onChange({ target: { value: second } }));
+  await act(async () => view.root.findByType('form').props.onSubmit({ preventDefault }));
+  assert.doesNotMatch(text(view), /654321|11111111-1111/);
+  assert.equal(button(view, 'Cấp mã ngắn 6 số').props.disabled, true);
+  await act(async () => button(view, 'Cấp mã ngắn 6 số').props.onClick());
+  assert.equal(issued, 1);
+});
+
+test('tour list uses only supported pagination and shared refresh when its access token expires', async t => {
+  browser(t);
+  let refreshes = 0, receivedQuery;
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    const path = new URL(url);
+    if (path.pathname.endsWith('/refresh')) { refreshes++; return jsonResponse({ data: { user: actor, accessToken: 'rotated', refreshToken: 'rotated-refresh' } }); }
+    if (options.headers.Authorization !== 'Bearer rotated') return jsonResponse({ code: 'INVALID_ACCESS_TOKEN', error: 'expired' }, 401);
+    if (path.pathname.endsWith('/tours')) {
+      receivedQuery = Object.fromEntries(path.searchParams);
+      const { createRequire } = await import('node:module');
+      const { TourService } = createRequire(import.meta.url)('../../../backend/services/tour.service.js');
+      const service = new TourService({ list: async query => ({ items: [], total: 0, ...query }) });
+      return serviceResponse(() => service.list(actor, receivedQuery));
+    }
+    return jsonResponse({ data: { items: [], total: 0 } });
+  });
+  const view = await mount(t, h(MemoryRouter, null, h(InternalToursPage)));
+  assert.equal(refreshes, 1);
+  assert.deepEqual(receivedQuery, { page: '1', limit: '10' });
+  assert.match(text(view), /Chưa có lộ trình mẫu/);
+  assert.equal(view.root.findAllByType('input').length, 0, 'do not advertise an unsupported search');
+});
+
+test('local deadline fires once without a focus event and cleans up its timer', async t => {
+  browser(t);
+  let expired = 0;
+  function Deadline() { useVisitExpiry(new Date(Date.now() + 100).toISOString(), () => { expired++; }); return null; }
+  await mount(t, h(Deadline));
+  assert.equal(expired, 0);
+  await act(async () => new Promise(resolve => setTimeout(resolve, 180)));
+  assert.equal(expired, 1);
+});
+
+test('payment verification arriving after local expiry cannot reactivate or recreate cleared guest access', async t => {
+  browser(t);
+  const listeners = new Map();
+  let now = Date.now(), resolveVisit;
+  t.mock.method(Date, 'now', () => now);
+  window.addEventListener = (name, callback) => listeners.set(name, callback);
+  window.removeEventListener = name => listeners.delete(name);
+  const deadline = new Date(now + 10000).toISOString();
+  window.localStorage.setItem('tcv_guest_session_v1', JSON.stringify({ version: 1, apiBaseUrl: origin, token: 'TEST pending token', expiresAt: deadline }));
+  t.mock.method(globalThis, 'fetch', () => new Promise(resolve => { resolveVisit = resolve; }));
+  const view = await mount(t, h(MemoryRouter, null, h(PaymentPage)));
+  now += 10001;
+  await act(async () => listeners.get('focus')());
+  await act(async () => resolveVisit(jsonResponse({ data: { sessionId: 'TEST visit', status: 'ACTIVE', expiresAt: deadline } })));
+  assert.match(text(view), /Vé đã hết hạn/);
+  assert.doesNotMatch(text(view), /Phiên khách tham quan hợp lệ/);
+  assert.equal(window.localStorage.getItem('tcv_guest_session_v1'), null);
+});
+
+test('cash initialization retries an uncertain response with the same idempotency key', async t => {
+  browser(t);
+  const keys = [];
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    if (String(url).endsWith('/me')) return jsonResponse({ data: actor });
+    keys.push(options.headers['Idempotency-Key']);
+    if (keys.length === 1) throw Error('TEST lost response');
+    return jsonResponse({ data: { sessionId: 'TEST same session', paymentStatus: 'PENDING', sessionStatus: 'PENDING' } });
+  });
+  const view = await mount(t, h(MemoryRouter, null, h(InternalCashPage)));
+  await act(async () => button(view, 'Tạo phiên tiền mặt mới').props.onClick());
+  await act(async () => button(view, 'Tạo phiên tiền mặt mới').props.onClick());
+  assert.equal(keys.length, 2);
+  assert.equal(keys[0], keys[1]);
+  assert.match(text(view), /TEST same session/);
+});
+
+for (const Page of [InternalAuditLogsPage, InternalMonitoringPage]) {
+  test(Page.name + ' refreshes expired credentials before retrying protected reads', async t => {
+    browser(t);
+    let refreshes = 0, reads = 0;
+    t.mock.method(globalThis, 'fetch', async (url, options) => {
+      if (String(url).endsWith('/refresh')) { refreshes++; return jsonResponse({ data: { user: actor, accessToken: 'rotated', refreshToken: 'rotated-refresh' } }); }
+      if (options.headers.Authorization !== 'Bearer rotated') return jsonResponse({ code: 'INVALID_ACCESS_TOKEN', error: 'expired' }, 401);
+      reads++;
+      return Page === InternalMonitoringPage ? serviceResponse(() => monitoringService().get(actor, {})) : jsonResponse({ data: { items: [], total: 0, page: 1, actions: [] } });
+    });
+    const view = await mount(t, h(Page));
+    assert.equal(refreshes, 1);
+    assert.equal(reads, 1);
+    assert.doesNotMatch(text(view), /expired|Không thể tải/);
+  });
+}

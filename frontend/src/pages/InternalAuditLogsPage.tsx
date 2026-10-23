@@ -1,12 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { getAuditLogs, AuditLogDto } from '../api/audit';
-import { loadInternalSession } from '../api/authStorage';
+import { executeAuthenticatedInternalRequest } from '../api/auth';
 import { getApiBaseUrl } from '../api/client';
 
 export const InternalAuditLogsPage: React.FC = () => {
   const baseUrl = getApiBaseUrl();
-  const { session } = loadInternalSession(baseUrl);
-  const token = session.accessToken || undefined;
 
   const [logs, setLogs] = useState<AuditLogDto[]>([]);
   const [total, setTotal] = useState(0);
@@ -25,7 +23,7 @@ export const InternalAuditLogsPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getAuditLogs(
+      const res = await executeAuthenticatedInternalRequest(baseUrl, token => getAuditLogs(
         {
           page: currentPage,
           limit,
@@ -35,7 +33,7 @@ export const InternalAuditLogsPage: React.FC = () => {
         },
         token,
         baseUrl
-      );
+      ));
       setLogs(res.items);
       setTotal(res.total);
       setPage(res.page);

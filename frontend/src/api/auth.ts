@@ -142,6 +142,13 @@ export async function executeAuthenticatedInternalRequest<T>(
       (err.code === 'INVALID_ACCESS_TOKEN' || err.code === 'SESSION_REVOKED') &&
       session.refreshToken
     ) {
+      // Another request may already have rotated the credentials while this
+      // request's old-token response was still in flight.
+      const latest = loadInternalSession(apiBaseUrl).session;
+      if (latest.accessToken && latest.accessToken !== session.accessToken) {
+        return requestFn(latest.accessToken);
+      }
+      let refreshed: LoginResponseData;
       try {
         // Neu da co mot tien trinh refresh dang chay, dung chung Promise
         if (!activeRefreshPromise) {
@@ -151,25 +158,19 @@ export async function executeAuthenticatedInternalRequest<T>(
             });
         }
 
-        const refreshed = await activeRefreshPromise;
-
-        // Luu bo token moi
-        saveInternalSession({
-          version: 1,
-          apiBaseUrl,
-          user: refreshed.user,
-          accessToken: refreshed.accessToken,
-          refreshToken: refreshed.refreshToken
-        });
-
-        // Gui lai yeu cau ban dau voi token moi dung 1 lan
-        return await requestFn(refreshed.accessToken);
+        refreshed = await activeRefreshPromise;
       } catch (refreshErr: unknown) {
-        // Refresh that bai: xoa phien noi bo
-        clearInternalSession();
-        if (onUnrecoverableAuthError) onUnrecoverableAuthError();
+        // A network/503 error does not prove the refresh credentials invalid.
+        if (refreshErr instanceof ApiError && [401, 403].includes(refreshErr.status)) {
+          clearInternalSession();
+          if (onUnrecoverableAuthError) onUnrecoverableAuthError();
+        }
         throw refreshErr;
       }
+      saveInternalSession({ version: 1, apiBaseUrl, user: refreshed.user,
+        accessToken: refreshed.accessToken, refreshToken: refreshed.refreshToken });
+      // A business error on the retried request must not erase a valid login.
+      return requestFn(refreshed.accessToken);
     }
 
     throw err;

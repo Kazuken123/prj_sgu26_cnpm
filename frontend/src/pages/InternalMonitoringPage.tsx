@@ -1,12 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getMonitoringData, monitoringRange, MonitoringDto, MonitoringWindow } from '../api/monitoring';
-import { loadInternalSession } from '../api/authStorage';
+import { executeAuthenticatedInternalRequest } from '../api/auth';
 import { getApiBaseUrl } from '../api/client';
 
 export const InternalMonitoringPage: React.FC = () => {
   const baseUrl = getApiBaseUrl();
-  const { session } = loadInternalSession(baseUrl);
-  const token = session.accessToken || undefined;
 
   const [data, setData] = useState<MonitoringDto | null>(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +19,7 @@ export const InternalMonitoringPage: React.FC = () => {
     setLoading(true);
     setError(null);
     try {
-      const res = await getMonitoringData(monitoringRange(windowOption), token, baseUrl);
+      const res = await executeAuthenticatedInternalRequest(baseUrl, token => getMonitoringData(monitoringRange(windowOption), token, baseUrl));
       if (seq !== requestSeq.current) return;
       setData(res);
       setLastRefreshed(new Date().toLocaleTimeString('vi-VN'));
@@ -38,7 +36,7 @@ export const InternalMonitoringPage: React.FC = () => {
     // Polling moi 30 giay
     const interval = setInterval(fetchMonitoring, 30000);
     return () => { clearInterval(interval); requestSeq.current += 1; };
-  }, [windowOption, token, baseUrl]);
+  }, [windowOption, baseUrl]);
 
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>

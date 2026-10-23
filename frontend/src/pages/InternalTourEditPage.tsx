@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { getTourDetail, createTour, updateTour } from '../api/tour';
 import { getPois, PoiDto } from '../api/poi';
-import { loadInternalSession } from '../api/authStorage';
+import { executeAuthenticatedInternalRequest } from '../api/auth';
 import { getApiBaseUrl } from '../api/client';
 
 export const InternalTourEditPage: React.FC = () => {
@@ -12,8 +12,6 @@ export const InternalTourEditPage: React.FC = () => {
   const tourId = id ? parseInt(id, 10) : null;
 
   const baseUrl = getApiBaseUrl();
-  const { session } = loadInternalSession(baseUrl);
-  const token = session.accessToken || undefined;
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -30,11 +28,11 @@ export const InternalTourEditPage: React.FC = () => {
       setLoading(true);
       setError(null);
       try {
-        const poiRes = await getPois(token || '', { limit: 100 }, baseUrl);
+        const poiRes = await executeAuthenticatedInternalRequest(baseUrl, token => getPois(token, { limit: 100 }, baseUrl));
         setAllPois(poiRes.items);
 
         if (isEditMode && tourId) {
-          const tourRes = await getTourDetail(tourId, token, baseUrl);
+          const tourRes = await executeAuthenticatedInternalRequest(baseUrl, token => getTourDetail(tourId, token, baseUrl));
           setName(tourRes.name);
           setDescription(tourRes.description || '');
           setExpectedRevision(tourRes.revision);
@@ -104,7 +102,7 @@ export const InternalTourEditPage: React.FC = () => {
 
     try {
       if (isEditMode && tourId) {
-        await updateTour(
+        await executeAuthenticatedInternalRequest(baseUrl, token => updateTour(
           tourId,
           {
             name: name.trim(),
@@ -114,9 +112,9 @@ export const InternalTourEditPage: React.FC = () => {
           },
           token,
           baseUrl
-        );
+        ));
       } else {
-        await createTour(
+        await executeAuthenticatedInternalRequest(baseUrl, token => createTour(
           {
             name: name.trim(),
             description: description.trim() || null,
@@ -124,7 +122,7 @@ export const InternalTourEditPage: React.FC = () => {
           },
           token,
           baseUrl
-        );
+        ));
       }
 
       navigate('/internal/tours');

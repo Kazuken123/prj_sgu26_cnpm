@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { getApiBaseUrl, ApiError } from '../api/client.ts';
 import { getAuthMe, executeAuthenticatedInternalRequest } from '../api/auth.ts';
@@ -44,6 +44,10 @@ export const InternalCashPage: React.FC = () => {
 
   const [stepError, setStepError] = useState<{ step: string; message: string; code?: string } | null>(null);
   const [copiedNotice, setCopiedNotice] = useState<string | null>(null);
+  const pendingCreateKey = useRef<string | null>(null);
+  const busy = isCreating || isLookingUp || isConfirming || isIssuingCode;
+  const activePayment = [confirmData, lookupData, initData].find(row => row?.sessionId === activeSessionId);
+  const canIssueCode = activePayment?.paymentStatus === 'PAID' && activePayment.sessionStatus === 'ACTIVE';
 
   // Kiem tra phien STAFF hoac ADMIN
   const verifyAccess = useCallback(async () => {
@@ -88,14 +92,17 @@ export const InternalCashPage: React.FC = () => {
 
   // Buoc 1: Tao phien tien mat moi
   const handleCreateCashSession = async () => {
+    if (busy) return;
     setIsCreating(true);
     setStepError(null);
     setInitData(null);
     setLookupData(null);
     setConfirmData(null);
     setCodeData(null);
+    setActiveSessionId('');
 
-    const idempotencyKey = generateUUIDv4();
+    const idempotencyKey = pendingCreateKey.current || generateUUIDv4();
+    pendingCreateKey.current = idempotencyKey;
 
     try {
       const data = await executeAuthenticatedInternalRequest(
@@ -105,6 +112,7 @@ export const InternalCashPage: React.FC = () => {
       );
 
       setInitData(data);
+      pendingCreateKey.current = null;
       setActiveSessionId(data.sessionId);
       setSessionIdInput(data.sessionId);
       setIsCreating(false);
@@ -128,6 +136,7 @@ export const InternalCashPage: React.FC = () => {
   // Buoc 2: Tra cuu phien tien mat
   const handleLookupSession = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+    if (busy) return;
     const targetId = sessionIdInput.trim().toLowerCase();
 
     if (!targetId) {
@@ -140,6 +149,11 @@ export const InternalCashPage: React.FC = () => {
 
     setIsLookingUp(true);
     setStepError(null);
+    setActiveSessionId('');
+    setInitData(null);
+    setLookupData(null);
+    setConfirmData(null);
+    setCodeData(null);
 
     try {
       const data = await executeAuthenticatedInternalRequest(
@@ -170,6 +184,7 @@ export const InternalCashPage: React.FC = () => {
 
   // Buoc 3: Xac nhan da nhan tien mat
   const handleConfirmCash = async () => {
+    if (busy) return;
     const targetId = activeSessionId || sessionIdInput.trim().toLowerCase();
     if (!targetId) {
       setStepError({
@@ -190,6 +205,8 @@ export const InternalCashPage: React.FC = () => {
       );
 
       setConfirmData(data);
+      setCodeData(null);
+      if (initData?.sessionId === targetId) setInitData({ ...initData, paymentStatus: data.paymentStatus, sessionStatus: data.sessionStatus });
       // Cap nhat lai lookupData neu dang hien thi
       if (lookupData && lookupData.sessionId === targetId) {
         setLookupData({
@@ -218,6 +235,11 @@ export const InternalCashPage: React.FC = () => {
 
   // Buoc 4: Cap ma ngan 6 so cho khach
   const handleIssueCashCode = async () => {
+    if (busy) return;
+    if (!canIssueCode) {
+      setStepError({ step: 'Cấp mã ngắn', message: 'Cần xác nhận hoặc tra cứu đúng phiên đã thanh toán và còn ACTIVE trước khi cấp mã.' });
+      return;
+    }
     const targetId = activeSessionId || sessionIdInput.trim().toLowerCase();
     if (!targetId) {
       setStepError({
@@ -341,7 +363,7 @@ export const InternalCashPage: React.FC = () => {
           <button
             type="button"
             onClick={handleCreateCashSession}
-            disabled={isCreating}
+            disabled={busy}
             className="btn-primary"
           >
             {isCreating ? 'Đang tạo phiên...' : '+ Tạo phiên tiền mặt mới'}
@@ -412,7 +434,7 @@ export const InternalCashPage: React.FC = () => {
           />
           <button
             type="submit"
-            disabled={isLookingUp}
+            disabled={busy}
             className="btn-secondary"
           >
             {isLookingUp ? 'Đang tra cứu...' : 'Tra cứu phiên'}
@@ -470,7 +492,7 @@ export const InternalCashPage: React.FC = () => {
           <button
             type="button"
             onClick={handleConfirmCash}
-            disabled={isConfirming || !activeSessionId}
+            disabled={busy || !activeSessionId}
             className="btn-primary"
             style={{ backgroundColor: '#059669' }}
           >
@@ -535,7 +557,7 @@ export const InternalCashPage: React.FC = () => {
           <button
             type="button"
             onClick={handleIssueCashCode}
-            disabled={isIssuingCode || !activeSessionId}
+            disabled={busy || !activeSessionId || !canIssueCode}
             className="btn-primary"
           >
             {isIssuingCode ? 'Đang cấp mã...' : 'Cấp mã ngắn 6 số'}

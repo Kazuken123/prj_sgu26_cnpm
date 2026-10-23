@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useVisitExpiry } from '../hooks/useVisitExpiry';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { getApiBaseUrl, ApiError } from '../api/client';
@@ -15,6 +16,7 @@ import {
   loadGuestSession,
   saveGuestSession,
   clearGuestSession,
+  getEmptyGuestSession,
   generateUUIDv4
 } from '../api/guestStorage';
 
@@ -63,6 +65,22 @@ export const PaymentPage: React.FC = () => {
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
 
   const cooldownTimerRef = useRef<number | null>(null);
+  const visitEpoch = useRef(0);
+  const expireVisit = useCallback(() => {
+    visitEpoch.current++;
+    clearGuestSession();
+    setSession(getEmptyGuestSession(currentBaseUrl));
+    setUiStep('IDLE');
+    setErrorCode('VISIT_SESSION_EXPIRED');
+    setErrorMessage('Vé đã hết hạn. Nếu bạn mất token khi vé vẫn còn hạn, vui lòng liên hệ nhân viên để được hỗ trợ.');
+    setStatusNotice(null);
+  }, [currentBaseUrl]);
+  useVisitExpiry(session.token ? session.expiresAt : null, expireVisit);
+  const acceptVisit = useCallback((visit: { expiresAt?: string }, epoch: number) => {
+    if (epoch !== visitEpoch.current) return false;
+    if (visit.expiresAt && Date.parse(visit.expiresAt) <= Date.now()) { expireVisit(); return false; }
+    return true;
+  }, [expireVisit]);
 
   const startCooldown = (seconds = 3) => {
     setCooldownSeconds(seconds);
@@ -115,18 +133,22 @@ export const PaymentPage: React.FC = () => {
     setSession(s);
 
     if (s.token) {
+      const epoch = visitEpoch.current;
       // Co token khach, xac minh voi /api/visits/me
       setUiStep('VERIFYING_VISIT');
       getVisitMe(s.token, currentBaseUrl)
         .then((visit) => {
+          if (!acceptVisit(visit, epoch)) return;
           updateAndPersistSession((prev) => ({
             ...prev,
             verifiedVisit: visit,
+            expiresAt: visit.expiresAt || prev.expiresAt,
             sessionStatus: (visit.status as StoredGuestSession['sessionStatus']) || prev.sessionStatus
           }));
           setUiStep('VISIT_ACTIVE');
         })
         .catch((err: unknown) => {
+          if (epoch !== visitEpoch.current) return;
           if (err instanceof ApiError && err.status === 401) {
             setErrorCode(err.code);
             setErrorMessage('Phiên tham quan hoặc token không còn hợp lệ. Quyền truy cập bị chặn.');
@@ -145,7 +167,7 @@ export const PaymentPage: React.FC = () => {
     } else {
       setUiStep('IDLE');
     }
-  }, [currentBaseUrl, updateAndPersistSession]);
+  }, [currentBaseUrl, updateAndPersistSession, acceptVisit]);
 
   // 1. Tao checkout online moi hoac gui lai voi cung Idempotency-Key
   const handleStartCheckout = async () => {
@@ -270,6 +292,7 @@ export const PaymentPage: React.FC = () => {
 
   // 3. Doi ma online lay token khach (POST /api/payments/sessions/:sessionId/exchange-online-code)
   const handleExchangeCode = async () => {
+    const epoch = visitEpoch.current;
     if (!session.sessionId || !session.authCode) {
       setErrorMessage('Không tìm thấy mã xác thực hoặc thông tin phiên để đổi quyền.');
       return;
@@ -282,6 +305,7 @@ export const PaymentPage: React.FC = () => {
 
     try {
       const exchangeData = await exchangeOnlineCode(session.sessionId, session.authCode, currentBaseUrl);
+      if (!acceptVisit(exchangeData, epoch)) return;
 
       updateAndPersistSession((prev) => ({
         ...prev,
@@ -294,6 +318,7 @@ export const PaymentPage: React.FC = () => {
       setUiStep('VERIFYING_VISIT');
       try {
         const visit = await getVisitMe(exchangeData.token, currentBaseUrl);
+        if (!acceptVisit(visit, epoch)) return;
         updateAndPersistSession((prev) => ({
           ...prev,
           verifiedVisit: visit,
@@ -324,6 +349,7 @@ export const PaymentPage: React.FC = () => {
 
   // 4. Doi ma ngan tien mat lay token khach (POST /api/payments/sessions/:sessionId/exchange-cash-code)
   const handleExchangeCashCode = async (e: React.FormEvent) => {
+    const epoch = visitEpoch.current;
     e.preventDefault();
     setErrorMessage(null);
     setErrorCode(null);
@@ -348,6 +374,7 @@ export const PaymentPage: React.FC = () => {
 
     try {
       const exchangeData = await exchangeCashCode(cleanSessionId, cleanCode, currentBaseUrl);
+      if (!acceptVisit(exchangeData, epoch)) return;
 
       updateAndPersistSession((prev) => ({
         ...prev,
@@ -363,6 +390,7 @@ export const PaymentPage: React.FC = () => {
       setUiStep('VERIFYING_VISIT');
       try {
         const visit = await getVisitMe(exchangeData.token, currentBaseUrl);
+        if (!acceptVisit(visit, epoch)) return;
         updateAndPersistSession((prev) => ({
           ...prev,
           verifiedVisit: visit,
@@ -390,12 +418,14 @@ export const PaymentPage: React.FC = () => {
   };
 
   const handleVerifyAgain = async () => {
+    const epoch = visitEpoch.current;
     if (!session.token || mismatchedEnv) return;
     setUiStep('VERIFYING_VISIT');
     setErrorMessage(null);
     setErrorCode(null);
     try {
       const visit = await getVisitMe(session.token, currentBaseUrl);
+      if (!acceptVisit(visit, epoch)) return;
       updateAndPersistSession(prev => ({ ...prev, verifiedVisit: visit,
         sessionStatus: visit.status as StoredGuestSession['sessionStatus'],
         expiresAt: visit.expiresAt || prev.expiresAt }));
@@ -410,6 +440,7 @@ export const PaymentPage: React.FC = () => {
 
   // 5. Xoa phien va reset storage
   const handleClearSession = () => {
+    visitEpoch.current++;
     clearGuestSession();
     const cleared = loadGuestSession(currentBaseUrl).session;
     setSession(cleared);

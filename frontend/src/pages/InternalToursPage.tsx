@@ -2,13 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getTours, TourDto } from '../api/tour';
 import { getPois, PoiDto } from '../api/poi';
-import { loadInternalSession } from '../api/authStorage';
+import { executeAuthenticatedInternalRequest } from '../api/auth';
 import { getApiBaseUrl } from '../api/client';
 
 export const InternalToursPage: React.FC = () => {
   const baseUrl = getApiBaseUrl();
-  const { session } = loadInternalSession(baseUrl);
-  const token = session.accessToken || undefined;
 
   const [tours, setTours] = useState<TourDto[]>([]);
   const [pois, setPois] = useState<PoiDto[]>([]);
@@ -17,15 +15,13 @@ export const InternalToursPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const loadData = async (currentPage = 1, query = '') => {
+  const loadData = async (currentPage = 1) => {
     setLoading(true);
     setError(null);
     try {
       const [tourRes, poiRes] = await Promise.all([
-        getTours({ page: currentPage, limit: 10, q: query || undefined }, token, baseUrl),
-        getPois(token || '', { limit: 100 }, baseUrl)
+        executeAuthenticatedInternalRequest(baseUrl, token => getTours({ page: currentPage, limit: 10 }, token, baseUrl)),
+        executeAuthenticatedInternalRequest(baseUrl, token => getPois(token, { limit: 100 }, baseUrl))
       ]);
       setTours(tourRes.items);
       setTotal(tourRes.total);
@@ -39,13 +35,8 @@ export const InternalToursPage: React.FC = () => {
   };
 
   useEffect(() => {
-    loadData(1, searchQuery);
+    loadData(1);
   }, []);
-
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    loadData(1, searchQuery);
-  };
 
   return (
     <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 16px' }}>
@@ -67,22 +58,6 @@ export const InternalToursPage: React.FC = () => {
           <span>➕</span>
           <span>Tạo lộ trình mẫu mới</span>
         </Link>
-      </div>
-
-      {/* Tìm kiếm */}
-      <div className="tcv-card" style={{ marginBottom: '20px', padding: '16px' }}>
-        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '10px' }}>
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Tìm theo tên lộ trình hoặc mô tả..."
-            style={{ flex: 1, padding: '8px 12px', borderRadius: '4px', border: '1px solid #d1d5db' }}
-          />
-          <button type="submit" className="btn-secondary" style={{ padding: '8px 16px' }}>
-            Tìm kiếm
-          </button>
-        </form>
       </div>
 
       {error && (

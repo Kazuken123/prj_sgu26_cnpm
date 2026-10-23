@@ -64,15 +64,17 @@ export function loadGuestSession(currentBaseUrl: string): {
   storageError: string | null;
 } {
   try {
-    if (typeof window === 'undefined' || !window.sessionStorage) {
+    if (typeof window === 'undefined') {
       return {
         session: getEmptyGuestSession(currentBaseUrl),
         mismatchedBaseUrl: false,
-        storageError: 'sessionStorage không khả dụng trên trình duyệt này'
+        storageError: 'localStorage không khả dụng trên trình duyệt này'
       };
     }
 
-    const raw = window.sessionStorage.getItem(STORAGE_KEY);
+    const saved = window.localStorage?.getItem(STORAGE_KEY);
+    const legacy = saved ? null : window.sessionStorage?.getItem(STORAGE_KEY);
+    const raw = saved || legacy;
     if (!raw) {
       return {
         session: getEmptyGuestSession(currentBaseUrl),
@@ -101,41 +103,47 @@ export function loadGuestSession(currentBaseUrl: string): {
       };
     }
 
+    const session = { ...getEmptyGuestSession(activeBaseUrl), ...parsed, apiBaseUrl: activeBaseUrl };
+    let storageError: string | null = null;
+    if (legacy) {
+      const migrated = saveGuestSession(session);
+      storageError = migrated.error;
+      // Never discard the only copy when persistent storage is blocked/full.
+      if (migrated.success) window.sessionStorage?.removeItem(STORAGE_KEY);
+    }
     return {
-      session: { ...getEmptyGuestSession(activeBaseUrl), ...parsed, apiBaseUrl: activeBaseUrl },
+      session,
       mismatchedBaseUrl: false,
-      storageError: null
+      storageError
     };
   } catch (err: unknown) {
     return {
       session: getEmptyGuestSession(currentBaseUrl),
       mismatchedBaseUrl: false,
-      storageError: err instanceof Error ? err.message : 'Lỗi đọc sessionStorage'
+      storageError: err instanceof Error ? err.message : 'Lỗi đọc localStorage'
     };
   }
 }
 
 export function saveGuestSession(session: StoredGuestSession): { success: boolean; error: string | null } {
   try {
-    if (typeof window === 'undefined' || !window.sessionStorage) {
-      return { success: false, error: 'sessionStorage không khả dụng' };
+    if (typeof window === 'undefined' || !window.localStorage) {
+      return { success: false, error: 'localStorage không khả dụng' };
     }
-    window.sessionStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
     return { success: true, error: null };
   } catch (err: unknown) {
     return {
       success: false,
-      error: err instanceof Error ? err.message : 'Không thể lưu phiên vào sessionStorage'
+      error: err instanceof Error ? err.message : 'Không thể lưu phiên vào localStorage'
     };
   }
 }
 
 export function clearGuestSession(): void {
-  try {
-    if (typeof window !== 'undefined' && window.sessionStorage) {
-      window.sessionStorage.removeItem(STORAGE_KEY);
-    }
-  } catch {
-    // Bo qua loi don dep storage
+  if (typeof window === 'undefined') return;
+  for (const kind of ['localStorage', 'sessionStorage'] as const) {
+    try { window[kind]?.removeItem(STORAGE_KEY); }
+    catch { /* A blocked store must not prevent cleanup of the other copy. */ }
   }
 }

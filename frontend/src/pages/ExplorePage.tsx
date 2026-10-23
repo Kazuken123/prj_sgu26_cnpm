@@ -2,7 +2,8 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { PoiImage } from '../components/PoiImage';
 import { getApiBaseUrl, ApiError } from '../api/client';
-import { loadGuestSession } from '../api/guestStorage';
+import { loadGuestSession, clearGuestSession } from '../api/guestStorage';
+import { useVisitExpiry } from '../hooks/useVisitExpiry';
 import { getVisitMe } from '../api/payment';
 import { getContentBundle, BundleDto, PoiDto, TourDto } from '../api/content';
 import { AudioPlayer } from '../components/AudioPlayer';
@@ -82,6 +83,18 @@ export const ExplorePage: React.FC = () => {
   const requestSeqRef = useRef<number>(0);
   const abortControllerRef = useRef<AbortController | null>(null);
 
+  const stopExpiredVisit = useCallback(() => {
+    requestSeqRef.current += 1;
+    abortControllerRef.current?.abort();
+    clearGuestSession();
+    setSessionError('Vé đã hết hạn hoặc quyền tham quan không còn hợp lệ. Nếu mất token, vui lòng liên hệ nhân viên; không thanh toán lại chỉ để khôi phục token.');
+    setBundle(null);
+    setIsVerifying(false);
+    setIsAutoTourActive(false);
+    setAutoPlayRequest(null);
+  }, []);
+  useVisitExpiry(token ? bundle?.expiresAt || session.expiresAt : null, stopExpiredVisit);
+
   // Tải bundle theo ngôn ngữ
   const fetchBundle = useCallback(async (targetLang: string, authToken: string) => {
     requestSeqRef.current += 1;
@@ -119,8 +132,7 @@ export const ExplorePage: React.FC = () => {
       setLoadingLanguageCode(null);
       if (err instanceof ApiError) {
         if (err.status === 401) {
-          setSessionError('Phiên tham quan của bạn đã hết hạn hoặc không hợp lệ. Vui lòng kích hoạt lại vé.');
-          setBundle(null);
+          stopExpiredVisit();
         } else {
           setBundleError({ code: err.code, message: err.message });
         }
@@ -131,7 +143,7 @@ export const ExplorePage: React.FC = () => {
         });
       }
     }
-  }, [currentBaseUrl, requestedCategory]);
+  }, [currentBaseUrl, requestedCategory, stopExpiredVisit]);
 
   // Khởi tạo và xác minh phiên
   useEffect(() => {
@@ -154,7 +166,7 @@ export const ExplorePage: React.FC = () => {
         if (cancelled) return;
         setIsVerifying(false);
         if (err instanceof ApiError && err.status === 401) {
-          setSessionError('Phiên tham quan không hợp lệ hoặc đã hết thời gian sử dụng 24h.');
+          stopExpiredVisit();
         } else {
           setSessionError(err instanceof Error ? err.message : 'Chưa thể xác minh phiên tham quan.');
         }
@@ -171,7 +183,7 @@ export const ExplorePage: React.FC = () => {
 
   // GPS theo dõi vị trí thực tế liên tục
   useEffect(() => {
-    if (!('geolocation' in navigator)) return;
+    if (!token || sessionError || typeof navigator === 'undefined' || !('geolocation' in navigator)) return;
 
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
@@ -188,7 +200,7 @@ export const ExplorePage: React.FC = () => {
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
+  }, [token, sessionError]);
 
   // LOGIC TỰ ĐỘNG KÍCH HOẠT THUYẾT MINH THEO VỊ TRÍ (US-B02)
   useEffect(() => {
@@ -266,7 +278,7 @@ export const ExplorePage: React.FC = () => {
   };
 
   // 1. TRƯỜNG HỢP CHƯA CÓ TOKEN
-  if (!token) {
+  if (!token && !sessionError) {
     return (
       <div className="explore-container" style={{ maxWidth: '900px', margin: '40px auto', padding: '0 16px' }}>
         <div className="tcv-card access-gate" style={{ textAlign: 'center', padding: '48px 24px' }}>
@@ -336,6 +348,7 @@ export const ExplorePage: React.FC = () => {
     );
   }
 
+  if (!token) return null;
   return (
     <div className="explore-container botanical-explore">
       
@@ -469,7 +482,7 @@ export const ExplorePage: React.FC = () => {
         <section className="explore-map-panel" aria-labelledby="explore-map-heading">
           <div className="panel-heading"><h2 id="explore-map-heading"><Icon name="map" /> Bản đồ khu vườn</h2><span className="map-live-label">{userLocation ? 'GPS đã bật' : 'Chưa có GPS'}</span></div>
           <MapView pois={filteredPois} tourPois={bundle?.pois} selectedPoiId={selectedPoiId} onSelectPoi={selectPoi} userLocation={userLocation} activeTour={activeTour} filteredCategory="ALL" />
-          <p className="map-help"><Icon name="info" /> Chạm vào điểm trên bản đồ để xem giới thiệu. Tọa độ đang trong giai đoạn thử nghiệm.</p>
+          <p className="map-help"><Icon name="info" /> Chạm vào điểm trên bản đồ để xem giới thiệu. Demo trình duyệt dùng tọa độ tham khảo/minh họa, chưa khảo sát thực địa. Đường nối là minh họa, không phải đường đi bộ đã xác minh.</p>
           {bundle?.tours && bundle.tours.length > 0 && <div className="explore-tours"><h3><Icon name="compass" /> Lộ trình gợi ý</h3><div>{bundle.tours.map(tour => <button key={tour.tourId} type="button" aria-pressed={activeTourId === tour.tourId} onClick={() => setActiveTourId(activeTourId === tour.tourId ? null : tour.tourId)}><strong>{tour.name}</strong><span>{tour.items.length} điểm dừng · {activeTourId === tour.tourId ? 'Đang xem' : 'Xem lộ trình'}</span></button>)}</div></div>}
         </section>
         <aside ref={detailRef} id="selected-poi-detail" className="poi-detail-panel" aria-label="Chi tiết điểm tham quan">
@@ -480,13 +493,13 @@ export const ExplorePage: React.FC = () => {
               <h2>{selectedPoi.text.name || selectedPoi.originalName}</h2>
               {selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && <p className="poi-original-name">{selectedPoi.originalName}</p>}
               <span className={`status-pill ${selectedPoi.audio.status === 'AVAILABLE' ? 'ready' : 'idle'}`}>{selectedPoi.audio.status === 'AVAILABLE' ? 'Sẵn sàng thuyết minh' : 'Chưa có âm thanh'}</span>
-              <div className="poi-detail-audio"><AudioPlayer key={[selectedPoi.poiId, selectedLanguageCode, selectedPoi.audio.url, token].join(':')} autoPlayRequestId={isAutoTourActive && autoPlayRequest?.poiId === selectedPoi.poiId ? autoPlayRequest.id : null} onPlaybackStarted={handlePlaybackStarted} poi={selectedPoi} requestedLanguageCode={selectedLanguageCode} token={token} onSessionExpired={() => { setSessionError('Phiên tham quan đã hết hạn.'); setBundle(null); }} /></div>
+              <div className="poi-detail-audio"><AudioPlayer key={[selectedPoi.poiId, selectedLanguageCode, selectedPoi.audio.url, token].join(':')} autoPlayRequestId={isAutoTourActive && autoPlayRequest?.poiId === selectedPoi.poiId ? autoPlayRequest.id : null} onPlaybackStarted={handlePlaybackStarted} poi={selectedPoi} requestedLanguageCode={selectedLanguageCode} token={token} onSessionExpired={stopExpiredVisit} /></div>
               <div className="poi-facts">
                 {selectedPoi.conservationStatus && <div><span>Bảo tồn</span><strong>{selectedPoi.conservationStatus}</strong></div>}
                 {selectedPoi.activityHours && <div><span>Khung giờ</span><strong>{selectedPoi.activityHours}</strong></div>}
                 {userLocation && <div><span>Khoảng cách từ bạn</span><strong>{calculateHaversineDistance(userLocation.latitude, userLocation.longitude, selectedPoi.latitude, selectedPoi.longitude)} m</strong></div>}
               </div>
-              <section className="poi-introduction"><h3>Giới thiệu</h3><p>{selectedPoi.text.description || `Nội dung đang được cập nhật cho ngôn ngữ ${selectedLanguageCode.toUpperCase()}.`}</p></section>
+              <section className="poi-introduction"><h3>Giới thiệu</h3>{selectedPoi.text.isFallback && <p role="status">Văn bản thay thế bằng {selectedPoi.text.languageCode?.toUpperCase()}, khác ngôn ngữ đã chọn {selectedLanguageCode.toUpperCase()}.</p>}<p>{selectedPoi.text.description || `Nội dung đang được cập nhật cho ngôn ngữ ${selectedLanguageCode.toUpperCase()}.`}</p></section>
               {selectedPoi.text.audioScript && <details className="poi-transcript"><summary>Đọc lời thuyết minh</summary><p>{selectedPoi.text.audioScript}</p></details>}
             </div>
           </> : <div className="poi-empty"><Icon name="pin" /><h2>Điểm dừng tiếp theo?</h2><p>Chọn một điểm trên bản đồ hoặc danh sách để xem ảnh, giới thiệu và nghe thuyết minh.</p></div>}

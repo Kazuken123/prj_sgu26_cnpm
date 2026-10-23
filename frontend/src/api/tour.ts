@@ -44,14 +44,13 @@ export interface TourListResult {
 }
 
 export async function getTours(
-  query: { page?: number; limit?: number; q?: string } = {},
+  query: { page?: number; limit?: number } = {},
   token?: string,
   overrideBaseUrl?: string
 ): Promise<TourListResult> {
   const params = new URLSearchParams();
   if (query.page) params.set('page', String(query.page));
   if (query.limit) params.set('limit', String(query.limit));
-  if (query.q) params.set('q', query.q);
 
   const qs = params.toString();
   const path = `/api/admin/tours${qs ? `?${qs}` : ''}`;

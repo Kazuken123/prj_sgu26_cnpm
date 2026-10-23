@@ -353,7 +353,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       {/* CANH BAO TRUNG THUC AM THU MOCK */}
       <div style={{ background: 'var(--tcv-status-warn-bg)', border: '1px solid #fde68a', borderRadius: 'var(--radius-sm)', padding: '10px 14px', marginBottom: '14px', fontSize: '0.8rem', color: '#92400e' }}>
-        <strong>Âm thử MOCK — chưa phải giọng đọc thuyết minh.</strong> Tệp âm thanh hiện tại là bản ghi thử nghiệm một giây thuộc bộ dữ liệu DRAFT-03 được cấp quyền qua token khách.
+        <strong>Âm thanh phục vụ demo.</strong> Bộ demo sử dụng giọng tổng hợp; chất lượng bản dịch và phát âm chưa được nghiệm thu độc lập bởi người bản ngữ.
       </div>
 
       {/* THONG SO AUDIO VA FALLBACK */}
@@ -412,7 +412,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
               ? '▶ Tiếp tục phát'
               : playerState === 'NEED_GESTURE'
               ? '▶ Bấm để phát'
-              : '▶ Phát âm thử'}
+              : '▶ Nghe thuyết minh'}
           </button>
         )}
 

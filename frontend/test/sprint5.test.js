@@ -370,7 +370,8 @@ describe('Kiểm thử Quy trình Thanh toán Tiền mặt CASH (Sprint 5)', () 
   test('11. Kiểm tra tính độc lập giữa phiên khách và phiên nội bộ trong storage', () => {
     const storageMap = new Map();
     globalThis.window = {
-      sessionStorage: {
+      sessionStorage: { getItem: k => storageMap.get(k) || null, setItem: (k,v) => storageMap.set(k,String(v)), removeItem: k => storageMap.delete(k) },
+      localStorage: {
         getItem: (k) => storageMap.get(k) || null,
         setItem: (k, v) => storageMap.set(k, String(v)),
         removeItem: (k) => storageMap.delete(k)

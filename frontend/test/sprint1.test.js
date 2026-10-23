@@ -29,7 +29,7 @@ describe('Kiểm thử Quản lý Phiên và Storage (Sprint 1)', () => {
   test('Phát hiện không khớp API Base URL khi nạp phiên từ máy chủ khác', () => {
     const storageMap = new Map();
     globalThis.window = {
-      sessionStorage: {
+      localStorage: {
         getItem: (k) => storageMap.get(k) || null,
         setItem: (k, v) => storageMap.set(k, String(v)),
         removeItem: (k) => storageMap.delete(k)
@@ -49,7 +49,7 @@ describe('Kiểm thử Quản lý Phiên và Storage (Sprint 1)', () => {
     assert.equal(check.mismatchedBaseUrl, true, 'Phải báo mismatchedBaseUrl khi base URL khác với cấu hình hiện tại');
 
     clearGuestSession();
-    assert.equal(window.sessionStorage.getItem('tcv_guest_session_v1'), null);
+    assert.equal(window.localStorage.getItem('tcv_guest_session_v1'), null);
   });
 });
 
