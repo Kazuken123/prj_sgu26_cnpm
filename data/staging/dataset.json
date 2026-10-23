@@ -1,0 +1,2804 @@
+{
+  "datasetId": "TCV_STAGING_FROZEN_20261023",
+  "mode": "FROZEN_PIPER_AUDIO",
+  "locationLimit": "Reference/simulated browser-demo positions; no field GPS or walking-route acceptance.",
+  "translationLimit": "Reviewed AI-assisted content, not independently reviewed by native speakers.",
+  "tables": {
+    "LANGUAGES": [
+      {
+        "code": "en",
+        "name": "English",
+        "is_active": 1
+      },
+      {
+        "code": "fr",
+        "name": "Français",
+        "is_active": 1
+      },
+      {
+        "code": "ja",
+        "name": "日本語",
+        "is_active": 1
+      },
+      {
+        "code": "ko",
+        "name": "한국어",
+        "is_active": 1
+      },
+      {
+        "code": "ru",
+        "name": "Русский",
+        "is_active": 1
+      },
+      {
+        "code": "vi",
+        "name": "Tiếng Việt",
+        "is_active": 1
+      },
+      {
+        "code": "zh-Hans",
+        "name": "简体中文",
+        "is_active": 1
+      }
+    ],
+    "POIS": [
+      {
+        "poi_id": 1,
+        "name": "Hươu cao cổ",
+        "category": "ANIMAL",
+        "conservation_status": null,
+        "activity_hours": null,
+        "latitude": "10.78809530",
+        "longitude": "106.70780140",
+        "trigger_radius": 30,
+        "avatar_url": null,
+        "display_order": 1,
+        "status": "ACTIVE",
+        "content_version": 1
+      },
+      {
+        "poi_id": 2,
+        "name": "Voi châu Á",
+        "category": "ANIMAL",
+        "conservation_status": null,
+        "activity_hours": null,
+        "latitude": "10.78864980",
+        "longitude": "106.70716740",
+        "trigger_radius": 30,
+        "avatar_url": null,
+        "display_order": 2,
+        "status": "ACTIVE",
+        "content_version": 1
+      },
+      {
+        "poi_id": 3,
+        "name": "Hà mã",
+        "category": "ANIMAL",
+        "conservation_status": null,
+        "activity_hours": null,
+        "latitude": "10.78800000",
+        "longitude": "106.70710000",
+        "trigger_radius": 30,
+        "avatar_url": null,
+        "display_order": 3,
+        "status": "ACTIVE",
+        "content_version": 1
+      },
+      {
+        "poi_id": 4,
+        "name": "Tê giác trắng",
+        "category": "ANIMAL",
+        "conservation_status": null,
+        "activity_hours": null,
+        "latitude": "10.78800000",
+        "longitude": "106.70730000",
+        "trigger_radius": 30,
+        "avatar_url": null,
+        "display_order": 4,
+        "status": "ACTIVE",
+        "content_version": 1
+      },
+      {
+        "poi_id": 5,
+        "name": "Trầm hương",
+        "category": "PLANT",
+        "conservation_status": null,
+        "activity_hours": null,
+        "latitude": "10.78800000",
+        "longitude": "106.70750000",
+        "trigger_radius": 30,
+        "avatar_url": null,
+        "display_order": 5,
+        "status": "ACTIVE",
+        "content_version": 1
+      },
+      {
+        "poi_id": 6,
+        "name": "Ngọc lan",
+        "category": "PLANT",
+        "conservation_status": null,
+        "activity_hours": null,
+        "latitude": "10.78800000",
+        "longitude": "106.70770000",
+        "trigger_radius": 30,
+        "avatar_url": null,
+        "display_order": 6,
+        "status": "ACTIVE",
+        "content_version": 1
+      },
+      {
+        "poi_id": 7,
+        "name": "Trám trắng",
+        "category": "PLANT",
+        "conservation_status": null,
+        "activity_hours": null,
+        "latitude": "10.78775000",
+        "longitude": "106.70710000",
+        "trigger_radius": 30,
+        "avatar_url": null,
+        "display_order": 7,
+        "status": "ACTIVE",
+        "content_version": 1
+      },
+      {
+        "poi_id": 8,
+        "name": "Cát anh",
+        "category": "PLANT",
+        "conservation_status": null,
+        "activity_hours": null,
+        "latitude": "10.78775000",
+        "longitude": "106.70730000",
+        "trigger_radius": 30,
+        "avatar_url": null,
+        "display_order": 8,
+        "status": "ACTIVE",
+        "content_version": 1
+      },
+      {
+        "poi_id": 9,
+        "name": "Bảo tàng Động–Thực vật",
+        "category": "HERITAGE",
+        "conservation_status": null,
+        "activity_hours": null,
+        "latitude": "10.78775000",
+        "longitude": "106.70750000",
+        "trigger_radius": 30,
+        "avatar_url": null,
+        "display_order": 9,
+        "status": "ACTIVE",
+        "content_version": 1
+      },
+      {
+        "poi_id": 10,
+        "name": "Quán Nhan Hương",
+        "category": "HERITAGE",
+        "conservation_status": null,
+        "activity_hours": null,
+        "latitude": "10.78775000",
+        "longitude": "106.70770000",
+        "trigger_radius": 30,
+        "avatar_url": null,
+        "display_order": 10,
+        "status": "ACTIVE",
+        "content_version": 1
+      }
+    ],
+    "POI_TRANSLATIONS": [
+      {
+        "translation_id": 1,
+        "poi_id": 1,
+        "language_code": "vi",
+        "name": "Hươu cao cổ",
+        "description": "Hươu cao cổ nổi bật với chiếc cổ dài, đôi chân dài và bộ lông có đốm. Cổ và chân dài giúp chúng vươn tới lá cây trên cao. Hoa văn trên bộ lông của mỗi cá thể khác nhau.",
+        "audio_script": "Hươu cao cổ nổi bật với chiếc cổ dài và bộ lông có đốm. Cổ và chân dài giúp chúng kiếm lá trên cao. Những hoa văn ấy khác nhau giữa các cá thể. Đây là kiến thức chung về hươu cao cổ, không phải thông tin riêng về một con vật tại Thảo Cầm Viên.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 2,
+        "poi_id": 1,
+        "language_code": "en",
+        "name": "Giraffe",
+        "description": "Giraffes stand out for their long necks, long legs and spotted coats. Their long necks and legs help them reach leaves high in trees. Each individual has a different coat pattern.",
+        "audio_script": "Giraffes are recognizable by their long necks and spotted coats. Their long necks and legs help them reach leaves high in trees. Each individual has a different coat pattern. These are general facts about giraffes, rather than details about a particular animal at Saigon Zoo and Botanical Gardens.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 3,
+        "poi_id": 2,
+        "language_code": "vi",
+        "name": "Voi châu Á",
+        "description": "Voi châu Á có chiếc vòi hình thành từ mũi và môi trên. Chúng dùng vòi để lấy thức ăn, hút nước rồi đưa nước vào miệng. Voi châu Á là động vật ăn thực vật.",
+        "audio_script": "Chiếc vòi là một đặc điểm nổi bật của voi châu Á. Voi dùng vòi để cầm nắm thức ăn và hút nước, rồi đưa nước vào miệng. Thức ăn của loài này có cỏ và lá cây. Đoạn giới thiệu này nói về loài, không mô tả khẩu phần hay lịch chăm sóc tại Thảo Cầm Viên.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 4,
+        "poi_id": 2,
+        "language_code": "en",
+        "name": "Asian elephant",
+        "description": "Asian elephants have a trunk formed from the nose and upper lip. They use it to collect food and draw up water before putting the water into their mouths. Asian elephants are herbivores.",
+        "audio_script": "The trunk is a distinctive feature of Asian elephants. They use it to grasp food and draw up water, then put the water into their mouths. Their diet includes grasses and leaves. This introduction describes the species, not the feeding plan or care schedule at Saigon Zoo and Botanical Gardens.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 5,
+        "poi_id": 1,
+        "language_code": "zh-Hans",
+        "name": "长颈鹿",
+        "description": "长颈鹿最显著的特征是长长的脖子、修长的腿和带有斑纹的皮毛。长脖子和长腿帮助它们够到高处的树叶。每只长颈鹿的皮毛花纹都不相同。",
+        "audio_script": "长颈鹿以长脖子和带有斑纹的皮毛而引人注目。长脖子和长腿帮助它们采食高处的树叶。不同个体的花纹各不相同。这里介绍的是长颈鹿的一般知识，并非西贡动植物园内某只动物的具体情况。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 6,
+        "poi_id": 1,
+        "language_code": "ko",
+        "name": "기린",
+        "description": "기린은 긴 목과 긴 다리, 얼룩무늬 털이 특징입니다. 긴 목과 다리는 높은 곳의 나뭇잎에 닿는 데 도움이 됩니다. 털의 무늬는 개체마다 다릅니다.",
+        "audio_script": "기린은 긴 목과 얼룩무늬 털이 눈에 띕니다. 긴 목과 다리는 높은 곳의 나뭇잎을 먹는 데 도움이 됩니다. 무늬는 개체마다 다릅니다. 이는 기린에 관한 일반적인 지식이며, 사이공 동식물원의 특정 동물에 대한 정보는 아닙니다.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 7,
+        "poi_id": 1,
+        "language_code": "ja",
+        "name": "キリン",
+        "description": "キリンの特徴は、長い首、長い脚、そして斑点模様の毛です。長い首と脚を使って、高いところにある木の葉に届きます。体の模様は一頭ごとに異なります。",
+        "audio_script": "キリンは長い首と斑点模様の毛が特徴です。長い首と脚を使って、高いところにある木の葉を食べます。その模様は一頭ごとに異なります。これはキリンについての一般的な知識であり、サイゴン動植物園の特定の個体についての情報ではありません。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 8,
+        "poi_id": 1,
+        "language_code": "ru",
+        "name": "Жираф",
+        "description": "Жирафы выделяются длинной шеей, длинными ногами и пятнистой шерстью. Длинные шея и ноги помогают им дотягиваться до листьев высоко на деревьях. Рисунок шерсти у каждой особи свой.",
+        "audio_script": "Жирафы выделяются длинной шеей и пятнистой шерстью. Длинные шея и ноги помогают им доставать листья высоко на деревьях. Рисунок пятен различается у разных особей. Это общие сведения о жирафах, а не информация об отдельном животном в Сайгонском зоопарке и ботаническом саду.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 9,
+        "poi_id": 1,
+        "language_code": "fr",
+        "name": "Girafe",
+        "description": "Les girafes se distinguent par leur long cou, leurs longues pattes et leur pelage tacheté. Leur cou et leurs pattes leur permettent d'atteindre les feuilles en hauteur. Le motif du pelage diffère d'un individu à l'autre.",
+        "audio_script": "Les girafes se distinguent par leur long cou et leur pelage tacheté. Leur cou et leurs pattes leur permettent de se nourrir de feuilles en hauteur. Ces motifs diffèrent d'un individu à l'autre. Il s'agit de connaissances générales sur les girafes, et non d'informations sur un animal particulier du zoo et jardin botanique de Saïgon.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 10,
+        "poi_id": 2,
+        "language_code": "zh-Hans",
+        "name": "亚洲象",
+        "description": "亚洲象的象鼻由鼻子和上唇形成。它们用象鼻取食、吸水，再把水送入口中。亚洲象是植食动物。",
+        "audio_script": "象鼻是亚洲象的一个显著特征。大象用象鼻抓取食物、吸水，再把水送入口中。它们的食物包括草和树叶。这段介绍讲的是这个物种，并不描述西贡动植物园内的喂食安排或饲养时间表。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 11,
+        "poi_id": 2,
+        "language_code": "ko",
+        "name": "아시아코끼리",
+        "description": "아시아코끼리의 긴 코는 코와 윗입술이 합쳐져 형성된 기관입니다. 코로 먹이를 집고 물을 빨아들인 뒤 입으로 옮깁니다. 아시아코끼리는 초식동물입니다.",
+        "audio_script": "긴 코는 아시아코끼리의 두드러진 특징입니다. 코끼리는 코로 먹이를 잡고 물을 빨아들인 뒤 입으로 옮깁니다. 먹이에는 풀과 나뭇잎이 포함됩니다. 이 소개는 종에 관한 설명이며, 사이공 동식물원의 먹이 구성이나 사육 일정을 설명하는 것은 아닙니다.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 12,
+        "poi_id": 2,
+        "language_code": "ja",
+        "name": "アジアゾウ",
+        "description": "アジアゾウの長い鼻は、鼻と上唇が一体となってできています。鼻で食べ物を取り、水を吸い上げてから口へ運びます。アジアゾウは草食動物です。",
+        "audio_script": "長い鼻はアジアゾウの大きな特徴です。ゾウは鼻で食べ物をつかみ、水を吸い上げてから口へ運びます。食べ物には草や木の葉が含まれます。この紹介は種についての説明であり、サイゴン動植物園での餌の内容や飼育日程を説明するものではありません。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 13,
+        "poi_id": 2,
+        "language_code": "ru",
+        "name": "Азиатский слон",
+        "description": "Хобот азиатского слона образован носом и верхней губой. Слоны используют его, чтобы брать пищу и набирать воду, которую затем переносят в рот. Азиатские слоны — растительноядные животные.",
+        "audio_script": "Хобот — отличительная черта азиатского слона. Слоны используют его, чтобы захватывать пищу и набирать воду, а затем переносить её в рот. В их рацион входят травы и листья. Этот рассказ посвящён виду, а не рациону или графику ухода за животными в Сайгонском зоопарке и ботаническом саду.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 14,
+        "poi_id": 2,
+        "language_code": "fr",
+        "name": "Éléphant d'Asie",
+        "description": "La trompe de l'éléphant d'Asie est formée par le nez et la lèvre supérieure. Les éléphants l'utilisent pour prendre de la nourriture et aspirer de l'eau, qu'ils portent ensuite à leur bouche. Les éléphants d'Asie sont herbivores.",
+        "audio_script": "La trompe est une caractéristique marquante de l'éléphant d'Asie. Les éléphants l'utilisent pour saisir la nourriture et aspirer l'eau, puis porter celle-ci à leur bouche. Ils mangent notamment des herbes et des feuilles. Cette présentation concerne l'espèce, et non le régime alimentaire ou les horaires de soins au zoo et jardin botanique de Saïgon.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 15,
+        "poi_id": 3,
+        "language_code": "vi",
+        "name": "Hà mã",
+        "description": "Hà mã có thân hình lớn, chân ngắn và dành nhiều thời gian trong nước. Mắt, tai và lỗ mũi nằm cao trên đầu.",
+        "audio_script": "Vì sao hà mã ngâm mình lâu trong nước? Da của chúng nhạy cảm với ánh nắng; ở dưới nước giúp bảo vệ da và điều hòa thân nhiệt. Khi phần lớn cơ thể chìm xuống, mắt và lỗ mũi ở cao vẫn giúp chúng quan sát và thở. Một điều thú vị là hà mã thường lên cạn để ăn cỏ.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 16,
+        "poi_id": 3,
+        "language_code": "en",
+        "name": "Common hippopotamus",
+        "description": "The common hippopotamus has a large body, short legs and spends much of its time in water. Its eyes, ears and nostrils sit high on its head.",
+        "audio_script": "Why do hippos spend so long in water? Their skin is sensitive to sunlight; being in water helps protect it and regulate body temperature. With much of the body submerged, their high-set eyes and nostrils still let them see and breathe. Interestingly, hippos usually go onto land to graze.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 17,
+        "poi_id": 4,
+        "language_code": "vi",
+        "name": "Tê giác trắng",
+        "description": "Tê giác trắng có da xám và hai sừng trên mõm. Môi rộng, bè phù hợp với việc gặm cỏ.",
+        "audio_script": "Điểm đáng chú ý không chỉ là cặp sừng, mà còn là chiếc môi bè rộng. Nó thích nghi với việc gặm cỏ, thức ăn chủ yếu của loài. Dù tên là tê giác trắng, da chúng có màu xám. Ngoài ăn cỏ, chúng còn tắm bùn; nước và bãi bùn là một phần môi trường sống của chúng.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 18,
+        "poi_id": 4,
+        "language_code": "en",
+        "name": "White rhinoceros",
+        "description": "The white rhinoceros has grey skin and two horns on its snout. Its broad, square lip is suited to grazing.",
+        "audio_script": "Look beyond the horns to the broad, square lip. It is adapted for grazing on grass, the species' main food. Despite the name, white rhinos have grey skin. They also bathe in mud; water and muddy areas are part of their habitat.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 19,
+        "poi_id": 5,
+        "language_code": "vi",
+        "name": "Trầm hương",
+        "description": "Trầm hương là cây thường xanh có thể tạo phần gỗ thơm gọi là trầm. Phần gỗ này được dùng làm hương liệu.",
+        "audio_script": "Điều đặc biệt của trầm hương nằm bên trong thân cây. Khi bị tổn thương, cây có thể tạo phần gỗ sẫm màu, chứa chất thơm; quá trình này còn liên quan đến nấm và điều kiện môi trường. Đó là lý do không thể nhìn một cây rồi khẳng định bên trong có trầm. Vỏ cây còn có sợi dai, được dùng làm sợi hoặc giấy đặc biệt.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 20,
+        "poi_id": 5,
+        "language_code": "en",
+        "name": "Aquilaria crassna",
+        "description": "Aquilaria crassna is an evergreen tree that can form fragrant wood known as agarwood. This wood is used in fragrances.",
+        "audio_script": "What makes this tree special lies inside its trunk. After injury, it can form dark, fragrant wood; fungi and environmental conditions also play a role. Seeing the tree alone does not establish that it contains agarwood. Its bark also has tough fibres used for cordage or special paper.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 21,
+        "poi_id": 6,
+        "language_code": "vi",
+        "name": "Ngọc lan",
+        "description": "Ngọc lan có hoa trắng thơm và lá thuôn dài. Cây thường được trồng làm cảnh trong vườn, công viên.",
+        "audio_script": "Hoa ngọc lan có một chi tiết dễ bỏ qua: những mảnh trắng không chia thành đài và cánh hoa riêng biệt như nhiều loài quen thuộc. Chúng xếp theo đường xoắn ốc. Hương thơm còn khiến hoa được dùng làm nước hoa và ướp trà. Vẻ đẹp của loài cây này vì thế gắn cả với hình dáng lẫn mùi hương.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 22,
+        "poi_id": 6,
+        "language_code": "en",
+        "name": "White champaca",
+        "description": "White champaca has fragrant white flowers and elongated leaves. It is often grown as an ornamental tree in gardens and parks.",
+        "audio_script": "White champaca flowers have an easily missed feature: their white floral parts are not separated into distinct sepals and petals as in many familiar flowers. They are arranged in a spiral. The fragrance also makes the flowers useful for perfume and scenting tea. Their appeal involves both form and scent.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 23,
+        "poi_id": 7,
+        "language_code": "vi",
+        "name": "Trám trắng",
+        "description": "Trám trắng có lá kép và quả nhọn ở hai đầu. Loài cây này còn cho nhựa được dùng trong công nghiệp.",
+        "audio_script": "Trám trắng không chỉ cho gỗ. Nhựa cây còn được dùng làm hương, chế tinh dầu và tùng hương phục vụ ngành sơn, in. Nhìn vào một loài cây vì thế cũng có thể thấy mối liên hệ với vật liệu quanh ta. Một chi tiết khác: hạt trám có thể dùng để ép dầu.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 24,
+        "poi_id": 7,
+        "language_code": "en",
+        "name": "Canarium album",
+        "description": "Canarium album has compound leaves and fruits pointed at both ends. Its resin also has industrial uses.",
+        "audio_script": "Canarium album provides more than timber. Its resin is used for incense and processed into essential oil and rosin for paint and printing industries. A tree can therefore reveal connections with everyday materials. Another detail is that its seeds can be pressed for oil.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 25,
+        "poi_id": 8,
+        "language_code": "vi",
+        "name": "Cát anh",
+        "description": "Cát anh có tán rộng và hoa đỏ thành cụm rủ xuống. Loài cây có nguồn gốc từ Colombia được trồng làm cảnh nhờ hoa đẹp.",
+        "audio_script": "Sau những cụm hoa đỏ, cát anh còn có một câu chuyện ở quả. Quả thuộc dạng quả đậu và có khả năng tự phát tán hạt. Đây là một cách cây đưa hạt ra khỏi quả để bắt đầu thế hệ mới. Vì vậy, tìm hiểu cát anh có thể đi từ vẻ đẹp của hoa đến cách duy trì nòi giống.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 26,
+        "poi_id": 8,
+        "language_code": "en",
+        "name": "Brownea ariza",
+        "description": "Brownea ariza has a broad canopy and hanging clusters of red flowers. Native to Colombia, it is grown ornamentally for its flowers.",
+        "audio_script": "Beyond its red flower clusters, Brownea ariza has a story in its fruit. The fruit is a pod that can disperse its seeds itself. This releases seeds from the fruit to begin a new generation. Learning about the tree connects the beauty of its flowers with reproduction.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 27,
+        "poi_id": 9,
+        "language_code": "vi",
+        "name": "Bảo tàng Động–Thực vật",
+        "description": "Bảo tàng Động–Thực vật lưu giữ các tiêu bản phục vụ tìm hiểu thiên nhiên. Bên cạnh động vật tạo hình còn có bộ xương và mẫu thực vật.",
+        "audio_script": "Ở bảo tàng, một bộ xương cho thấy những chi tiết thường bị lớp da che khuất, giúp ta tìm hiểu cấu tạo động vật. Với thực vật, việc giữ mẫu lại là cuộc hẹn với thời gian: hoa và quả xuất hiện theo mùa, nên người sưu tập phải theo dõi để thu đúng lúc. Mỗi tiêu bản vì thế còn chứa công sức quan sát và bảo quản.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 28,
+        "poi_id": 9,
+        "language_code": "en",
+        "name": "Animal and Plant Museum",
+        "description": "The Animal and Plant Museum preserves specimens for learning about nature. Alongside mounted animals are skeletons and plant specimens.",
+        "audio_script": "In a museum, a skeleton reveals details normally hidden beneath the skin, helping us understand animal anatomy. Collecting plants involves timing: flowers and fruits appear seasonally, so collectors must follow their development to gather suitable samples. Each specimen also represents careful observation and preservation.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 29,
+        "poi_id": 10,
+        "language_code": "vi",
+        "name": "Quán Nhan Hương",
+        "description": "Quán Nhan Hương là di tích lịch sử trong Thảo Cầm Viên. Nơi đây từng là cơ sở bí mật của lực lượng Biệt động Sài Gòn.",
+        "audio_script": "Một quán giải khát bình thường từng che giấu hoạt động bí mật ngay trong Thảo Cầm Viên. Trong giai đoạn 1963–1975, Nhan Hương là nơi nuôi giấu cán bộ và trao đổi thông tin của lực lượng Biệt động Sài Gòn. Chi tiết đáng nhớ là tên quán được đặt theo người vợ đã mất của ông Nguyễn Văn Tửng, người lập quán.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 30,
+        "poi_id": 10,
+        "language_code": "en",
+        "name": "Nhan Huong historical site",
+        "description": "Nhan Huong is a historical site within Saigon Zoo and Botanical Gardens. It was once a clandestine base for the Saigon Special Forces.",
+        "audio_script": "An ordinary refreshment shop once concealed clandestine activity within the zoo. From 1963 to 1975, Nhan Huong sheltered operatives and served as a place to exchange information for the Saigon Special Forces. One memorable detail is its name: founder Nguyen Van Tung named it after his late wife.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 31,
+        "poi_id": 3,
+        "language_code": "zh-Hans",
+        "name": "河马",
+        "description": "河马体形庞大、腿短，大部分时间生活在水中。眼睛、耳朵和鼻孔位于头部较高的位置。",
+        "audio_script": "河马为什么长时间泡在水里？它们的皮肤对阳光敏感，待在水中有助于保护皮肤和调节体温。身体大部分浸入水中时，位置较高的眼睛和鼻孔仍能让它们观察和呼吸。有趣的是，河马通常会上岸吃草。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 32,
+        "poi_id": 3,
+        "language_code": "ko",
+        "name": "하마",
+        "description": "하마는 몸집이 크고 다리가 짧으며 물속에서 많은 시간을 보냅니다. 눈과 귀, 콧구멍은 머리의 높은 부분에 있습니다.",
+        "audio_script": "하마는 왜 오랫동안 물에 몸을 담그고 있을까요? 피부가 햇빛에 민감하기 때문에 물속에 있으면 피부를 보호하고 체온을 조절하는 데 도움이 됩니다. 몸 대부분이 잠겨 있어도 높은 곳에 있는 눈과 콧구멍 덕분에 주변을 보고 숨을 쉴 수 있습니다. 흥미롭게도 하마는 보통 땅으로 올라와 풀을 먹습니다.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 33,
+        "poi_id": 3,
+        "language_code": "ja",
+        "name": "カバ",
+        "description": "カバは体が大きく脚が短く、多くの時間を水中で過ごします。目、耳、鼻の穴は頭の高い位置にあります。",
+        "audio_script": "カバはなぜ長い時間、水に浸かっているのでしょうか。皮膚が日光に敏感なため、水中にいることは皮膚の保護と体温の調節に役立ちます。体の大部分が水に沈んでいても、高い位置にある目と鼻の穴で周囲を見たり呼吸したりできます。興味深いことに、カバは通常、陸に上がって草を食べます。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 34,
+        "poi_id": 3,
+        "language_code": "ru",
+        "name": "Обыкновенный бегемот",
+        "description": "У бегемота крупное тело и короткие ноги, и он проводит много времени в воде. Глаза, уши и ноздри расположены высоко на голове.",
+        "audio_script": "Почему бегемоты подолгу находятся в воде? Их кожа чувствительна к солнечному свету, а вода помогает защищать её и регулировать температуру тела. Даже когда большая часть тела погружена, высоко расположенные глаза и ноздри позволяют смотреть по сторонам и дышать. Интересно, что кормиться травой бегемоты обычно выходят на сушу.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 35,
+        "poi_id": 3,
+        "language_code": "fr",
+        "name": "Hippopotame commun",
+        "description": "L'hippopotame commun a un corps massif, des pattes courtes et passe beaucoup de temps dans l'eau. Ses yeux, ses oreilles et ses narines se trouvent sur le haut de sa tête.",
+        "audio_script": "Pourquoi les hippopotames restent-ils si longtemps dans l'eau ? Leur peau est sensible au soleil ; l'eau aide à la protéger et à réguler leur température corporelle. Même lorsque le corps est en grande partie immergé, leurs yeux et leurs narines placés en hauteur leur permettent de voir et de respirer. Fait intéressant, les hippopotames sortent généralement sur la terre ferme pour brouter.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 36,
+        "poi_id": 4,
+        "language_code": "zh-Hans",
+        "name": "白犀牛",
+        "description": "白犀牛的皮肤是灰色的，吻部有两只角。宽阔、平展的嘴唇适合吃草。",
+        "audio_script": "值得注意的不只是两只角，还有宽阔、平展的嘴唇。这种嘴唇适合啃食草，而草正是这一物种的主要食物。虽然名字叫白犀牛，它们的皮肤却是灰色的。除了吃草，它们还会洗泥浴；水和泥地是其栖息环境的一部分。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 37,
+        "poi_id": 4,
+        "language_code": "ko",
+        "name": "흰코뿔소",
+        "description": "흰코뿔소는 회색 피부를 지녔으며 주둥이 위에 뿔이 두 개 있습니다. 넓고 평평한 입술은 풀을 뜯어 먹기에 알맞습니다.",
+        "audio_script": "두 개의 뿔뿐 아니라 넓고 평평한 입술에도 주목해 보세요. 이 입술은 주된 먹이인 풀을 뜯는 데 적응한 모습입니다. 흰코뿔소라는 이름과 달리 피부는 회색입니다. 풀을 먹는 것 외에도 진흙 목욕을 하며, 물과 진흙이 있는 곳은 이들의 서식 환경을 이루는 일부입니다.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 38,
+        "poi_id": 4,
+        "language_code": "ja",
+        "name": "シロサイ",
+        "description": "シロサイの皮膚は灰色で、鼻先には二本の角があります。幅広く平らな唇は草を食べるのに適しています。",
+        "audio_script": "二本の角だけでなく、幅広く平らな唇にも注目してみましょう。この唇は、主な食べ物である草を食べることに適応しています。シロサイという名前ですが、皮膚は灰色です。草を食べるほかに泥浴びもします。水や泥のある場所は、生息環境の一部です。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 39,
+        "poi_id": 4,
+        "language_code": "ru",
+        "name": "Белый носорог",
+        "description": "У белого носорога серая кожа и два рога на морде. Широкая плоская губа приспособлена к поеданию травы.",
+        "audio_script": "Внимания заслуживают не только два рога, но и широкая плоская губа. Она приспособлена к поеданию травы — основной пищи этого вида. Несмотря на название «белый носорог», кожа у него серая. Помимо кормления травой, носороги принимают грязевые ванны; вода и грязевые участки являются частью их среды обитания.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 40,
+        "poi_id": 4,
+        "language_code": "fr",
+        "name": "Rhinocéros blanc",
+        "description": "Le rhinocéros blanc a une peau grise et deux cornes sur le museau. Sa lèvre large et plate est adaptée au pâturage.",
+        "audio_script": "Au-delà des deux cornes, remarquez sa lèvre large et plate. Elle est adaptée au broutage de l'herbe, l'aliment principal de l'espèce. Malgré son nom, le rhinocéros blanc a la peau grise. Il prend aussi des bains de boue ; l'eau et les zones boueuses font partie de son habitat.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 41,
+        "poi_id": 5,
+        "language_code": "zh-Hans",
+        "name": "沉香树（Aquilaria crassna）",
+        "description": "Aquilaria crassna 是一种常绿树，能够形成称为沉香的芳香木材。这种木材可用作香料。",
+        "audio_script": "这种树的特别之处藏在树干内部。受到损伤后，树木可能形成颜色较深、含有芳香物质的木材；这个过程还与真菌和环境条件有关。因此，不能仅凭看到一棵树，就断言它内部有沉香。树皮还含有坚韧的纤维，可用于制作绳线或特殊纸张。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 42,
+        "poi_id": 5,
+        "language_code": "ko",
+        "name": "Aquilaria crassna",
+        "description": "Aquilaria crassna는 침향이라고 부르는 향기로운 목재를 형성할 수 있는 상록수입니다. 이 목재는 향료로 사용됩니다.",
+        "audio_script": "이 나무의 특별함은 줄기 안에 있습니다. 상처를 입으면 색이 짙고 향기 성분이 있는 목재가 형성될 수 있으며, 이 과정에는 균류와 환경 조건도 관련됩니다. 따라서 나무를 보기만 하고 그 안에 침향이 있다고 단정할 수는 없습니다. 나무껍질에는 질긴 섬유도 있어 끈이나 특수 종이를 만드는 데 사용됩니다.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 43,
+        "poi_id": 5,
+        "language_code": "ja",
+        "name": "Aquilaria crassna",
+        "description": "Aquilaria crassna は、沈香と呼ばれる香りのある木材を形成することがある常緑樹です。この木材は香料に使われます。",
+        "audio_script": "この木の特別なところは、幹の内部にあります。傷を受けると、色が濃く香りの成分を含む木材が形成されることがあり、その過程には菌類や環境条件も関わります。そのため、木を見ただけで内部に沈香があると断言することはできません。樹皮には丈夫な繊維もあり、ひもや特殊な紙に使われます。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 44,
+        "poi_id": 5,
+        "language_code": "ru",
+        "name": "Aquilaria crassna",
+        "description": "Aquilaria crassna — вечнозелёное дерево, способное образовывать ароматную древесину, известную как агаровая древесина. Её используют для получения ароматических материалов.",
+        "audio_script": "Особенность этого дерева скрыта внутри ствола. После повреждения в нём может образоваться тёмная древесина, содержащая ароматические вещества; с этим процессом также связаны грибы и условия окружающей среды. Поэтому по одному виду дерева нельзя утверждать, что внутри есть агаровая древесина. Кора также содержит прочные волокна, которые используют для изготовления верёвок или специальной бумаги.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 45,
+        "poi_id": 5,
+        "language_code": "fr",
+        "name": "Aquilaria crassna",
+        "description": "Aquilaria crassna est un arbre à feuillage persistant qui peut former un bois odorant appelé bois d'agar. Ce bois est utilisé en parfumerie.",
+        "audio_script": "La particularité de cet arbre se cache à l'intérieur de son tronc. Après une blessure, il peut former un bois sombre contenant des substances odorantes ; les champignons et les conditions du milieu jouent aussi un rôle. On ne peut donc pas affirmer qu'un arbre contient du bois d'agar simplement en le regardant. Son écorce possède également des fibres résistantes utilisées pour fabriquer des cordages ou des papiers spéciaux.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 46,
+        "poi_id": 6,
+        "language_code": "zh-Hans",
+        "name": "白兰（Michelia alba）",
+        "description": "白兰的花洁白芳香，叶片细长。这种树常被种植在花园和公园中作为观赏植物。",
+        "audio_script": "白兰的花有一个容易被忽略的细节：那些白色的花部并不像许多常见植物那样，明显分成花萼和花瓣。它们呈螺旋状排列。花香还使它们被用于制作香水和窨制茶叶。因此，这种树的魅力既来自形态，也来自香气。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 47,
+        "poi_id": 6,
+        "language_code": "ko",
+        "name": "백란（Michelia alba）",
+        "description": "백란은 향기로운 흰 꽃과 길쭉한 잎을 지녔습니다. 정원이나 공원에서 관상수로 흔히 심습니다.",
+        "audio_script": "백란의 꽃에는 놓치기 쉬운 특징이 있습니다. 흰 꽃 부분이 익숙한 여러 식물처럼 꽃받침과 꽃잎으로 뚜렷이 나뉘지 않습니다. 이 부분들은 나선형으로 배열됩니다. 꽃의 향기 때문에 향수나 차에 향을 입히는 데에도 쓰입니다. 이 나무의 아름다움은 모양뿐 아니라 향기와도 이어져 있습니다.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 48,
+        "poi_id": 6,
+        "language_code": "ja",
+        "name": "ギンコウボク（Michelia alba）",
+        "description": "ギンコウボクは、香りのよい白い花と細長い葉を持ちます。庭園や公園で観賞用によく植えられています。",
+        "audio_script": "この花には見落としやすい特徴があります。白い花の部分は、身近な多くの植物のように、がくと花びらにはっきり分かれていません。それらはらせん状に並んでいます。香りがよいため、花は香水や茶の香り付けにも使われます。この木の魅力は、形と香りの両方にあるのです。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 49,
+        "poi_id": 6,
+        "language_code": "ru",
+        "name": "Michelia alba",
+        "description": "У Michelia alba ароматные белые цветки и продолговатые листья. Это дерево часто выращивают как декоративное в садах и парках.",
+        "audio_script": "У цветков есть деталь, которую легко не заметить: белые части цветка не разделены отчётливо на чашелистики и лепестки, как у многих привычных растений. Они расположены по спирали. Благодаря аромату цветки также используют в парфюмерии и для ароматизации чая. Привлекательность этого дерева связана и с формой, и с запахом.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 50,
+        "poi_id": 6,
+        "language_code": "fr",
+        "name": "Michelia alba",
+        "description": "Michelia alba porte des fleurs blanches parfumées et des feuilles allongées. Cet arbre est souvent planté pour l'ornement dans les jardins et les parcs.",
+        "audio_script": "Ses fleurs présentent un détail facile à manquer : les parties blanches ne sont pas nettement séparées en sépales et en pétales, comme chez de nombreuses fleurs familières. Elles sont disposées en spirale. Leur parfum permet aussi de les utiliser en parfumerie et pour parfumer le thé. La beauté de cet arbre tient donc autant à sa forme qu'à son odeur.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 51,
+        "poi_id": 7,
+        "language_code": "zh-Hans",
+        "name": "橄榄（Canarium album）",
+        "description": "Canarium album 有复叶，果实两端尖。这种树还能提供用于工业的树脂。",
+        "audio_script": "Canarium album 的用途不仅是提供木材。它的树脂还可用来制香，并加工成用于油漆和印刷行业的精油及松香。因此，了解一种树，也能看到它与日常材料之间的联系。另一个有趣的细节是，它的种子可以用来榨油。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 52,
+        "poi_id": 7,
+        "language_code": "ko",
+        "name": "Canarium album",
+        "description": "Canarium album은 겹잎을 지니며 열매의 양 끝이 뾰족합니다. 이 나무의 수지는 산업용으로도 사용됩니다.",
+        "audio_script": "Canarium album은 목재만 제공하는 나무가 아닙니다. 수지는 향을 만드는 데 쓰이며, 페인트와 인쇄 산업에 사용되는 정유와 로진으로도 가공됩니다. 따라서 한 나무를 살펴보는 일은 주변의 재료와 어떤 관련이 있는지 알아보는 일이기도 합니다. 또 다른 흥미로운 점은 씨앗에서 기름을 짤 수 있다는 것입니다.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 53,
+        "poi_id": 7,
+        "language_code": "ja",
+        "name": "Canarium album",
+        "description": "Canarium album は複葉を持ち、果実の両端はとがっています。この木の樹脂には工業用途もあります。",
+        "audio_script": "Canarium album がもたらすものは木材だけではありません。樹脂は香を作るほか、塗料や印刷の分野で使う精油やロジンに加工されます。このように、一種類の木を知ることから、身の回りの素材とのつながりも見えてきます。もう一つ興味深いのは、種子から油を搾れることです。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 54,
+        "poi_id": 7,
+        "language_code": "ru",
+        "name": "Canarium album",
+        "description": "У Canarium album сложные листья и плоды, заострённые с обоих концов. Смолу этого дерева также используют в промышленности.",
+        "audio_script": "Canarium album даёт не только древесину. Его смолу используют для изготовления благовоний, а также перерабатывают в эфирное масло и канифоль для лакокрасочной и печатной промышленности. Изучая одно дерево, можно увидеть его связь с окружающими нас материалами. Ещё одна интересная деталь: из семян можно отжимать масло.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 55,
+        "poi_id": 7,
+        "language_code": "fr",
+        "name": "Canarium album",
+        "description": "Canarium album possède des feuilles composées et des fruits pointus aux deux extrémités. Sa résine a également des usages industriels.",
+        "audio_script": "Canarium album fournit plus que du bois. Sa résine sert à fabriquer de l'encens et est transformée en huile essentielle et en colophane pour les secteurs de la peinture et de l'imprimerie. Observer une espèce d'arbre permet ainsi de découvrir ses liens avec les matériaux qui nous entourent. Autre détail intéressant : ses graines peuvent être pressées pour en extraire de l'huile.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 56,
+        "poi_id": 8,
+        "language_code": "zh-Hans",
+        "name": "Brownea ariza",
+        "description": "Brownea ariza 的树冠宽阔，红花成簇下垂。这种原产于哥伦比亚的树因花朵美丽而被作为观赏植物栽培。",
+        "audio_script": "除了成簇的红花，Brownea ariza 的果实也有值得了解的地方。它的果实是豆荚，能够自行散播种子。这是植物让种子离开果实、开始下一代的一种方式。因此，了解这种树，可以从花的美丽延伸到它如何繁衍后代。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 57,
+        "poi_id": 8,
+        "language_code": "ko",
+        "name": "Brownea ariza",
+        "description": "Brownea ariza는 수관이 넓고 붉은 꽃송이가 아래로 늘어집니다. 콜롬비아가 원산지인 이 나무는 아름다운 꽃 때문에 관상용으로 재배됩니다.",
+        "audio_script": "붉은 꽃송이뿐 아니라 Brownea ariza의 열매에도 이야기가 있습니다. 열매는 꼬투리 형태이며 스스로 씨앗을 퍼뜨릴 수 있습니다. 이는 씨앗을 열매 밖으로 내보내 다음 세대를 시작하게 하는 한 가지 방법입니다. 따라서 이 나무를 알아가는 일은 꽃의 아름다움에서 번식 방식으로 이어질 수 있습니다.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 58,
+        "poi_id": 8,
+        "language_code": "ja",
+        "name": "Brownea ariza",
+        "description": "Brownea ariza は樹冠が広く、赤い花の房が垂れ下がります。コロンビア原産で、美しい花を楽しむ観賞用の木として植えられています。",
+        "audio_script": "赤い花の房のほかに、Brownea ariza の果実にも注目してみましょう。果実はさやの形をしており、自ら種子を散布することができます。これは種子を果実の外へ送り出し、次の世代を始める方法の一つです。この木について学ぶと、花の美しさから子孫の残し方へと理解が広がります。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 59,
+        "poi_id": 8,
+        "language_code": "ru",
+        "name": "Brownea ariza",
+        "description": "У Brownea ariza широкая крона и свисающие соцветия красных цветков. Это дерево родом из Колумбии выращивают как декоративное благодаря красивым цветкам.",
+        "audio_script": "Помимо красных соцветий, интерес представляют и плоды Brownea ariza. Плод имеет форму боба и способен самостоятельно распространять семена. Так растение высвобождает семена из плода, давая начало новому поколению. Поэтому знакомство с этим деревом может вести от красоты цветков к способу продолжения рода.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 60,
+        "poi_id": 8,
+        "language_code": "fr",
+        "name": "Brownea ariza",
+        "description": "Brownea ariza possède une large couronne et des grappes de fleurs rouges retombantes. Originaire de Colombie, cet arbre est cultivé pour la beauté de ses fleurs.",
+        "audio_script": "Au-delà de ses grappes de fleurs rouges, Brownea ariza a aussi une histoire à raconter par ses fruits. Le fruit est une gousse capable de disperser elle-même ses graines. C'est une façon de libérer les graines du fruit pour donner naissance à une nouvelle génération. Découvrir cet arbre relie ainsi la beauté des fleurs à la reproduction.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 61,
+        "poi_id": 9,
+        "language_code": "zh-Hans",
+        "name": "动植物博物馆",
+        "description": "动植物博物馆保存用于了解自然的标本。除了制作成形的动物标本，还有骨骼和植物标本。",
+        "audio_script": "在博物馆里，一副骨骼能展示通常被皮肤遮住的细节，帮助我们了解动物的身体结构。对于植物，采集标本还需要把握时机：花和果实随季节出现，采集者必须持续观察，才能在合适的时候采集。因此，每一件标本也包含了观察和保存的心血。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 62,
+        "poi_id": 9,
+        "language_code": "ko",
+        "name": "동식물 박물관",
+        "description": "동식물 박물관은 자연을 알아보는 데 쓰이는 표본을 보존합니다. 동물 박제뿐 아니라 골격과 식물 표본도 있습니다.",
+        "audio_script": "박물관에서 골격은 평소 피부에 가려 보이지 않는 세부 구조를 드러내 동물의 몸을 이해하도록 돕습니다. 식물 표본을 모을 때는 시기를 맞추는 일이 중요합니다. 꽃과 열매는 계절에 따라 나타나므로 수집자는 알맞은 때에 채집하기 위해 변화를 지켜봐야 합니다. 따라서 표본 하나하나에는 관찰과 보존에 들인 노력도 담겨 있습니다.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 63,
+        "poi_id": 9,
+        "language_code": "ja",
+        "name": "動植物博物館",
+        "description": "動植物博物館は、自然について学ぶための標本を保存しています。動物の剥製のほかに、骨格や植物の標本もあります。",
+        "audio_script": "博物館では、骨格を見ることで普段は皮膚に隠れている細部が分かり、動物の体の構造を学べます。植物の標本集めには、時機を見極めることが必要です。花や果実は季節に応じて現れるため、収集する人は適切な時に採集できるよう観察を続けなければなりません。一つ一つの標本には、観察と保存の努力も込められています。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 64,
+        "poi_id": 9,
+        "language_code": "ru",
+        "name": "Музей животных и растений",
+        "description": "Музей животных и растений хранит образцы, помогающие изучать природу. Помимо чучел животных, здесь представлены скелеты и растительные образцы.",
+        "audio_script": "В музее скелет показывает детали, обычно скрытые под кожей, и помогает понять строение животного. При сборе растительных образцов важно выбрать время: цветки и плоды появляются по сезонам, поэтому собиратели должны наблюдать за развитием растений, чтобы собрать материал в подходящий момент. Каждый образец хранит в себе и труд, вложенный в наблюдение и сохранение.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 65,
+        "poi_id": 9,
+        "language_code": "fr",
+        "name": "Musée des animaux et des plantes",
+        "description": "Le musée des animaux et des plantes conserve des spécimens pour découvrir la nature. Aux côtés des animaux naturalisés se trouvent des squelettes et des spécimens végétaux.",
+        "audio_script": "Au musée, un squelette révèle des détails normalement cachés sous la peau et nous aide à comprendre l'anatomie des animaux. Pour les plantes, la collecte demande de choisir le bon moment : fleurs et fruits apparaissent selon les saisons, et les collecteurs doivent suivre leur développement pour les prélever à temps. Chaque spécimen témoigne donc aussi d'un travail d'observation et de conservation.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 66,
+        "poi_id": 10,
+        "language_code": "zh-Hans",
+        "name": "Nhan Hương 历史遗址",
+        "description": "Nhan Hương 是西贡动植物园内的一处历史遗址。这里曾是 Biệt động Sài Gòn 的秘密据点。",
+        "audio_script": "动植物园里一家普通的饮料店，曾经掩护着秘密活动。在1963年至1975年间，Nhan Hương 为 Biệt động Sài Gòn 的人员提供藏身之所，也是交换信息的地点。一个值得记住的细节是店名：开店的 Nguyễn Văn Tửng 先生用已故妻子的名字为店铺命名。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 67,
+        "poi_id": 10,
+        "language_code": "ko",
+        "name": "Nhan Hương 유적",
+        "description": "Nhan Hương은 사이공 동식물원 안에 있는 역사 유적입니다. 이곳은 한때 Biệt động Sài Gòn의 비밀 거점이었습니다.",
+        "audio_script": "동식물원 안의 평범한 음료 가게가 한때 비밀 활동을 감추는 장소였습니다. 1963년부터 1975년까지 Nhan Hương은 Biệt động Sài Gòn의 활동가들을 숨겨 주고 정보를 교환하는 곳이었습니다. 기억할 만한 점은 가게 이름입니다. 가게를 세운 Nguyễn Văn Tửng은 세상을 떠난 아내의 이름을 따서 가게 이름을 지었습니다.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 68,
+        "poi_id": 10,
+        "language_code": "ja",
+        "name": "Nhan Hương 史跡",
+        "description": "Nhan Hương はサイゴン動植物園内にある史跡です。かつて Biệt động Sài Gòn の秘密拠点でした。",
+        "audio_script": "動植物園内の一見普通の飲み物の店が、かつて秘密の活動を隠していました。1963年から1975年にかけて、Nhan Hương は Biệt động Sài Gòn の活動員をかくまい、情報を交換する場所でした。覚えておきたいのは店の名前です。創業者の Nguyễn Văn Tửng は、亡くなった妻の名前を店に付けました。",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 69,
+        "poi_id": 10,
+        "language_code": "ru",
+        "name": "Историческое место Nhan Hương",
+        "description": "Nhan Hương — историческое место на территории Сайгонского зоопарка и ботанического сада. Когда-то здесь находилась тайная база Biệt động Sài Gòn.",
+        "audio_script": "Обычная лавка прохладительных напитков когда-то служила прикрытием для тайной деятельности прямо на территории зоопарка. С 1963 по 1975 год Nhan Hương укрывала участников Biệt động Sài Gòn и служила местом обмена информацией. Запоминается и происхождение названия: основатель лавки Nguyễn Văn Tửng назвал её в честь своей покойной жены.",
+        "source_version": 1,
+        "status": "READY"
+      },
+      {
+        "translation_id": 70,
+        "poi_id": 10,
+        "language_code": "fr",
+        "name": "Site historique Nhan Hương",
+        "description": "Nhan Hương est un site historique situé dans le zoo et jardin botanique de Saïgon. Il fut autrefois une base clandestine de Biệt động Sài Gòn.",
+        "audio_script": "Un simple commerce de boissons dissimulait autrefois des activités clandestines au sein même du zoo. De 1963 à 1975, Nhan Hương a abrité des membres de Biệt động Sài Gòn et servi de lieu d'échange d'informations. Un détail marquant concerne son nom : le fondateur, Nguyễn Văn Tửng, l'a choisi en souvenir de son épouse décédée.",
+        "source_version": 1,
+        "status": "READY"
+      }
+    ],
+    "AUDIOS": [
+      {
+        "audio_id": 1,
+        "translation_id": 1,
+        "file_url": "/api/media/audio/790ebd80-751d-47da-9c19-ca4181daa841.wav",
+        "duration": 12,
+        "file_size": 375280,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 2,
+        "translation_id": 2,
+        "file_url": "/api/media/audio/2d52a230-f5e2-4701-82cb-60f082ab2a98.wav",
+        "duration": 19,
+        "file_size": 585930,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 3,
+        "translation_id": 3,
+        "file_url": "/api/media/audio/8f20654b-a2c1-487d-91c1-fbb5e4bef756.wav",
+        "duration": 13,
+        "file_size": 387540,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 4,
+        "translation_id": 4,
+        "file_url": "/api/media/audio/55f4317c-775a-4501-b9cd-d482d9e5b2fe.wav",
+        "duration": 19,
+        "file_size": 597448,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 9,
+        "translation_id": 5,
+        "file_url": "/api/media/audio/d00e0e36-3561-4796-96a4-28d9655cc846.wav",
+        "duration": 20,
+        "file_size": 609708,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 10,
+        "translation_id": 6,
+        "file_url": "/api/media/audio/2d5d2564-5711-448b-a1d4-8371c1bfd92d.wav",
+        "duration": 18,
+        "file_size": 562526,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 11,
+        "translation_id": 7,
+        "file_url": "/api/media/audio/89842a15-b8b4-4ca1-a634-34de3aaa6141.wav",
+        "duration": 20,
+        "file_size": 629398,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 12,
+        "translation_id": 8,
+        "file_url": "/api/media/audio/9d01f289-4eb8-4ca5-9843-b8a518fd09ec.wav",
+        "duration": 17,
+        "file_size": 542834,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 13,
+        "translation_id": 9,
+        "file_url": "/api/media/audio/88ca995a-f6af-44e0-8f47-336f9816ec4a.wav",
+        "duration": 19,
+        "file_size": 577012,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 14,
+        "translation_id": 10,
+        "file_url": "/api/media/audio/e31c08e4-fe5b-40c8-aad9-c12f50d310ca.wav",
+        "duration": 20,
+        "file_size": 625684,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 15,
+        "translation_id": 11,
+        "file_url": "/api/media/audio/9823fd80-b4cf-4965-84dd-c39f551a31df.wav",
+        "duration": 19,
+        "file_size": 594848,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 16,
+        "translation_id": 12,
+        "file_url": "/api/media/audio/8d262d3c-a713-476f-b096-9ed3c455db14.wav",
+        "duration": 21,
+        "file_size": 657262,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 17,
+        "translation_id": 13,
+        "file_url": "/api/media/audio/5ad08356-b965-42ac-9591-3f475217fb7d.wav",
+        "duration": 19,
+        "file_size": 584444,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 18,
+        "translation_id": 14,
+        "file_url": "/api/media/audio/efb03388-cd8a-41a6-99c8-0641a57f59d4.wav",
+        "duration": 19,
+        "file_size": 606364,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 19,
+        "translation_id": 16,
+        "file_url": "/api/media/audio/f11a1672-887e-4eab-a340-5b61e039f3f7.wav",
+        "duration": 18,
+        "file_size": 575528,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 20,
+        "translation_id": 15,
+        "file_url": "/api/media/audio/252e30a7-ebfb-4414-b591-27fde0a4b068.wav",
+        "duration": 13,
+        "file_size": 409830,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 21,
+        "translation_id": 18,
+        "file_url": "/api/media/audio/9e93efc1-fd69-4ed9-8937-eeab13a939b9.wav",
+        "duration": 15,
+        "file_size": 477818,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 22,
+        "translation_id": 17,
+        "file_url": "/api/media/audio/bc2c41cc-b391-4ed4-af34-f75936e6fbdf.wav",
+        "duration": 13,
+        "file_size": 415032,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 23,
+        "translation_id": 20,
+        "file_url": "/api/media/audio/5b0d262d-6445-4712-9388-a311873cee7d.wav",
+        "duration": 19,
+        "file_size": 585188,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 24,
+        "translation_id": 19,
+        "file_url": "/api/media/audio/f651ec2e-970b-4a26-bf30-986c56fa8b31.wav",
+        "duration": 15,
+        "file_size": 467788,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 25,
+        "translation_id": 22,
+        "file_url": "/api/media/audio/eafac0de-006f-4584-ac0f-f0c8229889e2.wav",
+        "duration": 18,
+        "file_size": 570698,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 26,
+        "translation_id": 21,
+        "file_url": "/api/media/audio/59361158-0bbe-4398-ab76-fcf0582d2552.wav",
+        "duration": 14,
+        "file_size": 433608,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 27,
+        "translation_id": 24,
+        "file_url": "/api/media/audio/67bec0e0-d5bd-4f47-844b-8518fa91dadb.wav",
+        "duration": 18,
+        "file_size": 568842,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 28,
+        "translation_id": 23,
+        "file_url": "/api/media/audio/e78822fa-b399-48d1-9e2e-afa0aa9fe40f.wav",
+        "duration": 12,
+        "file_size": 373794,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 29,
+        "translation_id": 26,
+        "file_url": "/api/media/audio/f34f0313-da45-4d5e-b4af-e45559ca51c3.wav",
+        "duration": 17,
+        "file_size": 538748,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 30,
+        "translation_id": 25,
+        "file_url": "/api/media/audio/8446f7cb-c43a-4e34-a4fb-8e46d7aa977b.wav",
+        "duration": 14,
+        "file_size": 417632,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 31,
+        "translation_id": 28,
+        "file_url": "/api/media/audio/e098f1ef-f967-4bcb-b2cc-2054520a310d.wav",
+        "duration": 21,
+        "file_size": 663576,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 32,
+        "translation_id": 27,
+        "file_url": "/api/media/audio/4136780d-35af-4d1a-bf77-2d412401656a.wav",
+        "duration": 16,
+        "file_size": 489708,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 33,
+        "translation_id": 30,
+        "file_url": "/api/media/audio/a7531164-7b3d-4077-adc5-5a22bf586842.wav",
+        "duration": 22,
+        "file_size": 699988,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 34,
+        "translation_id": 29,
+        "file_url": "/api/media/audio/fcf24bb3-a122-47dd-9069-a4b982ffb2f6.wav",
+        "duration": 17,
+        "file_size": 525002,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 35,
+        "translation_id": 31,
+        "file_url": "/api/media/audio/602a6783-1fc0-48ba-964d-fa9039d0f457.wav",
+        "duration": 21,
+        "file_size": 648718,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 36,
+        "translation_id": 32,
+        "file_url": "/api/media/audio/9612d5ef-4137-4d33-97da-63476cf4070f.wav",
+        "duration": 22,
+        "file_size": 695900,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 37,
+        "translation_id": 33,
+        "file_url": "/api/media/audio/24c5ff1d-8e7d-4dc3-8901-ea6cd1c3e654.wav",
+        "duration": 24,
+        "file_size": 750514,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 38,
+        "translation_id": 34,
+        "file_url": "/api/media/audio/d039061f-26ee-41eb-b2d2-9d6c23a92b18.wav",
+        "duration": 21,
+        "file_size": 641288,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 39,
+        "translation_id": 35,
+        "file_url": "/api/media/audio/1c3edf28-bbc2-4d1c-9515-bbb15171d266.wav",
+        "duration": 21,
+        "file_size": 656148,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 40,
+        "translation_id": 36,
+        "file_url": "/api/media/audio/00aacf3e-ba23-47b9-aed3-f5076027e1a3.wav",
+        "duration": 23,
+        "file_size": 711132,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 41,
+        "translation_id": 37,
+        "file_url": "/api/media/audio/5f6d7424-9bd6-4258-a806-69a90ae7e630.wav",
+        "duration": 21,
+        "file_size": 647974,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 42,
+        "translation_id": 38,
+        "file_url": "/api/media/audio/d79d63c7-bf54-4561-8a68-80cc90f5135d.wav",
+        "duration": 21,
+        "file_size": 659492,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 43,
+        "translation_id": 39,
+        "file_url": "/api/media/audio/a274f1de-0e3a-47ce-87fc-3d2a86ae4360.wav",
+        "duration": 20,
+        "file_size": 624568,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 44,
+        "translation_id": 40,
+        "file_url": "/api/media/audio/5956465f-97d1-4945-a88e-74fc85173f6c.wav",
+        "duration": 16,
+        "file_size": 484506,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 45,
+        "translation_id": 41,
+        "file_url": "/api/media/audio/ba778cef-484d-434d-b3c0-ed3c0073f2e5.wav",
+        "duration": 26,
+        "file_size": 818128,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 46,
+        "translation_id": 42,
+        "file_url": "/api/media/audio/d8d54103-de7d-4068-8943-d79ab20cc865.wav",
+        "duration": 24,
+        "file_size": 754600,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 47,
+        "translation_id": 43,
+        "file_url": "/api/media/audio/3feb564a-4412-4090-a29f-0463da97c486.wav",
+        "duration": 25,
+        "file_size": 790638,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 48,
+        "translation_id": 44,
+        "file_url": "/api/media/audio/f6e9634a-461e-4b8a-aeab-d3be760d6c86.wav",
+        "duration": 24,
+        "file_size": 760916,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 49,
+        "translation_id": 45,
+        "file_url": "/api/media/audio/3d202985-7918-48ed-93cc-f34a3baca40d.wav",
+        "duration": 22,
+        "file_size": 699988,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 50,
+        "translation_id": 46,
+        "file_url": "/api/media/audio/6400c876-d5ae-49ef-b60a-3b31eac687e4.wav",
+        "duration": 23,
+        "file_size": 721536,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 51,
+        "translation_id": 47,
+        "file_url": "/api/media/audio/dd6e875d-ac98-4fbd-b10d-57eeac0fd7bf.wav",
+        "duration": 22,
+        "file_size": 697386,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 52,
+        "translation_id": 48,
+        "file_url": "/api/media/audio/010b0f92-8d28-4a4f-b572-889938899352.wav",
+        "duration": 21,
+        "file_size": 667666,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 53,
+        "translation_id": 49,
+        "file_url": "/api/media/audio/79e81912-7e38-4f44-bd84-cab253d4bd15.wav",
+        "duration": 20,
+        "file_size": 631256,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 54,
+        "translation_id": 50,
+        "file_url": "/api/media/audio/1c12f0d4-228c-40c1-9b89-7e919e3abf9e.wav",
+        "duration": 19,
+        "file_size": 604506,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 55,
+        "translation_id": 51,
+        "file_url": "/api/media/audio/3f5f5413-d41a-46a5-86da-4590e1d1c494.wav",
+        "duration": 22,
+        "file_size": 695158,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 56,
+        "translation_id": 52,
+        "file_url": "/api/media/audio/b13f09b3-6c8c-423f-b61d-976b02ff73cd.wav",
+        "duration": 24,
+        "file_size": 740482,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 57,
+        "translation_id": 53,
+        "file_url": "/api/media/audio/562e771a-a93f-4c99-a079-329d6b70d5cb.wav",
+        "duration": 23,
+        "file_size": 714848,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 58,
+        "translation_id": 54,
+        "file_url": "/api/media/audio/690eef89-81cd-40b3-85e4-1bf4374d238e.wav",
+        "duration": 20,
+        "file_size": 633486,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 59,
+        "translation_id": 55,
+        "file_url": "/api/media/audio/2ef14aa3-c9b9-4ddd-b461-1c96d90e1ee8.wav",
+        "duration": 20,
+        "file_size": 626798,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 60,
+        "translation_id": 56,
+        "file_url": "/api/media/audio/0d7d7e8b-9572-4d37-987c-8a55b5dce1c4.wav",
+        "duration": 23,
+        "file_size": 705932,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 61,
+        "translation_id": 57,
+        "file_url": "/api/media/audio/25f98c1d-888b-45b8-ba0d-2d5a1bf8446f.wav",
+        "duration": 22,
+        "file_size": 692556,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 62,
+        "translation_id": 58,
+        "file_url": "/api/media/audio/56738c88-1d79-4e05-925b-7753b5449f83.wav",
+        "duration": 25,
+        "file_size": 791382,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 63,
+        "translation_id": 59,
+        "file_url": "/api/media/audio/7d6de2e9-a7d9-463c-a968-6369e49720ac.wav",
+        "duration": 19,
+        "file_size": 597076,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 64,
+        "translation_id": 60,
+        "file_url": "/api/media/audio/ac994752-d82c-40a1-ac1c-34a81fc764b8.wav",
+        "duration": 20,
+        "file_size": 626054,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 65,
+        "translation_id": 61,
+        "file_url": "/api/media/audio/ac5947f2-75e5-4d27-b797-8ef21849c4ae.wav",
+        "duration": 26,
+        "file_size": 806242,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 66,
+        "translation_id": 62,
+        "file_url": "/api/media/audio/54f90635-bea7-4ed1-91e7-b782cbd947e0.wav",
+        "duration": 25,
+        "file_size": 786180,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 67,
+        "translation_id": 63,
+        "file_url": "/api/media/audio/fcce8ace-f31f-4470-9bb6-8c3406c3cb2d.wav",
+        "duration": 28,
+        "file_size": 885376,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 68,
+        "translation_id": 64,
+        "file_url": "/api/media/audio/05b505c6-e4de-45f9-99c5-c30ce08dc0d3.wav",
+        "duration": 22,
+        "file_size": 698872,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 69,
+        "translation_id": 65,
+        "file_url": "/api/media/audio/4a3ea461-9f93-4b66-a5ee-704c4d5998c7.wav",
+        "duration": 22,
+        "file_size": 685870,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 70,
+        "translation_id": 66,
+        "file_url": "/api/media/audio/423cd7e5-2c12-48b8-94a3-13359c6095cf.wav",
+        "duration": 26,
+        "file_size": 830020,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 71,
+        "translation_id": 67,
+        "file_url": "/api/media/audio/b8c8588b-0c51-40e2-82fc-b758c96f1fe2.wav",
+        "duration": 31,
+        "file_size": 989400,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 72,
+        "translation_id": 68,
+        "file_url": "/api/media/audio/c3fe43b2-8717-4c5c-91cc-db8126c7a033.wav",
+        "duration": 29,
+        "file_size": 926986,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 73,
+        "translation_id": 69,
+        "file_url": "/api/media/audio/d6871196-82db-4053-8bfe-7980f3f43b36.wav",
+        "duration": 30,
+        "file_size": 934788,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      },
+      {
+        "audio_id": 74,
+        "translation_id": 70,
+        "file_url": "/api/media/audio/966d6f21-7aad-49ee-abc2-9106b548a1d0.wav",
+        "duration": 25,
+        "file_size": 790266,
+        "source_version": 1,
+        "status": "AVAILABLE"
+      }
+    ],
+    "CONTENT_JOBS": [
+      {
+        "job_id": 1,
+        "poi_id": 1,
+        "language_code": "vi",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 2,
+        "poi_id": 1,
+        "language_code": "en",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 3,
+        "poi_id": 2,
+        "language_code": "vi",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 4,
+        "poi_id": 2,
+        "language_code": "en",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 5,
+        "poi_id": 1,
+        "language_code": "zh-Hans",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 6,
+        "poi_id": 1,
+        "language_code": "ko",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 7,
+        "poi_id": 1,
+        "language_code": "ja",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 8,
+        "poi_id": 1,
+        "language_code": "ru",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 9,
+        "poi_id": 1,
+        "language_code": "fr",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 10,
+        "poi_id": 2,
+        "language_code": "zh-Hans",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 11,
+        "poi_id": 2,
+        "language_code": "ko",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 12,
+        "poi_id": 2,
+        "language_code": "ja",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 13,
+        "poi_id": 2,
+        "language_code": "ru",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 14,
+        "poi_id": 2,
+        "language_code": "fr",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 15,
+        "poi_id": 3,
+        "language_code": "en",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 16,
+        "poi_id": 3,
+        "language_code": "fr",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 17,
+        "poi_id": 3,
+        "language_code": "ja",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 18,
+        "poi_id": 3,
+        "language_code": "ko",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 19,
+        "poi_id": 3,
+        "language_code": "ru",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 20,
+        "poi_id": 3,
+        "language_code": "vi",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 21,
+        "poi_id": 3,
+        "language_code": "zh-Hans",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 22,
+        "poi_id": 4,
+        "language_code": "en",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 23,
+        "poi_id": 4,
+        "language_code": "fr",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 24,
+        "poi_id": 4,
+        "language_code": "ja",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 25,
+        "poi_id": 4,
+        "language_code": "ko",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 26,
+        "poi_id": 4,
+        "language_code": "ru",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 27,
+        "poi_id": 4,
+        "language_code": "vi",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 28,
+        "poi_id": 4,
+        "language_code": "zh-Hans",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 29,
+        "poi_id": 5,
+        "language_code": "en",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 30,
+        "poi_id": 5,
+        "language_code": "fr",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 31,
+        "poi_id": 5,
+        "language_code": "ja",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 32,
+        "poi_id": 5,
+        "language_code": "ko",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 33,
+        "poi_id": 5,
+        "language_code": "ru",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 34,
+        "poi_id": 5,
+        "language_code": "vi",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 35,
+        "poi_id": 5,
+        "language_code": "zh-Hans",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 36,
+        "poi_id": 6,
+        "language_code": "en",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 37,
+        "poi_id": 6,
+        "language_code": "fr",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 38,
+        "poi_id": 6,
+        "language_code": "ja",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 39,
+        "poi_id": 6,
+        "language_code": "ko",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 40,
+        "poi_id": 6,
+        "language_code": "ru",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 41,
+        "poi_id": 6,
+        "language_code": "vi",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 42,
+        "poi_id": 6,
+        "language_code": "zh-Hans",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 43,
+        "poi_id": 7,
+        "language_code": "en",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 44,
+        "poi_id": 7,
+        "language_code": "fr",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 45,
+        "poi_id": 7,
+        "language_code": "ja",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 46,
+        "poi_id": 7,
+        "language_code": "ko",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 47,
+        "poi_id": 7,
+        "language_code": "ru",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 48,
+        "poi_id": 7,
+        "language_code": "vi",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 49,
+        "poi_id": 7,
+        "language_code": "zh-Hans",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 50,
+        "poi_id": 8,
+        "language_code": "en",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 51,
+        "poi_id": 8,
+        "language_code": "fr",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 52,
+        "poi_id": 8,
+        "language_code": "ja",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 53,
+        "poi_id": 8,
+        "language_code": "ko",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 54,
+        "poi_id": 8,
+        "language_code": "ru",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 55,
+        "poi_id": 8,
+        "language_code": "vi",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 56,
+        "poi_id": 8,
+        "language_code": "zh-Hans",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 57,
+        "poi_id": 9,
+        "language_code": "en",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 58,
+        "poi_id": 9,
+        "language_code": "fr",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 59,
+        "poi_id": 9,
+        "language_code": "ja",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 60,
+        "poi_id": 9,
+        "language_code": "ko",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 61,
+        "poi_id": 9,
+        "language_code": "ru",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 62,
+        "poi_id": 9,
+        "language_code": "vi",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 63,
+        "poi_id": 9,
+        "language_code": "zh-Hans",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 64,
+        "poi_id": 10,
+        "language_code": "en",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 65,
+        "poi_id": 10,
+        "language_code": "fr",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 66,
+        "poi_id": 10,
+        "language_code": "ja",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 67,
+        "poi_id": 10,
+        "language_code": "ko",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 68,
+        "poi_id": 10,
+        "language_code": "ru",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 69,
+        "poi_id": 10,
+        "language_code": "vi",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      },
+      {
+        "job_id": 70,
+        "poi_id": 10,
+        "language_code": "zh-Hans",
+        "source_version": 1,
+        "status": "COMPLETED",
+        "error_message": null,
+        "claim_id": null,
+        "lease_expires_at": null
+      }
+    ],
+    "TOURS": [
+      {
+        "tour_id": 1,
+        "name": "Lộ trình demo do nhóm đề xuất — Hươu cao cổ và Voi châu Á",
+        "description": "Thứ tự nội dung Hươu cao cổ → Voi châu Á trong lộ trình demo do nhóm đề xuất. Đây không phải tour chính thức hoặc đường đi bộ đã kiểm chứng. Tọa độ tham khảo từ bản ghi nguồn đã lưu, chưa tái xác minh tại lần nhập, chưa khảo sát thực địa. Chưa nghiệm thu GPS, tuyến đi hoặc khả năng tiếp cận."
+      }
+    ],
+    "TOUR_POIS": [
+      {
+        "tour_id": 1,
+        "poi_id": 1,
+        "sequence_no": 1
+      },
+      {
+        "tour_id": 1,
+        "poi_id": 2,
+        "sequence_no": 2
+      }
+    ]
+  },
+  "files": [
+    {
+      "key": "790ebd80-751d-47da-9c19-ca4181daa841.wav",
+      "sha256": "5441ec3cf1d97eccd019627696f861bd980a01e33e0a441cba2b9dd5739b5ad3",
+      "fileSize": 375280,
+      "duration": 12,
+      "poiId": 1,
+      "languageCode": "vi"
+    },
+    {
+      "key": "2d52a230-f5e2-4701-82cb-60f082ab2a98.wav",
+      "sha256": "582a25c12e365dfe452b3674204a8933a7a4ad144b1cc8d18968038a08b202a6",
+      "fileSize": 585930,
+      "duration": 19,
+      "poiId": 1,
+      "languageCode": "en"
+    },
+    {
+      "key": "8f20654b-a2c1-487d-91c1-fbb5e4bef756.wav",
+      "sha256": "b4497c440b62bc3ca9069ce7fcce4a3435aa6b327d8290ed94469670cf553ca5",
+      "fileSize": 387540,
+      "duration": 13,
+      "poiId": 2,
+      "languageCode": "vi"
+    },
+    {
+      "key": "55f4317c-775a-4501-b9cd-d482d9e5b2fe.wav",
+      "sha256": "9a3bb40117fce2f0af2cd45ed5b4068ebf88a19c436f2dfec6bc5f1fde8c1af4",
+      "fileSize": 597448,
+      "duration": 19,
+      "poiId": 2,
+      "languageCode": "en"
+    },
+    {
+      "key": "d00e0e36-3561-4796-96a4-28d9655cc846.wav",
+      "sha256": "379ab23f7460d8590479e3ecdcc3a9d0abf9cca9e20f0a1d4e58629eaa45cdc0",
+      "fileSize": 609708,
+      "duration": 20,
+      "poiId": 1,
+      "languageCode": "zh-Hans"
+    },
+    {
+      "key": "2d5d2564-5711-448b-a1d4-8371c1bfd92d.wav",
+      "sha256": "27b6d564d269937600718516d30f77c1f391ed226a425839f9e8a8780e7ff2d9",
+      "fileSize": 562526,
+      "duration": 18,
+      "poiId": 1,
+      "languageCode": "ko"
+    },
+    {
+      "key": "89842a15-b8b4-4ca1-a634-34de3aaa6141.wav",
+      "sha256": "2630c3128bfa059caa6ceb8ee5f2fddd3a3ea725ce5cde93ba7a797c9e0ad48b",
+      "fileSize": 629398,
+      "duration": 20,
+      "poiId": 1,
+      "languageCode": "ja"
+    },
+    {
+      "key": "9d01f289-4eb8-4ca5-9843-b8a518fd09ec.wav",
+      "sha256": "9d70243e80af959db325990f6c9d305208e2145d63f46f81f2a4e10cd16a9f7e",
+      "fileSize": 542834,
+      "duration": 17,
+      "poiId": 1,
+      "languageCode": "ru"
+    },
+    {
+      "key": "88ca995a-f6af-44e0-8f47-336f9816ec4a.wav",
+      "sha256": "327f5f96d2ff47708fa92e551e03b856c34c1ebb8cb7326fb5f254ff2739a279",
+      "fileSize": 577012,
+      "duration": 19,
+      "poiId": 1,
+      "languageCode": "fr"
+    },
+    {
+      "key": "e31c08e4-fe5b-40c8-aad9-c12f50d310ca.wav",
+      "sha256": "782a385b450039e76210caaaea49522e292a30aaeba53abfa86b915c2bc6d4a8",
+      "fileSize": 625684,
+      "duration": 20,
+      "poiId": 2,
+      "languageCode": "zh-Hans"
+    },
+    {
+      "key": "9823fd80-b4cf-4965-84dd-c39f551a31df.wav",
+      "sha256": "cb97d8d9eddaadb957bc65571f0819f341f0711491c3beabb71bc4d57bc74c47",
+      "fileSize": 594848,
+      "duration": 19,
+      "poiId": 2,
+      "languageCode": "ko"
+    },
+    {
+      "key": "8d262d3c-a713-476f-b096-9ed3c455db14.wav",
+      "sha256": "ee15c5c0683dd3f36f032ee75279c7f11212a8a94f2334a9d819a12bfce5642a",
+      "fileSize": 657262,
+      "duration": 21,
+      "poiId": 2,
+      "languageCode": "ja"
+    },
+    {
+      "key": "5ad08356-b965-42ac-9591-3f475217fb7d.wav",
+      "sha256": "ed10be8f93d8c8bdfb241d318009c9042ad0263df82e5be122d3a67525ca40ed",
+      "fileSize": 584444,
+      "duration": 19,
+      "poiId": 2,
+      "languageCode": "ru"
+    },
+    {
+      "key": "efb03388-cd8a-41a6-99c8-0641a57f59d4.wav",
+      "sha256": "3107e7f672ee7c38e3dc1a1d070a69fddbe51dec90996b934af10560dc9c56c1",
+      "fileSize": 606364,
+      "duration": 19,
+      "poiId": 2,
+      "languageCode": "fr"
+    },
+    {
+      "key": "f11a1672-887e-4eab-a340-5b61e039f3f7.wav",
+      "sha256": "d002014c43043bebf5e73f16928f008cebe6478fe1c6b717fec75cb4a82e4556",
+      "fileSize": 575528,
+      "duration": 18,
+      "poiId": 3,
+      "languageCode": "en"
+    },
+    {
+      "key": "252e30a7-ebfb-4414-b591-27fde0a4b068.wav",
+      "sha256": "bc66d9cae05e01da71e13210c9ddb2071eb38aa6acb913871507619cc6e2f06b",
+      "fileSize": 409830,
+      "duration": 13,
+      "poiId": 3,
+      "languageCode": "vi"
+    },
+    {
+      "key": "9e93efc1-fd69-4ed9-8937-eeab13a939b9.wav",
+      "sha256": "1a0d4b5a8412539ecd574b2b64bf5668026735015183e75181d9795a33c4cbc9",
+      "fileSize": 477818,
+      "duration": 15,
+      "poiId": 4,
+      "languageCode": "en"
+    },
+    {
+      "key": "bc2c41cc-b391-4ed4-af34-f75936e6fbdf.wav",
+      "sha256": "950831e3cdba0cb127f78fd0b8c1fa2081e91784c0e78e5c2265cc70e6060c3e",
+      "fileSize": 415032,
+      "duration": 13,
+      "poiId": 4,
+      "languageCode": "vi"
+    },
+    {
+      "key": "5b0d262d-6445-4712-9388-a311873cee7d.wav",
+      "sha256": "3260ef5839588eaa53596c68388fadb04e1234e2717459450cd3eec2c4d3b071",
+      "fileSize": 585188,
+      "duration": 19,
+      "poiId": 5,
+      "languageCode": "en"
+    },
+    {
+      "key": "f651ec2e-970b-4a26-bf30-986c56fa8b31.wav",
+      "sha256": "c0758f9a08edc809c41a3cab8f09826c568a5d85514e9b09e5bb9a99b4c0419a",
+      "fileSize": 467788,
+      "duration": 15,
+      "poiId": 5,
+      "languageCode": "vi"
+    },
+    {
+      "key": "eafac0de-006f-4584-ac0f-f0c8229889e2.wav",
+      "sha256": "0948e103667100d15151a694c92c9b04dedfb116586baa687ecebf7779c07694",
+      "fileSize": 570698,
+      "duration": 18,
+      "poiId": 6,
+      "languageCode": "en"
+    },
+    {
+      "key": "59361158-0bbe-4398-ab76-fcf0582d2552.wav",
+      "sha256": "2e97ded32bd239d19784813d42c074834fbaad4081c3d9c3108da866a8982a0e",
+      "fileSize": 433608,
+      "duration": 14,
+      "poiId": 6,
+      "languageCode": "vi"
+    },
+    {
+      "key": "67bec0e0-d5bd-4f47-844b-8518fa91dadb.wav",
+      "sha256": "ce24c43058ae17736e5468b8c6817554d523bd0d5495a185cdd4bbd0b2b9e29c",
+      "fileSize": 568842,
+      "duration": 18,
+      "poiId": 7,
+      "languageCode": "en"
+    },
+    {
+      "key": "e78822fa-b399-48d1-9e2e-afa0aa9fe40f.wav",
+      "sha256": "f4518eacd7f4130338bb2f619ae76ce582bb74aaf03018b4d32c18293c659f53",
+      "fileSize": 373794,
+      "duration": 12,
+      "poiId": 7,
+      "languageCode": "vi"
+    },
+    {
+      "key": "f34f0313-da45-4d5e-b4af-e45559ca51c3.wav",
+      "sha256": "31a33595e0733f771b11f9338c5bacc120d8aed513a998df5361af648bc78bc4",
+      "fileSize": 538748,
+      "duration": 17,
+      "poiId": 8,
+      "languageCode": "en"
+    },
+    {
+      "key": "8446f7cb-c43a-4e34-a4fb-8e46d7aa977b.wav",
+      "sha256": "a4eaacad984506219e0e6706142fcea7e9382bf9b6774436284af41612911871",
+      "fileSize": 417632,
+      "duration": 14,
+      "poiId": 8,
+      "languageCode": "vi"
+    },
+    {
+      "key": "e098f1ef-f967-4bcb-b2cc-2054520a310d.wav",
+      "sha256": "b386e5b293240a3d3256e7b3b48a1549698a9cd04d2401cb0ead2c5322bfacff",
+      "fileSize": 663576,
+      "duration": 21,
+      "poiId": 9,
+      "languageCode": "en"
+    },
+    {
+      "key": "4136780d-35af-4d1a-bf77-2d412401656a.wav",
+      "sha256": "aee3c491b90158bdeaec63c0f76c0cc09e4ad3bf6fa3ce3cbc3102cfdf4026df",
+      "fileSize": 489708,
+      "duration": 16,
+      "poiId": 9,
+      "languageCode": "vi"
+    },
+    {
+      "key": "a7531164-7b3d-4077-adc5-5a22bf586842.wav",
+      "sha256": "a43c454b5f4be92cd987492f86ba110ed5c7b867067898b3dea9c3ff711d7587",
+      "fileSize": 699988,
+      "duration": 22,
+      "poiId": 10,
+      "languageCode": "en"
+    },
+    {
+      "key": "fcf24bb3-a122-47dd-9069-a4b982ffb2f6.wav",
+      "sha256": "b11525a7b7db36329390d0f4abcf8eeeb5ba1238dbc7741f32c91eec2a5a9db9",
+      "fileSize": 525002,
+      "duration": 17,
+      "poiId": 10,
+      "languageCode": "vi"
+    },
+    {
+      "key": "602a6783-1fc0-48ba-964d-fa9039d0f457.wav",
+      "sha256": "1da4ca95ede5a4934d58e15f3d501908b2ed5661fa1754a0ef319922e3bb8d58",
+      "fileSize": 648718,
+      "duration": 21,
+      "poiId": 3,
+      "languageCode": "zh-Hans"
+    },
+    {
+      "key": "9612d5ef-4137-4d33-97da-63476cf4070f.wav",
+      "sha256": "0cf54913534acc32775c7c0e6e1f570372d8b4ecc053b01adff984bb4077ccbd",
+      "fileSize": 695900,
+      "duration": 22,
+      "poiId": 3,
+      "languageCode": "ko"
+    },
+    {
+      "key": "24c5ff1d-8e7d-4dc3-8901-ea6cd1c3e654.wav",
+      "sha256": "8ae5f9260312fa29d70e50c329c1dd8ba69ab5809ed5b6f86e1836053a394f29",
+      "fileSize": 750514,
+      "duration": 24,
+      "poiId": 3,
+      "languageCode": "ja"
+    },
+    {
+      "key": "d039061f-26ee-41eb-b2d2-9d6c23a92b18.wav",
+      "sha256": "d9164e4849cd4704a0421883cfcd462a4e923f8873ba61e43c002d84ccb8f2e7",
+      "fileSize": 641288,
+      "duration": 21,
+      "poiId": 3,
+      "languageCode": "ru"
+    },
+    {
+      "key": "1c3edf28-bbc2-4d1c-9515-bbb15171d266.wav",
+      "sha256": "858ba90295f572c665b4c003cb9950c6dbcb9c010ba6c23e9a76ec885f4dad50",
+      "fileSize": 656148,
+      "duration": 21,
+      "poiId": 3,
+      "languageCode": "fr"
+    },
+    {
+      "key": "00aacf3e-ba23-47b9-aed3-f5076027e1a3.wav",
+      "sha256": "cbeb4c91c4847874d28ad57697ee4e08fadcbc6edd4b0654ebc111cdd3edcb80",
+      "fileSize": 711132,
+      "duration": 23,
+      "poiId": 4,
+      "languageCode": "zh-Hans"
+    },
+    {
+      "key": "5f6d7424-9bd6-4258-a806-69a90ae7e630.wav",
+      "sha256": "83552a6ff49fa6c7436e605c24522aed559ed6d43b78774af0bf0d23a69c5b84",
+      "fileSize": 647974,
+      "duration": 21,
+      "poiId": 4,
+      "languageCode": "ko"
+    },
+    {
+      "key": "d79d63c7-bf54-4561-8a68-80cc90f5135d.wav",
+      "sha256": "86b514373cc979cceedc12696ac402eca708ed67c1d3d80f0658730bfeff7210",
+      "fileSize": 659492,
+      "duration": 21,
+      "poiId": 4,
+      "languageCode": "ja"
+    },
+    {
+      "key": "a274f1de-0e3a-47ce-87fc-3d2a86ae4360.wav",
+      "sha256": "bbd4609fbc5e58351afd374658df6cc6d91d93d05b4c5d1dda16665b9178a01d",
+      "fileSize": 624568,
+      "duration": 20,
+      "poiId": 4,
+      "languageCode": "ru"
+    },
+    {
+      "key": "5956465f-97d1-4945-a88e-74fc85173f6c.wav",
+      "sha256": "afcdd1aeee79f15693167f8b2d1eb15e76250c381fd850b97cd7f60d3aaef490",
+      "fileSize": 484506,
+      "duration": 16,
+      "poiId": 4,
+      "languageCode": "fr"
+    },
+    {
+      "key": "ba778cef-484d-434d-b3c0-ed3c0073f2e5.wav",
+      "sha256": "c31732edd340cc1049764cee0326902cff61582fb2b4ac3d1c400c280da130e4",
+      "fileSize": 818128,
+      "duration": 26,
+      "poiId": 5,
+      "languageCode": "zh-Hans"
+    },
+    {
+      "key": "d8d54103-de7d-4068-8943-d79ab20cc865.wav",
+      "sha256": "7766b8b2ba7f97f763fd9d88694285c8278e933efd30c518d241c1cdfa0e0c83",
+      "fileSize": 754600,
+      "duration": 24,
+      "poiId": 5,
+      "languageCode": "ko"
+    },
+    {
+      "key": "3feb564a-4412-4090-a29f-0463da97c486.wav",
+      "sha256": "8b2c216f651fd9b3983c21564adebd2594b3915f095506f5ec4fa3080334b4cd",
+      "fileSize": 790638,
+      "duration": 25,
+      "poiId": 5,
+      "languageCode": "ja"
+    },
+    {
+      "key": "f6e9634a-461e-4b8a-aeab-d3be760d6c86.wav",
+      "sha256": "fa339b03bb508b405ccc22170b2a3c524fcf32b1cf60bc924c5af22cce69e52b",
+      "fileSize": 760916,
+      "duration": 24,
+      "poiId": 5,
+      "languageCode": "ru"
+    },
+    {
+      "key": "3d202985-7918-48ed-93cc-f34a3baca40d.wav",
+      "sha256": "3360797277c1feaae5c2957ccddfbe8bc8eaae36a1b511f1be51ef33399895b1",
+      "fileSize": 699988,
+      "duration": 22,
+      "poiId": 5,
+      "languageCode": "fr"
+    },
+    {
+      "key": "6400c876-d5ae-49ef-b60a-3b31eac687e4.wav",
+      "sha256": "e791b42c7c5170c4e8a38290894391ba619369fbd233f5ae3e8dbb6e8b023e32",
+      "fileSize": 721536,
+      "duration": 23,
+      "poiId": 6,
+      "languageCode": "zh-Hans"
+    },
+    {
+      "key": "dd6e875d-ac98-4fbd-b10d-57eeac0fd7bf.wav",
+      "sha256": "088ffa0dee33881c2ada6a56dcd76e7e32758a6d480f063a6541b0688792080b",
+      "fileSize": 697386,
+      "duration": 22,
+      "poiId": 6,
+      "languageCode": "ko"
+    },
+    {
+      "key": "010b0f92-8d28-4a4f-b572-889938899352.wav",
+      "sha256": "e87c422d3046d157e7a1bfcc7266d2e67fca6e981d2ca79530c7a5555b6dfad0",
+      "fileSize": 667666,
+      "duration": 21,
+      "poiId": 6,
+      "languageCode": "ja"
+    },
+    {
+      "key": "79e81912-7e38-4f44-bd84-cab253d4bd15.wav",
+      "sha256": "1f7613b7f0ed46c7a4d73ffd940ba7be125429fd5f8cd7b3421cd148dc0c1624",
+      "fileSize": 631256,
+      "duration": 20,
+      "poiId": 6,
+      "languageCode": "ru"
+    },
+    {
+      "key": "1c12f0d4-228c-40c1-9b89-7e919e3abf9e.wav",
+      "sha256": "05e55d3bd87f3f37377300c0ade7c83d0676d0fb1c0b9a65614b00699a8e72f2",
+      "fileSize": 604506,
+      "duration": 19,
+      "poiId": 6,
+      "languageCode": "fr"
+    },
+    {
+      "key": "3f5f5413-d41a-46a5-86da-4590e1d1c494.wav",
+      "sha256": "c6f06c5b1b8e98815d39e74654a555448cc84448b2035a2290b59eefc1e036a7",
+      "fileSize": 695158,
+      "duration": 22,
+      "poiId": 7,
+      "languageCode": "zh-Hans"
+    },
+    {
+      "key": "b13f09b3-6c8c-423f-b61d-976b02ff73cd.wav",
+      "sha256": "b6bfc7387f381be6d3624b95dd92cfe292f1570fa6dacfdac6d8351de4eec856",
+      "fileSize": 740482,
+      "duration": 24,
+      "poiId": 7,
+      "languageCode": "ko"
+    },
+    {
+      "key": "562e771a-a93f-4c99-a079-329d6b70d5cb.wav",
+      "sha256": "f55700c1c6db86a12781a87b3a4dc06bc426de7005ccd7094f4036678c3af884",
+      "fileSize": 714848,
+      "duration": 23,
+      "poiId": 7,
+      "languageCode": "ja"
+    },
+    {
+      "key": "690eef89-81cd-40b3-85e4-1bf4374d238e.wav",
+      "sha256": "6c9c8166590e1defc1e4e3d3d9e00897595817419329fa34305116506ed3a2c1",
+      "fileSize": 633486,
+      "duration": 20,
+      "poiId": 7,
+      "languageCode": "ru"
+    },
+    {
+      "key": "2ef14aa3-c9b9-4ddd-b461-1c96d90e1ee8.wav",
+      "sha256": "a76dceb289a1e1d67c23a81acd871cc359d63764c8a40bc54649458ffe577649",
+      "fileSize": 626798,
+      "duration": 20,
+      "poiId": 7,
+      "languageCode": "fr"
+    },
+    {
+      "key": "0d7d7e8b-9572-4d37-987c-8a55b5dce1c4.wav",
+      "sha256": "3d98df0f1b66ce6b7d0e15b1f61e6916a69c0f635a0fa908e9f609617eb85f5f",
+      "fileSize": 705932,
+      "duration": 23,
+      "poiId": 8,
+      "languageCode": "zh-Hans"
+    },
+    {
+      "key": "25f98c1d-888b-45b8-ba0d-2d5a1bf8446f.wav",
+      "sha256": "f72e41ad9c9a26a2fcf33ac38194b1a774395fbf093fc16e94ff4f264dc444d0",
+      "fileSize": 692556,
+      "duration": 22,
+      "poiId": 8,
+      "languageCode": "ko"
+    },
+    {
+      "key": "56738c88-1d79-4e05-925b-7753b5449f83.wav",
+      "sha256": "243c5aed996c09cfd8f94ce1e147a62ec061f75dd9ce09c8b2482c3e8c053a36",
+      "fileSize": 791382,
+      "duration": 25,
+      "poiId": 8,
+      "languageCode": "ja"
+    },
+    {
+      "key": "7d6de2e9-a7d9-463c-a968-6369e49720ac.wav",
+      "sha256": "e27d24909176341c3291da6cb5185857a62f9a5bbe3908e725388a16dc633bd1",
+      "fileSize": 597076,
+      "duration": 19,
+      "poiId": 8,
+      "languageCode": "ru"
+    },
+    {
+      "key": "ac994752-d82c-40a1-ac1c-34a81fc764b8.wav",
+      "sha256": "88ee22847a4998b635e010e10813acaa3c91fc8ce173314c4aa2db61593627c0",
+      "fileSize": 626054,
+      "duration": 20,
+      "poiId": 8,
+      "languageCode": "fr"
+    },
+    {
+      "key": "ac5947f2-75e5-4d27-b797-8ef21849c4ae.wav",
+      "sha256": "b934e9b71dfd0bb6a5f2471394509ab555ee9ba7afa7dcbc0a12a89164e2d096",
+      "fileSize": 806242,
+      "duration": 26,
+      "poiId": 9,
+      "languageCode": "zh-Hans"
+    },
+    {
+      "key": "54f90635-bea7-4ed1-91e7-b782cbd947e0.wav",
+      "sha256": "d10e6dddd07a5fb1f0437c2ee562bff434039a85b76baf7c3edee8d85a28373d",
+      "fileSize": 786180,
+      "duration": 25,
+      "poiId": 9,
+      "languageCode": "ko"
+    },
+    {
+      "key": "fcce8ace-f31f-4470-9bb6-8c3406c3cb2d.wav",
+      "sha256": "0f467eacfe3a105beb2562e8a3ca03515b9a3d59dc1e5b544ad897a02e9db672",
+      "fileSize": 885376,
+      "duration": 28,
+      "poiId": 9,
+      "languageCode": "ja"
+    },
+    {
+      "key": "05b505c6-e4de-45f9-99c5-c30ce08dc0d3.wav",
+      "sha256": "ac531fe3f96621938a84bad6ca2adab7a037d2a9d82e178aa1e7226384b50126",
+      "fileSize": 698872,
+      "duration": 22,
+      "poiId": 9,
+      "languageCode": "ru"
+    },
+    {
+      "key": "4a3ea461-9f93-4b66-a5ee-704c4d5998c7.wav",
+      "sha256": "42bccfa245351ab57f465a9683f3de0f4338863f13d5dc06d5ac87f3eb60b900",
+      "fileSize": 685870,
+      "duration": 22,
+      "poiId": 9,
+      "languageCode": "fr"
+    },
+    {
+      "key": "423cd7e5-2c12-48b8-94a3-13359c6095cf.wav",
+      "sha256": "29fa4769b9d992d5f34ad173026ca670ef84ae2ebbbf4e7384d9eb05a7a14634",
+      "fileSize": 830020,
+      "duration": 26,
+      "poiId": 10,
+      "languageCode": "zh-Hans"
+    },
+    {
+      "key": "b8c8588b-0c51-40e2-82fc-b758c96f1fe2.wav",
+      "sha256": "f1a87be32c52f5bb7298b08990f6418d4855aef8bfcb0e09b75bb042e80e159b",
+      "fileSize": 989400,
+      "duration": 31,
+      "poiId": 10,
+      "languageCode": "ko"
+    },
+    {
+      "key": "c3fe43b2-8717-4c5c-91cc-db8126c7a033.wav",
+      "sha256": "cc29b350b44203e1170e3710f6a9e1da93b5f0cb1f6395a742f86ac388dae7d4",
+      "fileSize": 926986,
+      "duration": 29,
+      "poiId": 10,
+      "languageCode": "ja"
+    },
+    {
+      "key": "d6871196-82db-4053-8bfe-7980f3f43b36.wav",
+      "sha256": "2b107ca0125584194b8fe52b2b299427231cc396813d87ef2effd3ab6dad1f23",
+      "fileSize": 934788,
+      "duration": 30,
+      "poiId": 10,
+      "languageCode": "ru"
+    },
+    {
+      "key": "966d6f21-7aad-49ee-abc2-9106b548a1d0.wav",
+      "sha256": "3b4c9f603c04124322aa8e5c370b8db846601743d01025c76a8e6945f44895cd",
+      "fileSize": 790266,
+      "duration": 25,
+      "poiId": 10,
+      "languageCode": "fr"
+    }
+  ]
+}
