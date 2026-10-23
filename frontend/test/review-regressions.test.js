@@ -28,6 +28,8 @@ function setGlobal(t, name, value) {
   cleanup(t, () => old ? Object.defineProperty(globalThis, name, old) : delete globalThis[name]);
 }
 function browser(t) {
+  // Node 20 has no global navigator; browser tests must supply their own.
+  setGlobal(t, 'navigator', {});
   setGlobal(t, 'window', {
     location: { origin }, L: {},
     sessionStorage: { getItem: key => JSON.stringify({
