@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
+import { PoiImage } from '../components/PoiImage';
 import { getApiBaseUrl, ApiError } from '../api/client';
 import { loadGuestSession } from '../api/guestStorage';
 import { getVisitMe } from '../api/payment';
@@ -40,7 +41,17 @@ export const ExplorePage: React.FC = () => {
   const [bundleError, setBundleError] = useState<{ code: string; message: string } | null>(null);
 
   // Bộ lọc phân khu
-  const [selectedCategory, setSelectedCategory] = useState<string>('ALL');
+  const [searchParams] = useSearchParams();
+  const requestedCategory = searchParams.get('category') || 'ALL';
+  const [selectedCategory, setSelectedCategory] = useState<string>(['ANIMAL', 'PLANT', 'HERITAGE', 'AMENITY'].includes(requestedCategory) ? requestedCategory : 'ALL');
+  const [poiQuery, setPoiQuery] = useState('');
+  const detailRef = useRef<HTMLElement>(null);
+  const selectPoi = useCallback((id: number) => {
+    setSelectedPoiId(id);
+    if (window.matchMedia?.('(max-width: 700px)').matches) {
+      detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, []);
 
   // Tour dang chon
   const [activeTourId, setActiveTourId] = useState<number | null>(null);
@@ -98,7 +109,8 @@ export const ExplorePage: React.FC = () => {
         if (prevId !== null && data.pois.some((p) => p.poiId === prevId)) {
           return prevId;
         }
-        return data.pois.length > 0 ? data.pois[0].poiId : null;
+        const first = data.pois.find(p => requestedCategory === 'ALL' || p.category.toUpperCase() === requestedCategory) || data.pois[0];
+        return first?.poiId ?? null;
       });
     } catch (err: unknown) {
       if (err instanceof ApiError && err.code === 'ABORT_ERROR') return;
@@ -119,7 +131,7 @@ export const ExplorePage: React.FC = () => {
         });
       }
     }
-  }, [currentBaseUrl]);
+  }, [currentBaseUrl, requestedCategory]);
 
   // Khởi tạo và xác minh phiên
   useEffect(() => {
@@ -235,8 +247,9 @@ export const ExplorePage: React.FC = () => {
 
   // Lọc POI theo phân khu
   const filteredPois = (bundle?.pois || []).filter((poi) => {
-    if (selectedCategory === 'ALL') return true;
-    return (poi.category || '').toUpperCase() === selectedCategory;
+    const categoryMatches = selectedCategory === 'ALL' || (poi.category || '').toUpperCase() === selectedCategory;
+    const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').toLowerCase();
+    return categoryMatches && normalize(`${poi.text.name || ''} ${poi.originalName}`).includes(normalize(poiQuery.trim()));
   });
 
   // Xử lý gửi tin nhắn Chatbot
@@ -258,7 +271,7 @@ export const ExplorePage: React.FC = () => {
       <div className="explore-container" style={{ maxWidth: '900px', margin: '40px auto', padding: '0 16px' }}>
         <div className="tcv-card access-gate" style={{ textAlign: 'center', padding: '48px 24px' }}>
           <span className="gate-icon" style={{ fontSize: '3rem' }}>🎧</span>
-          <h1 className="hero-title" style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', color: '#132a13', margin: '16px 0 10px' }}>
+          <h1 className="hero-title" style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', color: '#244b38', margin: '16px 0 10px' }}>
             Bắt đầu hành trình khám phá
           </h1>
           <p style={{ color: '#4b5563', maxWidth: '600px', margin: '0 auto 24px', lineHeight: 1.6 }}>
@@ -284,7 +297,7 @@ export const ExplorePage: React.FC = () => {
       <div className="explore-container" style={{ maxWidth: '800px', margin: '40px auto', padding: '0 16px', textAlign: 'center' }}>
         <div className="tcv-card" style={{ padding: '48px 24px' }}>
           <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🌿</div>
-          <h2 style={{ color: '#132a13', fontSize: '1.4rem', margin: '0 0 8px' }}>
+          <h2 style={{ color: '#244b38', fontSize: '1.4rem', margin: '0 0 8px' }}>
             Đang xác minh vé tham quan...
           </h2>
           <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>
@@ -324,31 +337,31 @@ export const ExplorePage: React.FC = () => {
   }
 
   return (
-    <div className="explore-container" style={{ maxWidth: '1360px', margin: '0 auto', padding: '16px' }}>
+    <div className="explore-container botanical-explore">
       
       {/* THANH ĐIỀU KHIỂN & CHỌN NGÔN NGỮ */}
       <div className="tcv-card" style={{ marginBottom: '16px', padding: '16px 20px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#15803d', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#315c43', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                 Thảo Cầm Viên Sài Gòn
               </span>
               <span className="status-pill ready" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                Đã kết nối máy chủ
+                {bundle ? 'Vé đang hiệu lực' : 'Đang tải nội dung'}
               </span>
             </div>
-            <h1 className="hero-title" style={{ fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', margin: '4px 0 0', color: '#132a13' }}>
+            <h1 className="hero-title" style={{ fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', margin: '4px 0 0', color: '#244b38' }}>
               Bản Đồ Số & Thuyết Minh Tự Động
             </h1>
           </div>
 
           {/* Chọn ngôn ngữ */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div className="explore-languages" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
             <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#374151' }}>
               Ngôn ngữ thuyết minh:
             </span>
-            <div style={{ display: 'flex', gap: '6px' }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
               {bundle?.languages && bundle.languages.length > 0 ? (
                 bundle.languages.map((lang) => {
                   const isCurrent = lang.code === selectedLanguageCode;
@@ -356,6 +369,8 @@ export const ExplorePage: React.FC = () => {
                     <button
                       key={lang.code}
                       type="button"
+                      aria-label={lang.name}
+                      aria-pressed={isCurrent}
                       onClick={() => handleSelectLanguage(lang.code)}
                       disabled={Boolean(loadingLanguageCode)}
                       className={`btn-sm ${isCurrent ? 'btn-primary' : 'btn-secondary'}`}
@@ -404,9 +419,9 @@ export const ExplorePage: React.FC = () => {
                 gap: '8px',
                 padding: '8px 16px',
                 fontWeight: 700,
-                background: isAutoTourActive ? '#15803d' : '#ffffff',
-                color: isAutoTourActive ? '#ffffff' : '#15803d',
-                borderColor: '#15803d'
+                background: isAutoTourActive ? '#315c43' : '#ffffff',
+                color: isAutoTourActive ? '#ffffff' : '#315c43',
+                borderColor: '#315c43'
               }}
             >
               <span>{isAutoTourActive ? '🔊' : '▶️'}</span>
@@ -419,248 +434,63 @@ export const ExplorePage: React.FC = () => {
 
           {/* Thong tin han ve */}
           <div style={{ fontSize: '0.82rem', color: '#6b7280' }}>
-            Hạn vé: <strong style={{ color: '#14532d' }}>{bundle?.expiresAt ? new Date(bundle.expiresAt).toLocaleString('vi-VN') : '24 giờ'}</strong>
+            Hạn vé: <strong style={{ color: '#244b38' }}>{bundle?.expiresAt ? new Date(bundle.expiresAt).toLocaleString('vi-VN') : '24 giờ'}</strong>
           </div>
         </div>
       </div>
 
       {bundleError && (
         <div className="banner-notice" style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', marginBottom: '16px' }}>
-          <div>{bundleError.message}</div>
+          <div>{bundleError.message}</div><button type="button" className="btn-secondary btn-sm" onClick={() => fetchBundle(selectedLanguageCode, token)}>Thử lại</button>
         </div>
       )}
 
-      {/* BO CUC CHINH: BAN DO LEAFLET + THONG TIN CHI TIET */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1.35fr) minmax(360px, 1fr)', gap: '20px', alignItems: 'start' }}>
-        
-        {/* COT TRAI: BAN DO LEAFLET VA DANH SACH TOUR */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          
-          {/* BAN DO LEAFLET TUONG TAC */}
-          <div className="tcv-card" style={{ padding: '12px' }}>
-            {/* Bo loc phan khu */}
-            <div style={{ display: 'flex', gap: '8px', marginBottom: '10px', overflowX: 'auto', paddingBottom: '4px' }}>
-              {[
-                { id: 'ALL', label: 'Tất cả' },
-                { id: 'ANIMAL', label: '🦁 Động vật' },
-                { id: 'PLANT', label: '🌿 Cây di sản' },
-                { id: 'HERITAGE', label: '🏛️ Di tích' },
-                { id: 'AMENITY', label: '🚻 Tiện ích' }
-              ].map((cat) => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => setSelectedCategory(cat.id)}
-                  className="btn-sm"
-                  style={{
-                    background: selectedCategory === cat.id ? '#15803d' : '#f3f4f6',
-                    color: selectedCategory === cat.id ? '#ffffff' : '#374151',
-                    border: 'none',
-                    borderRadius: '20px',
-                    padding: '6px 14px',
-                    fontSize: '0.8rem',
-                    fontWeight: selectedCategory === cat.id ? 700 : 500,
-                    cursor: 'pointer',
-                    whiteSpace: 'nowrap'
-                  }}
-                >
-                  {cat.label}
-                </button>
-              ))}
-            </div>
-
-            <MapView
-              pois={bundle?.pois || []}
-              selectedPoiId={selectedPoiId}
-              onSelectPoi={(id) => setSelectedPoiId(id)}
-              userLocation={userLocation}
-              activeTour={activeTour}
-              filteredCategory={selectedCategory}
-            />
-          </div>
-
-          {/* LỘ TRÌNH TOUR MẪU */}
-          {bundle?.tours && bundle.tours.length > 0 && (
-            <div className="tcv-card" style={{ padding: '16px 20px' }}>
-              <h2 style={{ fontSize: '1.05rem', color: '#132a13', margin: '0 0 10px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>🗺️</span>
-                <span>Lộ trình tham quan gợi ý ({bundle.tours.length})</span>
-              </h2>
-
-              <div style={{ display: 'flex', gap: '10px', overflowX: 'auto', paddingBottom: '6px' }}>
-                {bundle.tours.map((t) => {
-                  const isActive = t.tourId === activeTourId;
-                  return (
-                    <button
-                      key={t.tourId}
-                      type="button"
-                      onClick={() => setActiveTourId(isActive ? null : t.tourId)}
-                      style={{
-                        padding: '10px 14px',
-                        borderRadius: '8px',
-                        border: isActive ? '2px solid #15803d' : '1px solid #d1d5db',
-                        background: isActive ? '#f0fdf4' : '#ffffff',
-                        textAlign: 'left',
-                        cursor: 'pointer',
-                        minWidth: '220px'
-                      }}
-                    >
-                      <div style={{ fontWeight: 700, fontSize: '0.9rem', color: isActive ? '#14532d' : '#1f2937' }}>
-                        {t.name}
-                      </div>
-                      <div style={{ fontSize: '0.78rem', color: '#6b7280', marginTop: '2px' }}>
-                        {t.items.length} trạm dừng • {isActive ? 'Đang hiển thị trên bản đồ' : 'Nhấn để xem đường đi'}
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          )}
-
-          {/* DANH SÁCH POI RÚT GỌN KÈM KHOẢNG CÁCH */}
-          <div className="tcv-card" style={{ padding: '16px 20px' }}>
-            <h3 style={{ fontSize: '1rem', color: '#132a13', margin: '0 0 12px' }}>
-              Danh sách điểm tham quan ({filteredPois.length} điểm)
-            </h3>
-
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '8px', maxHeight: '300px', overflowY: 'auto' }}>
-              {filteredPois.map((poi) => {
-                const isSelected = poi.poiId === selectedPoiId;
-                const dist = userLocation
-                  ? calculateHaversineDistance(userLocation.latitude, userLocation.longitude, poi.latitude, poi.longitude)
-                  : null;
-
-                return (
-                  <div
-                    key={poi.poiId}
-                    onClick={() => setSelectedPoiId(poi.poiId)}
-                    style={{
-                      padding: '8px 12px',
-                      borderRadius: '6px',
-                      border: isSelected ? '2px solid #15803d' : '1px solid #e5e7eb',
-                      background: isSelected ? '#f0fdf4' : '#ffffff',
-                      cursor: 'pointer',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      gap: '8px'
-                    }}
-                  >
-                    <div>
-                      <div style={{ fontWeight: 600, fontSize: '0.86rem', color: isSelected ? '#14532d' : '#1f2937' }}>
-                        {poi.text.name || poi.originalName}
-                      </div>
-                      <div style={{ fontSize: '0.74rem', color: '#6b7280' }}>
-                        {formatCategory(poi.category)}
-                      </div>
-                    </div>
-
-                    {dist !== null && (
-                      <span style={{ fontSize: '0.76rem', color: dist <= 30 ? '#15803d' : '#6b7280', fontWeight: dist <= 30 ? 700 : 500 }}>
-                        {dist} m
-                      </span>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+      <div className="explore-toolbar">
+        <label className="poi-search"><Icon name="search" /><input type="search" value={poiQuery} onChange={event => setPoiQuery(event.target.value)} placeholder="Tìm điểm tham quan..." aria-label="Tìm điểm tham quan" /></label>
+        <div className="category-filters" role="group" aria-label="Lọc điểm tham quan">
+          {[{ id: 'ALL', label: 'Tất cả' }, { id: 'ANIMAL', label: 'Động vật' }, { id: 'PLANT', label: 'Thực vật' }, { id: 'HERITAGE', label: 'Di tích' }, { id: 'AMENITY', label: 'Tiện ích' }].map(category => <button key={category.id} type="button" aria-pressed={selectedCategory === category.id} onClick={() => setSelectedCategory(category.id)}>{category.label}</button>)}
         </div>
-
-        {/* CỘT PHẢI: CHI TIẾT POI ĐƯỢC CHỌN VÀ TRÌNH PHÁT AUDIO */}
-        <div style={{ position: 'sticky', top: '90px' }}>
-          <div className="tcv-card" style={{ padding: '24px', borderTop: '4px solid #15803d' }}>
-            {selectedPoi ? (
-              <div>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
-                  <div>
-                    <span style={{ fontSize: '0.78rem', fontWeight: 700, color: '#15803d', textTransform: 'uppercase' }}>
-                      {formatCategory(selectedPoi.category)}
-                    </span>
-                    <h2 style={{ fontSize: '1.45rem', fontWeight: 800, color: '#132a13', margin: '4px 0 2px' }}>
-                      {selectedPoi.text.name || selectedPoi.originalName}
-                    </h2>
-                    {selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && (
-                      <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
-                        Tên gốc: {selectedPoi.originalName}
-                      </div>
-                    )}
-                  </div>
-
-                  <span className={`status-pill ${selectedPoi.audio.status === 'AVAILABLE' ? 'ready' : 'idle'}`}>
-                    {selectedPoi.audio.status === 'AVAILABLE' ? 'Sẵn sàng thuyết minh' : 'Chưa có âm thanh'}
-                  </span>
-                </div>
-
-                {/* Thông tin bổ sung: Tình trạng bảo tồn & Giờ cho ăn */}
-                {(selectedPoi.conservationStatus || selectedPoi.activityHours) && (
-                  <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', margin: '14px 0', padding: '10px 14px', background: '#f8fafc', borderRadius: '6px', fontSize: '0.84rem' }}>
-                    {selectedPoi.conservationStatus && (
-                      <div>
-                        <span style={{ color: '#64748b' }}>Bảo tồn: </span>
-                        <strong style={{ color: '#0f172a' }}>{selectedPoi.conservationStatus}</strong>
-                      </div>
-                    )}
-                    {selectedPoi.activityHours && (
-                      <div>
-                        <span style={{ color: '#64748b' }}>Khung giờ: </span>
-                        <strong style={{ color: '#0f172a' }}>{selectedPoi.activityHours}</strong>
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {/* Trình phát âm thanh thuyết minh có bản quyền */}
-                <div style={{ margin: '18px 0' }}>
-                  <AudioPlayer
-                    key={[selectedPoi.poiId, selectedLanguageCode, selectedPoi.audio.url, token].join(':')}
-                    autoPlayRequestId={isAutoTourActive && autoPlayRequest?.poiId === selectedPoi.poiId ? autoPlayRequest.id : null}
-                    onPlaybackStarted={handlePlaybackStarted}
-                    poi={selectedPoi}
-                    requestedLanguageCode={selectedLanguageCode}
-                    token={token}
-                    onSessionExpired={() => {
-                      setSessionError('Phiên tham quan đã hết hạn.');
-                      setBundle(null);
-                    }}
-                  />
-                </div>
-
-                {/* Nội dung giới thiệu */}
-                <div style={{ margin: '18px 0' }}>
-                  <h4 style={{ fontSize: '0.92rem', color: '#374151', fontWeight: 700, marginBottom: '6px' }}>
-                    Bài đọc giới thiệu ({selectedLanguageCode.toUpperCase()}):
-                  </h4>
-                  <p style={{ fontSize: '0.92rem', lineHeight: 1.6, color: '#1f2937', margin: 0 }}>
-                    {selectedPoi.text.description || (
-                      <span style={{ fontStyle: 'italic', color: '#9ca3af' }}>
-                        Nội dung đang được cập nhật cho ngôn ngữ {selectedLanguageCode.toUpperCase()}.
-                      </span>
-                    )}
-                  </p>
-                </div>
-
-                {/* Kịch bản thuyết minh */}
-                {selectedPoi.text.audioScript && (
-                  <div style={{ margin: '16px 0', padding: '12px 14px', background: '#f0fdf4', borderRadius: '6px', border: '1px solid #bbf7d0' }}>
-                    <div style={{ fontSize: '0.8rem', fontWeight: 700, color: '#166534', marginBottom: '4px' }}>
-                      Kịch bản thuyết minh:
-                    </div>
-                    <div style={{ fontSize: '0.86rem', color: '#374151', fontStyle: 'italic', lineHeight: 1.5 }}>
-                      "{selectedPoi.text.audioScript}"
-                    </div>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ textAlign: 'center', padding: '40px 10px', color: '#6b7280' }}>
-                Vui lòng chọn một điểm tham quan trên bản đồ hoặc danh sách để xem chi tiết.
-              </div>
-            )}
+      </div>
+      <div className="explore-workspace">
+        <section className="poi-directory" aria-labelledby="poi-directory-heading" aria-busy={Boolean(loadingLanguageCode)}>
+          <div className="panel-heading"><h2 id="poi-directory-heading">Điểm tham quan</h2><span aria-live="polite">{filteredPois.length}</span></div>
+          <p className="panel-hint">Chọn một điểm dừng để khám phá.</p>
+          <div className="poi-directory-list">
+            {filteredPois.map(poi => {
+              const distance = userLocation ? calculateHaversineDistance(userLocation.latitude, userLocation.longitude, poi.latitude, poi.longitude) : null;
+              return <button type="button" className="poi-list-item" key={poi.poiId} aria-pressed={selectedPoiId === poi.poiId} aria-controls="selected-poi-detail" onClick={() => selectPoi(poi.poiId)}>
+                <PoiImage src={poi.avatarUrl} name={poi.text.name || poi.originalName} category={poi.category} />
+                <span className="poi-list-copy"><strong>{poi.text.name || poi.originalName}</strong><span>{formatCategory(poi.category)}</span>{distance !== null && <small>{distance} m từ bạn</small>}</span><Icon name="arrow" />
+              </button>;
+            })}
+            {filteredPois.length === 0 && <div className="poi-empty" role="status"><Icon name="search" /><p>{loadingLanguageCode ? 'Đang tải điểm tham quan…' : poiQuery || selectedCategory !== 'ALL' ? 'Không tìm thấy điểm phù hợp.' : 'Chưa có điểm tham quan để hiển thị.'}</p>{(poiQuery || selectedCategory !== 'ALL') && <button type="button" className="text-link" onClick={() => { setPoiQuery(''); setSelectedCategory('ALL'); }}>Xóa bộ lọc</button>}</div>}
           </div>
-        </div>
-
+        </section>
+        <section className="explore-map-panel" aria-labelledby="explore-map-heading">
+          <div className="panel-heading"><h2 id="explore-map-heading"><Icon name="map" /> Bản đồ khu vườn</h2><span className="map-live-label">{userLocation ? 'GPS đã bật' : 'Chưa có GPS'}</span></div>
+          <MapView pois={filteredPois} tourPois={bundle?.pois} selectedPoiId={selectedPoiId} onSelectPoi={selectPoi} userLocation={userLocation} activeTour={activeTour} filteredCategory="ALL" />
+          <p className="map-help"><Icon name="info" /> Chạm vào điểm trên bản đồ để xem giới thiệu. Tọa độ đang trong giai đoạn thử nghiệm.</p>
+          {bundle?.tours && bundle.tours.length > 0 && <div className="explore-tours"><h3><Icon name="compass" /> Lộ trình gợi ý</h3><div>{bundle.tours.map(tour => <button key={tour.tourId} type="button" aria-pressed={activeTourId === tour.tourId} onClick={() => setActiveTourId(activeTourId === tour.tourId ? null : tour.tourId)}><strong>{tour.name}</strong><span>{tour.items.length} điểm dừng · {activeTourId === tour.tourId ? 'Đang xem' : 'Xem lộ trình'}</span></button>)}</div></div>}
+        </section>
+        <aside ref={detailRef} id="selected-poi-detail" className="poi-detail-panel" aria-label="Chi tiết điểm tham quan">
+          {selectedPoi ? <>
+            <PoiImage key={selectedPoi.poiId} src={selectedPoi.avatarUrl} name={selectedPoi.text.name || selectedPoi.originalName} category={selectedPoi.category} className="poi-detail-photo" />
+            <div className="poi-detail-copy">
+              <span className="category-label"><Icon name={selectedPoi.category.toUpperCase() === 'ANIMAL' ? 'paw' : selectedPoi.category.toUpperCase() === 'PLANT' ? 'leaf' : 'pin'} />{formatCategory(selectedPoi.category)}</span>
+              <h2>{selectedPoi.text.name || selectedPoi.originalName}</h2>
+              {selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && <p className="poi-original-name">{selectedPoi.originalName}</p>}
+              <span className={`status-pill ${selectedPoi.audio.status === 'AVAILABLE' ? 'ready' : 'idle'}`}>{selectedPoi.audio.status === 'AVAILABLE' ? 'Sẵn sàng thuyết minh' : 'Chưa có âm thanh'}</span>
+              <div className="poi-detail-audio"><AudioPlayer key={[selectedPoi.poiId, selectedLanguageCode, selectedPoi.audio.url, token].join(':')} autoPlayRequestId={isAutoTourActive && autoPlayRequest?.poiId === selectedPoi.poiId ? autoPlayRequest.id : null} onPlaybackStarted={handlePlaybackStarted} poi={selectedPoi} requestedLanguageCode={selectedLanguageCode} token={token} onSessionExpired={() => { setSessionError('Phiên tham quan đã hết hạn.'); setBundle(null); }} /></div>
+              <div className="poi-facts">
+                {selectedPoi.conservationStatus && <div><span>Bảo tồn</span><strong>{selectedPoi.conservationStatus}</strong></div>}
+                {selectedPoi.activityHours && <div><span>Khung giờ</span><strong>{selectedPoi.activityHours}</strong></div>}
+                {userLocation && <div><span>Khoảng cách từ bạn</span><strong>{calculateHaversineDistance(userLocation.latitude, userLocation.longitude, selectedPoi.latitude, selectedPoi.longitude)} m</strong></div>}
+              </div>
+              <section className="poi-introduction"><h3>Giới thiệu</h3><p>{selectedPoi.text.description || `Nội dung đang được cập nhật cho ngôn ngữ ${selectedLanguageCode.toUpperCase()}.`}</p></section>
+              {selectedPoi.text.audioScript && <details className="poi-transcript"><summary>Đọc lời thuyết minh</summary><p>{selectedPoi.text.audioScript}</p></details>}
+            </div>
+          </> : <div className="poi-empty"><Icon name="pin" /><h2>Điểm dừng tiếp theo?</h2><p>Chọn một điểm trên bản đồ hoặc danh sách để xem ảnh, giới thiệu và nghe thuyết minh.</p></div>}
+        </aside>
       </div>
 
       {/* TRA CỨU NỘI DUNG ĐANG TẢI */}
@@ -670,7 +500,7 @@ export const ExplorePage: React.FC = () => {
             type="button"
             onClick={() => setIsChatOpen(true)}
             style={{
-              background: '#15803d',
+              background: '#315c43',
               color: '#ffffff',
               border: 'none',
               borderRadius: '50px',
@@ -702,7 +532,7 @@ export const ExplorePage: React.FC = () => {
           }}>
             {/* Header chat */}
             <div style={{
-              background: '#15803d',
+              background: '#315c43',
               color: '#ffffff',
               padding: '12px 16px',
               display: 'flex',
@@ -730,7 +560,7 @@ export const ExplorePage: React.FC = () => {
                   style={{
                     alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
                     maxWidth: '85%',
-                    background: msg.sender === 'user' ? '#15803d' : '#f3f4f6',
+                    background: msg.sender === 'user' ? '#315c43' : '#f3f4f6',
                     color: msg.sender === 'user' ? '#ffffff' : '#1f2937',
                     padding: '8px 12px',
                     borderRadius: '8px',

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Icon } from '../components/Icon';
+import { DiscoveryPreview } from '../components/DiscoveryPreview';
 
 const stories = [
   {
@@ -42,7 +43,7 @@ export const HomePage: React.FC = () => {
           <p>Rời nhịp phố, bước vào khoảng xanh. Lắng nghe câu chuyện của những tán cây và muôn loài, theo nhịp bước của riêng bạn.</p>
           <div className="hero-actions">
             <Link to="/payment" className="btn-primary hero-cta">Bắt đầu tham quan <span className="button-icon"><Icon name="arrow" /></span></Link>
-            <Link to="/explore" className="text-link">Đã có lượt tham quan?</Link>
+            <a href="#ban-do" className="text-link"><Icon name="map" /> Xem bản đồ khám phá</a>
           </div>
           <div className="hero-features"><span><Icon name="headphones" /> Nghe theo nhịp của bạn</span><span><Icon name="globe" /> Thuyết minh đa ngôn ngữ</span></div>
         </div>
@@ -61,6 +62,8 @@ export const HomePage: React.FC = () => {
       </section>
 
       <a className="journey-cue" href="#cau-chuyen"><span>Đi chậm lại, khám phá nhiều hơn</span><span className="cue-line" /><span className="cue-arrow"><Icon name="arrow" /></span></a>
+
+      <DiscoveryPreview />
 
       <section id="cau-chuyen" className="story-section" aria-labelledby="story-heading">
         <div className="section-heading" data-reveal><h2 id="story-heading">Mỗi lối rẽ,<br /><em>một câu chuyện.</em></h2><p>Một khu vườn, nhiều cách khám phá.<br />Hôm nay, điều gì khiến bạn tò mò?</p></div>
