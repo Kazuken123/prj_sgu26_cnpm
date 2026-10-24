@@ -148,8 +148,8 @@ jobs:
         run: |
           tar --exclude='backend/node_modules' --exclude='backend/.env' --exclude='backend/.env.*' --exclude='backend/tests' \
             -czf deploy-bundle-${{ github.sha }}.tar.gz \
-            backend frontend database docker-compose.yml .env.example .dockerignore
-          for file in backend/routers/auth.router.js backend/services/auth.service.js backend/stores/auth.store.js backend/middlewares/auth.middleware.js; do
+            backend frontend database data/demo/locations/positions-v1.json docker-compose.yml .env.example .dockerignore
+          for file in backend/routers/auth.router.js backend/services/auth.service.js backend/stores/auth.store.js backend/middlewares/auth.middleware.js data/demo/locations/positions-v1.json; do
             tar -tzf deploy-bundle-${{ github.sha }}.tar.gz | grep -Fx "$file"
           done
       - uses: actions/upload-artifact@v4
