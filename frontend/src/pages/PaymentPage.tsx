@@ -1,797 +1,121 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { useVisitExpiry } from '../hooks/useVisitExpiry';
+﻿import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Icon } from '../components/Icon';
 import { getApiBaseUrl, ApiError } from '../api/client';
-import {
-  createOnlineCheckout,
-  getVisitPrice,
-  VisitPrice,
-  getSessionStatus,
-  exchangeOnlineCode,
-  getVisitMe,
-  simulateMockPayment
-} from '../api/payment';
+import { getVisitMe, getVisitPrice, VisitPrice } from '../api/payment';
 import { exchangeCashCode } from '../api/cash';
-import {
-  StoredGuestSession,
-  loadGuestSession,
-  saveGuestSession,
-  clearGuestSession,
-  getEmptyGuestSession,
-  generateUUIDv4
-} from '../api/guestStorage';
-
-type UiStep =
-  | 'IDLE'
-  | 'CREATING_CHECKOUT'
-  | 'CHECKOUT_READY'
-  | 'CHECKING_STATUS'
-  | 'EXCHANGING_TOKEN'
-  | 'VERIFYING_VISIT'
-  | 'VERIFICATION_FAILED'
-  | 'VISIT_ACTIVE';
-
-type PaymentTab = 'ONLINE' | 'CASH';
-
-const stepLabels: Record<UiStep, string> = {
-  IDLE: 'Chưa kích hoạt',
-  CREATING_CHECKOUT: 'Đang tạo lượt tham quan',
-  CHECKOUT_READY: 'Chờ xác nhận',
-  CHECKING_STATUS: 'Đang kiểm tra',
-  EXCHANGING_TOKEN: 'Đang kích hoạt',
-  VERIFYING_VISIT: 'Đang xác minh',
-  VERIFICATION_FAILED: 'Chưa xác minh được phiên',
-  VISIT_ACTIVE: 'Sẵn sàng tham quan',
-};
+import { clearGuestSession, getEmptyGuestSession, loadGuestSession, saveGuestSession, StoredGuestSession } from '../api/guestStorage';
+import { useVisitExpiry } from '../hooks/useVisitExpiry';
 
 export const PaymentPage: React.FC = () => {
-  const currentBaseUrl = getApiBaseUrl();
+  const baseUrl = getApiBaseUrl();
+  const loaded = loadGuestSession(baseUrl);
+  const [session, setSession] = useState(loaded.session);
+  const [mismatch, setMismatch] = useState(loaded.mismatchedBaseUrl);
   const [price, setPrice] = useState<VisitPrice | null>(null);
   const [priceError, setPriceError] = useState(false);
-  const [priceAttempt, setPriceAttempt] = useState(0);
+  const [attempt, setAttempt] = useState(0);
+  const [code, setCode] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [verified, setVerified] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
+  const [storageWarning, setStorageWarning] = useState<string | null>(loaded.storageError);
+  const epoch = useRef(0);
+  const inFlight = useRef(false);
+  const persist = useCallback((next: StoredGuestSession) => {
+    setSession(next);
+    const saved = saveGuestSession(next);
+    setStorageWarning(saved.success ? null : 'Không lưu được quyền nghe trên trình duyệt. Giữ trang này mở và liên hệ nhân viên trước khi tải lại.');
+  }, []);
+  const expire = useCallback(() => {
+    epoch.current++;
+    clearGuestSession();
+    setSession(getEmptyGuestSession(baseUrl));
+    setVerified(false); setBusy(false); inFlight.current = false;
+    setNotice(null); setErrorCode(null);
+    setError('Quyền nghe đã hết hạn hoặc chưa được nhân viên xác nhận. Bạn vẫn có thể xem bản đồ.');
+  }, [baseUrl]);
+  useVisitExpiry(!mismatch && session.token ? session.expiresAt : null, expire);
   useEffect(() => {
     let active = true;
     setPrice(null); setPriceError(false);
-    getVisitPrice(currentBaseUrl).then(value => { if (active) setPrice(value); })
+    getVisitPrice(baseUrl).then(value => { if (active) setPrice(value); })
       .catch(() => { if (active) setPriceError(true); });
     return () => { active = false; };
-  }, [currentBaseUrl, priceAttempt]);
-
-  const [session, setSession] = useState<StoredGuestSession>(() => {
-    return loadGuestSession(currentBaseUrl).session;
-  });
-
-  const [paymentTab, setPaymentTab] = useState<PaymentTab>('ONLINE');
-  const [cashShortedCodeInput, setCashShortedCodeInput] = useState<string>('');
-  const [isExchangingCash, setIsExchangingCash] = useState<boolean>(false);
-  const [isSimulatingPayment, setIsSimulatingPayment] = useState<boolean>(false);
-
-  const [uiStep, setUiStep] = useState<UiStep>('IDLE');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [errorCode, setErrorCode] = useState<string | null>(null);
-  const [statusNotice, setStatusNotice] = useState<string | null>(null);
-  const [cooldownSeconds, setCooldownSeconds] = useState<number>(0);
-  const [mismatchedEnv, setMismatchedEnv] = useState<boolean>(false);
-  const [storageWarning, setStorageWarning] = useState<string | null>(null);
-
-  const cooldownTimerRef = useRef<number | null>(null);
-  const visitEpoch = useRef(0);
-  const expireVisit = useCallback(() => {
-    visitEpoch.current++;
-    clearGuestSession();
-    setSession(getEmptyGuestSession(currentBaseUrl));
-    setUiStep('IDLE');
-    setErrorCode('VISIT_SESSION_EXPIRED');
-    setErrorMessage('Vé đã hết hạn. Nếu bạn mất token khi vé vẫn còn hạn, vui lòng liên hệ nhân viên để được hỗ trợ.');
-    setStatusNotice(null);
-  }, [currentBaseUrl]);
-  useVisitExpiry(session.token ? session.expiresAt : null, expireVisit);
-  const acceptVisit = useCallback((visit: { expiresAt?: string }, epoch: number) => {
-    if (epoch !== visitEpoch.current) return false;
-    if (visit.expiresAt && Date.parse(visit.expiresAt) <= Date.now()) { expireVisit(); return false; }
-    return true;
-  }, [expireVisit]);
-
-  const startCooldown = (seconds = 3) => {
-    setCooldownSeconds(seconds);
-    if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
-    cooldownTimerRef.current = window.setInterval(() => {
-      setCooldownSeconds((prev) => {
-        if (prev <= 1) {
-          if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-  };
-
+  }, [baseUrl, attempt]);
+  useEffect(() => () => { epoch.current++; }, []);
+  const verify = useCallback(async (saved: StoredGuestSession) => {
+    if (!saved.token) return;
+    const generation = epoch.current;
+    setBusy(true); setVerified(false); setError(null); setErrorCode(null);
+    try {
+      const visit = await getVisitMe(saved.token, baseUrl);
+      if (generation !== epoch.current) return;
+      if (visit.status !== 'ACTIVE' || !visit.expiresAt || !Number.isFinite(Date.parse(visit.expiresAt)) || Date.parse(visit.expiresAt) <= Date.now()) { expire(); return; }
+      persist({ ...saved, verifiedVisit: visit, expiresAt: visit.expiresAt, sessionStatus: 'ACTIVE' });
+      setVerified(true); setNotice('Quyền nghe đã được xác nhận. Bạn có thể bắt đầu nghe thuyết minh.');
+    } catch (err) {
+      if (generation !== epoch.current) return;
+      if (err instanceof ApiError && err.status === 401) { expire(); return; }
+      setError(err instanceof Error ? err.message : 'Chưa xác minh được quyền nghe.');
+      setNotice('Đã lưu quyền truy cập. Hãy xác minh lại, không đổi mã hoặc thanh toán lần nữa.');
+    } finally { if (generation === epoch.current) setBusy(false); }
+  }, [baseUrl, expire, persist]);
   useEffect(() => {
-    return () => {
-      if (cooldownTimerRef.current) clearInterval(cooldownTimerRef.current);
-    };
-  }, []);
-
-  const updateAndPersistSession = useCallback(
-    (updater: (prev: StoredGuestSession) => StoredGuestSession) => {
-      setSession((prev) => {
-        const next = updater(prev);
-        const { success, error } = saveGuestSession(next);
-        if (!success && error) {
-          setStorageWarning(`Cảnh báo bộ nhớ tạm: ${error}. Dữ liệu có thể không giữ được khi tải lại trang.`);
-        } else {
-          setStorageWarning(null);
-        }
-        return next;
-      });
-    },
-    []
-  );
-
-  // Khoi phuc phien khi mount hoac reload
-  useEffect(() => {
-    const loaded = loadGuestSession(currentBaseUrl);
-    if (loaded.storageError) {
-      setStorageWarning(loaded.storageError);
-    }
-    if (loaded.mismatchedBaseUrl) {
-      setMismatchedEnv(true);
-      return;
-    }
-
-    const s = loaded.session;
-    setSession(s);
-
-    if (s.token) {
-      const epoch = visitEpoch.current;
-      // Co token khach, xac minh voi /api/visits/me
-      setUiStep('VERIFYING_VISIT');
-      getVisitMe(s.token, currentBaseUrl)
-        .then((visit) => {
-          if (!acceptVisit(visit, epoch)) return;
-          updateAndPersistSession((prev) => ({
-            ...prev,
-            verifiedVisit: visit,
-            expiresAt: visit.expiresAt || prev.expiresAt,
-            sessionStatus: (visit.status as StoredGuestSession['sessionStatus']) || prev.sessionStatus
-          }));
-          setUiStep('VISIT_ACTIVE');
-        })
-        .catch((err: unknown) => {
-          if (epoch !== visitEpoch.current) return;
-          if (err instanceof ApiError && err.status === 401) {
-            setErrorCode(err.code);
-            setErrorMessage('Phiên tham quan hoặc token không còn hợp lệ. Quyền truy cập bị chặn.');
-            setUiStep('VERIFICATION_FAILED');
-          } else {
-            setErrorCode(err instanceof ApiError ? err.code : 'VERIFY_ERROR');
-            setErrorMessage(err instanceof Error ? err.message : 'Chưa thể xác minh phiên qua máy chủ.');
-            setUiStep('VERIFICATION_FAILED');
-          }
-        });
-    } else if (s.sessionId) {
-      setUiStep('CHECKOUT_READY');
-    } else if (s.idempotencyKey) {
-      setUiStep('IDLE');
-      setStatusNotice('Phát hiện yêu cầu trước đó chưa hoàn tất. Bạn có thể bấm Thử lại để tiếp tục với cùng khóa yêu cầu.');
-    } else {
-      setUiStep('IDLE');
-    }
-  }, [currentBaseUrl, updateAndPersistSession, acceptVisit]);
-
-  // 1. Tao checkout online moi hoac gui lai voi cung Idempotency-Key
-  const handleStartCheckout = async () => {
-    if (!price) return;
-    setErrorMessage(null);
-    setErrorCode(null);
-    setStatusNotice(null);
-
-    const key = session.idempotencyKey || generateUUIDv4();
-
-    updateAndPersistSession((prev) => ({
-      ...prev,
-      idempotencyKey: key
-    }));
-
-    setUiStep('CREATING_CHECKOUT');
-
+    const initial = loadGuestSession(baseUrl);
+    if (!initial.mismatchedBaseUrl && initial.session.token) void verify(initial.session);
+  }, [baseUrl, verify]);
+  const exchange = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (inFlight.current || busy || session.token || mismatch) return;
+    setError(null); setErrorCode(null); setNotice(null);
+    if (!/^\d{6}$/.test(code.trim())) { setError('Vui lòng nhập đủ 6 chữ số nhân viên đã cấp.'); return; }
+    const generation = epoch.current;
+    inFlight.current = true; setBusy(true);
     try {
-      const data = await createOnlineCheckout(key, currentBaseUrl);
-
-      updateAndPersistSession((prev) => ({
-        ...prev,
-        sessionId: data.sessionId,
-        paymentRef: data.paymentRef,
-        amount: data.amount,
-        currency: data.currency,
-        paymentUrl: data.paymentUrl,
-        authCode: data.authCode,
-        codeExpiresAt: data.codeExpiresAt,
-        sessionStatus: data.sessionStatus,
-        paymentStatus: data.paymentStatus
-      }));
-
-      setUiStep('CHECKOUT_READY');
-      setStatusNotice('Yêu cầu thanh toán mô phỏng đã được tạo thành công trên máy chủ.');
-    } catch (err: unknown) {
-      setUiStep('IDLE');
-      if (err instanceof ApiError) {
-        setErrorCode(err.code);
-        setErrorMessage(err.message);
-      } else {
-        setErrorCode('NETWORK_ERROR');
-        setErrorMessage('Mất kết nối hoặc máy chủ tạm ngừng khi tạo thanh toán. Khóa yêu cầu đã được lưu để thử lại an toàn.');
-      }
-    }
-  };
-
-  // 2. Kiem tra trang thai thanh toan (GET /api/payments/sessions/:sessionId)
-  const handleCheckStatus = async () => {
-    if (!session.sessionId || cooldownSeconds > 0) return;
-
-    setErrorMessage(null);
-    setErrorCode(null);
-    setStatusNotice(null);
-    setUiStep('CHECKING_STATUS');
-    startCooldown(3);
-
-    try {
-      const statusData = await getSessionStatus(session.sessionId, currentBaseUrl);
-
-      updateAndPersistSession((prev) => ({
-        ...prev,
-        sessionStatus: statusData.sessionStatus,
-        paymentStatus: statusData.paymentStatus
-      }));
-
-      setUiStep('CHECKOUT_READY');
-
-      if (statusData.paymentStatus === 'PAID') {
-        setStatusNotice('Giao dịch đã được xác nhận thanh toán mô phỏng thành công. Bạn có thể bấm Nhận quyền truy cập.');
-      } else if (statusData.paymentStatus === 'PENDING') {
-        setStatusNotice('Thanh toán vẫn đang ở trạng thái PENDING. Vui lòng chờ người vận hành xác nhận.');
-      } else if (statusData.paymentStatus === 'FAILED') {
-        setStatusNotice('Máy chủ ghi nhận giao dịch ở trạng thái FAILED. Bạn có thể kiểm tra lại sau nếu người vận hành gửi bổ sung.');
-      }
-    } catch (err: unknown) {
-      setUiStep('CHECKOUT_READY');
-      if (err instanceof ApiError) {
-        setErrorCode(err.code);
-        if (err.status === 429) {
-          setErrorMessage('Bạn đang tra cứu quá nhanh. Vui lòng đợi ít phút trước khi kiểm tra lại.');
-        } else {
-          setErrorMessage(err.message);
-        }
-      } else {
-        setErrorCode('NETWORK_ERROR');
-        setErrorMessage('Không thể kiểm tra trạng thái phiên lúc này. Vui lòng kiểm tra kết nối mạng.');
-      }
-    }
-  };
-
-  const handleSimulatePayment = async () => {
-    if (!session.paymentRef) return;
-    setErrorMessage(null);
-    setErrorCode(null);
-    setStatusNotice(null);
-    setIsSimulatingPayment(true);
-
-    try {
-      const res = await simulateMockPayment(session.paymentRef, 'SUCCESS', currentBaseUrl);
-      if (res.accepted && res.paymentStatus === 'PAID') {
-        updateAndPersistSession((prev) => ({
-          ...prev,
-          paymentStatus: 'PAID',
-          sessionStatus: 'ACTIVE'
-        }));
-        setStatusNotice('Mô phỏng thanh toán thành công! Bạn có thể nhấn "Nhận quyền truy cập" bên dưới để kích hoạt vé.');
-      } else {
-        setStatusNotice(`Kết quả mô phỏng: ${res.paymentStatus}`);
-      }
-    } catch (err: unknown) {
-      if (err instanceof ApiError) {
-        setErrorCode(err.code);
-        setErrorMessage(err.message);
-      } else {
-        setErrorCode('SIMULATION_ERROR');
-        setErrorMessage(err instanceof Error ? err.message : 'Không thể thực hiện mô phỏng thanh toán.');
-      }
+      const result = await exchangeCashCode(code.trim(), baseUrl);
+      if (generation !== epoch.current) return;
+      if (!Number.isFinite(Date.parse(result.expiresAt)) || Date.parse(result.expiresAt) <= Date.now()) { expire(); return; }
+      const next: StoredGuestSession = { ...getEmptyGuestSession(baseUrl), sessionId: result.sessionId,
+        token: result.token, tokenType: 'Bearer', expiresAt: result.expiresAt, paymentStatus: 'PAID', sessionStatus: 'ACTIVE' };
+      // Save the single-use exchange before verification; retries never exchange twice.
+      persist(next); setCode('');
+      await verify(next);
+    } catch (err) {
+      if (generation !== epoch.current) return;
+      setErrorCode(err instanceof ApiError ? err.code : 'NETWORK_ERROR');
+      setError(err instanceof ApiError && err.code === 'CASH_CODE_INVALID_OR_EXPIRED'
+        ? 'Mã không đúng, đã hết hạn hoặc đã được dùng. Bạn hãy kiểm tra lại với nhân viên.'
+        : 'Chưa xác nhận được kết quả kích hoạt. Hãy nhờ nhân viên kiểm tra; không cần trả tiền lại.');
     } finally {
-      setIsSimulatingPayment(false);
+      if (generation === epoch.current) { inFlight.current = false; setBusy(false); }
     }
   };
-
-  // 3. Doi ma online lay token khach (POST /api/payments/sessions/:sessionId/exchange-online-code)
-  const handleExchangeCode = async () => {
-    const epoch = visitEpoch.current;
-    if (!session.sessionId || !session.authCode) {
-      setErrorMessage('Không tìm thấy mã xác thực hoặc thông tin phiên để đổi quyền.');
-      return;
-    }
-
-    setErrorMessage(null);
-    setErrorCode(null);
-    setStatusNotice(null);
-    setUiStep('EXCHANGING_TOKEN');
-
-    try {
-      const exchangeData = await exchangeOnlineCode(session.sessionId, session.authCode, currentBaseUrl);
-      if (!acceptVisit(exchangeData, epoch)) return;
-
-      updateAndPersistSession((prev) => ({
-        ...prev,
-        token: exchangeData.token,
-        tokenType: 'Bearer',
-        expiresAt: exchangeData.expiresAt,
-        authCode: null
-      }));
-
-      setUiStep('VERIFYING_VISIT');
-      try {
-        const visit = await getVisitMe(exchangeData.token, currentBaseUrl);
-        if (!acceptVisit(visit, epoch)) return;
-        updateAndPersistSession((prev) => ({
-          ...prev,
-          verifiedVisit: visit,
-          sessionStatus: (visit.status as StoredGuestSession['sessionStatus']) || prev.sessionStatus
-        }));
-        setUiStep('VISIT_ACTIVE');
-        setStatusNotice('Đã đổi mã và xác minh phiên khách thành công. Bạn có thể bắt đầu sử dụng thuyết minh.');
-      } catch (visitErr: unknown) {
-        setUiStep('VERIFICATION_FAILED');
-        setErrorMessage(visitErr instanceof Error ? visitErr.message : 'Chưa thể xác minh phiên.');
-        setStatusNotice('Đã lưu quyền truy cập. Hãy xác minh lại, không đổi mã hoặc thanh toán lần nữa.');
-      }
-    } catch (err: unknown) {
-      setUiStep('CHECKOUT_READY');
-      if (err instanceof ApiError) {
-        setErrorCode(err.code);
-        if (err.code === 'VISIT_TOKEN_ALREADY_ISSUED') {
-          setErrorMessage('Phiên này đã được cấp token trước đó. Hệ thống không cấp token lại lần hai.');
-        } else {
-          setErrorMessage(err.message);
-        }
-      } else {
-        setErrorCode('NETWORK_ERROR');
-        setErrorMessage('Không thể kết nối tới máy chủ khi đổi quyền truy cập.');
-      }
-    }
-  };
-
-  // 4. Khach chi nhap ma 6 so; server tu xac dinh phien.
-  const handleExchangeCashCode = async (e: React.FormEvent) => {
-    const epoch = visitEpoch.current;
-    e.preventDefault();
-    setErrorMessage(null);
-    setErrorCode(null);
-    setStatusNotice(null);
-
-    const cleanCode = cashShortedCodeInput.trim();
-
-    if (!cleanCode || !/^\d{6}$/.test(cleanCode)) {
-      setErrorMessage('Vui lòng nhập đủ 6 chữ số nhân viên đã cấp.');
-      return;
-    }
-
-    setIsExchangingCash(true);
-    setUiStep('EXCHANGING_TOKEN');
-
-    try {
-      const exchangeData = await exchangeCashCode(cleanCode, currentBaseUrl);
-      if (!acceptVisit(exchangeData, epoch)) return;
-
-      updateAndPersistSession((prev) => ({
-        ...prev,
-        sessionId: exchangeData.sessionId,
-        token: exchangeData.token,
-        tokenType: 'Bearer',
-        expiresAt: exchangeData.expiresAt,
-        paymentStatus: 'PAID',
-        sessionStatus: 'ACTIVE',
-        authCode: null
-      }));
-
-      setUiStep('VERIFYING_VISIT');
-      try {
-        const visit = await getVisitMe(exchangeData.token, currentBaseUrl);
-        if (!acceptVisit(visit, epoch)) return;
-        updateAndPersistSession((prev) => ({
-          ...prev,
-          verifiedVisit: visit,
-          sessionStatus: (visit.status as StoredGuestSession['sessionStatus']) || 'ACTIVE'
-        }));
-        setUiStep('VISIT_ACTIVE');
-        setCashShortedCodeInput('');
-        setStatusNotice('Vé đã được kích hoạt. Bạn có thể bắt đầu khám phá và nghe thuyết minh.');
-      } catch (visitErr: unknown) {
-        setUiStep('VERIFICATION_FAILED');
-        setErrorMessage(visitErr instanceof Error ? visitErr.message : 'Chưa thể xác minh phiên.');
-        setStatusNotice('Đã lưu quyền truy cập. Hãy xác minh lại, không đổi mã hoặc thanh toán lần nữa.');
-      }
-      setIsExchangingCash(false);
-    } catch (err: unknown) {
-      setIsExchangingCash(false);
-      setUiStep('IDLE');
-      if (err instanceof ApiError) {
-        setErrorCode(err.code);
-        const cashMessages: Record<string, string> = {
-          CASH_CODE_INVALID_OR_EXPIRED: 'Mã không đúng, đã hết hạn hoặc đã được dùng. Bạn hãy kiểm tra lại với nhân viên.',
-          CASH_EXCHANGE_RATE_LIMITED: 'Bạn đã thử quá nhiều lần. Vui lòng đợi một lát rồi thử lại.',
-          VISIT_TOKEN_ALREADY_ISSUED: 'Vé này đã được kích hoạt. Nếu chưa nhận được vé, hãy nhờ nhân viên hỗ trợ; không cần trả tiền lại.',
-          CASH_EXCHANGE_PERSISTENCE_UNAVAILABLE: 'Chưa xác nhận được kết quả kích hoạt. Hãy nhờ nhân viên kiểm tra trước khi thử lại; không cần trả tiền lại.'
-        };
-        setErrorMessage(cashMessages[err.code] || 'Chưa thể kích hoạt vé lúc này. Vui lòng thử lại hoặc nhờ nhân viên kiểm tra; không cần trả tiền lại.');
-      } else {
-        setErrorCode('NETWORK_ERROR');
-        setErrorMessage('Lỗi mạng khi gửi yêu cầu đổi mã tiền mặt.');
-      }
-    }
-  };
-
-  const handleVerifyAgain = async () => {
-    const epoch = visitEpoch.current;
-    if (!session.token || mismatchedEnv) return;
-    setUiStep('VERIFYING_VISIT');
-    setErrorMessage(null);
-    setErrorCode(null);
-    try {
-      const visit = await getVisitMe(session.token, currentBaseUrl);
-      if (!acceptVisit(visit, epoch)) return;
-      updateAndPersistSession(prev => ({ ...prev, verifiedVisit: visit,
-        sessionStatus: visit.status as StoredGuestSession['sessionStatus'],
-        expiresAt: visit.expiresAt || prev.expiresAt }));
-      setUiStep('VISIT_ACTIVE');
-      setStatusNotice('Phiên đã được máy chủ xác minh. Bạn có thể bắt đầu tham quan.');
-    } catch (err: unknown) {
-      setUiStep('VERIFICATION_FAILED');
-      setErrorCode(err instanceof ApiError ? err.code : 'VERIFY_ERROR');
-      setErrorMessage(err instanceof Error ? err.message : 'Chưa thể xác minh phiên.');
-    }
-  };
-
-  // 5. Xoa phien va reset storage
-  const handleClearSession = () => {
-    visitEpoch.current++;
-    clearGuestSession();
-    const cleared = loadGuestSession(currentBaseUrl).session;
-    setSession(cleared);
-    setUiStep('IDLE');
-    setErrorMessage(null);
-    setErrorCode(null);
-    setStatusNotice('Đã xóa toàn bộ phiên khách trên trình duyệt này.');
-    setMismatchedEnv(false);
-  };
-
-  return (
-    <div className="payment-page">
-      <ol className="payment-progress" aria-label="Tiến trình kích hoạt">
-        <li aria-current={uiStep === 'IDLE' || uiStep === 'CREATING_CHECKOUT' ? 'step' : undefined}><span>1</span> Chọn hình thức</li>
-        <li aria-current={uiStep !== 'IDLE' && uiStep !== 'CREATING_CHECKOUT' && uiStep !== 'VISIT_ACTIVE' ? 'step' : undefined}><span>2</span> Xác nhận lượt</li>
-        <li aria-current={uiStep === 'VISIT_ACTIVE' ? 'step' : undefined}><span>3</span> Khám phá</li>
-      </ol>
-      <div className="payment-heading">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <span style={{ textTransform: 'uppercase', fontSize: '0.78rem', letterSpacing: '0.08em', color: 'var(--tcv-green-700)', fontWeight: 700 }}>
-              Vé thuyết minh
-            </span>
-            <h1 className="hero-title" style={{ fontSize: '2rem', marginTop: '8px' }}>
-              Bắt đầu hành trình lắng nghe
-            </h1>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span className={`status-pill ${uiStep === 'VISIT_ACTIVE' ? 'ready' : uiStep === 'IDLE' ? 'idle' : 'unready'}`}>
-              {stepLabels[uiStep]}
-            </span>
-          </div>
-        </div>
-
-        <p style={{ color: 'var(--tcv-slate-600)', fontSize: '0.92rem', maxWidth: '72ch', marginTop: '6px' }}>
-          Hỗ trợ nhận quyền truy cập qua hai hình thức: thanh toán trực tuyến mô phỏng hoặc đổi mã tiền mặt do nhân viên quầy vé cung cấp.
-        </p>
-
-        {storageWarning && (
-          <div className="banner-notice warning" style={{ marginTop: '16px' }}>
-            <Icon name="info" />
-            <div className="banner-desc">{storageWarning}</div>
-          </div>
-        )}
-
-        {mismatchedEnv && (
-          <div className="banner-notice warning" style={{ marginTop: '16px' }}>
-            <Icon name="info" />
-            <div>
-              <div className="banner-title">Địa chỉ máy chủ không khớp phiên cũ</div>
-              <div className="banner-desc">
-                Phiên tham quan được lưu trước đó thuộc về máy chủ khác: {session.apiBaseUrl}. Không tự động gửi token sang máy chủ hiện tại: {currentBaseUrl}. Vui lòng xóa phiên cũ để bắt đầu lại.
-              </div>
-              <button type="button" onClick={handleClearSession} className="btn-secondary btn-sm" style={{ marginTop: '10px' }}>
-                Xóa phiên cũ và bắt đầu lại
-              </button>
-            </div>
-          </div>
-        )}
-
-        {statusNotice && (
-          <div className="banner-notice info" style={{ marginTop: '16px' }}>
-            <Icon name="info" />
-            <div className="banner-desc" role="status">{statusNotice}</div>
-          </div>
-        )}
-
-        {errorMessage && (
-          <div className="banner-notice" style={{ marginTop: '16px', background: 'var(--tcv-status-err-bg)', border: '1px solid #fecaca', color: '#991b1b' }}>
-            <Icon name="info" />
-            <div>
-              <div className="banner-title">
-                Chưa thể hoàn tất
-              </div>
-              <div className="banner-desc" role="alert">{errorMessage}</div>
-              {errorCode && <details><summary>Thông tin hỗ trợ</summary><code>{errorCode}</code></details>}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* KHI DA CO TOKEN VA PHIEN HOAT DONG */}
-      {uiStep === 'VISIT_ACTIVE' && (
-        <div style={{ background: 'var(--tcv-green-50)', border: '1px solid var(--tcv-green-500)', borderRadius: 'var(--radius-sm)', padding: '20px', marginBottom: '24px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
-            <Icon name="check" />
-            <h3 style={{ fontSize: '1.1rem', color: 'var(--tcv-green-900)', fontWeight: 700, margin: 0 }}>
-              Vé của bạn đã sẵn sàng
-            </h3>
-          </div>
-
-          <p style={{ fontSize: '0.88rem', color: 'var(--tcv-slate-700)', marginBottom: '14px' }}>
-            Lượt tham quan đã được kích hoạt. Chọn điểm đến và bắt đầu nghe thuyết minh theo cách của bạn.
-          </p>
-
-          <p>Vé còn hiệu lực đến: <strong>{session.expiresAt ? new Date(session.expiresAt).toLocaleString('vi-VN') : 'Đang kiểm tra'}</strong></p>
-          <details style={{ marginBottom: '16px' }}><summary>Thông tin hỗ trợ</summary>
-          <table className="status-detail-table" style={{ background: '#ffffff', borderRadius: 'var(--radius-sm)', marginBottom: '16px' }}>
-            <tbody>
-              <tr>
-                <th>Mã phiên tham quan</th>
-                <td><code>{session.sessionId}</code></td>
-              </tr>
-              <tr>
-                <th>Trạng thái phiên</th>
-                <td>
-                  <span className="status-pill ready">
-                    {session.sessionStatus || 'ACTIVE'}
-                  </span>
-                </td>
-              </tr>
-              <tr>
-                <th>Thời hạn sử dụng</th>
-                <td>{session.expiresAt ? new Date(session.expiresAt).toLocaleString('vi-VN') : 'Chưa nhận được thời hạn từ máy chủ'}</td>
-              </tr>
-            </tbody>
-          </table>
-          </details>
-
-          <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Link to="/explore" className="btn-primary">
-              Bắt đầu khám phá <span className="button-icon"><Icon name="arrow" /></span>
-            </Link>
-
-            <button
-              type="button"
-              onClick={handleClearSession}
-              className="btn-secondary"
-            >
-              Xóa phiên trên máy này
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* KHI CHUA CO TOKEN: CHON TAB PHUONG THUC */}
-      {session.token && !mismatchedEnv && uiStep !== 'VISIT_ACTIVE' && (
-        <div className="tcv-card" role="status">
-          <p>Quyền truy cập đã được lưu. Cần xác minh với máy chủ trước khi tiếp tục.</p>
-          <button className="btn-primary" onClick={handleVerifyAgain} disabled={uiStep === 'VERIFYING_VISIT'}>
-            {uiStep === 'VERIFYING_VISIT' ? 'Đang xác minh...' : 'Xác minh lại phiên'}
-          </button>
-          <Link to="/explore" className="btn-secondary">Kiểm tra quyền ở trang Khám phá</Link>
-        </div>
-      )}
-      {uiStep !== 'VISIT_ACTIVE' && !session.token && !mismatchedEnv && (
-        <div>
-          <div aria-live="polite" className="tcv-card" style={{ padding: '16px', marginBottom: '16px' }}>
-            {price ? <p>Giá quyền sử dụng thuyết minh demo: <strong>{Number(price.amount).toLocaleString('vi-VN')} {price.currency}</strong>. Đây không phải vé vào cổng Thảo Cầm Viên.</p>
-              : priceError ? <><p role="alert">Chưa tải được giá. Vui lòng thử lại trước khi tạo thanh toán mới.</p><button type="button" onClick={() => setPriceAttempt(value => value + 1)}>Tải lại giá</button></>
-              : <p>Đang tải giá từ máy chủ…</p>}
-          </div>
-          <div className="payment-methods" role="group" aria-label="Hình thức kích hoạt">
-            <button
-              type="button"
-              aria-pressed={paymentTab === 'ONLINE'}
-              onClick={() => {
-                setPaymentTab('ONLINE');
-                setErrorMessage(null);
-              }}
-            >
-              <Icon name="globe" /> Trực tuyến mô phỏng
-            </button>
-            <button
-              type="button"
-              aria-pressed={paymentTab === 'CASH'}
-              onClick={() => {
-                setPaymentTab('CASH');
-                setErrorMessage(null);
-              }}
-            >
-              <Icon name="ticket" /> Nhập mã tại quầy
-            </button>
-          </div>
-
-          {/* TAB 1: THANH TOAN TRUC TUYEN ONLINE */}
-          {paymentTab === 'ONLINE' && (
-            <div>
-              {uiStep === 'IDLE' || uiStep === 'CREATING_CHECKOUT' ? (
-                <div className="tcv-card">
-                  <h2 style={{ fontSize: '1.15rem', color: 'var(--tcv-green-900)', marginBottom: '12px' }}>
-                    Bắt đầu yêu cầu thanh toán
-                  </h2>
-                  <p style={{ color: 'var(--tcv-slate-600)', fontSize: '0.88rem', marginBottom: '20px' }}>
-                    Giá được máy chủ xác nhận lại khi tạo lượt tham quan. Đây là thanh toán mô phỏng, không thu tiền thật.
-                  </p>
-
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                    <button
-                      type="button"
-                      onClick={handleStartCheckout}
-                      disabled={!price || uiStep === 'CREATING_CHECKOUT'}
-                      className="btn-primary"
-                    >
-                      {uiStep === 'CREATING_CHECKOUT' ? 'Đang tạo phiên thanh toán...' : 'Tạo yêu cầu thanh toán mô phỏng'}
-                    </button>
-                  </div>
-                </div>
-              ) : null}
-
-              {session.sessionId && (uiStep === 'CHECKOUT_READY' || uiStep === 'CHECKING_STATUS' || uiStep === 'EXCHANGING_TOKEN' || uiStep === 'VERIFYING_VISIT') && (
-                <div className="tcv-card" style={{ marginTop: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
-                    <h2 style={{ fontSize: '1.15rem', color: 'var(--tcv-green-900)' }}>
-                      Chi tiết phiên thanh toán trực tuyến
-                    </h2>
-                    <span className={`status-pill ${session.paymentStatus === 'PAID' ? 'ready' : session.paymentStatus === 'FAILED' ? 'unready' : 'idle'}`}>
-                      Thanh toán: {session.paymentStatus || 'CHƯA RÕ'}
-                    </span>
-                  </div>
-
-                  <table className="status-detail-table">
-                    <tbody>
-                      <tr>
-                        <th>Mã phiên</th>
-                        <td><code>{session.sessionId}</code></td>
-                      </tr>
-                      <tr>
-                        <th>Mã tham chiếu thanh toán</th>
-                        <td><code>{session.paymentRef}</code></td>
-                      </tr>
-                      <tr>
-                        <th>Số tiền vé</th>
-                        <td><strong>{session.amount} {session.currency}</strong></td>
-                      </tr>
-                      <tr>
-                        <th>Trạng thái phiên</th>
-                        <td><span>{session.sessionStatus}</span></td>
-                      </tr>
-                      <tr>
-                        <th>Trạng thái thanh toán</th>
-                        <td><strong>{session.paymentStatus}</strong></td>
-                      </tr>
-                    </tbody>
-                  </table>
-
-                  <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap', marginTop: '20px' }}>
-                    {session.paymentStatus === 'PENDING' && (
-                      <button
-                        type="button"
-                        onClick={handleSimulatePayment}
-                        disabled={isSimulatingPayment}
-                        className="btn-primary"
-                        style={{ backgroundColor: '#0284c7', borderColor: '#0369a1' }}
-                      >
-                        {isSimulatingPayment ? 'Đang gửi mô phỏng...' : 'Mô phỏng thanh toán thành công (Demo)'}
-                      </button>
-                    )}
-
-                    <button
-                      type="button"
-                      onClick={handleCheckStatus}
-                      disabled={uiStep === 'CHECKING_STATUS' || cooldownSeconds > 0}
-                      className="btn-secondary"
-                    >
-                      {cooldownSeconds > 0 ? `Đợi ${cooldownSeconds}s để kiểm tra lại` : uiStep === 'CHECKING_STATUS' ? 'Đang kiểm tra...' : 'Kiểm tra trạng thái thanh toán'}
-                    </button>
-
-                    {session.paymentStatus === 'PAID' && session.sessionStatus === 'ACTIVE' && session.authCode && (
-                      <button
-                        type="button"
-                        onClick={handleExchangeCode}
-                        disabled={uiStep === 'EXCHANGING_TOKEN' || uiStep === 'VERIFYING_VISIT'}
-                        className="btn-primary"
-                        style={{ backgroundColor: 'var(--tcv-green-600)', borderColor: 'var(--tcv-green-500)' }}
-                      >
-                        {uiStep === 'EXCHANGING_TOKEN'
-                          ? 'Đang đổi quyền...'
-                          : uiStep === 'VERIFYING_VISIT'
-                          ? 'Đang xác minh phiên...'
-                          : 'Nhận quyền truy cập'}
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* TAB 2: DOI MA TIEN MAT TAI QUAY */}
-          {paymentTab === 'CASH' && (
-            <div className="tcv-card">
-              <h2 style={{ fontSize: '1.15rem', color: 'var(--tcv-green-900)', marginBottom: '8px' }}>
-                Nhập mã để bắt đầu khám phá
-              </h2>
-              <p style={{ color: 'var(--tcv-slate-600)', fontSize: '0.88rem', marginBottom: '20px' }}>
-                Sau khi thanh toán tại quầy demo, bạn nhận một mã gồm 6 chữ số. Chỉ cần nhập mã bên dưới để mở vé thuyết minh.
-              </p>
-
-              <form onSubmit={handleExchangeCashCode}>
-                <div style={{ marginBottom: '20px' }}>
-                  <label htmlFor="cash-code" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                    Mã kích hoạt 6 số
-                  </label>
-                  <input
-                    id="cash-code"
-                    inputMode="numeric"
-                    pattern="[0-9]{6}"
-                    autoComplete="one-time-code"
-                    type="text"
-                    value={cashShortedCodeInput}
-                    onChange={(e) => setCashShortedCodeInput(e.target.value)}
-                    placeholder="Ví dụ: 012345"
-                    maxLength={6}
-                    required
-                    style={{ width: '100%', maxWidth: '240px', padding: '10px 12px', border: '1px solid var(--tcv-slate-300)', borderRadius: '6px', fontFamily: 'monospace', fontSize: '1.3rem', letterSpacing: '4px', textAlign: 'center' }}
-                  />
-                  <div style={{ fontSize: '0.78rem', color: 'var(--tcv-slate-500)', marginTop: '4px' }}>
-                    Nhập cả số 0 ở đầu nếu có. Mã chỉ dùng một lần và có thời hạn; nếu hết hạn, hãy nhờ nhân viên hỗ trợ.
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-                  <button
-                    type="submit"
-                    disabled={isExchangingCash || uiStep === 'EXCHANGING_TOKEN' || uiStep === 'VERIFYING_VISIT'}
-                    className="btn-primary"
-                  >
-                    {isExchangingCash || uiStep === 'EXCHANGING_TOKEN' ? 'Đang kích hoạt vé...' : 'Kích hoạt vé'}
-                  </button>
-
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* Nut reset khi can bat dau giao dich khac */}
-          <div style={{ marginTop: '20px', textAlign: 'right' }}>
-            <button
-              type="button"
-              onClick={handleClearSession}
-              className="btn-secondary btn-sm"
-            >
-              Hủy và làm mới giao diện
-            </button>
-          </div>
-        </div>
-      )}
+  return <div className="payment-container" style={{ maxWidth: 860, margin: '32px auto', padding: '0 20px' }}>
+    <header className="page-header"><p className="eyebrow">QUYỀN NGHE THUYẾT MINH</p><h1>Kích hoạt tại quầy</h1>
+      <p>Bản đồ và thông tin điểm tham quan được xem miễn phí. Để nghe thuyết minh, thanh toán tại quầy và nhận mã sau khi nhân viên xác nhận.</p></header>
+    <div className="tcv-card" style={{ padding: 28, marginBottom: 20 }}>
+      {price ? <p>Giá quyền sử dụng thuyết minh: <strong>{Number(price.amount).toLocaleString('vi-VN')} {price.currency}</strong>. Đây không phải vé vào cổng Thảo Cầm Viên.</p>
+        : priceError ? <p role="status">Chưa tải được giá. Vui lòng hỏi nhân viên trước khi thanh toán. <button className="btn-secondary" onClick={() => setAttempt(value => value + 1)}>Tải lại giá</button></p>
+          : <p>Đang tải giá…</p>}
+      <ol><li>Thanh toán phí thuyết minh tại quầy.</li><li>Nhân viên xác nhận đã thu tiền và cấp mã kích hoạt.</li><li>Nhập mã 6 chữ số để mở quyền nghe trên thiết bị này.</li></ol>
     </div>
-  );
+    {storageWarning && <p role="alert">{storageWarning}</p>}
+    {error && <div className="banner-notice" role="alert"><div><strong>Chưa thể hoàn tất</strong><p>{error}</p>
+      {errorCode && <details><summary>Thông tin hỗ trợ</summary><code>{errorCode}</code></details>}</div></div>}
+    {notice && <p role="status">{notice}</p>}
+    <section className="tcv-card" style={{ padding: 28 }}>
+      {mismatch ? <><h2>Phiên thuộc máy chủ khác</h2><p>Không thể sử dụng mã đã lưu cho máy chủ hiện tại.</p>
+        <button className="btn-secondary" onClick={() => { epoch.current++; clearGuestSession(); setSession(getEmptyGuestSession(baseUrl)); setMismatch(false); }}>Dùng máy chủ hiện tại</button></>
+        : verified ? <><h2>Quyền nghe đang hiệu lực</h2><p>Hạn sử dụng: {session.expiresAt && new Date(session.expiresAt).toLocaleString('vi-VN')}</p><Link className="btn-primary" to="/explore">Bắt đầu nghe thuyết minh</Link></>
+          : session.token ? <><h2>{busy ? 'Đang xác minh quyền nghe…' : 'Xác minh lại quyền nghe'}</h2><button className="btn-primary" disabled={busy} onClick={() => void verify(session)}>Xác minh lại</button></>
+            : <form className="activation-form" onSubmit={exchange}><h2>Nhập mã tại quầy</h2><label htmlFor="activation-code">Mã kích hoạt 6 chữ số</label>
+              <input id="activation-code" aria-label="Mã kích hoạt 6 chữ số" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code}
+                onChange={event => setCode(event.target.value.replace(/\D/g, '').slice(0, 6))} placeholder="000000" disabled={busy} />
+              <button type="submit" className="btn-primary" disabled={busy}>{busy ? 'Đang kích hoạt…' : 'Kích hoạt vé thuyết minh'}</button>
+              <p>Mã chỉ dùng một lần. Nếu gặp lỗi, liên hệ nhân viên trước khi thanh toán lại.</p></form>}
+    </section>
+    <p><Link className="text-link" to="/explore">Xem bản đồ miễn phí →</Link></p>
+  </div>;
 };

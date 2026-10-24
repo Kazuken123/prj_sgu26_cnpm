@@ -338,7 +338,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
   return (
     <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--tcv-slate-200)' }}>
-      {/* TIEU DE VA NHAN DEMO MOCK */}
+      {/* THONG TIN AM THANH */}
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
         <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--tcv-green-950)' }}>
           Trình phát âm thanh thuyết minh
@@ -353,7 +353,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
 
       {/* CANH BAO TRUNG THUC AM THU MOCK */}
       <div style={{ background: 'var(--tcv-status-warn-bg)', border: '1px solid #fde68a', borderRadius: 'var(--radius-sm)', padding: '10px 14px', marginBottom: '14px', fontSize: '0.8rem', color: '#92400e' }}>
-        <strong>Âm thanh phục vụ demo.</strong> Bộ demo sử dụng giọng tổng hợp; chất lượng bản dịch và phát âm chưa được nghiệm thu độc lập bởi người bản ngữ.
+        <strong>Giọng đọc tổng hợp.</strong> Âm thanh sử dụng giọng tổng hợp; chất lượng bản dịch và phát âm chưa được nghiệm thu độc lập bởi người bản ngữ.
       </div>
 
       {/* THONG SO AUDIO VA FALLBACK */}
