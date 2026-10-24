@@ -39,7 +39,8 @@ async function mount(t, Component) {
   return view;
 }
 const text = view => JSON.stringify(view.toJSON());
-const button = (view, label) => view.root.findAllByType('button').find(node => JSON.stringify(node.children).includes(label));
+const nodeText = node => typeof node === 'string' ? node : (node.children || []).map(nodeText).join('');
+const button = (view, label) => view.root.findAllByType('button').find(node => nodeText(node).includes(label));
 
 test('header observes login/role changes; failed logout retains credentials and successful retry clears menu', async t => {
   browser(t); let fail = true, calls = 0;
@@ -141,4 +142,49 @@ test('invalid server price cannot be rendered as zero, NaN or a client chosen am
     t.mock.method(globalThis, 'fetch', async () => response({ data }));
     await assert.rejects(getVisitPrice(), /Giá vé không hợp lệ/);
   }
+});
+
+test('cash guest enters only six digits; verification failure keeps the issued token and never exchanges it twice', async t => {
+  browser(t); const requests = []; let verifyFails = true;
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    const path = new URL(url).pathname; requests.push({ path, body: options.body });
+    if (path.endsWith('/price')) return response({ data: { amount: '50000.00', currency: 'VND' } });
+    if (path.endsWith('/exchange-cash-code')) {
+      assert.deepEqual(JSON.parse(options.body), { shortedCode: '012345' });
+      assert.equal(options.headers.Authorization, undefined);
+      return response({ data: { sessionId: 'test-visit', token: 'cash-guest-test', tokenType: 'Bearer', expiresAt: new Date(Date.now() + 60000).toISOString() } });
+    }
+    if (verifyFails) return response({ code: 'TEMPORARILY_UNAVAILABLE', error: 'retry' }, 503);
+    return response({ data: { sessionId: 'test-visit', status: 'ACTIVE', expiresAt: new Date(Date.now() + 60000).toISOString() } });
+  });
+  const view = await mount(t, PaymentPage);
+  await act(async () => button(view, 'Nhập mã tại quầy').props.onClick());
+  const inputs = view.root.findAllByType('input');
+  assert.equal(inputs.length, 1); assert.equal(inputs[0].props.id, 'cash-code'); assert.equal(inputs[0].props.inputMode, 'numeric');
+  assert.doesNotMatch(text(view), /UUID|cash-session-id|Mã phiên tham quan/);
+  await act(async () => inputs[0].props.onChange({ target: { value: '012345' } }));
+  await act(async () => view.root.findByType('form').props.onSubmit({ preventDefault() {} }));
+  assert.equal(loadGuestSession(origin).session.token, 'cash-guest-test');
+  assert.equal(requests.filter(item => item.path.endsWith('/exchange-cash-code')).length, 1);
+  verifyFails = false;
+  await act(async () => button(view, 'Xác minh lại phiên').props.onClick());
+  assert.match(text(view), /Vé của bạn đã sẵn sàng|Bắt đầu khám phá/);
+  assert.equal(requests.filter(item => item.path.endsWith('/exchange-cash-code')).length, 1);
+  assert.equal(view.root.findByType('table').parent.type, 'details');
+});
+
+test('invalid cash codes show a human message; technical error remains in collapsed support details', async t => {
+  browser(t);
+  t.mock.method(globalThis, 'fetch', async url => String(url).endsWith('/price')
+    ? response({ data: { amount: '50000.00', currency: 'VND' } })
+    : response({ code: 'CASH_CODE_INVALID_OR_EXPIRED', error: 'technical backend detail' }, 401));
+  const view = await mount(t, PaymentPage);
+  await act(async () => button(view, 'Nhập mã tại quầy').props.onClick());
+  await act(async () => view.root.findByType('input').props.onChange({ target: { value: '012345' } }));
+  await act(async () => view.root.findByType('form').props.onSubmit({ preventDefault() {} }));
+  assert.match(text(view), /Bạn hãy kiểm tra lại với nhân viên/);
+  assert.doesNotMatch(text(view), /technical backend detail/);
+  const detail = view.root.findByType('details'); assert.equal(detail.props.open, undefined);
+  assert.equal(view.root.findByType('input').props.value, '012345');
+  assert.equal(loadGuestSession(origin).session.token, null);
 });

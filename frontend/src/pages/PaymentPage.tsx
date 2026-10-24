@@ -63,7 +63,6 @@ export const PaymentPage: React.FC = () => {
   });
 
   const [paymentTab, setPaymentTab] = useState<PaymentTab>('ONLINE');
-  const [cashSessionIdInput, setCashSessionIdInput] = useState<string>('');
   const [cashShortedCodeInput, setCashShortedCodeInput] = useState<string>('');
   const [isExchangingCash, setIsExchangingCash] = useState<boolean>(false);
   const [isSimulatingPayment, setIsSimulatingPayment] = useState<boolean>(false);
@@ -360,7 +359,7 @@ export const PaymentPage: React.FC = () => {
     }
   };
 
-  // 4. Doi ma ngan tien mat lay token khach (POST /api/payments/sessions/:sessionId/exchange-cash-code)
+  // 4. Khach chi nhap ma 6 so; server tu xac dinh phien.
   const handleExchangeCashCode = async (e: React.FormEvent) => {
     const epoch = visitEpoch.current;
     e.preventDefault();
@@ -368,17 +367,10 @@ export const PaymentPage: React.FC = () => {
     setErrorCode(null);
     setStatusNotice(null);
 
-    const cleanSessionId = cashSessionIdInput.trim().toLowerCase();
     const cleanCode = cashShortedCodeInput.trim();
 
-    const uuidRegex = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
-    if (!cleanSessionId || !uuidRegex.test(cleanSessionId)) {
-      setErrorMessage('Mã phiên không đúng định dạng UUID v4.');
-      return;
-    }
-
     if (!cleanCode || !/^\d{6}$/.test(cleanCode)) {
-      setErrorMessage('Mã ngắn phải là chuỗi đúng sáu chữ số.');
+      setErrorMessage('Vui lòng nhập đủ 6 chữ số nhân viên đã cấp.');
       return;
     }
 
@@ -386,7 +378,7 @@ export const PaymentPage: React.FC = () => {
     setUiStep('EXCHANGING_TOKEN');
 
     try {
-      const exchangeData = await exchangeCashCode(cleanSessionId, cleanCode, currentBaseUrl);
+      const exchangeData = await exchangeCashCode(cleanCode, currentBaseUrl);
       if (!acceptVisit(exchangeData, epoch)) return;
 
       updateAndPersistSession((prev) => ({
@@ -410,7 +402,8 @@ export const PaymentPage: React.FC = () => {
           sessionStatus: (visit.status as StoredGuestSession['sessionStatus']) || 'ACTIVE'
         }));
         setUiStep('VISIT_ACTIVE');
-        setStatusNotice('Đã đổi mã tiền mặt thành công. Phiên khách tham quan đã sẵn sàng.');
+        setCashShortedCodeInput('');
+        setStatusNotice('Vé đã được kích hoạt. Bạn có thể bắt đầu khám phá và nghe thuyết minh.');
       } catch (visitErr: unknown) {
         setUiStep('VERIFICATION_FAILED');
         setErrorMessage(visitErr instanceof Error ? visitErr.message : 'Chưa thể xác minh phiên.');
@@ -422,7 +415,13 @@ export const PaymentPage: React.FC = () => {
       setUiStep('IDLE');
       if (err instanceof ApiError) {
         setErrorCode(err.code);
-        setErrorMessage(err.message);
+        const cashMessages: Record<string, string> = {
+          CASH_CODE_INVALID_OR_EXPIRED: 'Mã không đúng, đã hết hạn hoặc đã được dùng. Bạn hãy kiểm tra lại với nhân viên.',
+          CASH_EXCHANGE_RATE_LIMITED: 'Bạn đã thử quá nhiều lần. Vui lòng đợi một lát rồi thử lại.',
+          VISIT_TOKEN_ALREADY_ISSUED: 'Vé này đã được kích hoạt. Nếu chưa nhận được vé, hãy nhờ nhân viên hỗ trợ; không cần trả tiền lại.',
+          CASH_EXCHANGE_PERSISTENCE_UNAVAILABLE: 'Chưa xác nhận được kết quả kích hoạt. Hãy nhờ nhân viên kiểm tra trước khi thử lại; không cần trả tiền lại.'
+        };
+        setErrorMessage(cashMessages[err.code] || 'Chưa thể kích hoạt vé lúc này. Vui lòng thử lại hoặc nhờ nhân viên kiểm tra; không cần trả tiền lại.');
       } else {
         setErrorCode('NETWORK_ERROR');
         setErrorMessage('Lỗi mạng khi gửi yêu cầu đổi mã tiền mặt.');
@@ -527,9 +526,10 @@ export const PaymentPage: React.FC = () => {
             <Icon name="info" />
             <div>
               <div className="banner-title">
-                Lỗi {errorCode ? `[${errorCode}]` : ''}
+                Chưa thể hoàn tất
               </div>
               <div className="banner-desc" role="alert">{errorMessage}</div>
+              {errorCode && <details><summary>Thông tin hỗ trợ</summary><code>{errorCode}</code></details>}
             </div>
           </div>
         )}
@@ -541,7 +541,7 @@ export const PaymentPage: React.FC = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
             <Icon name="check" />
             <h3 style={{ fontSize: '1.1rem', color: 'var(--tcv-green-900)', fontWeight: 700, margin: 0 }}>
-              Phiên khách tham quan hợp lệ
+              Vé của bạn đã sẵn sàng
             </h3>
           </div>
 
@@ -549,6 +549,8 @@ export const PaymentPage: React.FC = () => {
             Lượt tham quan đã được kích hoạt. Chọn điểm đến và bắt đầu nghe thuyết minh theo cách của bạn.
           </p>
 
+          <p>Vé còn hiệu lực đến: <strong>{session.expiresAt ? new Date(session.expiresAt).toLocaleString('vi-VN') : 'Đang kiểm tra'}</strong></p>
+          <details style={{ marginBottom: '16px' }}><summary>Thông tin hỗ trợ</summary>
           <table className="status-detail-table" style={{ background: '#ffffff', borderRadius: 'var(--radius-sm)', marginBottom: '16px' }}>
             <tbody>
               <tr>
@@ -569,10 +571,11 @@ export const PaymentPage: React.FC = () => {
               </tr>
             </tbody>
           </table>
+          </details>
 
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
             <Link to="/explore" className="btn-primary">
-              Đi tới trang Khám phá <span className="button-icon"><Icon name="arrow" /></span>
+              Bắt đầu khám phá <span className="button-icon"><Icon name="arrow" /></span>
             </Link>
 
             <button
@@ -734,34 +737,16 @@ export const PaymentPage: React.FC = () => {
           {paymentTab === 'CASH' && (
             <div className="tcv-card">
               <h2 style={{ fontSize: '1.15rem', color: 'var(--tcv-green-900)', marginBottom: '8px' }}>
-                Đổi mã tiền mặt từ nhân viên quầy vé
+                Nhập mã để bắt đầu khám phá
               </h2>
               <p style={{ color: 'var(--tcv-slate-600)', fontSize: '0.88rem', marginBottom: '20px' }}>
-                Dành cho khách đã thanh toán tiền mặt trực tiếp tại quầy của Thảo Cầm Viên. Vui lòng nhập mã phiên và mã ngắn sáu chữ số do nhân viên cung cấp.
+                Sau khi thanh toán tại quầy demo, bạn nhận một mã gồm 6 chữ số. Chỉ cần nhập mã bên dưới để mở vé thuyết minh.
               </p>
 
               <form onSubmit={handleExchangeCashCode}>
-                <div style={{ marginBottom: '16px' }}>
-                  <label htmlFor="cash-session-id" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                    Mã phiên tham quan
-                  </label>
-                  <input
-                    id="cash-session-id"
-                    type="text"
-                    value={cashSessionIdInput}
-                    onChange={(e) => setCashSessionIdInput(e.target.value)}
-                    placeholder="Ví dụ: 360f0817-21a4-4f81-a75d-355811776ce9"
-                    required
-                    style={{ width: '100%', padding: '10px 12px', border: '1px solid var(--tcv-slate-300)', borderRadius: '6px', fontFamily: 'monospace', fontSize: '0.9rem' }}
-                  />
-                  <div style={{ fontSize: '0.78rem', color: 'var(--tcv-slate-500)', marginTop: '4px' }}>
-                    Sao chép đầy đủ mã phiên do nhân viên cung cấp.
-                  </div>
-                </div>
-
                 <div style={{ marginBottom: '20px' }}>
                   <label htmlFor="cash-code" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                    Mã xác nhận sáu chữ số
+                    Mã kích hoạt 6 số
                   </label>
                   <input
                     id="cash-code"
@@ -777,7 +762,7 @@ export const PaymentPage: React.FC = () => {
                     style={{ width: '100%', maxWidth: '240px', padding: '10px 12px', border: '1px solid var(--tcv-slate-300)', borderRadius: '6px', fontFamily: 'monospace', fontSize: '1.3rem', letterSpacing: '4px', textAlign: 'center' }}
                   />
                   <div style={{ fontSize: '0.78rem', color: 'var(--tcv-slate-500)', marginTop: '4px' }}>
-                    Mã sáu chữ số có thời hạn do nhân viên cấp; giữ nguyên số 0 ở đầu nếu có.
+                    Nhập cả số 0 ở đầu nếu có. Mã chỉ dùng một lần và có thời hạn; nếu hết hạn, hãy nhờ nhân viên hỗ trợ.
                   </div>
                 </div>
 
@@ -787,18 +772,9 @@ export const PaymentPage: React.FC = () => {
                     disabled={isExchangingCash || uiStep === 'EXCHANGING_TOKEN' || uiStep === 'VERIFYING_VISIT'}
                     className="btn-primary"
                   >
-                    {isExchangingCash || uiStep === 'EXCHANGING_TOKEN' ? 'Đang đổi mã...' : 'Kích hoạt lượt tham quan'}
+                    {isExchangingCash || uiStep === 'EXCHANGING_TOKEN' ? 'Đang kích hoạt vé...' : 'Kích hoạt vé'}
                   </button>
 
-                  {session.sessionId && (
-                    <button
-                      type="button"
-                      onClick={() => setCashSessionIdInput(session.sessionId || '')}
-                      className="btn-secondary btn-sm"
-                    >
-                      Điền mã phiên hiện tại ({session.sessionId.slice(0, 8)}...)
-                    </button>
-                  )}
                 </div>
               </form>
             </div>

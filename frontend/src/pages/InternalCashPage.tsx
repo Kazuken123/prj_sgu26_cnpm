@@ -307,7 +307,7 @@ export const InternalCashPage: React.FC = () => {
           <div>
             <h1 className="page-title" style={{ margin: 0 }}>Quầy thu tiền mặt và Cấp mã tham quan</h1>
             <p className="page-subtitle" style={{ margin: '6px 0 0 0' }}>
-              Quy trình nhân viên hỗ trợ khách mua vé trực tiếp tại quầy theo thiết kế UC-11
+            Hỗ trợ khách thanh toán tại quầy demo và nhận mã kích hoạt vé thuyết minh.
             </p>
           </div>
           <div>
@@ -357,7 +357,7 @@ export const InternalCashPage: React.FC = () => {
           <div>
             <h2 style={{ margin: 0, fontSize: '1.15rem' }}>Bước 1: Khởi tạo phiên tiền mặt cho khách</h2>
             <div style={{ fontSize: '0.88rem', color: '#64748b', marginTop: '4px' }}>
-              Gửi yêu cầu khởi tạo thanh toán tiền mặt với Idempotency-Key ngẫu nhiên.
+            Bắt đầu một lượt thanh toán mới. Nếu khách đã có lượt chờ, hãy tra cứu ở bước bên dưới.
             </div>
           </div>
           <button
@@ -550,7 +550,7 @@ export const InternalCashPage: React.FC = () => {
       <div className="panel" style={{ marginBottom: '24px' }}>
         <h2 style={{ margin: '0 0 8px 0', fontSize: '1.15rem' }}>Bước 4: Cấp mã ngắn 6 số cho khách</h2>
         <div style={{ fontSize: '0.88rem', color: '#64748b', marginBottom: '14px' }}>
-          Tạo mã ngắn sáu chữ số có thời hạn để khách đổi lấy token quyền tham quan.
+            Tạo mã kích hoạt 6 số để khách nhận vé thuyết minh sau khi thanh toán.
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap', marginBottom: '16px' }}>
@@ -579,11 +579,11 @@ export const InternalCashPage: React.FC = () => {
                 {codeData.shortedCode}
               </div>
               <div style={{ fontSize: '0.85rem', color: '#4b5563', marginTop: '6px' }}>
-                Thời hạn hiệu lực của mã: <code>{codeData.codeExpiresAt}</code>
+                Mã có hiệu lực đến: <strong>{new Date(codeData.codeExpiresAt).toLocaleString('vi-VN')}</strong>
               </div>
               {codeData.reused && (
                 <div style={{ marginTop: '6px', fontSize: '0.82rem', color: '#0284c7' }}>
-                  * Mã cũ đang còn hiệu lực được cấp lại.
+                  Đây là mã đang còn hạn. Gửi lại mã không làm kéo dài thời hạn sử dụng.
                 </div>
               )}
             </div>
@@ -598,7 +598,7 @@ export const InternalCashPage: React.FC = () => {
               </button>
               <button
                 type="button"
-                onClick={() => copyToClipboard(`Mã phiên: ${codeData.sessionId} | Mã ngắn: ${codeData.shortedCode}`, 'Thông tin bàn giao')}
+                onClick={() => copyToClipboard(`Mã kích hoạt vé thuyết minh: ${codeData.shortedCode}. Nhập mã tại trang Vé tham quan → Nhập mã tại quầy. Mã có hiệu lực đến ${new Date(codeData.codeExpiresAt).toLocaleString('vi-VN')}.`, 'Thông tin bàn giao')}
                 className="btn-secondary"
               >
                 Sao chép thông tin bàn giao
@@ -610,10 +610,9 @@ export const InternalCashPage: React.FC = () => {
               <h3 style={{ margin: '0 0 10px 0', fontSize: '0.98rem' }}>Hướng dẫn khách nhận quyền tại quầy:</h3>
               <ol style={{ margin: 0, paddingLeft: '20px', fontSize: '0.9rem', lineHeight: '1.6', color: '#334155' }}>
                 <li>Khách truy cập vào trang <strong>Thanh toán</strong> trên trình duyệt điện thoại.</li>
-                <li>Chọn tab <strong>Đổi mã tiền mặt</strong>.</li>
-                <li>Nhập <strong>Mã phiên</strong>: <code>{codeData.sessionId}</code></li>
-                <li>Nhập <strong>Mã ngắn 6 số</strong>: <code>{codeData.shortedCode}</code></li>
-                <li>Bấm xác nhận đổi mã để nhận token phiên khách và bắt đầu nghe thuyết minh tại trang <strong>Khám phá</strong>.</li>
+                <li>Chọn <strong>Nhập mã tại quầy</strong>.</li>
+                <li>Nhập <strong>mã kích hoạt 6 số</strong>: <code>{codeData.shortedCode}</code>. Khách không cần nhập mã phiên.</li>
+                <li>Bấm <strong>Kích hoạt vé</strong>, rồi chọn <strong>Bắt đầu khám phá</strong> để nghe thuyết minh.</li>
               </ol>
             </div>
           </div>

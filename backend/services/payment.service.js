@@ -24,13 +24,14 @@ class PaymentService {
   constructor(store = new PaymentStore(), redis = new RedisStore(), { price = getVisitPrice, lookupConfig = getLookupConfig,
     validityMs = getVisitValidityMs, cashCodeTtlMs = getCashCodeTtlMs, exchangeConfig = getCashExchangeConfig, now = () => Date.now(),
     gateway = new MockGateway(), onlineCodeTtlMs = getOnlineCodeTtlMs, gatewayTimeoutMs = 2000, onlineExchangeConfig = getOnlineExchangeConfig,
-    simulationEnabled = isMockSimulationEnabled } = {}) {
+    simulationEnabled = isMockSimulationEnabled, cashCode = () => String(randomInt(0, 1000000)).padStart(6, "0") } = {}) {
     this.store = store; this.redis = redis; this.price = price; this.lookupConfig = lookupConfig; this.validityMs = validityMs;
     this.cashCodeTtlMs = cashCodeTtlMs; this.now = now;
     this.exchangeConfig = exchangeConfig;
     this.gateway = gateway; this.onlineCodeTtlMs = onlineCodeTtlMs; this.gatewayTimeoutMs = gatewayTimeoutMs;
     this.onlineExchangeConfig = onlineExchangeConfig;
     this.simulationEnabled = simulationEnabled;
+    this.cashCode = cashCode;
   }
   async initializeOnline(input, requestKey) { return initializeOnline(this, input, requestKey); }
   quote() {
@@ -166,14 +167,42 @@ class PaymentService {
     if (expires <= current) throw new AppError(401, "VISIT_SESSION_EXPIRED", "Vé đã hết hạn.");
     return { sessionId: row.sessionId, status: row.sessionStatus, expiresAt: row.expiresAt };
   }
-  async exchangeCashCode(sessionId, input, ipAddress) {
+  async exchangeCashCodeOnly(input, ipAddress) {
+    const valid = input && typeof input === "object" && !Array.isArray(input) && Object.keys(input).length === 1 &&
+      typeof input.shortedCode === "string" && /^\d{6}$/.test(input.shortedCode);
+    if (typeof ipAddress !== "string" || !ipAddress || ipAddress.length > 100) {
+      throw new AppError(503, "CASH_EXCHANGE_PROTECTION_UNAVAILABLE", "Chưa thể kiểm tra mã. Vui lòng thử lại sau.");
+    }
+    try {
+      const allowed = await this.redis.consumeLookup(["cash-exchange:ip:" + hash(ipAddress),
+        "cash-exchange:code:" + hash(valid ? input.shortedCode : "invalid")], this.exchangeConfig());
+      if (!allowed) throw new AppError(429, "CASH_EXCHANGE_RATE_LIMITED", "Bạn đã thử quá nhiều lần. Vui lòng đợi một lát rồi thử lại.");
+    } catch (error) {
+      if (error instanceof AppError) throw error;
+      throw new AppError(503, "CASH_EXCHANGE_PROTECTION_UNAVAILABLE", "Chưa thể kiểm tra mã. Vui lòng thử lại sau.");
+    }
+    if (!valid) throw new AppError(400, "INVALID_CASH_EXCHANGE_INPUT", "Vui lòng nhập đủ 6 chữ số nhân viên đã cấp.");
+    let record;
+    try { record = await this.redis.resolveCashCode(input.shortedCode); }
+    catch { throw new AppError(503, "CASH_CODE_UNAVAILABLE", "Chưa kiểm tra được mã. Vé đã thanh toán vẫn được giữ, bạn không cần trả tiền lại."); }
+    if (!record) throw new AppError(401, "CASH_CODE_INVALID_OR_EXPIRED", "Mã không đúng, đã hết hạn hoặc đã được dùng. Vui lòng kiểm tra với nhân viên.");
+    if (typeof record.sessionId !== "string" || !uuid.test(record.sessionId) ||
+        typeof record.issueId !== "string" || !uuid.test(record.issueId) || record.shortedCode !== input.shortedCode) {
+      throw new AppError(503, "CASH_CODE_UNAVAILABLE", "Chưa kiểm tra được mã. Vui lòng nhờ nhân viên hỗ trợ.");
+    }
+    return this.exchangeCashCode(record.sessionId, input, ipAddress, record.issueId);
+  }
+  async exchangeCashCode(sessionId, input, ipAddress, resolvedIssueId = null) {
     const id = typeof sessionId === "string" && uuid.test(sessionId) ? sessionId.toLowerCase() : "invalid";
     if (typeof ipAddress !== "string" || !ipAddress || ipAddress.length > 100) {
       throw new AppError(503, "CASH_EXCHANGE_PROTECTION_UNAVAILABLE", "Chưa thể bảo vệ việc đổi mã.");
     }
-    let allowed;
+    let allowed = true;
     try {
-      allowed = await this.redis.consumeLookup(["cash-exchange:ip:" + hash(ipAddress), "cash-exchange:session:" + hash(id)], this.exchangeConfig());
+      const config = this.exchangeConfig();
+      allowed = resolvedIssueId === null
+        ? await this.redis.consumeLookup(["cash-exchange:ip:" + hash(ipAddress), "cash-exchange:session:" + hash(id)], config)
+        : await this.redis.consumeLookup(["cash-exchange:session:" + hash(id)], { ...config, ipLimit: config.sessionLimit });
     } catch { throw new AppError(503, "CASH_EXCHANGE_PROTECTION_UNAVAILABLE", "Đổi mã tạm ngừng; vui lòng thử lại sau."); }
     if (!allowed) throw new AppError(429, "CASH_EXCHANGE_RATE_LIMITED", "Đã vượt giới hạn thử mã; vui lòng đợi rồi thử lại.");
     if (id === "invalid") throw new AppError(400, "INVALID_SESSION_ID", "session_id không hợp lệ.");
@@ -200,6 +229,7 @@ class PaymentService {
         catch { throw new AppError(503, "CASH_CODE_UNAVAILABLE", "Chưa kiểm tra được mã; kết quả thanh toán được giữ nguyên."); }
         if (!record) throw new AppError(401, "CASH_CODE_INVALID_OR_EXPIRED", "Mã không hợp lệ hoặc đã hết hạn; hãy kiểm tra với nhân viên.");
         if (record.sessionId !== id || record.shortedCode !== input.shortedCode ||
+            (resolvedIssueId !== null && record.issueId !== resolvedIssueId) ||
             !/^[a-f0-9-]{36}$/.test(record.issueId) || !/^[a-f0-9]{64}$/.test(record.authCode) ||
             !Number.isSafeInteger(record.expiresAtMs) || record.expiresAtMs > end) {
           throw new AppError(503, "CASH_CODE_UNAVAILABLE", "Trạng thái mã chưa hợp lệ; kết quả thanh toán được giữ nguyên.");
@@ -249,9 +279,17 @@ class PaymentService {
           if (!Number.isSafeInteger(duration) || duration <= 0) throw new Error("INVALID_TTL");
         } catch { throw new AppError(503, "CASH_CODE_TTL_NOT_CONFIGURED", "Thời hạn mã chưa được cấu hình hợp lệ."); }
         const candidate = { sessionId: id, issueId: randomUUID(), authCode: randomBytes(32).toString("hex"),
-          shortedCode: String(randomInt(0, 1000000)).padStart(6, "0"), expiresAtMs: current + Math.min(duration, end - current) };
+          expiresAtMs: current + Math.min(duration, end - current) };
         let issued;
-        try { issued = await this.redis.ensureCashCode(id, candidate, end); }
+        try {
+          for (let attempt = 0; attempt < 5; attempt++) {
+            candidate.shortedCode = this.cashCode();
+            if (typeof candidate.shortedCode !== "string" || !/^\d{6}$/.test(candidate.shortedCode)) throw new Error("INVALID_CASH_CODE_GENERATOR");
+            issued = await this.redis.ensureCashCode(id, candidate, end);
+            if (!issued?.collision) break;
+          }
+          if (issued?.collision) throw new Error("CASH_CODE_SPACE_BUSY");
+        }
         catch { throw new AppError(503, "CASH_CODE_UNAVAILABLE", "Chưa cấp được mã. Giao dịch đã thanh toán được giữ nguyên; hãy thử cấp mã lại trên phiên này."); }
         if (!issued?.record || issued.record.sessionId !== id || !/^\d{6}$/.test(issued.record.shortedCode) ||
             !Number.isSafeInteger(issued.record.expiresAtMs) || issued.record.expiresAtMs <= current || issued.record.expiresAtMs > end) {

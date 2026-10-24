@@ -281,7 +281,7 @@ describe('Nghiệm thu Tích hợp Frontend Xuyên suốt (Sprint 7)', () => {
     assert.equal(typeof code.shortedCode, 'string');
 
     // 5. Khach doi ma lay token (khong gui token STAFF)
-    const guestExchanged = await exchangeCashCode(cashSessionId, '048291', baseUrl);
+    const guestExchanged = await exchangeCashCode('048291', baseUrl);
     assert.equal(guestExchanged.token, guestCashToken);
 
     // 6. ADMIN login va tao STAFF moi

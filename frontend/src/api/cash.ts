@@ -136,17 +136,16 @@ export async function issueCashCode(
 
 /**
  * 5. Khách tham quan đổi mã ngắn lấy token phiên khách
- * Endpoint: POST /api/payments/sessions/:sessionId/exchange-cash-code
+ * Endpoint: POST /api/payments/exchange-cash-code
  * Không gửi token nội bộ.
  */
 export async function exchangeCashCode(
-  sessionId: string,
   shortedCode: string,
   overrideBaseUrl?: string
 ): Promise<CashExchangeData> {
   const res = await requestApi<BackendEnvelope<CashExchangeData>>({
     method: 'POST',
-    path: `/api/payments/sessions/${encodeURIComponent(sessionId.trim().toLowerCase())}/exchange-cash-code`,
+    path: '/api/payments/exchange-cash-code',
     body: {
       shortedCode: shortedCode.trim()
     },

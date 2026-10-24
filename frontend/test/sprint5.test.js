@@ -187,7 +187,7 @@ describe('Kiểm thử Quy trình Thanh toán Tiền mặt CASH (Sprint 5)', () 
     globalThis.fetch = originalFetch;
   });
 
-  test('5. Khách đổi mã ngắn lấy token qua POST /api/payments/sessions/:sessionId/exchange-cash-code (không gửi token nội bộ)', async () => {
+  test('5. Khách chỉ gửi mã 6 số qua POST /api/payments/exchange-cash-code (không gửi token nội bộ)', async () => {
     let capturedUrl = '';
     let capturedHeaders = {};
     let capturedBody = '';
@@ -212,9 +212,9 @@ describe('Kiểm thử Quy trình Thanh toán Tiền mặt CASH (Sprint 5)', () 
       });
     };
 
-    const result = await exchangeCashCode(dummySessionId, '012345', baseUrl);
+    const result = await exchangeCashCode('012345', baseUrl);
 
-    assert.equal(capturedUrl, `${baseUrl}/api/payments/sessions/${dummySessionId}/exchange-cash-code`);
+    assert.equal(capturedUrl, `${baseUrl}/api/payments/exchange-cash-code`);
     assert.equal(capturedHeaders['Authorization'], undefined);
     assert.deepEqual(JSON.parse(capturedBody), { shortedCode: '012345' });
     assert.equal(result.token, issuedVisitorToken);
@@ -271,7 +271,7 @@ describe('Kiểm thử Quy trình Thanh toán Tiền mặt CASH (Sprint 5)', () 
 
     await assert.rejects(
       async () => {
-        await exchangeCashCode(dummySessionId, '999999', baseUrl);
+        await exchangeCashCode('999999', baseUrl);
       },
       (err) => {
         assert.ok(err instanceof ApiError);
@@ -297,7 +297,7 @@ describe('Kiểm thử Quy trình Thanh toán Tiền mặt CASH (Sprint 5)', () 
 
     await assert.rejects(
       async () => {
-        await exchangeCashCode(dummySessionId, '012345', baseUrl);
+        await exchangeCashCode('012345', baseUrl);
       },
       (err) => {
         assert.ok(err instanceof ApiError);
