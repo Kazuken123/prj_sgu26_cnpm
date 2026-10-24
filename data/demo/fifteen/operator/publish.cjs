@@ -2,7 +2,7 @@ const fs=require('node:fs'),path=require('node:path');
 async function main(){
  const args=process.argv.slice(2),apply=args.includes('--apply'),values=args.filter(a=>a!=='--apply');
  if(args.filter(a=>a==='--apply').length>1||values.length!==4||values[0]!=='--database'||values[1]!=='tcv_demo_review_20261020'||values[2]!=='--media-root'||!path.isAbsolute(values[3]))throw Error('EXPLICIT_DEMO_AND_PRIVATE_MEDIA_REQUIRED');
- require('dotenv').config({quiet:true});if(process.env.DB_NAME!==values[1])throw Error('DATABASE_CONFIGURATION_MISMATCH');
+ require('node:module').createRequire(path.join(__dirname,'../../../../backend/package.json'))('dotenv').config({quiet:true});if(process.env.DB_NAME!==values[1])throw Error('DATABASE_CONFIGURATION_MISMATCH');
  const pool=require('../../../../backend/config/database');
  try{
   const {Store}=require('./store.cjs'),{load,execute}=require('./service.cjs');

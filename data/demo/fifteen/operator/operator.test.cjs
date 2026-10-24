@@ -1,5 +1,6 @@
 const {test,describe,before,after}=require('node:test'),assert=require('node:assert/strict');
 const fs=require('node:fs'),path=require('node:path'),{randomUUID}=require('node:crypto');
+const backendRequire=require('node:module').createRequire(path.join(__dirname,'../../../../backend/package.json'));
 const {load,execute,inspect}=require('./service.cjs'),{Store}=require('./store.cjs');
 const manifest=fs.readFileSync(path.join(__dirname,'../extension.json')),authorization=fs.readFileSync(path.join(__dirname,'../authorization.json'));
 const baseBytes=fs.readFileSync(path.join(__dirname,'../../../staging/dataset.json')),input=load(manifest,authorization,baseBytes);
@@ -20,7 +21,7 @@ if(process.env.RUN_DB_TESTS==='1')describe('15-language additive operator with i
  let admin,db,target,store;
  const identity=()=> 'tcv_staging_test_'+randomUUID().replaceAll('-','');
  before(async()=>{
-  const mysql=require('mysql2/promise');const options={host:process.env.DB_HOST,user:process.env.DB_USER,password:process.env.DB_PASSWORD||'',port:Number(process.env.DB_PORT||3306),timezone:'Z',connectTimeout:3000};
+  const mysql=backendRequire('mysql2/promise');const options={host:process.env.DB_HOST,user:process.env.DB_USER,password:process.env.DB_PASSWORD||'',port:Number(process.env.DB_PORT||3306),timezone:'Z',connectTimeout:3000};
   admin=await mysql.createConnection(options);target=identity();assert.notEqual(target,process.env.DB_NAME);
   await admin.query('CREATE DATABASE `'+target+'` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
   db=require('../../../../backend/config/utc-pool')(mysql.createPool({...options,database:target,connectionLimit:6}));
