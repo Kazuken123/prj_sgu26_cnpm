@@ -2,6 +2,26 @@ const pool = require("../config/database");
 const AuthStore = require("./auth.store");
 class ContentStore {
   constructor(db = pool) { this.db = db; this.transactions = new AuthStore(db); }
+  async withMapSnapshot(work) {
+    return this.transactions.transaction(async connection => {
+      const [clock] = await connection.query("SELECT UTC_TIMESTAMP(3) AS nowUtc");
+      const [languages] = await connection.query("SELECT code, name FROM LANGUAGES WHERE is_active = 1 ORDER BY code");
+      return work({ nowUtc: clock[0].nowUtc, languages, content: async languageCodes => {
+        const [pois] = await connection.query(`SELECT poi_id AS poiId, name AS originalName, category,
+          latitude, longitude, trigger_radius AS triggerRadius, avatar_url AS avatarUrl,
+          display_order AS displayOrder, content_version AS contentVersion
+          FROM POIS WHERE status = 'ACTIVE' ORDER BY display_order, poi_id`);
+        const placeholders = languageCodes.map(() => "?").join(",");
+        // Public projection deliberately never reads scripts, audio or visitor/payment data.
+        const [translations] = await connection.query(`SELECT t.poi_id AS poiId, t.language_code AS languageCode,
+          t.name, t.description FROM POI_TRANSLATIONS t JOIN POIS p ON p.poi_id = t.poi_id
+          JOIN LANGUAGES l ON l.code = t.language_code WHERE p.status = 'ACTIVE' AND l.is_active = 1
+          AND t.status = 'READY' AND t.source_version = p.content_version
+          AND t.language_code IN (${placeholders})`, languageCodes);
+        return { pois, translations };
+      } });
+    }, { repeatableRead: true });
+  }
   async withBundleSnapshot({ sessionId, tokenHash }, work) {
     return this.transactions.transaction(async connection => {
       // Same payment-before-visit order as webhook/checkout/token exchange.

@@ -1,0 +1,86 @@
+{
+  "repository": "rhasspy/piper-voices",
+  "revision": "5041a7a49ae5b3a0f30e6837769eb03fdbb231bd",
+  "voices": {
+    "de": {
+      "directory": "de/de_DE/thorsten/medium",
+      "model": "de_DE-thorsten-medium.onnx",
+      "sha256": "7e64762d8e5118bb578f2eea6207e1a35a8e0c30595010b666f983fc87bb7819",
+      "size": 63201294,
+      "sampleRate": 22050,
+      "numSpeakers": 1,
+      "phonemeType": "espeak",
+      "configSha256": "974adee790533adb273a1ac88f49027d2a1b8f0f2cf4905954a4791e79264e85"
+    },
+    "es": {
+      "directory": "es/es_ES/davefx/medium",
+      "model": "es_ES-davefx-medium.onnx",
+      "sha256": "6658b03b1a6c316ee4c265a9896abc1393353c2d9e1bca7d66c2c442e222a917",
+      "size": 63201294,
+      "sampleRate": 22050,
+      "numSpeakers": 1,
+      "phonemeType": "espeak",
+      "configSha256": "0e0dda87c732f6f38771ff274a6380d9252f327dca77aa2963d5fbdf9ec54842"
+    },
+    "it": {
+      "directory": "it/it_IT/paola/medium",
+      "model": "it_IT-paola-medium.onnx",
+      "sha256": "6fc918b5a0ea6137382833dddfa567bffbe6a5060c02043c87192ee59c04210c",
+      "size": 63511038,
+      "sampleRate": 22050,
+      "numSpeakers": 1,
+      "phonemeType": "espeak",
+      "configSha256": "aea19c0a7fce29fbc359b93f10e7902854401e4c95ae2ea328ae516b15d296cf"
+    },
+    "pt-BR": {
+      "directory": "pt/pt_BR/faber/medium",
+      "model": "pt_BR-faber-medium.onnx",
+      "sha256": "858555e3a064209c57088fe6bd70c4c3dc54d03eaa00c45d5ecaf43a33f95aa7",
+      "size": 63201294,
+      "sampleRate": 22050,
+      "numSpeakers": 1,
+      "phonemeType": "espeak",
+      "configSha256": "7e694de195ae3fc36dd732c445eb04fb49b649854893cb5506b978f0d50a1d6f"
+    },
+    "nl": {
+      "directory": "nl/nl_NL/pim/medium",
+      "model": "nl_NL-pim-medium.onnx",
+      "sha256": "403e58c3675c394f505c2428117bf34cc56e9542dcf6eadbdd3a84706c12e048",
+      "size": 63516050,
+      "sampleRate": 22050,
+      "numSpeakers": 1,
+      "phonemeType": "espeak",
+      "configSha256": "08b58456ca00cf77123826b1712758f99d5fd19ddfb7ec7da8e1a715b047f642"
+    },
+    "pl": {
+      "directory": "pl/pl_PL/gosia/medium",
+      "model": "pl_PL-gosia-medium.onnx",
+      "sha256": "38f66464240ed74f186e6b7dc13c6e3b22e023426299f25c2b3cc9dfa9373fbc",
+      "size": 63201294,
+      "sampleRate": 22050,
+      "numSpeakers": 1,
+      "phonemeType": "espeak",
+      "configSha256": "1aefb31a9d53ffe44a8163ff73ec833acb7a6253848f6bb0403d8a66f9c7510d"
+    },
+    "cs": {
+      "directory": "cs/cs_CZ/jirka/medium",
+      "model": "cs_CZ-jirka-medium.onnx",
+      "sha256": "cbd5c900acacc8e8cbecd64347abb8de39c00a9d3104bed06fee92e4f319efc8",
+      "size": 63201294,
+      "sampleRate": 22050,
+      "numSpeakers": 1,
+      "phonemeType": "espeak",
+      "configSha256": "fb38b1799b7354808227c065efa97b1ffa2b0cde59505babb56a36d35af9c637"
+    },
+    "tr": {
+      "directory": "tr/tr_TR/dfki/medium",
+      "model": "tr_TR-dfki-medium.onnx",
+      "sha256": "2844717f524ab965d3fe86e60562cbb601d3e456836efcc2196cc3a14112a8fb",
+      "size": 63201294,
+      "sampleRate": 22050,
+      "numSpeakers": 1,
+      "phonemeType": "espeak",
+      "configSha256": "13ebd7810f1b61b5027583cf3131a0a233b6ea81c38f2200ebc4ff41c3cca039"
+    }
+  }
+}

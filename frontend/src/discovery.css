@@ -1,4 +1,18 @@
 /* Keep the botanical palette and editorial typography across discovery surfaces. */
+html, body, #root, .main-content {
+  overflow-x: clip;
+}
+
+.explore-header-card {
+  padding: 16px 20px;
+}
+@media (max-width: 390px) {
+  .explore-header-card {
+    padding: 12px 14px;
+  }
+}
+
+
 .section-eyebrow { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; color: #648052; font-size: .66rem; font-weight: 600; letter-spacing: .13em; }
 .section-eyebrow svg { width: 18px; }
 .discovery-section { padding: 52px 0 64px; }
@@ -96,6 +110,28 @@
 .poi-detail-copy h2 { font-family: var(--font-serif); font-weight: 500; font-size: 1.75rem; line-height: 1.25; margin: 12px 0; overflow-wrap: anywhere; }
 .poi-original-name { color: #687568; font-size: .7rem; margin-bottom: 12px; }
 .poi-detail-copy > .status-pill { font-size: .6rem; }
+.visitor-notice {
+  background: #f2f4ec;
+  border: 1px solid #dfe6d5;
+  border-radius: var(--radius-sm, 8px);
+  padding: 12px 14px;
+  margin-bottom: 14px;
+  font-size: 0.8rem;
+  color: var(--tcv-slate-700);
+  line-height: 1.6;
+}
+.audio-player-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.audio-player-controls button {
+  min-height: 42px;
+  padding: 8px 14px;
+  font-size: 0.82rem;
+  flex: 1 1 auto;
+}
 .poi-detail-audio { margin: 20px 0; }
 .poi-detail-audio audio { max-width: 100%; }
 .poi-detail-audio .tcv-card { padding: 12px; border-width: 1px; }

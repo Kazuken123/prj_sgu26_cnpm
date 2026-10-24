@@ -55,13 +55,21 @@ if (process.env.RUN_DB_TESTS === "1") describe("Reviewed multilingual import wit
   async function audits(poiId) {
     const [rows] = await db.query("SELECT * FROM AUDIT_LOGS WHERE action='IMPORT_REVIEWED_TRANSLATION' AND JSON_UNQUOTE(JSON_EXTRACT(details, '$.poiId'))=? ORDER BY log_id", [String(poiId)]); return rows;
   }
-  it("five new language routes preserve Unicode, serialize retries and reuse reviewed text with mock audio", async t => {
+  it("thirteen additional language routes preserve Unicode, serialize retries and reuse reviewed text with mock audio", async t => {
     const samples = [
       ["zh-Hans", "简体中文", "测试地点", "这是测试介绍。", "这是用于测试的讲解，不是动物园的正式内容。"],
       ["ko", "한국어", "시험 장소", "시험용 소개입니다.", "이것은 동물원 안내가 아닌 시험용 음성 대본입니다."],
       ["ja", "日本語", "テスト地点", "テスト用の紹介です。", "これは動物園の正式な案内ではなく、テスト用の原稿です。"],
       ["ru", "Русский", "Тестовая точка", "Тестовое описание.", "Это тестовый текст, а не утверждённый рассказ о зоопарке."],
       ["fr", "Français", "Point de test", "Présentation de test.", "Ce texte sert uniquement à tester le système, pas à présenter le zoo."],
+      ["de", "Deutsch", "Prüfpunkt", "Nur ein Test.", "Dies ist ein Testtext, keine Beschreibung eines Tieres."],
+      ["es", "Español", "Punto de prueba", "Solo una prueba.", "Este texto es una prueba, no describe un animal real."],
+      ["it", "Italiano", "Punto di prova", "Solo una prova.", "Questo testo è una prova, non descrive un animale reale."],
+      ["pt-BR", "Português (Brasil)", "Ponto de teste", "Apenas um teste.", "Este é um texto de teste, não descreve um animal real."],
+      ["nl", "Nederlands", "Testpunt", "Alleen een test.", "Dit is een testtekst, geen beschrijving van een echt dier."],
+      ["pl", "Polski", "Punkt próbny", "To tylko próba.", "To jest tekst testowy, nie opis prawdziwego zwierzęcia."],
+      ["cs", "Čeština", "Zkušební bod", "Pouze zkouška.", "Toto je zkušební text, nikoli popis skutečného zvířete."],
+      ["tr", "Türkçe", "Deneme noktası", "Yalnızca bir deneme.", "Bu bir deneme metnidir, gerçek bir hayvanı anlatmaz."],
     ];
     // Only this suite's randomly named database; no demo language registration.
     for (const [code, name] of samples) await db.query("INSERT INTO LANGUAGES(code,name,is_active) VALUES(?,?,1)", [code, name]);
@@ -101,12 +109,13 @@ if (process.env.RUN_DB_TESTS === "1") describe("Reviewed multilingual import wit
     }
     const final = await snapshot(f.poiId), logs = await audits(f.poiId);
     assert.deepEqual(final.texts.find(row => row.language_code === "vi"), sourceBefore);
-    assert.equal(final.texts.filter(row => samples.some(([code]) => code === row.language_code)).length, 5);
-    assert.equal(final.audios.length, 5); assert.equal(logs.length, 5);
+    assert.equal(final.texts.filter(row => samples.some(([code]) => code === row.language_code)).length, samples.length);
+    assert.equal(final.audios.length, samples.length); assert.equal(logs.length, samples.length);
     assert.deepEqual(logs.map(log => JSON.parse(log.details).languageCode).sort(), samples.map(([code]) => code).sort());
     // Catalogue enablement alone must never expand the approved API allowlist.
-    await db.query("INSERT INTO LANGUAGES(code,name,is_active) VALUES('de','Deutsch',1)");
-    assert.equal((await fetch(base + "de", { headers })).status, 400);
+    await db.query("INSERT INTO LANGUAGES(code,name,is_active) VALUES('sv','Svenska',1)");
+    assert.equal((await fetch(base + "sv", { headers })).status, 400);
+    for (const code of ["pt", "pt-br", "pt-PT"]) assert.equal((await fetch(base + code, { headers })).status, 400);
     assert.equal((await fetch(base + "zh", { headers })).status, 400);
     assert.deepEqual(await snapshot(f.poiId), final);
   });

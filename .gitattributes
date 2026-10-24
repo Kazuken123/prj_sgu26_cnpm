@@ -1,0 +1,5 @@
+# These review manifests are SHA-256 pinned; keep identical bytes on Windows/Linux.
+data/demo/fifteen/*.json -text
+data/demo/fifteen/*.tar.gz -text
+data/demo/locations/*.json -text
+backend/runtime/piper-demo15-voices.json text eol=lf

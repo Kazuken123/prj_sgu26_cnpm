@@ -43,7 +43,7 @@ if (process.env.RUN_DB_TESTS === "1") describe("Guest bundle with MySQL snapshot
       return typeof target[key] === "function" ? target[key].bind(target) : target[key];
     } });
     server = http.createServer(createApp({ authService: auth, paymentService: paymentProxy,
-      contentService: { getBundle: (...args) => content.getBundle(...args) }, mediaService: new MediaService(new ContentStore(db), new LocalMedia({ root })) }));
+      contentService: { getMap: (...args) => content.getMap(...args), getBundle: (...args) => content.getBundle(...args) }, mediaService: new MediaService(new ContentStore(db), new LocalMedia({ root })) }));
     await new Promise(resolve => server.listen(0, "127.0.0.1", resolve)); base = `http://127.0.0.1:${server.address().port}`;
   });
   after(async () => {
@@ -199,4 +199,30 @@ if (process.env.RUN_DB_TESTS === "1") describe("Guest bundle with MySQL snapshot
     await db.query("UPDATE VISIT_SESSIONS SET status = 'REVOKED' WHERE session_id = ?", [g.sessionId]);
     assert.equal((await request("/api/content/bundle?languageCode=en", { token: g.token, headers: { "If-None-Match": "*" } })).response.status, 401); assert.equal((await logs(g.sessionId)).length, 1);
   });
+  it("public preview reads current ACTIVE/READY introductions only, without paid access or bundle logs", async () => {
+    const id = await poi(); await prepare(id);
+    const [beforeLogs] = await db.query("SELECT COUNT(*) AS total FROM BUNDLE_ACCESS_LOGS");
+    for (const headers of [{}, { Authorization: "Bearer stale-token" }]) {
+      const result = await request("/api/content/map?languageCode=fr", { headers });
+      assert.equal(result.response.status, 200); assert.equal(result.response.headers.get("cache-control"), "no-store");
+      const item = result.data.pois.find(row => row.poiId === id);
+      assert.equal(item.text.languageCode, "en"); assert.equal(item.text.isFallback, true);
+      assert.equal(item.text.audioScript, null); assert.equal(item.audio.url, null);
+      assert.deepEqual(result.data.tours, []);
+    }
+    await db.query("UPDATE POI_TRANSLATIONS SET source_version=2 WHERE poi_id=? AND language_code='en'", [id]);
+    let result = await request("/api/content/map?languageCode=fr");
+    assert.equal(result.data.pois.find(row => row.poiId === id).text.languageCode, "vi");
+    await db.query("UPDATE POI_TRANSLATIONS SET status='PENDING' WHERE poi_id=? AND language_code='vi'", [id]);
+    result = await request("/api/content/map?languageCode=fr");
+    assert.equal(result.data.pois.find(row => row.poiId === id).text.status, "UNAVAILABLE");
+    await db.query("UPDATE POIS SET status='INACTIVE' WHERE poi_id=?", [id]);
+    result = await request("/api/content/map?languageCode=vi");
+    assert.equal(result.data.pois.some(row => row.poiId === id), false);
+    assert.equal((await request("/api/content/map?languageCode=de")).response.status, 400);
+    const [afterLogs] = await db.query("SELECT COUNT(*) AS total FROM BUNDLE_ACCESS_LOGS");
+    assert.equal(afterLogs[0].total, beforeLogs[0].total);
+    assert.equal((await request("/api/content/bundle?languageCode=vi")).response.status, 401);
+  });
+
 });

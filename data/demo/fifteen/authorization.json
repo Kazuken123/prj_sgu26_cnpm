@@ -1,0 +1,19 @@
+{
+  "datasetId": "TCV_DEMO_15_LANG_EXTENSION_V1",
+  "manifestSha256": "ade1868b3f7f55021176a5d6ec7414d81d0efeb9dc9d35778e15d067a10fd208",
+  "baseDatasetSha256": "40433f6f3d1254788d39901b7f71a190b68e0e973d8ca7b81e50fda87dc54280",
+  "userApprovalOn": "2026-10-24",
+  "userInstruction": "ok mình duyệt toàn bộ, bạn triển khai tích hợp và mở rộng nha",
+  "approvedSampleScope": "16 text sets and 8 voices for giraffe/Asian elephant explicitly approved before extension.",
+  "extensionScope": "Other 64 sets translated and compared with already approved VI under the instruction to integrate and expand; not individually read/approved by a native speaker.",
+  "authorizationForDemoExpansion": true,
+  "independentNativeLanguageReview": false,
+  "reviewedTwoPoiSha256": "fa6d8bf41048762e9a8c7f81a688df35f2817eba8f9dc9d57b0812bfe8c5b744",
+  "extraViManifestSha256": "93f042f8c4611117da0bafb39a853e1290d151a4d310b8285eceda75ab37ce13",
+  "translationFileHashes": {
+    "extra-de-es.json": "44415dcd57a3de00f72e973a19c44e3994f3defb200e38a39587e19c7ca30b63",
+    "extra-it-pt.json": "0b287f9e0cb25ffd8a06da152b33f01043b6365159967bd179e063664f611d0f",
+    "extra-nl-pl.json": "7ef02c033a17dd8b7aeb8ff7813c0ce5bd7f1856e63af432b7f7d43e5214d9d0",
+    "extra-cs-tr.json": "891ea4dc1a9d80a8918c56a66e5a36225e2cadb128eaa91377b23fac0b0e43c1"
+  }
+}

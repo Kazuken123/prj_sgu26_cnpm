@@ -305,9 +305,9 @@ export const InternalCashPage: React.FC = () => {
       <div className="page-header" style={{ marginBottom: '24px' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
           <div>
-            <h1 className="page-title" style={{ margin: 0 }}>Quầy thu tiền mặt và Cấp mã tham quan</h1>
+            <h1 className="page-title" style={{ margin: 0 }}>Xác nhận thanh toán & Cấp quyền nghe</h1>
             <p className="page-subtitle" style={{ margin: '6px 0 0 0' }}>
-            Hỗ trợ khách thanh toán tại quầy demo và nhận mã kích hoạt vé thuyết minh.
+            Hỗ trợ khách thanh toán tại quầy và nhận mã kích hoạt vé thuyết minh.
             </p>
           </div>
           <div>

@@ -11,6 +11,7 @@ WORKDIR /app
 COPY backend/package*.json ./
 RUN npm ci --omit=dev
 COPY backend/ ./
+COPY data/demo/locations/positions-v1.json /data/demo/locations/positions-v1.json
 COPY database/migrations/ /database/migrations/
 ENV NODE_ENV=production PIPER_PYTHON=/opt/piper/bin/python PIPER_FFMPEG=/usr/bin/ffmpeg PIPER_MODEL_DIR=/opt/piper-models PIPER_TIMEOUT_MS=60000
 CMD ["node", "scripts/content-worker.js", "--piper"]

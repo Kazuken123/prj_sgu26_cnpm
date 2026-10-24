@@ -2,6 +2,7 @@ const { createHash } = require("node:crypto");
 const AppError = require("../utils/app-error");
 const ContentStore = require("../stores/content.store");
 const { languageOrder, buildContent } = require("./bundle-content");
+const { locationNote } = require("../config/demo-locations");
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/;
 function queryLanguage(query) {
   if (!query || typeof query !== "object" || Array.isArray(query) || Object.keys(query).length !== 1 || Object.keys(query)[0] !== "languageCode" ||
@@ -21,6 +22,37 @@ function authorize(row, tokenHash, nowUtc) {
 }
 class ContentService {
   constructor(store = new ContentStore()) { this.store = store; }
+  async getMap(query) {
+    const requested = queryLanguage(query), policyErrors = new Set();
+    try {
+      return await this.store.withMapSnapshot(async ops => {
+        const language = ops.languages.find(item => item.code.toLowerCase() === requested.toLowerCase());
+        if (!language) {
+          const error = new AppError(400, "LANGUAGE_NOT_SUPPORTED", "Ngôn ngữ không được hỗ trợ hoặc đã ngừng hoạt động.");
+          policyErrors.add(error); throw error;
+        }
+        const order = languageOrder(language.code, ops.languages), snapshot = await ops.content(order);
+        const pois = snapshot.pois.map(poi => {
+          const latitude = Number(poi.latitude), longitude = Number(poi.longitude);
+          if (!Number.isFinite(latitude) || Math.abs(latitude) > 90 || !Number.isFinite(longitude) || Math.abs(longitude) > 180) throw new Error("INVALID_MAP_COORDINATES");
+          const text = order.map(code => snapshot.translations.find(row => row.poiId === poi.poiId && row.languageCode === code))
+            .find(row => row && [row.name, row.description].every(value => typeof value === "string" && value.trim()));
+          return { poiId: poi.poiId, originalName: poi.originalName, category: poi.category,
+            conservationStatus: null, activityHours: null, latitude, longitude, triggerRadius: poi.triggerRadius,
+            avatarUrl: poi.avatarUrl, displayOrder: poi.displayOrder, locationNote: locationNote(poi),
+            text: { status: text ? "READY" : "UNAVAILABLE", languageCode: text?.languageCode ?? null,
+              isFallback: Boolean(text && text.languageCode !== language.code), name: text?.name ?? null,
+              description: text?.description ?? null, audioScript: null },
+            audio: { status: "UNAVAILABLE", languageCode: null, isFallback: false, url: null, mimeType: null, duration: null } };
+        });
+        return { requestedLanguageCode: language.code, generatedAt: ops.nowUtc.toISOString(), expiresAt: null,
+          languages: ops.languages.map(item => ({ code: item.code, name: item.name })), pois, tours: [] };
+      });
+    } catch (error) {
+      if (policyErrors.has(error)) throw error;
+      throw new AppError(503, "MAP_UNAVAILABLE", "Chưa tải được bản đồ; vui lòng thử lại sau.");
+    }
+  }
   async getBundle(visit, query, token) {
     if (!visit || visit.status !== "ACTIVE" || !uuid.test(visit.sessionId || "") ||
         typeof token !== "string" || !/^tcv_visit_[a-f0-9]{64}$/.test(token)) throw new AppError(401, "INVALID_VISITOR_TOKEN", "Cần token khách hợp lệ.");

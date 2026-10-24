@@ -1,0 +1,149 @@
+{
+  "version": "TCV_BROWSER_DEMO_POSITIONS_V1",
+  "approvedScope": "Owner accepted schematic-based simulated positions on 2026-10-24; no GPS or walking-route acceptance",
+  "officialMapUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+  "points": [
+    {
+      "poiId": 1,
+      "name": "Hươu cao cổ",
+      "latitude": 10.7880953,
+      "longitude": 106.7078014,
+      "kind": "OSM_REFERENCE",
+      "sourceUrl": "https://www.openstreetmap.org/node/6045633938",
+      "evidence": {
+        "origin": "BACKEND_HANDOFF_FRONTEND_ONLY.md",
+        "reportedRetrievalDate": "2026-10-24",
+        "osmVersion": 5,
+        "osmTimestamp": "2026-03-12T22:40:47Z",
+        "method": "OSM_NODE",
+        "reverifiedAtImport": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 2,
+      "name": "Voi châu Á",
+      "latitude": 10.7886498,
+      "longitude": 106.7071674,
+      "kind": "OSM_REFERENCE",
+      "sourceUrl": "https://www.openstreetmap.org/node/6045634869",
+      "evidence": {
+        "origin": "BACKEND_HANDOFF_FRONTEND_ONLY.md",
+        "reportedRetrievalDate": "2026-10-24",
+        "osmVersion": 3,
+        "osmTimestamp": "2026-03-12T22:40:47Z",
+        "method": "OSM_NODE",
+        "reverifiedAtImport": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 3,
+      "name": "Hà mã",
+      "latitude": 10.7868,
+      "longitude": 106.708,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "APPROXIMATE_AREA_FROM_PERSPECTIVE_SCHEMATIC_NOT_GEOREFERENCED"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 4,
+      "name": "Tê giác trắng",
+      "latitude": 10.7875,
+      "longitude": 106.7053,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "APPROXIMATE_AREA_FROM_PERSPECTIVE_SCHEMATIC_NOT_GEOREFERENCED"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 5,
+      "name": "Trầm hương",
+      "latitude": 10.78685,
+      "longitude": 106.70705,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "ILLUSTRATIVE_GREEN_AREA_NOT_IDENTIFIED_TREE"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 6,
+      "name": "Ngọc lan",
+      "latitude": 10.78645,
+      "longitude": 106.70685,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "ILLUSTRATIVE_GREEN_AREA_NOT_IDENTIFIED_TREE"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 7,
+      "name": "Trám trắng",
+      "latitude": 10.78705,
+      "longitude": 106.7066,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "ILLUSTRATIVE_GREEN_AREA_NOT_IDENTIFIED_TREE"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 8,
+      "name": "Cát anh",
+      "latitude": 10.7861,
+      "longitude": 106.70725,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "ILLUSTRATIVE_GREEN_AREA_NOT_IDENTIFIED_TREE"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 9,
+      "name": "Bảo tàng Động–Thực vật",
+      "latitude": 10.78635,
+      "longitude": 106.7077,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "APPROXIMATE_AREA_FROM_PERSPECTIVE_SCHEMATIC_NOT_GEOREFERENCED"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 10,
+      "name": "Quán Nhan Hương",
+      "latitude": 10.7855494,
+      "longitude": 106.707677,
+      "kind": "OSM_REFERENCE",
+      "sourceUrl": "https://www.openstreetmap.org/way/77183579",
+      "evidence": {
+        "origin": "BACKEND_HANDOFF_FRONTEND_ONLY.md",
+        "reportedRetrievalDate": "2026-10-24",
+        "osmVersion": 5,
+        "osmTimestamp": "2024-04-25T08:04:19Z",
+        "method": "OSM_BOUNDING_BOX_CENTER_NOT_ENTRANCE",
+        "reverifiedAtImport": false
+      },
+      "surveyed": false
+    }
+  ]
+}

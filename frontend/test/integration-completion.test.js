@@ -101,11 +101,11 @@ test('guest menu verifies saved token and ignores stale verification after clear
   });
   const view = await mount(t, VisitorNavigation);
   const guest = { version: 1, apiBaseUrl: origin, token: 'guest-test' };
-  await act(async () => saveGuestSession(guest)); assert.match(text(view), /Đang có vé/);
+  await act(async () => saveGuestSession(guest)); assert.match(text(view), /Đã kích hoạt nghe/);
   pending = true; await act(async () => saveGuestSession(guest));
   await act(async () => clearGuestSession());
   await act(async () => resolveOld(response({ data: { status: 'ACTIVE', expiresAt: new Date(Date.now() + 60000).toISOString() } })));
-  assert.doesNotMatch(text(view), /Đang có vé/);
+  assert.doesNotMatch(text(view), /Đã kích hoạt nghe/);
 });
 
 test('guest revoked/expired/network failures never claim an active ticket or erase retry credentials', async t => {
@@ -119,7 +119,7 @@ test('guest revoked/expired/network failures never claim an active ticket or era
   const view = await mount(t, VisitorNavigation);
   for (const next of ['expired', 'revoked', 'network']) {
     mode = next; await act(async () => events.dispatchEvent(new Event('focus')));
-    assert.doesNotMatch(text(view), /Đang có vé/); assert.equal(loadGuestSession(origin).session.token, 'guest-test');
+    assert.doesNotMatch(text(view), /Đã kích hoạt nghe/); assert.equal(loadGuestSession(origin).session.token, 'guest-test');
   }
 });
 

@@ -34,7 +34,7 @@ async function main() {
       const { getPiperConfig } = require("../config/piper"), PiperTts = require("../adapters/piper-tts");
       const settings = getPiperConfig(), tts = new PiperTts(settings);
       await tts.assertConfigured();
-      // Reuse READY VI/EN only. Missing translations fail safely; never replace reviewed text with mock.
+      // Reuse current READY text only. Missing translations fail safely; never replace reviewed text with mock.
       adapters = { tts, audioTimeoutMs: settings.timeoutMs };
     } else adapters = { translator: new MockTranslation(), tts: new MockTts() };
   } catch { console.error(JSON.stringify({ event: "configuration", code: "WORKER_TTS_CONFIGURATION_INVALID" })); await pool.end(); process.exitCode = 1; return; }

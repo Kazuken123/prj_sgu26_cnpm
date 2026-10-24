@@ -1,0 +1,100 @@
+{
+  "status": "DRAFT_FOR_REVIEW_NOT_FOR_IMPORT",
+  "approved": false,
+  "nativeSpeakerReview": false,
+  "createdOn": "2026-10-24",
+  "languageSelection": "User delegated the simplest safe selection; these eight use Latin scripts and existing Piper/espeak runtime.",
+  "languages": ["de", "es", "it", "pt-BR", "nl", "pl", "cs", "tr"],
+  "pois": [
+    {
+      "key": "giraffe",
+      "translations": {
+        "de": {
+          "name": "Giraffe",
+          "description": "Giraffen fallen durch ihren langen Hals, ihre langen Beine und ihr geflecktes Fell auf. Hals und Beine helfen ihnen, Blätter hoch oben in den Bäumen zu erreichen. Die Fellzeichnung ist bei jedem Tier anders.",
+          "audioScript": "Giraffen sind an ihrem langen Hals und ihrem gefleckten Fell zu erkennen. Mit ihrem langen Hals und ihren langen Beinen erreichen sie Blätter hoch oben in den Bäumen. Die Fellzeichnung unterscheidet sich von Tier zu Tier. Dies sind allgemeine Informationen über Giraffen und keine Angaben zu einem bestimmten Tier im Zoo und Botanischen Garten von Saigon."
+        },
+        "es": {
+          "name": "Jirafa",
+          "description": "Las jirafas destacan por su cuello largo, sus patas largas y su pelaje con manchas. El cuello y las patas les ayudan a alcanzar las hojas que están en lo alto de los árboles. Cada individuo tiene un patrón de manchas diferente.",
+          "audioScript": "Las jirafas se reconocen por su cuello largo y su pelaje con manchas. Su cuello y sus patas largas les permiten alcanzar las hojas que están en lo alto de los árboles. El patrón de manchas varía de un individuo a otro. Estos son datos generales sobre las jirafas, no información sobre un animal concreto del Zoológico y Jardín Botánico de Saigón."
+        },
+        "it": {
+          "name": "Giraffa",
+          "description": "Le giraffe si distinguono per il collo lungo, le zampe lunghe e il mantello maculato. Il collo e le zampe le aiutano a raggiungere le foglie in alto sugli alberi. Ogni individuo ha un diverso disegno delle macchie.",
+          "audioScript": "Le giraffe si riconoscono dal collo lungo e dal mantello maculato. Il collo e le zampe lunghe le aiutano a raggiungere le foglie in alto sugli alberi. Il disegno delle macchie cambia da un individuo all'altro. Queste sono informazioni generali sulle giraffe, non su un particolare animale dello Zoo e Giardino Botanico di Saigon."
+        },
+        "pt-BR": {
+          "name": "Girafa",
+          "description": "As girafas se destacam pelo pescoço comprido, pelas pernas longas e pela pelagem com manchas. O pescoço e as pernas ajudam a alcançar as folhas no alto das árvores. Cada indivíduo tem um padrão de manchas diferente.",
+          "audioScript": "As girafas são reconhecidas pelo pescoço comprido e pela pelagem com manchas. O pescoço e as pernas longas ajudam a alcançar as folhas no alto das árvores. O padrão de manchas varia de um indivíduo para outro. Estas são informações gerais sobre as girafas, e não sobre um animal específico do Zoológico e Jardim Botânico de Saigon."
+        },
+        "nl": {
+          "name": "Giraffe",
+          "description": "Giraffen vallen op door hun lange nek, lange poten en gevlekte vacht. Hun nek en poten helpen hen om bladeren hoog in de bomen te bereiken. Elk dier heeft een ander vlekkenpatroon.",
+          "audioScript": "Giraffen zijn te herkennen aan hun lange nek en gevlekte vacht. Met hun lange nek en lange poten kunnen ze bladeren hoog in de bomen bereiken. Het vlekkenpatroon verschilt per dier. Dit is algemene informatie over giraffen, niet over een specifiek dier in de dierentuin en botanische tuin van Saigon."
+        },
+        "pl": {
+          "name": "Żyrafa",
+          "description": "Żyrafy wyróżniają się długą szyją, długimi nogami i cętkowaną sierścią. Szyja i nogi pomagają im dosięgać liści wysoko na drzewach. Każdy osobnik ma inny wzór cętek.",
+          "audioScript": "Żyrafy można rozpoznać po długiej szyi i cętkowanej sierści. Długa szyja i długie nogi pomagają im dosięgać liści wysoko na drzewach. Wzór cętek różni się u poszczególnych osobników. Są to ogólne informacje o żyrafach, a nie o konkretnym zwierzęciu w Ogrodzie Zoologicznym i Botanicznym w Sajgonie."
+        },
+        "cs": {
+          "name": "Žirafa",
+          "description": "Žirafy vynikají dlouhým krkem, dlouhýma nohama a skvrnitou srstí. Krk a nohy jim pomáhají dosáhnout na listy vysoko v korunách stromů. Každý jedinec má jiný vzor skvrn.",
+          "audioScript": "Žirafy poznáme podle dlouhého krku a skvrnité srsti. Dlouhý krk a dlouhé nohy jim pomáhají dosáhnout na listy vysoko v korunách stromů. Vzor skvrn se u jednotlivých zvířat liší. Jde o obecné informace o žirafách, nikoli o konkrétním zvířeti v zoologické a botanické zahradě v Saigonu."
+        },
+        "tr": {
+          "name": "Zürafa",
+          "description": "Zürafalar uzun boyunları, uzun bacakları ve benekli kürkleriyle dikkat çeker. Boyunları ve bacakları, ağaçların yüksek dallarındaki yapraklara ulaşmalarına yardımcı olur. Her bireyin benek deseni farklıdır.",
+          "audioScript": "Zürafalar uzun boyunları ve benekli kürkleriyle tanınır. Uzun boyunları ve uzun bacakları, ağaçların yüksek dallarındaki yapraklara ulaşmalarına yardımcı olur. Benek desenleri bireyden bireye değişir. Bunlar zürafalar hakkında genel bilgilerdir; Saygon Hayvanat Bahçesi ve Botanik Bahçesi'ndeki belirli bir hayvanı anlatmaz."
+        }
+      }
+    },
+    {
+      "key": "asian-elephant",
+      "translations": {
+        "de": {
+          "name": "Asiatischer Elefant",
+          "description": "Asiatische Elefanten haben einen Rüssel, der aus Nase und Oberlippe entstanden ist. Sie benutzen ihn, um Futter aufzunehmen und Wasser anzusaugen, das sie anschließend ins Maul geben. Asiatische Elefanten sind Pflanzenfresser.",
+          "audioScript": "Der Rüssel ist ein auffälliges Merkmal des Asiatischen Elefanten. Elefanten greifen damit Futter und saugen Wasser an, das sie anschließend ins Maul geben. Zu ihrer Nahrung gehören Gräser und Blätter. Diese Einführung beschreibt die Tierart, nicht den Futterplan oder die Pflegezeiten im Zoo und Botanischen Garten von Saigon."
+        },
+        "es": {
+          "name": "Elefante asiático",
+          "description": "Los elefantes asiáticos tienen una trompa formada por la nariz y el labio superior. La utilizan para recoger alimento y aspirar agua, que después llevan a la boca. Los elefantes asiáticos son herbívoros.",
+          "audioScript": "La trompa es una característica destacada del elefante asiático. Los elefantes la utilizan para sujetar alimento y aspirar agua, que después llevan a la boca. Su alimentación incluye hierbas y hojas. Esta introducción describe la especie, no la dieta ni los horarios de cuidado del Zoológico y Jardín Botánico de Saigón."
+        },
+        "it": {
+          "name": "Elefante asiatico",
+          "description": "Gli elefanti asiatici hanno una proboscide formata dal naso e dal labbro superiore. La usano per raccogliere il cibo e aspirare l'acqua, che poi portano alla bocca. Gli elefanti asiatici sono erbivori.",
+          "audioScript": "La proboscide è una caratteristica distintiva dell'elefante asiatico. Gli elefanti la usano per afferrare il cibo e aspirare l'acqua, che poi portano alla bocca. La loro alimentazione comprende erbe e foglie. Questa introduzione descrive la specie, non la dieta o gli orari di cura dello Zoo e Giardino Botanico di Saigon."
+        },
+        "pt-BR": {
+          "name": "Elefante-asiático",
+          "description": "Os elefantes-asiáticos têm uma tromba formada pelo nariz e pelo lábio superior. Eles a usam para pegar alimentos e aspirar água, que depois levam à boca. Os elefantes-asiáticos são herbívoros.",
+          "audioScript": "A tromba é uma característica marcante do elefante-asiático. Os elefantes a usam para segurar alimentos e aspirar água, que depois levam à boca. Sua alimentação inclui gramíneas e folhas. Esta apresentação descreve a espécie, não a dieta ou os horários de cuidado do Zoológico e Jardim Botânico de Saigon."
+        },
+        "nl": {
+          "name": "Aziatische olifant",
+          "description": "Aziatische olifanten hebben een slurf die is gevormd uit de neus en de bovenlip. Ze gebruiken die om voedsel te pakken en water op te zuigen, dat ze daarna in hun bek brengen. Aziatische olifanten zijn planteneters.",
+          "audioScript": "De slurf is een opvallend kenmerk van de Aziatische olifant. Olifanten gebruiken hem om voedsel vast te pakken en water op te zuigen, dat ze daarna in hun bek brengen. Ze eten onder andere gras en bladeren. Deze inleiding beschrijft de diersoort, niet het voedingsschema of de verzorgingstijden van de dierentuin en botanische tuin van Saigon."
+        },
+        "pl": {
+          "name": "Słoń azjatycki",
+          "description": "Słonie azjatyckie mają trąbę powstałą z nosa i górnej wargi. Używają jej do zbierania pokarmu i zasysania wody, którą następnie wlewają do pyska. Słonie azjatyckie są roślinożerne.",
+          "audioScript": "Trąba jest charakterystyczną cechą słonia azjatyckiego. Słonie używają jej do chwytania pokarmu i zasysania wody, którą następnie wlewają do pyska. Ich pokarm obejmuje trawy i liście. To wprowadzenie opisuje gatunek, a nie jadłospis czy harmonogram opieki w Ogrodzie Zoologicznym i Botanicznym w Sajgonie."
+        },
+        "cs": {
+          "name": "Slon indický",
+          "description": "Sloni indičtí mají chobot tvořený nosem a horním pyskem. Používají ho k uchopování potravy a nasávání vody, kterou si pak dávají do tlamy. Sloni indičtí jsou býložravci.",
+          "audioScript": "Chobot je výrazným znakem slona indického. Sloni jím uchopují potravu a nasávají vodu, kterou si pak dávají do tlamy. Jejich potravu tvoří mimo jiné trávy a listy. Tento úvod popisuje druh, nikoli krmný plán nebo rozvrh péče v zoologické a botanické zahradě v Saigonu."
+        },
+        "tr": {
+          "name": "Asya fili",
+          "description": "Asya fillerinin burnu ve üst dudağı birleşerek hortumu oluşturur. Hortumlarını yiyecek almak ve suyu çekip ağızlarına aktarmak için kullanırlar. Asya filleri otçuldur.",
+          "audioScript": "Hortum, Asya filinin belirgin özelliklerinden biridir. Filler hortumlarıyla yiyecekleri kavrar ve suyu çekip ağızlarına aktarır. Besinleri arasında otlar ve yapraklar bulunur. Bu tanıtım tür hakkında bilgi verir; Saygon Hayvanat Bahçesi ve Botanik Bahçesi'ndeki beslenme planını veya bakım saatlerini anlatmaz."
+        }
+      }
+    }
+  ]
+}
