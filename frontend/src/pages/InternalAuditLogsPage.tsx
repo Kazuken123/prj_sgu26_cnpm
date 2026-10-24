@@ -1,7 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getAuditLogs, AuditLogDto } from '../api/audit';
 import { executeAuthenticatedInternalRequest } from '../api/auth';
+import { businessDate } from '../api/operations';
 import { getApiBaseUrl } from '../api/client';
+
+const actionLabels: Record<string,string> = {"CONFIRM_CASH_PAYMENT":"Xác nhận thu tiền","CREATE_PENDING_PAYMENT":"Tạo yêu cầu thu tiền","ISSUE_CASH_CODE":"Cấp mã nghe","ISSUE_VISITOR_TOKEN":"Khách đổi mã nghe","CREATE_STAFF":"Thêm nhân viên","CREATE_POI":"Thêm điểm tham quan","UPDATE_POI":"Sửa điểm tham quan","DEACTIVATE_POI":"Ngừng mở điểm tham quan","CREATE_TOUR":"Tạo lộ trình","UPDATE_TOUR":"Sửa lộ trình","RETRY_CONTENT_JOB":"Thử lại xử lý nội dung","CLAIM_CONTENT_JOB":"Bắt đầu xử lý nội dung","FAIL_CONTENT_JOB":"Xử lý nội dung thất bại","RECOVER_CONTENT_JOB":"Khôi phục tác vụ","PREPARE_TRANSLATION":"Chuẩn bị bản dịch","IMPORT_REVIEWED_TRANSLATION":"Nhập bản dịch đã duyệt","COMPLETE_CONTENT_JOB":"Hoàn tất nội dung","CREATE_KNOWLEDGE_DOCUMENT":"Thêm tài liệu tra cứu","UPDATE_KNOWLEDGE_DOCUMENT":"Sửa tài liệu tra cứu","DEACTIVATE_KNOWLEDGE_DOCUMENT":"Ngừng tài liệu tra cứu","PUBLISH_KNOWLEDGE_DOCUMENT":"Xuất bản tài liệu","FAIL_KNOWLEDGE_PROCESSING":"Lỗi xử lý tài liệu"};
 
 export const InternalAuditLogsPage: React.FC = () => {
   const baseUrl = getApiBaseUrl();
@@ -13,13 +16,15 @@ export const InternalAuditLogsPage: React.FC = () => {
   const [availableActions, setAvailableActions] = useState<string[]>([]);
 
   const [selectedAction, setSelectedAction] = useState<string>('');
-  const [fromDate, setFromDate] = useState<string>('');
-  const [toDate, setToDate] = useState<string>('');
+  const [fromDate, setFromDate] = useState<string>(businessDate);
+  const [toDate, setToDate] = useState<string>(businessDate);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const requestSeq = useRef(0);
   const fetchLogs = async (currentPage = 1) => {
+    const seq = ++requestSeq.current;
     setLoading(true);
     setError(null);
     try {
@@ -28,12 +33,14 @@ export const InternalAuditLogsPage: React.FC = () => {
           page: currentPage,
           limit,
           action: selectedAction || undefined,
-          from: fromDate ? new Date(fromDate).toISOString().replace(/\.\d{3}Z$/, 'Z') : undefined,
-          to: toDate ? new Date(toDate).toISOString().replace(/\.\d{3}Z$/, 'Z') : undefined
+          from: fromDate ? new Date(fromDate + 'T00:00:00+07:00').toISOString().replace(/\.\d{3}Z$/, 'Z') : undefined,
+          to: toDate ? new Date(toDate + 'T23:59:59+07:00').toISOString().replace(/\.\d{3}Z$/, 'Z') : undefined
         },
         token,
         baseUrl
       ));
+      if (seq !== requestSeq.current) return;
+      if (!Array.isArray(res.items) || !Number.isSafeInteger(res.total)) throw new Error('Dữ liệu lịch sử thao tác chưa hợp lệ. Vui lòng tải lại.');
       setLogs(res.items);
       setTotal(res.total);
       setPage(res.page);
@@ -41,15 +48,17 @@ export const InternalAuditLogsPage: React.FC = () => {
         setAvailableActions(res.actions);
       }
     } catch (err) {
+      if (seq !== requestSeq.current) return;
       setError(err instanceof Error ? err.message : 'Không thể tải nhật ký thao tác');
     } finally {
-      setLoading(false);
+      if (seq === requestSeq.current) setLoading(false);
     }
   };
 
   useEffect(() => {
     fetchLogs(1);
-  }, []);
+    return () => { requestSeq.current++; };
+  }, [baseUrl]);
 
   const handleFilter = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,10 +71,10 @@ export const InternalAuditLogsPage: React.FC = () => {
     <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
       <div style={{ marginBottom: '20px' }}>
         <h1 style={{ fontSize: '1.6rem', color: '#132a13', margin: 0, fontWeight: 700 }}>
-          Nhật Ký Thao Tác Hệ Thống (Audit Logs)
+          Lịch sử thao tác
         </h1>
         <p style={{ color: '#4b5563', fontSize: '0.86rem', margin: '4px 0 0' }}>
-          Theo dõi và đối soát mọi thao tác quản trị, cập nhật dữ liệu và xác nhận thanh toán (Chỉ dành cho Quản trị viên)
+          Xem ai đã thu tiền, cấp mã hoặc sửa nội dung. Bộ lọc tính trọn ngày theo giờ Việt Nam.
         </p>
       </div>
 
@@ -83,7 +92,7 @@ export const InternalAuditLogsPage: React.FC = () => {
             >
               <option value="">-- Tất cả hành động --</option>
               {availableActions.map((act) => (
-                <option key={act} value={act}>{act}</option>
+                <option key={act} value={act}>{actionLabels[act] || act}</option>
               ))}
             </select>
           </div>
@@ -120,7 +129,7 @@ export const InternalAuditLogsPage: React.FC = () => {
 
       {error && (
         <div className="banner-notice" style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', marginBottom: '16px' }}>
-          <div>{error}</div>
+          <div>{error}{logs.length > 0 && " Đang hiển thị lần tải thành công trước."}</div>
         </div>
       )}
 
@@ -130,7 +139,7 @@ export const InternalAuditLogsPage: React.FC = () => {
           <thead>
             <tr style={{ background: '#f3f4f6', borderBottom: '2px solid #e5e7eb', color: '#374151' }}>
               <th style={{ padding: '12px 14px' }}>Mã #</th>
-              <th style={{ padding: '12px 14px' }}>Thời điểm (UTC/VN)</th>
+              <th style={{ padding: '12px 14px' }}>Thời điểm (giờ Việt Nam)</th>
               <th style={{ padding: '12px 14px' }}>Hành động</th>
               <th style={{ padding: '12px 14px' }}>Tài nguyên</th>
               <th style={{ padding: '12px 14px' }}>Người thực hiện</th>
@@ -152,7 +161,7 @@ export const InternalAuditLogsPage: React.FC = () => {
               </tr>
             ) : (
               logs.map((log) => {
-                const formattedDate = new Date(log.createdAt).toLocaleString('vi-VN');
+                const formattedDate = new Date(log.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
                 return (
                   <tr key={log.logId} style={{ borderBottom: '1px solid #f3f4f6' }}>
                     <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#6b7280' }}>
@@ -170,14 +179,14 @@ export const InternalAuditLogsPage: React.FC = () => {
                         fontWeight: 600,
                         fontSize: '0.8rem'
                       }}>
-                        {log.action}
+                        {actionLabels[log.action] || log.action}
                       </span>
                     </td>
                     <td style={{ padding: '10px 14px', color: '#4b5563' }}>
                       {log.resourceType ? `${log.resourceType} (${log.resourceId || 'N/A'})` : '—'}
                     </td>
                     <td style={{ padding: '10px 14px', color: '#1f2937' }}>
-                      {log.userEmail || (log.userId ? `User #${log.userId}` : 'Hệ thống')}
+                      {log.actorName || log.userEmail || (log.userId ? `User #${log.userId}` : 'Hệ thống')}
                     </td>
                     <td style={{ padding: '10px 14px', fontFamily: 'monospace', fontSize: '0.78rem', color: '#6b7280' }}>
                       {log.ipAddress || '—'}

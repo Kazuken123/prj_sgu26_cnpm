@@ -19,7 +19,7 @@ export const LoginPage: React.FC = () => {
   useEffect(() => {
     const { session } = loadInternalSession(currentBaseUrl);
     if (session.accessToken) {
-      navigate('/internal/account', { replace: true });
+      navigate('/internal/cash', { replace: true });
     }
   }, [currentBaseUrl, navigate]);
 
@@ -61,7 +61,7 @@ export const LoginPage: React.FC = () => {
       });
 
       setIsSubmitting(false);
-      navigate('/internal/account', { replace: true });
+      navigate('/internal/cash', { replace: true });
     } catch (err: unknown) {
       setIsSubmitting(false);
 
@@ -93,16 +93,16 @@ export const LoginPage: React.FC = () => {
             Không gian làm việc nội bộ
           </span>
           <h1 className="hero-title" style={{ fontSize: '1.8rem', marginTop: '6px' }}>
-            Đăng nhập Cổng Quản trị & Vận hành
+            Bắt đầu ngày làm việc
           </h1>
           <p style={{ fontSize: '0.86rem', color: 'var(--tcv-slate-600)', marginTop: '4px' }}>
-            Dành cho nhân viên soát vé (STAFF) và quản trị viên (ADMIN) Thảo Cầm Viên Sài Gòn.
+            Nhân viên phục vụ khách tại quầy. Chủ quản theo dõi công việc và tiền thu trong ngày.
           </p>
         </div>
 
         {errorMessage && (
           <div className="banner-notice" style={{ background: 'var(--tcv-status-err-bg)', border: '1px solid #fecaca', color: '#991b1b', marginBottom: '20px' }}>
-            <div style={{ fontSize: '1.2rem' }}>⛔</div>
+            <div style={{ fontSize: '1.2rem' }}></div>
             <div>
               <div className="banner-title">
                 Đăng nhập thất bại {errorCode ? `[${errorCode}]` : ''}
@@ -181,7 +181,7 @@ export const LoginPage: React.FC = () => {
         <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid var(--tcv-slate-200)', textAlign: 'center', fontSize: '0.82rem', color: 'var(--tcv-slate-500)' }}>
           <div>* Cổng thông tin nội bộ bảo mật, không hỗ trợ đăng ký công khai.</div>
           <div style={{ marginTop: '6px', fontSize: '0.76rem', color: 'var(--tcv-slate-400)' }}>
-            Mọi thao tác đăng nhập và truy cập đều được ghi vết tự động vào hệ thống Audit Log.
+            Cần tài khoản mới hoặc hỗ trợ đăng nhập? Liên hệ người quản lý.
           </div>
         </div>
       </div>
