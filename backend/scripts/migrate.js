@@ -8,7 +8,8 @@ const SchemaStore = require("../stores/schema.store");
     await new SchemaStore().migratePaymentRequestKey();
     await new SchemaStore().migrateContentJobClaim();
     await new SchemaStore().migrateContentJobLease();
-    console.log("Migration 001–006 hoàn tất; dữ liệu hiện có được giữ nguyên.");
+    await new SchemaStore().migrateVisitorAnalytics();
+    console.log("Migration 001–007 hoàn tất; dữ liệu hiện có được giữ nguyên.");
   } catch (error) {
     console.error("Migration thất bại:", error.code || error.name);
     process.exitCode = 1;

@@ -1,3 +1,4 @@
+import { Icon } from '../components/Icon';
 import React, { useState, useEffect, useRef } from 'react';
 import { getMonitoringData, monitoringRange, MonitoringDto, MonitoringWindow } from '../api/monitoring';
 import { executeAuthenticatedInternalRequest } from '../api/auth';
@@ -43,10 +44,10 @@ export const InternalMonitoringPage: React.FC = () => {
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
         <div>
           <h1 style={{ fontSize: '1.6rem', color: '#132a13', margin: 0, fontWeight: 700 }}>
-            Giám Sát Sức Khỏe & Sử Dụng Hệ Thống
+            Tình trạng hệ thống
           </h1>
           <p style={{ color: '#4b5563', fontSize: '0.86rem', margin: '4px 0 0' }}>
-            Theo dõi tình trạng vận hành thời gian thực, phiên tham quan, doanh thu và tác vụ xử lý âm thanh
+            Kiểm tra kết nối khi thu ngân, cấp mã hoặc phát audio gặp sự cố.
           </p>
         </div>
 
@@ -69,7 +70,7 @@ export const InternalMonitoringPage: React.FC = () => {
             className="btn-secondary btn-sm"
             style={{ padding: '6px 12px' }}
           >
-            🔄 {loading ? 'Đang nạp...' : 'Làm mới'}
+            {loading ? 'Đang nạp...' : 'Làm mới'}
           </button>
         </div>
       </div>
@@ -108,7 +109,7 @@ export const InternalMonitoringPage: React.FC = () => {
             {data ? (data.health.database.status === 'READY' ? 'SẴN SÀNG (READY)' : 'KHÔNG KHẢ DỤNG') : 'CHƯA CÓ DỮ LIỆU'}
           </div>
           <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '6px' }}>
-            Bộ lưu trữ dữ liệu 16 bảng nghiệp vụ
+            Không khả dụng: tạm dừng xác nhận thu tiền và báo người phụ trách.
           </div>
         </div>
 
@@ -120,7 +121,7 @@ export const InternalMonitoringPage: React.FC = () => {
             {data ? (data.health.redis.status === 'READY' ? 'SẴN SÀNG (READY)' : 'KHÔNG KHẢ DỤNG') : 'CHƯA CÓ DỮ LIỆU'}
           </div>
           <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '6px' }}>
-            Quản lý mã truy cập có TTL & Rate limit
+            Không khả dụng: việc cấp / đổi mã có thể bị gián đoạn.
           </div>
         </div>
       </div>
@@ -129,51 +130,11 @@ export const InternalMonitoringPage: React.FC = () => {
       {data && (
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
           
-          {/* PHIEN THAM QUAN & DOANH THU */}
-          <div className="tcv-card" style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '1.05rem', color: '#14532d', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🎟️</span>
-              <span>Phiên Tham Quan & Doanh Thu</span>
-            </h3>
-
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '16px' }}>
-              <div style={{ flex: 1, padding: '12px', background: '#f0fdf4', borderRadius: '6px' }}>
-                <div style={{ fontSize: '0.8rem', color: '#166534' }}>Phiên Active hiện tại</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#14532d', marginTop: '2px' }}>
-                  {data.metrics.activePaidVisits.value ?? 'Không khả dụng'}
-                </div>
-              </div>
-
-              <div style={{ flex: 1, padding: '12px', background: '#eff6ff', borderRadius: '6px' }}>
-                <div style={{ fontSize: '0.8rem', color: '#1e40af' }}>Giao dịch thành công ({windowOption})</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#1e3a8a', marginTop: '2px' }}>
-                  {data.metrics.paidPayments.value?.count ?? 'Không khả dụng'}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600, marginBottom: '6px' }}>
-                Tổng doanh thu vé ghi nhận:
-              </div>
-              {data.metrics.paidPayments.value?.totals && data.metrics.paidPayments.value.totals.length > 0 ? (
-                data.metrics.paidPayments.value.totals.map((t, idx) => (
-                  <div key={idx} style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f766e' }}>
-                    {Number(t.amount).toLocaleString('vi-VN')} {t.currency}
-                  </div>
-                ))
-              ) : (
-                <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                  {data.metrics.paidPayments.value === null ? 'Doanh thu không khả dụng' : 'Không có giao dịch trong khoảng thời gian này'}
-                </div>
-              )}
-            </div>
-          </div>
-
+          <div className="tcv-card" style={{padding:'20px'}}><h3>Đối soát thu ngân</h3><p>Doanh thu theo ngày Việt Nam và nhân viên xác nhận nằm trong sổ vận hành.</p><a className="ops-text-link" href="/internal/today">Mở doanh thu theo ngày <Icon name="arrow" /></a></div>
           {/* LUOT TAI BUNDLE THEO NGON NGU */}
           <div className="tcv-card" style={{ padding: '20px' }}>
             <h3 style={{ fontSize: '1.05rem', color: '#14532d', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🌐</span>
+              <Icon name="globe" />
               <span>Lượt Tải Gói Nội Dung Đa Ngôn Ngữ</span>
             </h3>
 
@@ -237,7 +198,7 @@ export const InternalMonitoringPage: React.FC = () => {
           {/* TIEN TRINH AUDIO & CONTENT JOBS */}
           <div className="tcv-card" style={{ padding: '20px' }}>
             <h3 style={{ fontSize: '1.05rem', color: '#14532d', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>⚙️</span>
+              <Icon name="headphones" />
               <span>Tác Vụ Xử Lý Nội Dung & Âm Thanh</span>
             </h3>
 

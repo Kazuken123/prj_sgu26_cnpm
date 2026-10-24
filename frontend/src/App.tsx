@@ -15,6 +15,7 @@ import { ExplorePage } from './pages/ExplorePage';
 import { LoginPage } from './pages/LoginPage';
 import { AccountPage } from './pages/AccountPage';
 import { NewStaffPage } from './pages/NewStaffPage';
+import { InternalDashboardPage } from './pages/InternalDashboardPage';
 import { InternalCashPage } from './pages/InternalCashPage';
 import { InternalPoisPage } from './pages/InternalPoisPage';
 import { InternalPoiDetailPage } from './pages/InternalPoiDetailPage';
@@ -43,7 +44,7 @@ export const App: React.FC = () => {
   const isInternal = pathname === '/login' || pathname.startsWith('/internal');
 
   return (
-    <>
+    <div className={isInternal ? "internal-workspace" : undefined}>
       <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
 
       {/* Tách biệt Header điều hướng giữa Khách và Nhân viên */}
@@ -58,8 +59,9 @@ export const App: React.FC = () => {
 
           {/* PHÂN HỆ NỘI BỘ (INTERNAL / STAFF / ADMIN PORTAL) */}
           <Route path="/login" element={<Navigate to="/internal/login" replace />} />
-          <Route path="/internal" element={<Navigate to="/internal/login" replace />} />
+          <Route path="/internal" element={<Navigate to="/internal/today" replace />} />
           <Route path="/internal/login" element={<LoginPage />} />
+          <Route path="/internal/today" element={<InternalProtectedRoute><InternalDashboardPage /></InternalProtectedRoute>} />
 
           <Route
             path="/internal/cash"
@@ -185,19 +187,7 @@ export const App: React.FC = () => {
 
       {/* Tách biệt Footer giữa Khách và Nhân viên */}
       {isInternal ? (
-        <footer style={{
-          background: '#0d1f0d',
-          color: '#9ca3af',
-          padding: '16px 20px',
-          textAlign: 'center',
-          fontSize: '0.8rem',
-          borderTop: '1px solid #2d6a4f'
-        }}>
-          <div>Ban Quản Trị Thảo Cầm Viên Sài Gòn — Cổng Thông Tin Vận Hành Nội Bộ</div>
-          <div style={{ marginTop: '4px', fontSize: '0.74rem', color: '#6b7280' }}>
-            Hệ thống tuân thủ kiến trúc 3 lớp Router–Service–Store & bảo mật phân quyền RBAC
-          </div>
-        </footer>
+        <footer className="ops-footer">Thảo Cầm Viên Sài Gòn — Thu ngân và vận hành thuyết minh</footer>
       ) : (
         <footer className="site-footer">
           <div className="footer-inner">
@@ -212,7 +202,7 @@ export const App: React.FC = () => {
           </div>
         </footer>
       )}
-    </>
+    </div>
   );
 };
 
