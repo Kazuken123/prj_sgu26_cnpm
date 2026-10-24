@@ -1,5 +1,16 @@
 const { it } = require("node:test");
 const assert = require("node:assert/strict");
+it("issuance retries collisions finitely without changing ticket expiry or an existing payment", async () => {
+  const f = require("./helpers/cash-code.fixture").cashCodeFixture();
+  const original = f.redis.ensureCashCode, end = f.state.row.expiresAt.getTime(); let attempts = 0;
+  f.redis.ensureCashCode = (...args) => ++attempts < 3 ? { collision: true } : original(...args);
+  const result = await f.service.issueCashCode(f.staff, f.state.row.sessionId);
+  assert.equal(attempts, 3); assert.match(result.shortedCode, /^\d{6}$/); assert.equal(f.state.row.expiresAt.getTime(), end);
+  const blocked = require("./helpers/cash-code.fixture").cashCodeFixture(); let count = 0;
+  blocked.redis.ensureCashCode = async () => { count++; return { collision: true }; };
+  await assert.rejects(blocked.service.issueCashCode(blocked.staff, blocked.state.row.sessionId), { code: "CASH_CODE_UNAVAILABLE" });
+  assert.equal(count, 5); assert.equal(blocked.state.row.paymentStatus, "PAID"); assert.equal(blocked.state.audits.size, 0);
+});
 const http = require("node:http");
 const { randomUUID } = require("node:crypto");
 const { cashCodeFixture } = require("./helpers/cash-code.fixture");

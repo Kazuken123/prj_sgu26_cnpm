@@ -26,6 +26,11 @@ function memoryCashRedis(clock = Date.now) {
       const record = codes.get(id);
       return record && record.expiresAtMs > clock() && record.shortedCode === shortedCode ? structuredClone(record) : null;
     },
+    resolveCashCode: async shortedCode => {
+      if (state.inspectionDown) throw new Error("private Redis inspection failure");
+      const record = [...codes.values()].find(item => item.shortedCode === shortedCode && item.expiresAtMs > clock());
+      return record ? structuredClone(record) : null;
+    },
     removeCashCode: async (id, issueId) => {
       if (state.cleanupDown) throw new Error("private Redis cleanup failure");
       if (codes.get(id)?.issueId === issueId) { codes.delete(id); return 1; }

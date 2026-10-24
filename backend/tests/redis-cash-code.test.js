@@ -1,9 +1,10 @@
 const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
-const { randomUUID, randomBytes } = require("node:crypto");
+const { randomUUID, randomBytes, createHash } = require("node:crypto");
 const RedisStore = require("../stores/redis.store");
+let sequence = 10000;
 function candidate(id, milliseconds = 10000) {
-  return { sessionId: id, issueId: randomUUID(), authCode: randomBytes(32).toString("hex"), shortedCode: "012345", expiresAtMs: Date.now() + milliseconds };
+  return { sessionId: id, issueId: randomUUID(), authCode: randomBytes(32).toString("hex"), shortedCode: String(sequence++).padStart(6, "0"), expiresAtMs: Date.now() + milliseconds };
 }
 it("Redis cash code Store uses one atomic script, enforces record shape and disconnects its client", async () => {
   const id = randomUUID(), record = candidate(id); let received;
@@ -12,7 +13,7 @@ it("Redis cash code Store uses one atomic script, enforces record shape and disc
   const store = new RedisStore({ clientFactory: () => client, cashCodePrefix: "test:" });
   const result = await store.ensureCashCode(id, record, Date.now() + 60000);
   assert.equal(result.created, true); assert.deepEqual(result.record, record); assert.equal(client.isOpen, false);
-  assert.deepEqual(received.args.keys, ["test:" + id]); assert.match(received.script, /PTTL/); assert.match(received.script, /TIME/);
+  assert.deepEqual(received.args.keys, ["test:" + id, "test:lookup:" + createHash("sha1").update(record.shortedCode).digest("hex")]); assert.match(received.script, /PTTL/); assert.match(received.script, /TIME/);
   assert.match(received.script, /'PX'/);
 });
 it("Redis cash code Store refuses expired, corrupt or cross-session replies without returning their contents", async () => {
@@ -79,11 +80,20 @@ describe("Real Redis cash-code atomic creation, expiry and retry", { skip: proce
     assert.equal(second.created, true); assert.notEqual(second.record.issueId, first.record.issueId);
     assert.notEqual(second.record.authCode, first.record.authCode);
   });
-  it("the same short code on different sessions has independent auth-code mappings", async () => {
+  it("the same short code cannot be assigned to two live sessions, even in parallel", async () => {
     const one = id(), two = id(), end = Date.now() + 60000;
-    const a = await store.ensureCashCode(one, candidate(one), end), b = await store.ensureCashCode(two, candidate(two), end);
-    assert.equal(a.record.shortedCode, b.record.shortedCode); assert.notEqual(a.record.authCode, b.record.authCode);
-    assert.equal(a.record.sessionId, one); assert.equal(b.record.sessionId, two);
+    const shared = "012345";
+    const results = await Promise.all([store.ensureCashCode(one, { ...candidate(one), shortedCode: shared }, end),
+      store.ensureCashCode(two, { ...candidate(two), shortedCode: shared }, end)]);
+    assert.equal(results.filter(value => value.created).length, 1);
+    assert.equal(results.filter(value => value.collision).length, 1);
+    const winner = results.find(value => value.created).record;
+    assert.equal((await store.resolveCashCode(shared)).sessionId, winner.sessionId);
+    await store.removeCashCode(winner.sessionId, winner.issueId);
+    assert.equal(await store.resolveCashCode(shared), null);
+    const another = id();
+    const again = await store.ensureCashCode(another, { ...candidate(another), shortedCode: shared }, end);
+    assert.equal(again.collision, true); // Keep a used code reserved until its original deadline.
   });
   it("expired tickets and missing-TTL/corrupt Redis state fail closed", async () => {
     const session = id(); await assert.rejects(store.ensureCashCode(session, candidate(session), Date.now() - 1));
@@ -115,5 +125,27 @@ describe("Real Redis cash-code atomic creation, expiry and retry", { skip: proce
     await store.ensureCashCode(session, candidate(session, 500), Date.now() + 60000);
     await new Promise(resolve => setTimeout(resolve, 700));
     assert.equal(await store.inspectCashCode(session, record.shortedCode), null);
+  });
+  it("lookup-only resolution verifies both records and deadlines without extending TTL", async () => {
+    const session = id(), item = candidate(session, 1000), end = Date.now() + 60000;
+    const issued = (await store.ensureCashCode(session, item, end)).record;
+    assert.deepEqual(await store.resolveCashCode(issued.shortedCode), issued);
+    const key = prefix + "lookup:" + createHash("sha1").update(item.shortedCode).digest("hex");
+    const ttl = await admin.pTTL(key);
+    await store.resolveCashCode(issued.shortedCode); assert.ok(await admin.pTTL(key) <= ttl);
+    await admin.set(prefix + session, JSON.stringify({ ...issued, issueId: randomUUID() }), { PX: 1000 });
+    await assert.rejects(store.resolveCashCode(issued.shortedCode));
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    assert.equal(await store.resolveCashCode(issued.shortedCode), null);
+    const nextSession = id();
+    assert.equal((await store.ensureCashCode(nextSession, { ...candidate(nextSession), shortedCode: item.shortedCode }, end)).created, true);
+  });
+  it("legacy v1 session-bound codes remain valid for old clients without entering the new global lookup", async () => {
+    const session = randomUUID(), old = candidate(session, 2000), legacyKey = "tcv:cash-code:v1:" + session;
+    const compatible = new RedisStore();
+    await admin.set(legacyKey, JSON.stringify(old), { PX: 2000 });
+    assert.deepEqual(await compatible.inspectCashCode(session, old.shortedCode), old);
+    assert.equal(await compatible.resolveCashCode(old.shortedCode), null);
+    // The rollout must drain v1 codes before exposing the new form on staging.
   });
 });

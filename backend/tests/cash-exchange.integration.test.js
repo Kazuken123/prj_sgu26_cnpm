@@ -33,6 +33,7 @@ describe("Cash exchange SQL / " + (realRedis ? "real Redis" : "Redis replacement
       redis = {
         ensureCashCode: (...args) => { keys.add(prefix + "code:" + args[0]); return store.ensureCashCode(...args); },
         inspectCashCode: (...args) => store.inspectCashCode(...args),
+        resolveCashCode: (...args) => store.resolveCashCode(...args),
         removeCashCode: (...args) => store.removeCashCode(...args),
         consumeLookup: (buckets, config) => store.consumeLookup(buckets.map(key => { const scoped = prefix + key; keys.add(scoped); return scoped; }), config),
       };
@@ -56,6 +57,40 @@ describe("Cash exchange SQL / " + (realRedis ? "real Redis" : "Redis replacement
     return { id, body: { shortedCode: code.shortedCode }, code };
   }
   const exchange = item => service.exchangeCashCode(item.id, item.body, "192.0.2.100");
+  it("public code-only HTTP exchanges to the correct SQL session, authenticates visitor and rejects replay", async t => {
+    const item = await create(), { request } = await httpApp(t), before = await snapshot(item.id);
+    assert.equal((await request("/api/payments/exchange-cash-code", { ...item.body, sessionId: item.id })).status, 400);
+    assert.equal((await request("/api/payments/exchange-cash-code", { shortedCode: "not-six-digits" })).status, 400);
+    const response = await request("/api/payments/exchange-cash-code", item.body);
+    assert.equal(response.status, 200); assert.equal(response.headers.get("cache-control"), "no-store");
+    const visitor = (await response.json()).data;
+    assert.equal(visitor.sessionId, item.id); assert.equal(visitor.expiresAt, before.visits[0].expires_at.toISOString());
+    assert.equal((await request("/api/visits/me", undefined, visitor.token)).status, 200);
+    assert.equal((await request(`/api/admin/payments/sessions/${item.id}`, undefined, visitor.token)).status, 401);
+    assert.equal((await request("/api/payments/exchange-cash-code", item.body)).status, 401);
+    const after = await snapshot(item.id);
+    assert.deepEqual(after.payments, before.payments); assert.equal(after.audits.length, 1);
+  });
+  it("many code-only exchanges across independent services commit exactly one token", async () => {
+    const item = await create(), second = new PaymentService(new PaymentStore(db), redis, {
+      exchangeConfig: () => ({ windowSeconds: 60, sessionLimit: 100, ipLimit: 1000 }) });
+    const results = await Promise.allSettled(Array.from({ length: 20 }, (_, index) =>
+      (index % 2 ? service : second).exchangeCashCodeOnly(item.body, "192.0.2.109")));
+    assert.equal(results.filter(row => row.status === "fulfilled").length, 1);
+    assert.ok(results.filter(row => row.status === "rejected").every(row => [401, 409].includes(row.reason.status)));
+    assert.equal((await snapshot(item.id)).audits.length, 1);
+  });
+  it("code-only lookup rechecks SQL pending/revoked/expired states without consuming the code", async () => {
+    for (const change of ["pending", "revoked", "expired"]) {
+      const item = await create();
+      if (change === "pending") await db.query("UPDATE PAYMENTS SET status='PENDING' WHERE session_id=?", [item.id]);
+      if (change === "revoked") await db.query("UPDATE VISIT_SESSIONS SET status='REVOKED' WHERE session_id=?", [item.id]);
+      if (change === "expired") await db.query("UPDATE VISIT_SESSIONS SET expires_at=UTC_TIMESTAMP() WHERE session_id=?", [item.id]);
+      await assert.rejects(service.exchangeCashCodeOnly(item.body, "192.0.2.111"), error => error.status === 409);
+      assert.equal((await snapshot(item.id)).visits[0].token_hash, null);
+      assert.ok(await redis.resolveCashCode(item.body.shortedCode));
+    }
+  });
   async function snapshot(id) {
     const [payments] = await db.query("SELECT * FROM PAYMENTS WHERE session_id = ?", [id]);
     const [visits] = await db.query("SELECT * FROM VISIT_SESSIONS WHERE session_id = ?", [id]);

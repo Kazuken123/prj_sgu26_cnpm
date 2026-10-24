@@ -6,6 +6,60 @@ const { exchangeFixture } = require("./helpers/cash-exchange.fixture");
 const { getCashExchangeConfig } = require("../config/payment");
 const ip = "192.0.2.1", input = { shortedCode: "012345" };
 
+it("code-only exchange resolves its own session, preserves leading zero and returns no second token", async () => {
+  const f = exchangeFixture(), expiry = f.state.row.expiresAt.getTime();
+  const result = await f.service.exchangeCashCodeOnly(input, ip);
+  assert.equal(result.sessionId, f.id); assert.equal(result.expiresAt.getTime(), expiry);
+  assert.equal(f.state.audits.length, 1);
+  await assert.rejects(f.service.exchangeCashCodeOnly(input, ip), { code: "CASH_CODE_INVALID_OR_EXPIRED" });
+  assert.equal(f.state.audits.length, 1);
+});
+it("code-only wrong, expired, consumed and malformed codes cannot identify or mutate another session", async () => {
+  for (const body of [{ shortedCode: "999999" }, {}, null, { shortedCode: 12345 }, { shortedCode: "12345" }, { shortedCode: "012345", sessionId: "chosen-by-client" }]) {
+    const f = exchangeFixture();
+    await assert.rejects(f.service.exchangeCashCodeOnly(body, ip), error => [400, 401].includes(error.status));
+    assert.equal(f.state.row.tokenHash, null); assert.equal(f.state.reads, 0);
+  }
+  const f = exchangeFixture(); f.state.now += 600001;
+  await assert.rejects(f.service.exchangeCashCodeOnly(input, ip), { code: "CASH_CODE_INVALID_OR_EXPIRED" });
+});
+it("code-only access fails closed on Redis outage, rate limits and corrupted session binding", async () => {
+  for (const mode of ["protectionDown", "inspectionDown"]) {
+    const f = exchangeFixture(); f.redisState[mode] = true;
+    await assert.rejects(f.service.exchangeCashCodeOnly(input, ip), error => error.status === 503 && !error.message.includes("private"));
+    assert.equal(f.state.reads, 0);
+  }
+  const f = exchangeFixture(); f.redis.resolveCashCode = async () => ({ sessionId: "bad", issueId: "bad", shortedCode: "012345" });
+  await assert.rejects(f.service.exchangeCashCodeOnly(input, ip), { code: "CASH_CODE_UNAVAILABLE" });
+  assert.equal(f.state.reads, 0);
+  const limited = exchangeFixture();
+  for (let attempt = 0; attempt < 5; attempt++) await assert.rejects(limited.service.exchangeCashCodeOnly({ shortedCode: "999999" }, ip), error => error.status === 401);
+  await assert.rejects(limited.service.exchangeCashCodeOnly({ shortedCode: "999999" }, ip), error => error.status === 429);
+});
+it("code-only exchange rechecks payment/session state, SQL rollback and lost commit acknowledgement", async () => {
+  for (const change of [row => { row.paymentStatus = "PENDING"; }, row => { row.sessionStatus = "REVOKED"; }, row => { row.expiresAt = new Date(0); }]) {
+    const f = exchangeFixture(); change(f.state.row);
+    await assert.rejects(f.service.exchangeCashCodeOnly(input, ip), error => error.status === 409);
+    assert.equal(f.state.row.tokenHash, null);
+  }
+  const failed = exchangeFixture(); failed.state.failAudit = true;
+  await assert.rejects(failed.service.exchangeCashCodeOnly(input, ip), { code: "CASH_EXCHANGE_PERSISTENCE_UNAVAILABLE" });
+  assert.equal(failed.state.row.tokenHash, null); assert.equal(failed.redisState.codes.has(failed.id), true);
+  failed.state.failAudit = false; assert.ok((await failed.service.exchangeCashCodeOnly(input, ip)).token);
+  const uncertain = exchangeFixture(); uncertain.state.lostCommitReply = true;
+  await assert.rejects(uncertain.service.exchangeCashCodeOnly(input, ip), { code: "CASH_EXCHANGE_PERSISTENCE_UNAVAILABLE" });
+  const original = uncertain.state.row.tokenHash;
+  uncertain.state.lostCommitReply = false;
+  await assert.rejects(uncertain.service.exchangeCashCodeOnly(input, ip), { code: "VISIT_TOKEN_ALREADY_ISSUED" });
+  assert.equal(uncertain.state.row.tokenHash, original);
+});
+it("code-only resolution cannot switch to a new issue while waiting for the SQL lock", async () => {
+  const f = exchangeFixture(), original = structuredClone(f.redisState.codes.get(f.id));
+  f.redis.resolveCashCode = async () => { f.redisState.codes.set(f.id, { ...original, issueId: randomUUID() }); return original; };
+  await assert.rejects(f.service.exchangeCashCodeOnly(input, ip), { code: "CASH_CODE_UNAVAILABLE" });
+  assert.equal(f.state.row.tokenHash, null);
+});
+
 it("cash exchange limits default to 5/session and 30/IP per minute and reject invalid config", () => {
   assert.deepEqual(getCashExchangeConfig({}), { windowSeconds: 60, ipLimit: 30, sessionLimit: 5 });
   assert.deepEqual(getCashExchangeConfig({ CASH_EXCHANGE_WINDOW_SECONDS: "120", CASH_EXCHANGE_IP_LIMIT: "10", CASH_EXCHANGE_SESSION_LIMIT: "2" }),
