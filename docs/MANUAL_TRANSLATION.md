@@ -2,7 +2,7 @@
 
 Nội dung được soạn/dịch thủ công, đối chiếu với nguồn VI và duyệt bên ngoài hệ thống trước khi nhập. API không gọi ChatGPT/Claude, không đánh giá chất lượng hay xác minh sự kiện thay con người. STAFF/ADMIN nhập được coi là xác nhận đã duyệt; chưa có quy trình duyệt nhiều cấp hoặc màn hình mới.
 
-API nhận các bản dịch `en`, `zh-Hans` (Trung giản thể), `ko`, `ja`, `ru`, `fr`, giữ riêng tên, giới thiệu và kịch bản đọc. VI vẫn dùng API nguồn POI hiện có. Đây là bộ bảy ngôn ngữ tính cả VI được người dùng chốt ngày 23/10/2026, chưa phải tuyên bố đủ văn bản/audio, chất lượng ngôn ngữ hoặc hoàn thành 15+ ngôn ngữ/dịch tự động của Word. Quyết định dùng dịch thủ công đã được chốt; Word/tiêu chí nghiệm thu cần cập nhật riêng.
+API nhận các bản dịch `en`, `zh-Hans` (Trung giản thể), `ko`, `ja`, `ru`, `fr`, `de`, `es`, `it`, `pt-BR`, `nl`, `pl`, `cs`, `tr`, giữ riêng tên, giới thiệu và kịch bản đọc. VI vẫn dùng API nguồn POI hiện có. Bộ 15 ngôn ngữ tính cả VI được người dùng chốt ngày 24/10/2026, mở rộng từ bộ bảy ngôn ngữ trước đó. Allowlist không tự chứng minh đủ văn bản/audio hoặc chất lượng ngôn ngữ. Quyết định dùng dịch thủ công đã được chốt; Word/tiêu chí nghiệm thu cần cập nhật riêng. Xem `PIPER_DEMO15.md` và `data/demo/fifteen/README.md` để tích hợp dữ liệu có kiểm soát.
 
 Mã chính xác và phân biệt hoa/thường ở đầu vào API: `zh-Hans`, không nhận `zh`, `zh-CN`, `zh-hans` hoặc `zh-Hant` để tránh nhập nhầm biến thể chữ. Không tự chuyển giản thể/phồn thể hoặc chuẩn hóa sang một mã khác. Danh mục, job và bản dịch phải dùng cùng mã; chưa có dữ liệu `zh` cần chuyển trong bộ demo đã duyệt.
 

@@ -8,6 +8,7 @@ import { getPoiDetail, deactivatePoi } from '../api/poi.ts';
 import type { PoiDto } from '../api/poi.ts';
 import { getContentJobs, retryContentJob } from '../api/contentJob.ts';
 import type { ContentJobDto } from '../api/contentJob.ts';
+import { ReviewedTranslationPanel } from '../components/ReviewedTranslationPanel';
 
 export const InternalPoiDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -445,6 +446,7 @@ export const InternalPoiDetailPage: React.FC = () => {
           </table>
         )}
       </div>
+      <ReviewedTranslationPanel key={poi.poiId} poiId={poi.poiId} />
     </div>
   );
 };

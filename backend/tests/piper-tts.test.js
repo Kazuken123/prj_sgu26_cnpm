@@ -87,6 +87,41 @@ it("demo7 uses the checked offline helper and Japanese female speaker without pu
     assert.ok(!speech.args.join(" ").includes("Reviewed script"));
   }
 });
+it("demo15 is opt-in and retains seven old voices and the selected Japanese female speaker", async t => {
+  const env = { PIPER_PYTHON: executable, PIPER_FFMPEG: executable, PIPER_MODEL_DIR: os.tmpdir(), PIPER_VOICE_SET: "demo15" };
+  assert.throws(() => getPiperConfig(env));
+  assert.throws(() => getPiperConfig({ ...env, PIPER_RESOURCE_DIR: "relative" }));
+  assert.equal(getPiperConfig({ ...env, PIPER_RESOURCE_DIR: os.tmpdir() }).voiceSet, "demo15");
+  const calls = [], adapter = await fixture(t, async (file, args, bytes) => {
+    calls.push({ args, bytes });
+    return args.includes("--check") ? Buffer.from("PIPER_RUNTIME_READY\n") : Buffer.alloc(args.includes("--model") ? 44100 : 32000);
+  }, "demo15");
+  const seven = await fixture(t, async () => Buffer.alloc(0), "demo7");
+  for (const [code, voice] of Object.entries(seven.voices)) assert.deepEqual(adapter.voices[code], voice);
+  assert.equal(Object.keys(adapter.voices).length, 15);
+  assert.equal(adapter.voices.ja.speakerName, "female"); assert.equal(adapter.voices.ja.speakerId, 0);
+  await adapter.assertConfigured();
+  for (const languageCode of ["de", "es", "it", "pt-BR", "nl", "pl", "cs", "tr"]) {
+    assert.equal(inspectWav(await adapter.synthesize({ text: "Reviewed script", languageCode })).duration, 1);
+    assert.ok(calls.at(-2).args[0].endsWith("piper-synthesize.py"));
+    assert.equal(calls.at(-2).bytes.toString(), "Reviewed script\n");
+    assert.ok(!calls.at(-2).args.join(" ").includes("Reviewed script"));
+  }
+  for (const languageCode of ["pt", "pt-br", "pt-PT", "constructor", "sv"]) {
+    await assert.rejects(adapter.synthesize({ text: "test", languageCode }), /PIPER_TTS_FAILED/);
+  }
+  await assert.rejects(seven.synthesize({ text: "test", languageCode: "de" }), /PIPER_TTS_FAILED/);
+});
+it("demo15 rejects missing models and wrong sample rate/phonemizer before spawning", async t => {
+  const adapter = await fixture(t, () => assert.fail("Invalid metadata must not spawn"), "demo15");
+  const voice = adapter.voices["pt-BR"], file = path.join(adapter.config.modelDir, voice.model + ".json");
+  for (const patch of [{ audio: { sample_rate: 8000 } }, { phoneme_type: "pinyin" }, { num_speakers: 2 }]) {
+    await fs.writeFile(file, JSON.stringify({ audio: { sample_rate: 22050 }, phoneme_type: "espeak", num_speakers: 1, ...patch }));
+    await assert.rejects(adapter.synthesize({ text: "test", languageCode: "pt-BR" }), /PIPER_TTS_FAILED/);
+  }
+  await fs.unlink(path.join(adapter.config.modelDir, adapter.voices.de.model));
+  await assert.rejects(adapter.assertConfigured());
+});
 it("speaker count, selected female mapping and phonemizer must match before spawning", async t => {
   const adapter = await fixture(t, () => assert.fail("Do not synthesize invalid models"), "demo7");
   const filename = path.join(adapter.config.modelDir, adapter.voices.ja.model + ".json");

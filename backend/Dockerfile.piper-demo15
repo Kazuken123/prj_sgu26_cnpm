@@ -1,0 +1,10 @@
+# Optional local worker; cloud worker remains disabled.
+# Build the demo7 base from the same checkout first.
+ARG PIPER_DEMO7_BASE_IMAGE=tcv-piper-demo7:local
+FROM ${PIPER_DEMO7_BASE_IMAGE}
+COPY backend/runtime/piper-demo15-voices.json /opt/tcv-runtime/
+RUN /opt/piper/bin/python /opt/tcv-runtime/install-piper-voices.py /opt/tcv-runtime/piper-demo15-voices.json /opt/piper-models/demo15
+COPY backend/ /app/
+COPY data/demo/locations/positions-v1.json /data/demo/locations/positions-v1.json
+ENV PIPER_VOICE_SET=demo15 PIPER_RESOURCE_DIR=/opt/piper-resources
+RUN /opt/piper/bin/python /app/runtime/piper-synthesize.py --resource-dir /opt/piper-resources --check

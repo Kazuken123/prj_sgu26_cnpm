@@ -73,7 +73,7 @@ export const VisitorNavigation: React.FC = () => {
             </li>
             <li>
               <NavLink to="/payment" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                Vé tham quan
+                Quyền nghe
               </NavLink>
             </li>
           </ul>
@@ -97,7 +97,7 @@ export const VisitorNavigation: React.FC = () => {
               title="Bạn đang có vé tham quan hoạt động — Nhấn để vào bản đồ"
             >
               <span>🎟️</span>
-              <span>Đang có vé</span>
+              <span>Đã kích hoạt nghe</span>
             </Link>
           ) : (
             <Link

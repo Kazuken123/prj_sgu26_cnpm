@@ -17,7 +17,9 @@ class StagingService {
   }
   async prepareRuntime() {
     await this.verifyMedia();
-    return this.store.locked(async () => ({ outcome: "RUNTIME_READY", packagedAudio: 70 }));
+    const extra = process.env.STAGING_DEMO_EXTRA_LANGUAGES === "true"
+      ? (await require("../config/demo15-assets").verify(this.media)).files.length : 0;
+    return this.store.locked(async () => ({ outcome: "RUNTIME_READY", packagedAudio: 70 + extra }));
   }
   async ensure() {
     const data = await this.verifyMedia();

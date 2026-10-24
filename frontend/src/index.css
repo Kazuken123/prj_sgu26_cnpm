@@ -163,7 +163,7 @@ a {
   border: 1px solid rgba(44, 229, 155, 0.3);
 }
 
-.demo-chip {
+.visitor-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -178,7 +178,7 @@ a {
   letter-spacing: 0.05em;
 }
 
-.demo-dot {
+.visitor-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;

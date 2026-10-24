@@ -161,8 +161,9 @@ if (process.env.RUN_PIPER_TESTS === "1") describe("Piper real local speech with 
     await db.query("UPDATE VISIT_SESSIONS SET expires_at=UTC_TIMESTAMP()-INTERVAL 1 SECOND WHERE session_id=?", [c.sessionId]);
     assert.equal((await json("/api/content/bundle?languageCode=vi", "GET", undefined, token)).response.status, 401);
   });
-  if (process.env.RUN_PIPER_DEMO7_TESTS === "1") it("demo7 actual worker preserves reviewed Unicode through restart and serves seven exact-language audio bundles", { timeout: 300000 }, async () => {
-    assert.equal(getPiperConfig().voiceSet, "demo7");
+  if (process.env.RUN_PIPER_DEMO7_TESTS === "1" || process.env.RUN_PIPER_DEMO15_TESTS === "1") it("multilingual actual worker preserves reviewed Unicode through restart and serves exact-language audio bundles", { timeout: 480000 }, async () => {
+    const fifteen = process.env.RUN_PIPER_DEMO15_TESTS === "1";
+    assert.equal(getPiperConfig().voiceSet, fifteen ? "demo15" : "demo7");
     const samples = [
       ["zh-Hans", "简体中文", "这是测试，不是正式导览。"],
       ["ko", "한국어", "이것은 시험용 음성입니다."],
@@ -170,6 +171,15 @@ if (process.env.RUN_PIPER_TESTS === "1") describe("Piper real local speech with 
       ["ru", "Русский", "Это тестовая запись."],
       ["fr", "Français", "Ceci est un test audio."],
     ];
+    if (fifteen) samples.push(
+      ["de", "Deutsch", "Dies ist eine Testaufnahme."],
+      ["es", "Español", "Esta es una grabación de prueba."],
+      ["it", "Italiano", "Questa è una registrazione di prova."],
+      ["pt-BR", "Português (Brasil)", "Esta é uma gravação de teste."],
+      ["nl", "Nederlands", "Dit is een testopname."],
+      ["pl", "Polski", "To jest nagranie próbne."],
+      ["cs", "Čeština", "Toto je zkušební nahrávka."],
+      ["tr", "Türkçe", "Bu bir deneme kaydıdır."]);
     for (const [code, name] of samples) await db.query("INSERT INTO LANGUAGES(code,name,is_active) VALUES(?,?,1)", [code, name]);
     const poiId = await fixture(draft.pois[0].text);
     const translations = new (require("../services/translation.service").TranslationService)(new (require("../stores/translation.store"))(db));
@@ -179,19 +189,19 @@ if (process.env.RUN_PIPER_TESTS === "1") describe("Piper real local speech with 
     try {
       // The worker also drains pending VI fixtures from the preceding error cases.
       // This queue deadline is separate from each unchanged provider timeout.
-      const deadline = Date.now() + 180000;
+      const deadline = Date.now() + (fifteen ? 360000 : 180000);
       while (Date.now() < deadline) {
         const [rows] = await db.query("SELECT status FROM CONTENT_JOBS WHERE poi_id=?", [poiId]);
         if (rows.every(row => row.status === "COMPLETED")) break;
-        if (rows.some(row => row.status === "FAILED")) assert.fail("A real demo7 job failed");
+        if (rows.some(row => row.status === "FAILED")) assert.fail("A real multilingual job failed");
         await pause(200);
       }
       const [rows] = await db.query("SELECT status FROM CONTENT_JOBS WHERE poi_id=?", [poiId]);
-      assert.equal(rows.length, 7); assert.ok(rows.every(row => row.status === "COMPLETED"));
+      assert.equal(rows.length, samples.length + 2); assert.ok(rows.every(row => row.status === "COMPLETED"));
     } finally { await worker.stop(); }
     assert.deepEqual(await textRows(), before);
     const original = (await audioRows()).filter(row => row.poi_id === poiId);
-    assert.equal(original.length, 7);
+    assert.equal(original.length, samples.length + 2);
     const restarted = await startWorker();
     await pause(1000); await restarted.stop();
     assert.deepEqual((await audioRows()).filter(row => row.poi_id === poiId), original);

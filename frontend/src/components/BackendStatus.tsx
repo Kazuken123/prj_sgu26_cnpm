@@ -203,7 +203,7 @@ export const BackendStatus: React.FC = () => {
               Thử lại kết nối
             </button>
             <span style={{ fontSize: '0.82rem', color: 'var(--tcv-slate-600)' }}>
-              Hãy kiểm tra backend demo đã chạy chưa (ví dụ: http://127.0.0.1:18080) và origin của frontend được phép qua CORS.
+              Hãy kiểm tra backend đã chạy chưa (ví dụ: http://127.0.0.1:18080) và origin của frontend được phép qua CORS.
             </span>
           </div>
         </div>

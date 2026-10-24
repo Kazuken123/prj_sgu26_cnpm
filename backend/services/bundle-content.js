@@ -1,5 +1,6 @@
 const { assetKey } = require("../adapters/local-media");
 const { MAX_AUDIO_BYTES } = require("../utils/pcm-wav");
+const { locationNote } = require("../config/demo-locations");
 const prefix = "/api/media/audio/";
 function languageOrder(requested, languages) {
   const active = new Set(languages.map(language => language.code));
@@ -28,6 +29,7 @@ function buildContent(snapshot, requested, languages) {
     const text = candidates.find(row => ready(row, poi.contentVersion)), audio = candidates.find(row => audioReady(row, poi.contentVersion));
     return { poiId: poi.poiId, originalName: poi.originalName, category: poi.category, conservationStatus: poi.conservationStatus,
       activityHours: poi.activityHours, latitude, longitude, triggerRadius: poi.triggerRadius, avatarUrl: poi.avatarUrl, displayOrder: poi.displayOrder,
+      locationNote: locationNote(poi),
       text: text ? { status: "READY", languageCode: text.languageCode, isFallback: text.languageCode !== requested,
         name: text.name, description: text.description, audioScript: text.audioScript } :
         { status: "UNAVAILABLE", languageCode: null, isFallback: false, name: null, description: null, audioScript: null },

@@ -32,13 +32,13 @@ it("translation input requires approved language codes, exact fields, bounded te
     { ...text, status: "READY" }, { ...text, provider: "approved" }]) {
     await assert.rejects(f.service.importReviewed(actor, 1, "en", input), { status: 400 });
   }
-  for (const language of ["vi", "EN", "zh", "zh-CN", "zh-Hant", "zh-hans", "de", "es", "pt", "en' OR 1=1 --"]) {
+  for (const language of ["vi", "EN", "zh", "zh-CN", "zh-Hant", "zh-hans", "pt", "pt-br", "pt-PT", "DE", "en' OR 1=1 --"]) {
     await assert.rejects(f.service.importReviewed(actor, 1, language, text), { status: 400 });
   }
   assert.equal(f.reads(), 0);
 });
-it("all six reviewed target languages retain version, enablement, processing and publication guards", async () => {
-  for (const language of ["en", "zh-Hans", "ko", "ja", "ru", "fr"]) {
+it("all fourteen reviewed target languages retain version, enablement, processing and publication guards", async () => {
+  for (const language of ["en", "zh-Hans", "ko", "ja", "ru", "fr", "de", "es", "it", "pt-BR", "nl", "pl", "cs", "tr"]) {
     const f = fixture();
     const result = await f.service.importReviewed(actor, 1, language, text);
     assert.equal(result.languageCode, language); assert.equal(result.outcome, "IMPORTED");
