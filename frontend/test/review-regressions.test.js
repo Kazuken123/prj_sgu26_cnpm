@@ -45,9 +45,9 @@ function browser(t) {
     sessionStorage: storage, localStorage: storage
   });
 }
-async function mount(t, element) {
+async function mount(t, element, options) {
   let view;
-  await act(async () => { view = create(element); });
+  await act(async () => { view = create(element, options); });
   cleanup(t, async () => { await act(async () => view.unmount()); });
   return view;
 }
@@ -205,6 +205,28 @@ for (const cancel of ['disable', 'switch']) {
   });
 }
 
+for (const savedToken of [false, true]) test('public map remains usable without verified listening access: ' + savedToken, async t => {
+  browser(t);
+  if (!savedToken) window.localStorage.removeItem('tcv_guest_session_v1');
+  const calls = [];
+  t.mock.method(globalThis, 'fetch', async (url, options) => {
+    const path = new URL(url).pathname; calls.push(path);
+    if (path === '/api/visits/me') return jsonResponse({ code: 'VISITOR_AUTH_UNAVAILABLE', error: 'Temporary outage' }, 503);
+    assert.equal(path, '/api/content/map');
+    assert.equal(options.headers.Authorization, undefined);
+    return jsonResponse({ data: { requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Tiếng Việt' }],
+      expiresAt: null, tours: [], pois: [{ ...poi(), text: { ...poi().text, audioScript: null }, audio: { status: 'UNAVAILABLE', url: null } }] } });
+  });
+  const view = await mount(t, h(MemoryRouter, null, h(ExplorePage)));
+  assert.equal(view.root.findByType(MapView).props.pois.length, 1);
+  assert.equal(view.root.findAllByType(AudioPlayer).length, 0);
+  assert.equal(button(view, 'Bắt đầu tham quan').props.disabled, true);
+  assert.match(text(view), /Bản đồ miễn phí|Chưa xác minh được quyền nghe/);
+  assert.match(text(view), /Kích hoạt quyền nghe/);
+  assert.ok(!calls.some(path => path.includes('/media/') || path.includes('/bundle')));
+  if (savedToken) assert.ok(window.localStorage.getItem('tcv_guest_session_v1'), 'temporary failure retains retry credentials');
+});
+
 test('Explore uses real GPS, auto-plays once per pass and rearms after leaving the radius', async t => {
   browser(t);
   const instances = audioMock(t);
@@ -217,7 +239,7 @@ test('Explore uses real GPS, auto-plays once per pass and rearms after leaving t
     if (String(url).includes('/bundle')) return jsonResponse({ data: {
       requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Vietnamese' }], pois: [poi()], tours: [], expiresAt: new Date(Date.now() + 86400000).toISOString()
     } });
-    return jsonResponse({ data: {} });
+    return jsonResponse({ data: { status: 'ACTIVE', expiresAt: new Date(Date.now() + 86400000).toISOString() } });
   });
   const view = await mount(t, h(MemoryRouter, { future: { v7_startTransition: true, v7_relativeSplatPath: true } }, h(ExplorePage)));
   await act(async () => button(view, 'Bắt đầu tham quan').props.onClick());
@@ -254,7 +276,7 @@ test('discovery filters and unaccented search share map results while preserving
   const tree = { ...poi(2), originalName: 'Cây dầu', category: 'PLANT', text: { ...poi().text, name: 'Cây dầu' } };
   t.mock.method(globalThis, 'fetch', async url => jsonResponse({ data: String(url).includes('/bundle') ? {
     requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Vietnamese' }], pois: [tree, deer], tours: [], expiresAt: new Date(Date.now() + 86400000).toISOString()
-  } : {} }));
+  } : { status: 'ACTIVE', expiresAt: new Date(Date.now() + 86400000).toISOString() } }));
   const view = await mount(t, h(MemoryRouter, { initialEntries: ['/explore?category=ANIMAL'], future: { v7_startTransition: true, v7_relativeSplatPath: true } }, h(ExplorePage)));
   const map = () => view.root.findByType(MapView);
   assert.deepEqual(map().props.pois.map(p => p.poiId), [1]);
@@ -275,6 +297,64 @@ test('discovery filters and unaccented search share map results while preserving
   assert.match(nodeText(view.root.findByProps({ id: 'selected-poi-detail' })), /Cây dầu/);
 });
 
+for (const initialEntry of ['/explore', '/explore?category=ANIMAL']) {
+  test('uncategorized bundle POIs remain usable through GPS updates: ' + initialEntry, async t => {
+    browser(t);
+    audioMock(t);
+    let position;
+    setGlobal(t, 'navigator', { geolocation: {
+      watchPosition(callback) { position = callback; return 1; }, clearWatch() {}
+    } });
+    const unclassified = { ...poi(1), category: null, originalName: 'Điểm chưa phân loại', text: { ...poi().text, name: 'Điểm chưa phân loại' } };
+    const animal = poi(2);
+    t.mock.method(globalThis, 'fetch', async url => {
+      if (String(url).includes('/api/media/')) return mediaResponse();
+      return jsonResponse({ data: String(url).includes('/bundle') ? {
+        requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Vietnamese' }],
+        pois: [unclassified, animal], tours: [], expiresAt: new Date(Date.now() + 86400000).toISOString()
+      } : { status: 'ACTIVE', expiresAt: new Date(Date.now() + 86400000).toISOString() } });
+    });
+    const view = await mount(t, h(MemoryRouter, { initialEntries: [initialEntry], future: { v7_startTransition: true, v7_relativeSplatPath: true } }, h(ExplorePage)));
+    const map = () => view.root.findByType(MapView);
+    assert.equal(map().props.selectedPoiId, initialEntry.includes('?') ? 2 : 1);
+    await act(async () => position({ coords: { latitude: 10.7875, longitude: 106.7053 } }));
+    assert.match(text(view), /GPS đã bật/);
+    await act(async () => button(view, 'Tất cả').props.onClick());
+    assert.equal(map().props.pois.length, 2);
+    const unclassifiedButton = view.root.findAllByType('button').find(node => node.props.className === 'poi-list-item' && nodeText(node).includes('Điểm chưa phân loại'));
+    await act(async () => unclassifiedButton.props.onClick());
+    assert.match(nodeText(view.root.findByProps({ id: 'selected-poi-detail' })), /Chưa phân loại/);
+    assert.ok(view.root.findAllByProps({ 'aria-label': 'Chưa có ảnh Điểm chưa phân loại' }).length > 0);
+    await act(async () => button(view, 'Động vật').props.onClick());
+    assert.deepEqual(map().props.pois.map(item => item.poiId), [2]);
+    await act(async () => position({ coords: { latitude: 10.788, longitude: 106.706 } }));
+    assert.match(text(view), /GPS đã bật/);
+  });
+}
+
+test('map uses the public OSM endpoint and reports failed tiles without hiding POIs', async t => {
+  browser(t);
+  const events = {};
+  let tileUrl, attribution;
+  window.setTimeout = setTimeout; window.clearTimeout = clearTimeout;
+  window.L = {
+    map: () => ({ invalidateSize() {}, remove() {} }),
+    tileLayer: (url, options) => {
+      tileUrl = url; attribution = options.attribution;
+      return { on(name, handler) { events[name] = handler; }, addTo() {} };
+    }
+  };
+  const view = await mount(t, h(MapView, { pois: [], selectedPoiId: null, onSelectPoi() {}, userLocation: null, activeTour: null, filteredCategory: 'ALL' }),
+    { createNodeMock: element => element.props.className === 'leaflet-map-canvas' ? {} : null });
+  assert.equal(tileUrl, 'https://tile.openstreetmap.org/{z}/{x}/{y}.png');
+  assert.match(attribution, /OpenStreetMap/);
+  await act(async () => events.tileerror());
+  assert.match(text(view), /Chưa tải được một phần nền bản đồ/);
+  assert.ok(view.root.findByProps({ 'aria-label': 'Bản đồ điểm tham quan Thảo Cầm Viên' }));
+  await act(async () => events.loading());
+  assert.doesNotMatch(text(view), /Chưa tải được một phần nền bản đồ/);
+});
+
 test('POI imagery falls back on a failed image and recovers for a different source', async t => {
   const props = { src: '/missing.webp', name: 'Hươu Sao', category: 'ANIMAL' };
   const view = await mount(t, h(PoiImage, props));
@@ -285,7 +365,7 @@ test('POI imagery falls back on a failed image and recovers for a different sour
   assert.equal(view.root.findByType('img').props.src, '/new.webp');
 });
 
-test('expiry while a tab is suspended stops loaded audio, clears guest access and stops GPS without polling', async t => {
+test('expiry while a tab is suspended stops loaded audio, clears guest access and preserves the public map and GPS', async t => {
   browser(t);
   const audios = audioMock(t), listeners = new Map();
   let now = Date.now(), stopped = 0, calls = 0;
@@ -296,9 +376,10 @@ test('expiry while a tab is suspended stops loaded audio, clears guest access an
   t.mock.method(globalThis, 'fetch', async url => {
     calls++;
     if (String(url).includes('/api/media/')) return mediaResponse();
+    if (String(url).includes('/map?')) return jsonResponse({ data: { requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Vietnamese' }], pois: [{ ...poi(), audio: { status: 'UNAVAILABLE', url: null } }], tours: [], expiresAt: null } });
     return jsonResponse({ data: String(url).includes('/bundle') ? {
       requestedLanguageCode: 'vi', languages: [{ code: 'vi', name: 'Vietnamese' }], pois: [poi()], tours: [], expiresAt: new Date(now + 10000).toISOString()
-    } : {} });
+    } : { status: 'ACTIVE', expiresAt: new Date(now + 10000).toISOString() } });
   });
   const view = await mount(t, h(MemoryRouter, null, h(ExplorePage)));
   await act(async () => button(view, 'Nghe thuyết minh').props.onClick());
@@ -306,11 +387,13 @@ test('expiry while a tab is suspended stops loaded audio, clears guest access an
   const count = calls;
   now += 10001;
   await act(async () => listeners.get('focus')());
-  assert.match(text(view), /Vé đã hết hạn/);
+  assert.match(text(view), /đã hết hạn/);
   assert.equal(audios[0].src, '');
   assert.equal(window.localStorage.getItem('tcv_guest_session_v1'), null);
-  assert.equal(calls, count, 'expiry must not poll the server');
-  assert.equal(stopped, 1);
+  assert.equal(calls, count + 1, 'expiry reloads only the public map');
+  assert.equal(stopped, 0, 'free GPS browsing continues');
+  assert.equal(view.root.findByType(MapView).props.pois.length, 1);
+  assert.equal(view.root.findAllByType(AudioPlayer).length, 0);
 });
 
 test('text fallback is labelled separately from real-language audio and no longer claims one-second mock', async t => {
@@ -318,10 +401,10 @@ test('text fallback is labelled separately from real-language audio and no longe
   const fallback = { ...poi(), text: { ...poi().text, languageCode: 'en', isFallback: true } };
   t.mock.method(globalThis, 'fetch', async url => jsonResponse({ data: String(url).includes('/bundle') ? {
     requestedLanguageCode: 'vi', languages: [], pois: [fallback], tours: [], expiresAt: new Date(Date.now() + 60000).toISOString()
-  } : {} }));
+  } : { status: 'ACTIVE', expiresAt: new Date(Date.now() + 86400000).toISOString() } }));
   const view = await mount(t, h(MemoryRouter, null, h(ExplorePage)));
   assert.match(text(view), /Văn bản thay thế bằng/);
-  assert.match(text(view), /Âm thanh phục vụ demo/);
+  assert.match(text(view), /Giọng đọc tổng hợp/);
   assert.doesNotMatch(text(view), /Âm thử MOCK|một giây|Phát âm thử/);
 });
 
@@ -397,7 +480,7 @@ test('payment verification arriving after local expiry cannot reactivate or recr
   now += 10001;
   await act(async () => listeners.get('focus')());
   await act(async () => resolveVisit(jsonResponse({ data: { sessionId: 'TEST visit', status: 'ACTIVE', expiresAt: deadline } })));
-  assert.match(text(view), /Vé đã hết hạn/);
+  assert.match(text(view), /đã hết hạn/);
   assert.doesNotMatch(text(view), /Phiên khách tham quan hợp lệ/);
   assert.equal(window.localStorage.getItem('tcv_guest_session_v1'), null);
 });

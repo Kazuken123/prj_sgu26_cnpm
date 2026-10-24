@@ -101,11 +101,11 @@ test('guest menu verifies saved token and ignores stale verification after clear
   });
   const view = await mount(t, VisitorNavigation);
   const guest = { version: 1, apiBaseUrl: origin, token: 'guest-test' };
-  await act(async () => saveGuestSession(guest)); assert.match(text(view), /Đang có vé/);
+  await act(async () => saveGuestSession(guest)); assert.match(text(view), /Đã kích hoạt nghe/);
   pending = true; await act(async () => saveGuestSession(guest));
   await act(async () => clearGuestSession());
   await act(async () => resolveOld(response({ data: { status: 'ACTIVE', expiresAt: new Date(Date.now() + 60000).toISOString() } })));
-  assert.doesNotMatch(text(view), /Đang có vé/);
+  assert.doesNotMatch(text(view), /Đã kích hoạt nghe/);
 });
 
 test('guest revoked/expired/network failures never claim an active ticket or erase retry credentials', async t => {
@@ -119,7 +119,7 @@ test('guest revoked/expired/network failures never claim an active ticket or era
   const view = await mount(t, VisitorNavigation);
   for (const next of ['expired', 'revoked', 'network']) {
     mode = next; await act(async () => events.dispatchEvent(new Event('focus')));
-    assert.doesNotMatch(text(view), /Đang có vé/); assert.equal(loadGuestSession(origin).session.token, 'guest-test');
+    assert.doesNotMatch(text(view), /Đã kích hoạt nghe/); assert.equal(loadGuestSession(origin).session.token, 'guest-test');
   }
 });
 
@@ -158,19 +158,18 @@ test('cash guest enters only six digits; verification failure keeps the issued t
     return response({ data: { sessionId: 'test-visit', status: 'ACTIVE', expiresAt: new Date(Date.now() + 60000).toISOString() } });
   });
   const view = await mount(t, PaymentPage);
-  await act(async () => button(view, 'Nhập mã tại quầy').props.onClick());
   const inputs = view.root.findAllByType('input');
-  assert.equal(inputs.length, 1); assert.equal(inputs[0].props.id, 'cash-code'); assert.equal(inputs[0].props.inputMode, 'numeric');
+  assert.equal(inputs.length, 1); assert.equal(inputs[0].props.id, 'activation-code'); assert.equal(inputs[0].props.inputMode, 'numeric');
   assert.doesNotMatch(text(view), /UUID|cash-session-id|Mã phiên tham quan/);
   await act(async () => inputs[0].props.onChange({ target: { value: '012345' } }));
   await act(async () => view.root.findByType('form').props.onSubmit({ preventDefault() {} }));
   assert.equal(loadGuestSession(origin).session.token, 'cash-guest-test');
   assert.equal(requests.filter(item => item.path.endsWith('/exchange-cash-code')).length, 1);
   verifyFails = false;
-  await act(async () => button(view, 'Xác minh lại phiên').props.onClick());
-  assert.match(text(view), /Vé của bạn đã sẵn sàng|Bắt đầu khám phá/);
+  await act(async () => button(view, 'Xác minh lại').props.onClick());
+  assert.match(text(view), /Quyền nghe đang hiệu lực/);
   assert.equal(requests.filter(item => item.path.endsWith('/exchange-cash-code')).length, 1);
-  assert.equal(view.root.findByType('table').parent.type, 'details');
+  assert.doesNotMatch(text(view), /mô phỏng|demo|Trực tuyến/i);
 });
 
 test('invalid cash codes show a human message; technical error remains in collapsed support details', async t => {
@@ -179,7 +178,6 @@ test('invalid cash codes show a human message; technical error remains in collap
     ? response({ data: { amount: '50000.00', currency: 'VND' } })
     : response({ code: 'CASH_CODE_INVALID_OR_EXPIRED', error: 'technical backend detail' }, 401));
   const view = await mount(t, PaymentPage);
-  await act(async () => button(view, 'Nhập mã tại quầy').props.onClick());
   await act(async () => view.root.findByType('input').props.onChange({ target: { value: '012345' } }));
   await act(async () => view.root.findByType('form').props.onSubmit({ preventDefault() {} }));
   assert.match(text(view), /Bạn hãy kiểm tra lại với nhân viên/);

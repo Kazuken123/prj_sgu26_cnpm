@@ -26,7 +26,7 @@ export interface PoiAudioDto {
 export interface PoiDto {
   poiId: number;
   originalName: string;
-  category: 'ANIMAL' | 'PLANT' | 'HERITAGE' | 'AMENITY' | string;
+  category: 'ANIMAL' | 'PLANT' | 'HERITAGE' | 'AMENITY' | string | null;
   conservationStatus: string | null;
   activityHours: string | null;
   latitude: number;
@@ -54,7 +54,7 @@ export interface TourDto {
 export interface BundleDto {
   requestedLanguageCode: string;
   generatedAt: string;
-  expiresAt: string;
+  expiresAt: string | null;
   languages: LanguageDto[];
   pois: PoiDto[];
   tours: TourDto[];
@@ -62,6 +62,12 @@ export interface BundleDto {
 
 interface BackendEnvelope<T> {
   data: T;
+}
+
+export async function getPublicMap(languageCode: string, signal?: AbortSignal, overrideBaseUrl?: string): Promise<BundleDto> {
+  const res = await requestApi<BackendEnvelope<BundleDto>>({ method: 'GET',
+    path: `/api/content/map?languageCode=${encodeURIComponent(languageCode)}`, signal, overrideBaseUrl });
+  return res.data.data;
 }
 
 export async function getContentBundle(

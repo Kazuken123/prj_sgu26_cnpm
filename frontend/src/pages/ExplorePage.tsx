@@ -5,7 +5,7 @@ import { getApiBaseUrl, ApiError } from '../api/client';
 import { loadGuestSession, clearGuestSession } from '../api/guestStorage';
 import { useVisitExpiry } from '../hooks/useVisitExpiry';
 import { getVisitMe } from '../api/payment';
-import { getContentBundle, BundleDto, PoiDto, TourDto } from '../api/content';
+import { getContentBundle, getPublicMap, BundleDto, PoiDto, TourDto } from '../api/content';
 import { AudioPlayer } from '../components/AudioPlayer';
 import { MapView, calculateHaversineDistance } from '../components/MapView';
 import { Icon } from '../components/Icon';
@@ -31,6 +31,8 @@ export const ExplorePage: React.FC = () => {
   const currentBaseUrl = getApiBaseUrl();
   const { session, mismatchedBaseUrl } = loadGuestSession(currentBaseUrl);
   const token = mismatchedBaseUrl ? null : session.token;
+  const [canListen, setCanListen] = useState(false);
+  const [publicReload, setPublicReload] = useState(0);
 
   const [bundle, setBundle] = useState<BundleDto | null>(null);
   const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>('vi');
@@ -88,7 +90,9 @@ export const ExplorePage: React.FC = () => {
     abortControllerRef.current?.abort();
     clearGuestSession();
     setSessionError('Vé đã hết hạn hoặc quyền tham quan không còn hợp lệ. Nếu mất token, vui lòng liên hệ nhân viên; không thanh toán lại chỉ để khôi phục token.');
-    setBundle(null);
+    setCanListen(false);
+    setBundle(prev => prev ? { ...prev, expiresAt: null, pois: prev.pois.map(p => ({ ...p, text: { ...p.text, audioScript: null }, audio: { status: 'UNAVAILABLE', languageCode: null, isFallback: false, url: null, mimeType: null, duration: null } })) } : null);
+    setPublicReload(value => value + 1);
     setIsVerifying(false);
     setIsAutoTourActive(false);
     setAutoPlayRequest(null);
@@ -96,7 +100,7 @@ export const ExplorePage: React.FC = () => {
   useVisitExpiry(token ? bundle?.expiresAt || session.expiresAt : null, stopExpiredVisit);
 
   // Tải bundle theo ngôn ngữ
-  const fetchBundle = useCallback(async (targetLang: string, authToken: string) => {
+  const fetchBundle = useCallback(async (targetLang: string, authToken: string | null) => {
     requestSeqRef.current += 1;
     const currentSeq = requestSeqRef.current;
 
@@ -110,7 +114,8 @@ export const ExplorePage: React.FC = () => {
     setBundleError(null);
 
     try {
-      const data = await getContentBundle(targetLang, authToken, controller.signal, currentBaseUrl);
+      const data = authToken ? await getContentBundle(targetLang, authToken, controller.signal, currentBaseUrl)
+        : await getPublicMap(targetLang, controller.signal, currentBaseUrl);
 
       if (currentSeq !== requestSeqRef.current) return;
 
@@ -122,7 +127,7 @@ export const ExplorePage: React.FC = () => {
         if (prevId !== null && data.pois.some((p) => p.poiId === prevId)) {
           return prevId;
         }
-        const first = data.pois.find(p => requestedCategory === 'ALL' || p.category.toUpperCase() === requestedCategory) || data.pois[0];
+        const first = data.pois.find(p => requestedCategory === 'ALL' || p.category?.toUpperCase() === requestedCategory) || data.pois[0];
         return first?.poiId ?? null;
       });
     } catch (err: unknown) {
@@ -145,45 +150,37 @@ export const ExplorePage: React.FC = () => {
     }
   }, [currentBaseUrl, requestedCategory, stopExpiredVisit]);
 
-  // Khởi tạo và xác minh phiên
+  // Browsing remains available while entitlement is checked or unavailable.
   useEffect(() => {
     let cancelled = false;
-    if (!token) {
-      setIsVerifying(false);
-      return;
-    }
-
-    setIsVerifying(true);
-    setSessionError(null);
-
-    getVisitMe(token, currentBaseUrl)
-      .then(() => {
-        if (cancelled) return;
-        setIsVerifying(false);
-        fetchBundle('vi', token);
-      })
-      .catch((err: unknown) => {
-        if (cancelled) return;
-        setIsVerifying(false);
-        if (err instanceof ApiError && err.status === 401) {
-          stopExpiredVisit();
-        } else {
-          setSessionError(err instanceof Error ? err.message : 'Chưa thể xác minh phiên tham quan.');
+    setCanListen(false);
+    setIsVerifying(Boolean(token));
+    const initialize = async () => {
+      if (token) {
+        try {
+          const visit = await getVisitMe(token, currentBaseUrl);
+          if (cancelled) return;
+          if (visit.status !== 'ACTIVE' || !visit.expiresAt || !Number.isFinite(Date.parse(visit.expiresAt)) || Date.parse(visit.expiresAt) <= Date.now()) { stopExpiredVisit(); return; }
+          setCanListen(true); setSessionError(null); setIsVerifying(false);
+          await fetchBundle('vi', token);
+          return;
+        } catch (err) {
+          if (cancelled) return;
+          if (err instanceof ApiError && err.status === 401) { stopExpiredVisit(); return; }
+          setSessionError('Chưa xác minh được quyền nghe. Bản đồ vẫn mở; thử lại sau hoặc liên hệ nhân viên.');
         }
-      });
-
-    return () => {
-      cancelled = true;
-      requestSeqRef.current += 1;
-      if (abortControllerRef.current) {
-        abortControllerRef.current.abort();
       }
+      if (cancelled) return;
+      setIsVerifying(false);
+      await fetchBundle('vi', null);
     };
-  }, [token, currentBaseUrl, fetchBundle]);
+    void initialize();
+    return () => { cancelled = true; requestSeqRef.current++; abortControllerRef.current?.abort(); };
+  }, [token, currentBaseUrl, fetchBundle, publicReload, stopExpiredVisit]);
 
   // GPS theo dõi vị trí thực tế liên tục
   useEffect(() => {
-    if (!token || sessionError || typeof navigator === 'undefined' || !('geolocation' in navigator)) return;
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) return;
 
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
@@ -200,11 +197,11 @@ export const ExplorePage: React.FC = () => {
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, [token, sessionError]);
+  }, []);
 
   // LOGIC TỰ ĐỘNG KÍCH HOẠT THUYẾT MINH THEO VỊ TRÍ (US-B02)
   useEffect(() => {
-    if (!isAutoTourActive || !userLocation || !bundle || bundle.pois.length === 0) return;
+    if (!canListen || !isAutoTourActive || !userLocation || !bundle || bundle.pois.length === 0) return;
 
     let nearestPoi: PoiDto | null = null;
     let minDistance = Infinity;
@@ -247,11 +244,11 @@ export const ExplorePage: React.FC = () => {
       activeAutoPoi.current = poiToPlay.poiId;
       setAutoPlayRequest({ id: ++autoPlaySequence.current, poiId: poiToPlay.poiId });
     }
-  }, [userLocation, isAutoTourActive, bundle, playedPoisInPass]);
+  }, [canListen, userLocation, isAutoTourActive, bundle, playedPoisInPass]);
 
   const handleSelectLanguage = (langCode: string) => {
-    if (!token || langCode === selectedLanguageCode || loadingLanguageCode === langCode) return;
-    fetchBundle(langCode, token);
+    if (langCode === selectedLanguageCode || loadingLanguageCode === langCode) return;
+    fetchBundle(langCode, canListen ? token : null);
   };
 
   const selectedPoi: PoiDto | undefined = bundle?.pois.find((p) => p.poiId === selectedPoiId);
@@ -277,78 +274,6 @@ export const ExplorePage: React.FC = () => {
     setChatMessages((prev) => [...prev, { sender: 'bot', text: answer }]);
   };
 
-  // 1. TRƯỜNG HỢP CHƯA CÓ TOKEN
-  if (!token && !sessionError) {
-    return (
-      <div className="explore-container" style={{ maxWidth: '900px', margin: '40px auto', padding: '0 16px' }}>
-        <div className="tcv-card access-gate" style={{ textAlign: 'center', padding: '48px 24px' }}>
-          <span className="gate-icon" style={{ fontSize: '3rem' }}>🎧</span>
-          <h1 className="hero-title" style={{ fontSize: 'clamp(1.6rem, 3.5vw, 2.4rem)', color: '#244b38', margin: '16px 0 10px' }}>
-            Bắt đầu hành trình khám phá
-          </h1>
-          <p style={{ color: '#4b5563', maxWidth: '600px', margin: '0 auto 24px', lineHeight: 1.6 }}>
-            Khuôn viên Thảo Cầm Viên Sài Gòn có hơn 130 loài động vật quý hiếm và 2.500 cây cổ thụ di sản.
-            Kích hoạt vé tham quan để mở khóa bản đồ tương tác định vị GPS và tự động thuyết minh đa ngôn ngữ.
-          </p>
-          <div className="gate-actions" style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Link to="/payment" className="btn-primary" style={{ padding: '12px 28px', fontSize: '1rem', textDecoration: 'none' }}>
-              Kích hoạt vé tham quan ngay →
-            </Link>
-            <Link to="/" className="btn-secondary" style={{ padding: '12px 24px', fontSize: '1rem', textDecoration: 'none' }}>
-              Xem giới thiệu
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // 2. TRƯỜNG HỢP ĐANG XÁC MINH PHIÊN
-  if (isVerifying && !bundle) {
-    return (
-      <div className="explore-container" style={{ maxWidth: '800px', margin: '40px auto', padding: '0 16px', textAlign: 'center' }}>
-        <div className="tcv-card" style={{ padding: '48px 24px' }}>
-          <div style={{ fontSize: '2rem', marginBottom: '12px' }}>🌿</div>
-          <h2 style={{ color: '#244b38', fontSize: '1.4rem', margin: '0 0 8px' }}>
-            Đang xác minh vé tham quan...
-          </h2>
-          <p style={{ color: '#6b7280', fontSize: '0.9rem', margin: 0 }}>
-            Hệ thống đang tải gói dữ liệu thuyết minh và bản đồ Thảo Cầm Viên Sài Gòn.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // 3. TRƯỜNG HỢP PHIÊN HẾT HẠN
-  if (sessionError) {
-    return (
-      <div className="explore-container" style={{ maxWidth: '800px', margin: '40px auto', padding: '0 16px' }}>
-        <div className="tcv-card" style={{ padding: '36px 24px' }}>
-          <h1 className="hero-title" style={{ fontSize: '1.8rem', color: '#991b1b', margin: '0 0 12px' }}>
-            Quyền tham quan không khả dụng
-          </h1>
-          <div className="banner-notice" style={{ margin: '20px 0', background: '#fee2e2', border: '1px solid #fecaca', color: '#991b1b' }}>
-            <Icon name="info" />
-            <div>
-              <div className="banner-title" style={{ fontWeight: 700 }}>Thông báo phiên tham quan</div>
-              <div className="banner-desc">{sessionError}</div>
-            </div>
-          </div>
-          <div className="gate-actions" style={{ display: 'flex', gap: '12px' }}>
-            <Link to="/payment" className="btn-primary" style={{ padding: '10px 20px', textDecoration: 'none' }}>
-              Mua hoặc gia hạn vé
-            </Link>
-            <Link to="/" className="btn-secondary" style={{ padding: '10px 20px', textDecoration: 'none' }}>
-              Trang chủ
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (!token) return null;
   return (
     <div className="explore-container botanical-explore">
       
@@ -361,7 +286,7 @@ export const ExplorePage: React.FC = () => {
                 Thảo Cầm Viên Sài Gòn
               </span>
               <span className="status-pill ready" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                {bundle ? 'Vé đang hiệu lực' : 'Đang tải nội dung'}
+                {canListen ? 'Quyền nghe đang hiệu lực' : isVerifying ? 'Đang xác minh quyền nghe' : 'Bản đồ miễn phí'}
               </span>
             </div>
             <h1 className="hero-title" style={{ fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', margin: '4px 0 0', color: '#244b38' }}>
@@ -419,6 +344,7 @@ export const ExplorePage: React.FC = () => {
             {/* Nut Bat dau tham quan tu dong */}
             <button
               type="button"
+              disabled={!canListen}
               onClick={() => {
                 attemptedPois.current.clear();
                 activeAutoPoi.current = null;
@@ -443,18 +369,19 @@ export const ExplorePage: React.FC = () => {
 
           </div>
 
-          {!userLocation && <div role="status">Đang chờ vị trí GPS thực tế để tự động phát.</div>}
+          {!userLocation && <div role="status">Cho phép vị trí để xem khoảng cách đến điểm tham quan.</div>}
 
           {/* Thong tin han ve */}
           <div style={{ fontSize: '0.82rem', color: '#6b7280' }}>
-            Hạn vé: <strong style={{ color: '#244b38' }}>{bundle?.expiresAt ? new Date(bundle.expiresAt).toLocaleString('vi-VN') : '24 giờ'}</strong>
+            {canListen && bundle?.expiresAt ? <>Hạn nghe: <strong>{new Date(bundle.expiresAt).toLocaleString('vi-VN')}</strong></> : <Link to="/payment">Kích hoạt quyền nghe tại quầy</Link>}
           </div>
         </div>
       </div>
 
+      {sessionError && <p role="status">{sessionError} <button className="btn-secondary" onClick={() => setPublicReload(value => value + 1)}>Xác minh lại quyền nghe</button></p>}
       {bundleError && (
         <div className="banner-notice" style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', marginBottom: '16px' }}>
-          <div>{bundleError.message}</div><button type="button" className="btn-secondary btn-sm" onClick={() => fetchBundle(selectedLanguageCode, token)}>Thử lại</button>
+          <div>{bundleError.message}</div><button type="button" className="btn-secondary btn-sm" onClick={() => fetchBundle(selectedLanguageCode, canListen ? token : null)}>Thử lại</button>
         </div>
       )}
 
@@ -482,25 +409,26 @@ export const ExplorePage: React.FC = () => {
         <section className="explore-map-panel" aria-labelledby="explore-map-heading">
           <div className="panel-heading"><h2 id="explore-map-heading"><Icon name="map" /> Bản đồ khu vườn</h2><span className="map-live-label">{userLocation ? 'GPS đã bật' : 'Chưa có GPS'}</span></div>
           <MapView pois={filteredPois} tourPois={bundle?.pois} selectedPoiId={selectedPoiId} onSelectPoi={selectPoi} userLocation={userLocation} activeTour={activeTour} filteredCategory="ALL" />
-          <p className="map-help"><Icon name="info" /> Chạm vào điểm trên bản đồ để xem giới thiệu. Demo trình duyệt dùng tọa độ tham khảo/minh họa, chưa khảo sát thực địa. Đường nối là minh họa, không phải đường đi bộ đã xác minh.</p>
+          <p className="map-help"><Icon name="info" /> Vị trí tham chiếu từ OpenStreetMap; tâm khu vực không phải lối vào. Đi theo biển chỉ dẫn tại vườn. Đường nối các điểm không phải tuyến đi bộ.</p>
+          <a className="text-link" href="https://saigonzoo.vn/p/ban-do-duong-di-hp13.html" target="_blank" rel="noreferrer">Xem sơ đồ chính thức của Thảo Cầm Viên ↗</a>
           {bundle?.tours && bundle.tours.length > 0 && <div className="explore-tours"><h3><Icon name="compass" /> Lộ trình gợi ý</h3><div>{bundle.tours.map(tour => <button key={tour.tourId} type="button" aria-pressed={activeTourId === tour.tourId} onClick={() => setActiveTourId(activeTourId === tour.tourId ? null : tour.tourId)}><strong>{tour.name}</strong><span>{tour.items.length} điểm dừng · {activeTourId === tour.tourId ? 'Đang xem' : 'Xem lộ trình'}</span></button>)}</div></div>}
         </section>
         <aside ref={detailRef} id="selected-poi-detail" className="poi-detail-panel" aria-label="Chi tiết điểm tham quan">
           {selectedPoi ? <>
             <PoiImage key={selectedPoi.poiId} src={selectedPoi.avatarUrl} name={selectedPoi.text.name || selectedPoi.originalName} category={selectedPoi.category} className="poi-detail-photo" />
             <div className="poi-detail-copy">
-              <span className="category-label"><Icon name={selectedPoi.category.toUpperCase() === 'ANIMAL' ? 'paw' : selectedPoi.category.toUpperCase() === 'PLANT' ? 'leaf' : 'pin'} />{formatCategory(selectedPoi.category)}</span>
+              <span className="category-label"><Icon name={selectedPoi.category?.toUpperCase() === 'ANIMAL' ? 'paw' : selectedPoi.category?.toUpperCase() === 'PLANT' ? 'leaf' : 'pin'} />{formatCategory(selectedPoi.category)}</span>
               <h2>{selectedPoi.text.name || selectedPoi.originalName}</h2>
               {selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && <p className="poi-original-name">{selectedPoi.originalName}</p>}
-              <span className={`status-pill ${selectedPoi.audio.status === 'AVAILABLE' ? 'ready' : 'idle'}`}>{selectedPoi.audio.status === 'AVAILABLE' ? 'Sẵn sàng thuyết minh' : 'Chưa có âm thanh'}</span>
-              <div className="poi-detail-audio"><AudioPlayer key={[selectedPoi.poiId, selectedLanguageCode, selectedPoi.audio.url, token].join(':')} autoPlayRequestId={isAutoTourActive && autoPlayRequest?.poiId === selectedPoi.poiId ? autoPlayRequest.id : null} onPlaybackStarted={handlePlaybackStarted} poi={selectedPoi} requestedLanguageCode={selectedLanguageCode} token={token} onSessionExpired={stopExpiredVisit} /></div>
+              <span className={`status-pill ${selectedPoi.audio.status === 'AVAILABLE' ? 'ready' : 'idle'}`}>{!canListen ? 'Cần kích hoạt quyền nghe' : selectedPoi.audio.status === 'AVAILABLE' ? 'Sẵn sàng thuyết minh' : 'Chưa có âm thanh'}</span>
+              <div className="poi-detail-audio">{canListen && token ? <AudioPlayer key={[selectedPoi.poiId, selectedLanguageCode, selectedPoi.audio.url, token].join(':')} autoPlayRequestId={isAutoTourActive && autoPlayRequest?.poiId === selectedPoi.poiId ? autoPlayRequest.id : null} onPlaybackStarted={handlePlaybackStarted} poi={selectedPoi} requestedLanguageCode={selectedLanguageCode} token={token} onSessionExpired={stopExpiredVisit} /> : <><p>Thanh toán tại quầy và nhập mã nhân viên cấp để nghe thuyết minh.</p><Link className="btn-primary" to="/payment">Kích hoạt quyền nghe</Link></>}</div>
               <div className="poi-facts">
                 {selectedPoi.conservationStatus && <div><span>Bảo tồn</span><strong>{selectedPoi.conservationStatus}</strong></div>}
                 {selectedPoi.activityHours && <div><span>Khung giờ</span><strong>{selectedPoi.activityHours}</strong></div>}
                 {userLocation && <div><span>Khoảng cách từ bạn</span><strong>{calculateHaversineDistance(userLocation.latitude, userLocation.longitude, selectedPoi.latitude, selectedPoi.longitude)} m</strong></div>}
               </div>
               <section className="poi-introduction"><h3>Giới thiệu</h3>{selectedPoi.text.isFallback && <p role="status">Văn bản thay thế bằng {selectedPoi.text.languageCode?.toUpperCase()}, khác ngôn ngữ đã chọn {selectedLanguageCode.toUpperCase()}.</p>}<p>{selectedPoi.text.description || `Nội dung đang được cập nhật cho ngôn ngữ ${selectedLanguageCode.toUpperCase()}.`}</p></section>
-              {selectedPoi.text.audioScript && <details className="poi-transcript"><summary>Đọc lời thuyết minh</summary><p>{selectedPoi.text.audioScript}</p></details>}
+              {canListen && selectedPoi.text.audioScript && <details className="poi-transcript"><summary>Đọc lời thuyết minh</summary><p>{selectedPoi.text.audioScript}</p></details>}
             </div>
           </> : <div className="poi-empty"><Icon name="pin" /><h2>Điểm dừng tiếp theo?</h2><p>Chọn một điểm trên bản đồ hoặc danh sách để xem ảnh, giới thiệu và nghe thuyết minh.</p></div>}
         </aside>

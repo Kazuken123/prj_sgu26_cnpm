@@ -89,7 +89,7 @@ export const HomePage: React.FC = () => {
       <section id="huong-dan" className="visit-guide" aria-labelledby="guide-heading">
         <div className="guide-intro" data-reveal><span className="guide-symbol"><Icon name="headphones" /></span><h2 id="guide-heading">Bạn đi dạo.<br /><em>Để câu chuyện dẫn đường.</em></h2><p>Mang theo tai nghe và bắt đầu với ba bước đơn giản. Bạn luôn có thể dừng, nghe lại và khám phá theo cách của mình.</p><Link to="/payment" className="btn-primary">Chuẩn bị lượt tham quan <span className="button-icon"><Icon name="arrow" /></span></Link></div>
         <ol className="guide-steps">
-          <li data-reveal><span className="step-number">01</span><div><h3>Kích hoạt lượt tham quan</h3><p>Thử thanh toán trực tuyến hoặc nhập mã được cấp tại quầy vé.</p></div><Icon name="ticket" /></li>
+          <li data-reveal><span className="step-number">01</span><div><h3>Kích hoạt lượt tham quan</h3><p>Thanh toán tại quầy và nhập mã 6 chữ số sau khi nhân viên xác nhận.</p></div><Icon name="ticket" /></li>
           <li data-reveal><span className="step-number">02</span><div><h3>Chọn ngôn ngữ, chọn điểm đến</h3><p>Xem danh sách điểm tham quan và lộ trình trong mục Khám phá.</p></div><Icon name="compass" /></li>
           <li data-reveal><span className="step-number">03</span><div><h3>Đeo tai nghe và lắng nghe</h3><p>Mở thuyết minh tại điểm bạn thích, dừng và tiếp tục theo ý mình.</p></div><Icon name="headphones" /></li>
         </ol>
@@ -98,13 +98,13 @@ export const HomePage: React.FC = () => {
       <section className="visit-questions" aria-labelledby="questions-heading" data-reveal>
         <h2 id="questions-heading">Trước khi bắt đầu</h2>
         <div>
-          <details><summary>Tôi đã có mã tại quầy, dùng thế nào?<span aria-hidden="true">+</span></summary><p>Vào <Link to="/payment">Vé thuyết minh</Link>, chọn “Nhập mã tại quầy”, rồi nhập mã phiên và mã sáu chữ số do nhân viên cung cấp.</p></details>
+          <details><summary>Tôi đã có mã tại quầy, dùng thế nào?<span aria-hidden="true">+</span></summary><p>Vào <Link to="/payment">Vé thuyết minh</Link>, chọn “Nhập mã tại quầy”, rồi nhập mã sáu chữ số do nhân viên cung cấp.</p></details>
           <details><summary>Tôi có thể dừng và nghe lại không?<span aria-hidden="true">+</span></summary><p>Có. Sau khi kích hoạt, vào Khám phá, chọn điểm tham quan rồi chủ động phát hoặc tạm dừng thuyết minh. Âm thanh không tự phát khi mở trang.</p></details>
-          <details><summary>Bản trải nghiệm có thu tiền thật không?<span aria-hidden="true">+</span></summary><p>Không. Thanh toán trực tuyến ở phiên bản này là mô phỏng. Các tọa độ tham quan chưa được xác minh thực địa.</p></details>
+          <details><summary>Tôi có cần trả phí để xem bản đồ không?<span aria-hidden="true">+</span></summary><p>Bản đồ và thông tin điểm tham quan được xem miễn phí. Quyền nghe thuyết minh chỉ được mở sau khi nhân viên xác nhận thanh toán tại quầy.</p></details>
         </div>
       </section>
 
-      <aside className="demo-notice"><Icon name="info" /><p><strong>Bản trải nghiệm thử.</strong> Thanh toán được mô phỏng, không thu tiền thật. Nội dung và âm thanh phụ thuộc dữ liệu được triển khai trên máy chủ; tọa độ tham quan chưa được xác minh thực địa.</p></aside>
+      <aside className="visitor-notice"><Icon name="info" /><p><strong>Khám phá tự do, nghe sau khi kích hoạt.</strong> Xem bản đồ miễn phí; thanh toán phí thuyết minh tại quầy và nhận mã do nhân viên cấp. Vị trí trên bản đồ là tham chiếu, hãy đi theo biển chỉ dẫn tại vườn.</p></aside>
       <p className="photo-credit">Ảnh: <a href="https://silverkris.singaporeair.com/guide/vietnam/sgn/do-ho-chi-minh-city/saigon-zoo-and-botanical-gardens/" target="_blank" rel="noreferrer">SilverKris</a> / <a href="https://saigonzoo.vn/" target="_blank" rel="noreferrer">Thảo Cầm Viên Sài Gòn</a></p>
     </div>
   );
