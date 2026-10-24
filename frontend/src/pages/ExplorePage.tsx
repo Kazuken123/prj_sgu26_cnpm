@@ -10,6 +10,7 @@ import { AudioPlayer } from '../components/AudioPlayer';
 import { MapView, calculateHaversineDistance } from '../components/MapView';
 import { Icon } from '../components/Icon';
 import { searchBundleText } from '../api/bundleSearch';
+import { useVisitorPresence } from '../hooks/useVisitorPresence';
 
 function formatCategory(category: string | null): string {
   if (!category) return 'Chưa phân loại';
@@ -60,7 +61,8 @@ export const ExplorePage: React.FC = () => {
   const [activeTourId, setActiveTourId] = useState<number | null>(null);
 
   // Vị trí người dùng GPS thực tế (US-B01, US-B02)
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number; accuracy: number; observedAt: number } | null>(null);
+  const presence = useVisitorPresence(currentBaseUrl, userLocation);
   const [isAutoTourActive, setIsAutoTourActive] = useState<boolean>(false);
   const [playedPoisInPass, setPlayedPoisInPass] = useState<{ [poiId: number]: boolean }>({});
 
@@ -186,7 +188,9 @@ export const ExplorePage: React.FC = () => {
       (pos) => {
         setUserLocation({
           latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude
+          longitude: pos.coords.longitude,
+          accuracy: pos.coords.accuracy,
+          observedAt: pos.timestamp
         });
       },
       (err) => {
@@ -329,6 +333,11 @@ export const ExplorePage: React.FC = () => {
           </div>
         </div>
 
+        <div className="visitor-presence-choice">
+          <label><input type="checkbox" checked={presence.enabled} onChange={e=>presence.toggle(e.target.checked)}/> Đóng góp thống kê lượt tham quan bằng GPS</label>
+          <p>Khi bật, ứng dụng gửi vị trí để đếm lượt trong vườn và điểm đã ghé. Máy chủ chỉ lưu khoảng hiện diện và điểm tham quan, không lưu tọa độ GPS hoặc tên của bạn. Có thể tắt bất cứ lúc nào.</p>
+          {presence.status&&<small role="status">{presence.status}</small>}
+        </div>
         {/* Thanh công cụ Định vị GPS */}
         <div style={{
           display: 'flex',

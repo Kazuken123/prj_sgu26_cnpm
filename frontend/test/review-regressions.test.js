@@ -42,7 +42,8 @@ function browser(t) {
   const storage = { getItem: key => entries.get(key) ?? null, setItem: (key, value) => entries.set(key, value), removeItem: key => entries.delete(key) };
   setGlobal(t, 'window', {
     location: { origin }, L: {},
-    sessionStorage: storage, localStorage: storage
+    sessionStorage: storage, localStorage: storage,
+    addEventListener() {}, removeEventListener() {}
   });
 }
 async function mount(t, element, options) {
@@ -110,7 +111,7 @@ test('monitoring renders production health objects and audioRecords; unavailable
   assert.equal(new Date(urls.at(-1).searchParams.get('to')) - new Date(urls.at(-1).searchParams.get('from')), 7 * 86400000);
   assert.match(text(view), /NOT_READY/);
   assert.equal((text(view).match(/KHÔNG KHẢ DỤNG/g) || []).length, 2);
-  assert.match(text(view), /Doanh thu không khả dụng/);
+  assert.match(text(view), /Mở doanh thu theo ngày/);
   assert.match(text(view), /Thống kê lượt tải không khả dụng/);
   assert.doesNotMatch(text(view), /SẴN SÀNG \(READY\)|0 VND/);
 });
@@ -414,7 +415,7 @@ test('cash desk clears the previous code on session switch and cannot issue befo
   let issued = 0;
   t.mock.method(globalThis, 'fetch', async (url, options) => {
     if (String(url).endsWith('/me')) return jsonResponse({ data: actor });
-    if (String(url).endsWith('/cash-code')) { issued++; assert.ok(String(url).includes(first)); return jsonResponse({ data: { sessionId: first, shortedCode: '654321', codeExpiresAt: 'TEST deadline' } }); }
+    if (String(url).endsWith('/cash-code')) { issued++; assert.ok(String(url).includes(first)); return jsonResponse({ data: { sessionId: first, shortedCode: '654321', codeExpiresAt: new Date(Date.now()+60000).toISOString(), visitExpiresAt: new Date(Date.now()+3600000).toISOString() } }); }
     const sessionId = String(url).includes(second) ? second : first;
     const paid = String(url).endsWith('/confirm-cash');
     return jsonResponse({ data: { sessionId, paymentRef: 'TEST payment', paymentMethod: 'CASH', amount: '50000.00', currency: 'VND', paymentStatus: paid ? 'PAID' : 'PENDING', sessionStatus: paid ? 'ACTIVE' : 'PENDING' } }, options.method === 'POST' && String(url).endsWith('/payments') ? 201 : 200);

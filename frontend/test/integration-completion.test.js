@@ -50,9 +50,9 @@ test('header observes login/role changes; failed logout retains credentials and 
   await act(async () => saveInternalSession(internal()));
   assert.match(text(view), /Administrator|ADMIN/);
   await act(async () => saveInternalSession({ ...internal(), user: { ...user, role: 'STAFF' } }));
-  assert.doesNotMatch(text(view), /Nhật ký Audit/);
+  assert.doesNotMatch(text(view), /Quản lý/);
   await act(async () => saveInternalSession(internal()));
-  assert.match(text(view), /Nhật ký Audit/);
+  assert.match(text(view), /Quản lý/);
   await act(async () => button(view, 'Đăng xuất').props.onClick());
   assert.match(text(view), /Chưa đăng xuất/); assert.equal(loadInternalSession(origin).session.refreshToken, 'refresh-test');
   fail = false;
@@ -79,8 +79,8 @@ test('audit date and knowledge action filters satisfy the production backend con
   });
   await act(async () => view.root.findByType('form').props.onSubmit({ preventDefault() {} }));
   assert.equal(lastStatus, 200);
-  assert.equal(lastQuery.from, '2026-10-23T00:00:00Z');
-  assert.equal(lastQuery.to, '2026-10-24T00:00:00Z');
+  assert.equal(lastQuery.from, '2026-10-22T17:00:00Z');
+  assert.equal(lastQuery.to, '2026-10-24T16:59:59Z');
   assert.equal(lastQuery.action, 'PUBLISH_KNOWLEDGE_DOCUMENT');
 });
 

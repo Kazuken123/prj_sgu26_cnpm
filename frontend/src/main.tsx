@@ -21,3 +21,5 @@ ReactDOM.createRoot(rootElement).render(
     </BrowserRouter>
   </React.StrictMode>
 );
+
+import './internal.css';

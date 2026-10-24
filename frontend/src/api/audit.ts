@@ -14,6 +14,7 @@ export interface AuditLogDto {
   ipAddress: string | null;
   createdAt: string;
   userEmail?: string | null;
+  actorName?: string | null;
   details?: Record<string, unknown> | null;
   [key: string]: unknown;
 }

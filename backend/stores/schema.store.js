@@ -3,6 +3,10 @@ const path = require("node:path");
 const pool = require("../config/database");
 class SchemaStore {
   constructor(db = pool) { this.db = db; }
+  async migrateVisitorAnalytics() {
+    const sql = fs.readFileSync(path.resolve(__dirname, "../../database/migrations/007_visitor_analytics.sql"), "utf8");
+    for (const statement of sql.split(';').map(part => part.trim()).filter(Boolean)) await this.db.query(statement);
+  }
   async migrateContentJobLease() {
     const [columns] = await this.db.query("SHOW FULL COLUMNS FROM CONTENT_JOBS LIKE 'lease_expires_at'");
     if (!columns.length) {
