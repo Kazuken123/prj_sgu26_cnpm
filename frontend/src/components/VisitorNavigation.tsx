@@ -68,12 +68,12 @@ export const VisitorNavigation: React.FC = () => {
             </li>
             <li>
               <NavLink to="/explore" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                Bản đồ & Thuyết minh
+                Khám phá
               </NavLink>
             </li>
             <li>
               <NavLink to="/payment" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                Quyền nghe
+                Vé thuyết minh
               </NavLink>
             </li>
           </ul>
@@ -96,7 +96,7 @@ export const VisitorNavigation: React.FC = () => {
               }}
               title="Bạn đang có vé tham quan hoạt động — Nhấn để vào bản đồ"
             >
-              <span>🎟️</span>
+              <Icon name="ticket" />
               <span>Đã kích hoạt nghe</span>
             </Link>
           ) : (
@@ -115,7 +115,7 @@ export const VisitorNavigation: React.FC = () => {
               }}
               title="Mua vé trực tuyến hoặc đổi mã tiền mặt"
             >
-              <span>🎟️</span>
+              <Icon name="ticket" />
               <span>Kích hoạt vé</span>
             </Link>
           )}

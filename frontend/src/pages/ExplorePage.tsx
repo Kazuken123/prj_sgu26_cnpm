@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { PoiImage } from '../components/PoiImage';
 import { getApiBaseUrl, ApiError } from '../api/client';
 import { loadGuestSession, clearGuestSession } from '../api/guestStorage';
 import { useVisitExpiry } from '../hooks/useVisitExpiry';
@@ -10,7 +9,6 @@ import { AudioPlayer } from '../components/AudioPlayer';
 import { MapView, calculateHaversineDistance } from '../components/MapView';
 import { Icon } from '../components/Icon';
 import { TourPlanner } from '../components/TourPlanner';
-import { searchBundleText } from '../api/bundleSearch';
 
 function formatCategory(category: string | null): string {
   if (!category) return 'Chưa phân loại';
@@ -18,11 +16,11 @@ function formatCategory(category: string | null): string {
     case 'ANIMAL':
       return 'Động vật';
     case 'PLANT':
-      return 'Thực vật & Cây cổ thụ';
+      return 'Thực vật';
     case 'HERITAGE':
-      return 'Di tích & Lịch sử';
+      return 'Di tích';
     case 'AMENITY':
-      return 'Dịch vụ & Tiện ích';
+      return 'Tiện ích';
     default:
       return category;
   }
@@ -49,12 +47,14 @@ export const ExplorePage: React.FC = () => {
   const requestedCategory = searchParams.get('category') || 'ALL';
   const [selectedCategory, setSelectedCategory] = useState<string>(['ANIMAL', 'PLANT', 'HERITAGE', 'AMENITY'].includes(requestedCategory) ? requestedCategory : 'ALL');
   const [poiQuery, setPoiQuery] = useState('');
-  const detailRef = useRef<HTMLElement>(null);
+  const [panel, setPanel] = useState<'map' | 'places' | 'tours' | 'options'>('map');
+  const [expanded, setExpanded] = useState(false);
+  const [gpsEnabled, setGpsEnabled] = useState(false);
+  const [gpsError, setGpsError] = useState<string | null>(null);
   const selectPoi = useCallback((id: number) => {
     setSelectedPoiId(id);
-    if (window.matchMedia?.('(max-width: 700px)').matches) {
-      detailRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
+    setPanel('map');
+    setExpanded(false);
   }, []);
 
   // Tour dang chon
@@ -76,16 +76,6 @@ export const ExplorePage: React.FC = () => {
   const handlePlaybackStarted = useCallback((poiId: number) => {
     setPlayedPoisInPass(prev => prev[poiId] ? prev : { ...prev, [poiId]: true });
   }, []);
-
-  // Tra cứu từ khóa trong gói nội dung; chưa tích hợp chatbot RAG.
-  const [isChatOpen, setIsChatOpen] = useState(false);
-  const [chatQuestion, setChatQuestion] = useState('');
-  const [chatMessages, setChatMessages] = useState<Array<{ sender: 'user' | 'bot'; text: string }>>([
-    {
-      sender: 'bot',
-      text: 'Tra cứu theo tên điểm tham quan trong gói nội dung đang tải. Đây là tìm kiếm từ khóa, chưa tích hợp chatbot RAG; nội dung không xác nhận thông tin thực địa hiện hành.'
-    }
-  ]);
 
   const requestSeqRef = useRef<number>(0);
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -186,24 +176,26 @@ export const ExplorePage: React.FC = () => {
 
   // GPS theo dõi vị trí thực tế liên tục
   useEffect(() => {
-    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) return;
+    if (!gpsEnabled) return;
+    if (typeof navigator === 'undefined' || !('geolocation' in navigator)) { setGpsError('Thiết bị chưa hỗ trợ định vị. Bạn vẫn chọn điểm thủ công được.'); return; }
 
     const watchId = navigator.geolocation.watchPosition(
       (pos) => {
+        setGpsError(null);
         setUserLocation({
           latitude: pos.coords.latitude,
           longitude: pos.coords.longitude
         });
       },
       (err) => {
-        console.warn('Lỗi định vị GPS:', err.message);
+        setGpsError(err.code === 1 ? 'Bạn chưa cho phép định vị. Bản đồ và chọn điểm thủ công vẫn sử dụng được.' : 'Chưa lấy được vị trí. Bạn có thể thử lại hoặc chọn điểm thủ công.');
         setUserLocation(null);
       },
       { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
     );
 
     return () => navigator.geolocation.clearWatch(watchId);
-  }, []);
+  }, [gpsEnabled]);
 
   // LOGIC TỰ ĐỘNG KÍCH HOẠT THUYẾT MINH THEO VỊ TRÍ (US-B02)
   useEffect(() => {
@@ -267,285 +259,123 @@ export const ExplorePage: React.FC = () => {
     return categoryMatches && normalize(`${poi.text.name || ''} ${poi.originalName}`).includes(normalize(poiQuery.trim()));
   });
 
-  // Xử lý gửi tin nhắn Chatbot
-  const handleSendChat = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!chatQuestion.trim()) return;
+  const languageName = (code: string | null) => bundle?.languages.find(l => l.code === code)?.name || code || 'Chưa có';
+  const categories = [{ id: 'ALL', label: 'Tất cả' }, { id: 'ANIMAL', label: 'Động vật' }, { id: 'PLANT', label: 'Thực vật' }, { id: 'HERITAGE', label: 'Di tích' }, { id: 'AMENITY', label: 'Tiện ích' }];
+  const durationLabel = (seconds: number | null) => seconds ? `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}` : '';
+  const resetAuto = () => { setIsAutoTourActive(false); setAutoPlayRequest(null); attemptedPois.current.clear(); activeAutoPoi.current = null; setPlayedPoisInPass({}); };
+  useEffect(() => {
+    if ((panel !== 'options' && panel !== 'tours') || typeof document === 'undefined') return;
+    const dialog = document.querySelector<HTMLElement>('.garden-dialog');
+    const previous = document.activeElement as HTMLElement | null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),summary') || []).filter(el => el.getClientRects().length > 0 && (!el.closest('details:not([open])') || el.tagName === 'SUMMARY'));
+    focusable()[0]?.focus();
+    const trap = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') { e.preventDefault(); setPanel('map'); }
+      if (e.key !== 'Tab') return;
+      const items = focusable(), first = items[0], last = items[items.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last?.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first?.focus(); }
+    };
+    document.addEventListener('keydown', trap);
+    return () => { document.removeEventListener('keydown', trap); document.body.style.overflow = previousOverflow; previous?.focus(); };
+  }, [panel]);
 
-    const q = chatQuestion.trim();
-    setChatMessages((prev) => [...prev, { sender: 'user', text: q }]);
-    setChatQuestion('');
-
-    const answer = searchBundleText(q, bundle?.pois || []);
-    setChatMessages((prev) => [...prev, { sender: 'bot', text: answer }]);
-  };
-
-  return (
-    <div className="explore-container botanical-explore">
-      
-      <p className="visitor-notice" role="note">Bản đồ dùng tọa độ tham khảo và minh họa cho demo, chưa khảo sát thực địa. Đường nối các điểm không phải chỉ đường đi bộ.</p>
-      {/* THANH ĐIỀU KHIỂN & CHỌN NGÔN NGỮ */}
-      <div className="tcv-card" style={{ marginBottom: '16px', padding: '16px 20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: '#315c43', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                Thảo Cầm Viên Sài Gòn
-              </span>
-              <span className="status-pill ready" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-                {canListen ? 'Quyền nghe đang hiệu lực' : isVerifying ? 'Đang xác minh quyền nghe' : 'Bản đồ miễn phí'}
-              </span>
-            </div>
-            <h1 className="hero-title" style={{ fontSize: 'clamp(1.4rem, 2.6vw, 1.9rem)', margin: '4px 0 0', color: '#244b38' }}>
-              Bản Đồ Số & Thuyết Minh Tự Động
-            </h1>
-          </div>
-
-          {/* Chọn ngôn ngữ */}
-          <div className="explore-languages" style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-            <span style={{ fontSize: '0.86rem', fontWeight: 600, color: '#374151' }}>
-              Ngôn ngữ thuyết minh:
-            </span>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
-              {bundle?.languages && bundle.languages.length > 0 ? (
-                bundle.languages.map((lang) => {
-                  const isCurrent = lang.code === selectedLanguageCode;
-                  return (
-                    <button
-                      key={lang.code}
-                      type="button"
-                      aria-label={lang.name}
-                      aria-pressed={isCurrent}
-                      onClick={() => handleSelectLanguage(lang.code)}
-                      disabled={Boolean(loadingLanguageCode)}
-                      className={`btn-sm ${isCurrent ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ padding: '6px 12px', fontWeight: isCurrent ? 700 : 500 }}
-                    >
-                      {lang.code.toUpperCase()}
-                      {loadingLanguageCode === lang.code ? '...' : ''}
-                    </button>
-                  );
-                })
-              ) : (
-                <>
-                  <button type="button" onClick={() => handleSelectLanguage('vi')} className="btn-sm btn-primary">VI</button>
-                  <button type="button" onClick={() => handleSelectLanguage('en')} className="btn-sm btn-secondary">EN</button>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Thanh công cụ Định vị GPS */}
-        <div style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          flexWrap: 'wrap',
-          gap: '12px',
-          marginTop: '16px',
-          paddingTop: '14px',
-          borderTop: '1px solid #e5e7eb'
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-            {/* Nut Bat dau tham quan tu dong */}
-            <button
-              type="button"
-              disabled={!canListen}
-              onClick={() => {
-                attemptedPois.current.clear();
-                activeAutoPoi.current = null;
-                setAutoPlayRequest(null);
-                setIsAutoTourActive(!isAutoTourActive);
-              }}
-              className={isAutoTourActive ? 'btn-primary' : 'btn-secondary'}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '8px',
-                padding: '8px 16px',
-                fontWeight: 700,
-                background: isAutoTourActive ? '#315c43' : '#ffffff',
-                color: isAutoTourActive ? '#ffffff' : '#315c43',
-                borderColor: '#315c43'
-              }}
-            >
-              <span>{isAutoTourActive ? '🔊' : '▶️'}</span>
-              <span>{isAutoTourActive ? 'Đang bật Thuyết minh Tự động' : 'Bắt đầu tham quan (Tự động)'}</span>
-            </button>
-
-          </div>
-
-          {!userLocation && <div role="status">Cho phép vị trí để xem khoảng cách đến điểm tham quan.</div>}
-          {canListen && <label>Vị trí trình diễn <select aria-label="Vị trí trình diễn" value={simulatedPoiId ?? ''} onChange={e => {
-            setSimulatedPoiId(e.target.value ? Number(e.target.value) : null);
-            setIsAutoTourActive(false); setAutoPlayRequest(null); attemptedPois.current.clear(); activeAutoPoi.current = null;
-            setPlayedPoisInPass({});
-          }}><option value="">Dùng GPS thiết bị nếu được cho phép</option>{bundle?.pois.map(p => <option key={p.poiId} value={p.poiId}>{p.text.name || p.originalName}</option>)}</select>
-          {simulatedPoi && <strong role="status"> Đang giả lập tại {simulatedPoi.text.name || simulatedPoi.originalName}; không phải GPS thực tế.</strong>}</label>}
-
-          {/* Thong tin han ve */}
-          <div style={{ fontSize: '0.82rem', color: '#6b7280' }}>
-            {canListen && bundle?.expiresAt ? <>Hạn nghe: <strong>{new Date(bundle.expiresAt).toLocaleString('vi-VN')}</strong></> : <Link to="/payment">Kích hoạt quyền nghe</Link>}
-          </div>
-        </div>
-      </div>
-
-      {sessionError && <p role="status">{sessionError} <button className="btn-secondary" onClick={() => setPublicReload(value => value + 1)}>Xác minh lại quyền nghe</button></p>}
-      {bundleError && (
-        <div className="banner-notice" style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', marginBottom: '16px' }}>
-          <div>{bundleError.message}</div><button type="button" className="btn-secondary btn-sm" onClick={() => fetchBundle(selectedLanguageCode, canListen ? token : null)}>Thử lại</button>
-        </div>
-      )}
-
-      <div className="explore-toolbar">
-        <label className="poi-search"><Icon name="search" /><input type="search" value={poiQuery} onChange={event => setPoiQuery(event.target.value)} placeholder="Tìm điểm tham quan..." aria-label="Tìm điểm tham quan" /></label>
-        <div className="category-filters" role="group" aria-label="Lọc điểm tham quan">
-          {[{ id: 'ALL', label: 'Tất cả' }, { id: 'ANIMAL', label: 'Động vật' }, { id: 'PLANT', label: 'Thực vật' }, { id: 'HERITAGE', label: 'Di tích' }, { id: 'AMENITY', label: 'Tiện ích' }].map(category => <button key={category.id} type="button" aria-pressed={selectedCategory === category.id} onClick={() => setSelectedCategory(category.id)}>{category.label}</button>)}
-        </div>
-      </div>
-      <div className="explore-workspace">
-        <section className="poi-directory" aria-labelledby="poi-directory-heading" aria-busy={Boolean(loadingLanguageCode)}>
-          <div className="panel-heading"><h2 id="poi-directory-heading">Điểm tham quan</h2><span aria-live="polite">{filteredPois.length}</span></div>
-          <p className="panel-hint">Chọn một điểm dừng để khám phá.</p>
-          <div className="poi-directory-list">
-            {filteredPois.map(poi => {
-              const distance = userLocation ? calculateHaversineDistance(userLocation.latitude, userLocation.longitude, poi.latitude, poi.longitude) : null;
-              return <button type="button" className="poi-list-item" key={poi.poiId} aria-pressed={selectedPoiId === poi.poiId} aria-controls="selected-poi-detail" onClick={() => selectPoi(poi.poiId)}>
-                <PoiImage src={poi.avatarUrl} name={poi.text.name || poi.originalName} category={poi.category} />
-                <span className="poi-list-copy"><strong>{poi.text.name || poi.originalName}</strong><span>{formatCategory(poi.category)}</span>{distance !== null && <small>{distance} m từ bạn</small>}</span><Icon name="arrow" />
-              </button>;
-            })}
-            {filteredPois.length === 0 && <div className="poi-empty" role="status"><Icon name="search" /><p>{loadingLanguageCode ? 'Đang tải điểm tham quan…' : poiQuery || selectedCategory !== 'ALL' ? 'Không tìm thấy điểm phù hợp.' : 'Chưa có điểm tham quan để hiển thị.'}</p>{(poiQuery || selectedCategory !== 'ALL') && <button type="button" className="text-link" onClick={() => { setPoiQuery(''); setSelectedCategory('ALL'); }}>Xóa bộ lọc</button>}</div>}
-          </div>
-        </section>
-        <section className="explore-map-panel" aria-labelledby="explore-map-heading">
-          <div className="panel-heading"><h2 id="explore-map-heading"><Icon name="map" /> Bản đồ khu vườn</h2><span className="map-live-label">{simulatedPoi ? 'Vị trí giả lập' : userLocation ? 'GPS đã bật' : 'Chưa có GPS'}</span></div>
-          <MapView pois={filteredPois} tourPois={bundle?.pois} selectedPoiId={selectedPoiId} onSelectPoi={selectPoi} userLocation={userLocation} activeTour={activeTour} filteredCategory="ALL" />
-          <p className="map-help"><Icon name="info" /> Vị trí tham khảo và minh họa, chưa khảo sát thực địa; không xác nhận lối vào hay khả năng tiếp cận. Đường nối các điểm không phải tuyến đi bộ.</p>
-          <a className="text-link" href="https://saigonzoo.vn/p/ban-do-duong-di-hp13.html" target="_blank" rel="noreferrer">Xem sơ đồ chính thức của Thảo Cầm Viên ↗</a>
-          {bundle?.tours && bundle.tours.length > 0 && <div className="explore-tours"><h3><Icon name="compass" /> Lộ trình gợi ý</h3><div>{bundle.tours.map(tour => <button key={tour.tourId} type="button" aria-pressed={activeTourId === tour.tourId} onClick={() => { setCustomTour(null); setActiveTourId(activeTourId === tour.tourId ? null : tour.tourId); }}><strong>{tour.name}</strong><span>{tour.items.length} điểm dừng · {activeTourId === tour.tourId ? 'Đang xem' : 'Xem lộ trình'}</span></button>)}</div></div>}
-          {canListen && bundle && <TourPlanner pois={bundle.pois} location={userLocation} activeTour={activeTour} onApply={tour => { setCustomTour(tour); setActiveTourId(null); }} />}
-        </section>
-        <aside ref={detailRef} id="selected-poi-detail" className="poi-detail-panel" aria-label="Chi tiết điểm tham quan">
-          {selectedPoi ? <>
-            <PoiImage key={selectedPoi.poiId} src={selectedPoi.avatarUrl} name={selectedPoi.text.name || selectedPoi.originalName} category={selectedPoi.category} className="poi-detail-photo" />
-            <div className="poi-detail-copy">
-              {selectedPoi.locationNote && <p className="map-help">{selectedPoi.locationNote.label}</p>}
-              <span className="category-label"><Icon name={selectedPoi.category?.toUpperCase() === 'ANIMAL' ? 'paw' : selectedPoi.category?.toUpperCase() === 'PLANT' ? 'leaf' : 'pin'} />{formatCategory(selectedPoi.category)}</span>
-              <h2>{selectedPoi.text.name || selectedPoi.originalName}</h2>
-              {selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && <p className="poi-original-name">{selectedPoi.originalName}</p>}
-              <span className={`status-pill ${selectedPoi.audio.status === 'AVAILABLE' ? 'ready' : 'idle'}`}>{!canListen ? 'Cần kích hoạt quyền nghe' : selectedPoi.audio.status === 'AVAILABLE' ? 'Sẵn sàng thuyết minh' : 'Chưa có âm thanh'}</span>
-              <div className="poi-detail-audio">{canListen && token ? <AudioPlayer key={[selectedPoi.poiId, selectedLanguageCode, selectedPoi.audio.url, token].join(':')} autoPlayRequestId={isAutoTourActive && autoPlayRequest?.poiId === selectedPoi.poiId ? autoPlayRequest.id : null} onPlaybackStarted={handlePlaybackStarted} poi={selectedPoi} requestedLanguageCode={selectedLanguageCode} token={token} onSessionExpired={stopExpiredVisit} /> : <><p>Chọn thanh toán trực tuyến mô phỏng hoặc nhập mã sáu chữ số do nhân viên cấp để nghe thuyết minh.</p><Link className="btn-primary" to="/payment">Nghe thuyết minh</Link></>}</div>
-              <div className="poi-facts">
-                {selectedPoi.conservationStatus && <div><span>Bảo tồn</span><strong>{selectedPoi.conservationStatus}</strong></div>}
-                {selectedPoi.activityHours && <div><span>Khung giờ</span><strong>{selectedPoi.activityHours}</strong></div>}
-                {userLocation && <div><span>Khoảng cách từ bạn</span><strong>{calculateHaversineDistance(userLocation.latitude, userLocation.longitude, selectedPoi.latitude, selectedPoi.longitude)} m</strong></div>}
-              </div>
-              <section className="poi-introduction"><h3>Giới thiệu</h3>{selectedPoi.text.isFallback && <p role="status">Văn bản thay thế bằng {selectedPoi.text.languageCode?.toUpperCase()}, khác ngôn ngữ đã chọn {selectedLanguageCode.toUpperCase()}.</p>}<p>{selectedPoi.text.description || `Nội dung đang được cập nhật cho ngôn ngữ ${selectedLanguageCode.toUpperCase()}.`}</p></section>
-              {canListen && selectedPoi.text.audioScript && <details className="poi-transcript"><summary>Đọc lời thuyết minh</summary><p>{selectedPoi.text.audioScript}</p></details>}
-            </div>
-          </> : <div className="poi-empty"><Icon name="pin" /><h2>Điểm dừng tiếp theo?</h2><p>Chọn một điểm trên bản đồ hoặc danh sách để xem ảnh, giới thiệu và nghe thuyết minh.</p></div>}
-        </aside>
-      </div>
-
-      {/* TRA CỨU NỘI DUNG ĐANG TẢI */}
-      <div style={{ position: 'fixed', bottom: '24px', right: '24px', zIndex: 1000 }}>
-        {!isChatOpen ? (
-          <button
-            type="button"
-            onClick={() => setIsChatOpen(true)}
-            style={{
-              background: '#315c43',
-              color: '#ffffff',
-              border: 'none',
-              borderRadius: '50px',
-              padding: '12px 20px',
-              fontWeight: 700,
-              fontSize: '0.92rem',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.25)',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              cursor: 'pointer'
-            }}
-          >
-            <span>💬</span>
-            <span>Tra cứu điểm tham quan</span>
-          </button>
-        ) : (
-          <div style={{
-            width: '360px',
-            maxWidth: '90vw',
-            height: '460px',
-            background: '#ffffff',
-            borderRadius: '12px',
-            boxShadow: '0 8px 30px rgba(0,0,0,0.25)',
-            display: 'flex',
-            flexDirection: 'column',
-            overflow: 'hidden',
-            border: '1px solid #d1d5db'
-          }}>
-            {/* Header chat */}
-            <div style={{
-              background: '#315c43',
-              color: '#ffffff',
-              padding: '12px 16px',
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
-            }}>
-              <div>
-                <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>Tra cứu gói nội dung</div>
-                <div style={{ fontSize: '0.72rem', color: '#bbf7d0' }}>Tìm theo từ khóa · Chưa tích hợp chatbot RAG</div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsChatOpen(false)}
-                style={{ background: 'none', border: 'none', color: '#ffffff', fontSize: '1.2rem', cursor: 'pointer' }}
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Noi dung tin nhan */}
-            <div style={{ flex: 1, padding: '14px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-              {chatMessages.map((msg, idx) => (
-                <div
-                  key={idx}
-                  style={{
-                    alignSelf: msg.sender === 'user' ? 'flex-end' : 'flex-start',
-                    maxWidth: '85%',
-                    background: msg.sender === 'user' ? '#315c43' : '#f3f4f6',
-                    color: msg.sender === 'user' ? '#ffffff' : '#1f2937',
-                    padding: '8px 12px',
-                    borderRadius: '8px',
-                    fontSize: '0.86rem',
-                    lineHeight: 1.45
-                  }}
-                >
-                  <div>{msg.text}</div>
-                </div>
-              ))}
-            </div>
-
-            {/* Input chat */}
-            <form onSubmit={handleSendChat} style={{ display: 'flex', borderTop: '1px solid #e5e7eb', padding: '8px' }}>
-              <input
-                type="text"
-                value={chatQuestion}
-                onChange={(e) => setChatQuestion(e.target.value)}
-                placeholder="Nhập tên điểm tham quan..."
-                style={{ flex: 1, border: 'none', padding: '8px', fontSize: '0.86rem', outline: 'none' }}
-              />
-              <button type="submit" className="btn-primary btn-sm" style={{ padding: '6px 14px' }}>
-                Gửi
-              </button>
-            </form>
-          </div>
-        )}
-      </div>
-
+  return <div className="garden-experience">
+    <header className="garden-toolbar">
+      <div><span className="garden-eyebrow">THẢO CẦM VIÊN SÀI GÒN</span><h1>Chọn một điểm, nghe một câu chuyện.</h1></div>
+      <label className="garden-language"><Icon name="globe" /><span className="sr-only">Ngôn ngữ thuyết minh</span>
+        <select aria-label="Ngôn ngữ thuyết minh" value={selectedLanguageCode} disabled={Boolean(loadingLanguageCode)} onChange={e => handleSelectLanguage(e.target.value)}>
+          {(bundle?.languages.length ? bundle.languages : [{ code: 'vi', name: 'Tiếng Việt' }, { code: 'en', name: 'English' }]).map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
+        </select>
+      </label>
+    </header>
+    <div className="garden-status" aria-live="polite">
+      {loadingLanguageCode && <p>Đang tải nội dung {languageName(loadingLanguageCode)}…</p>}
+      {isVerifying && <p>Đang kiểm tra vé của bạn. Bạn vẫn xem được bản đồ.</p>}
+      {sessionError && <p>{sessionError} <button type="button" className="garden-text-button" onClick={() => setPublicReload(n => n + 1)}>Kiểm tra lại</button></p>}
+      {bundleError && <p role="alert">Chưa tải được nội dung. Kiểm tra kết nối rồi <button type="button" className="garden-text-button" onClick={() => fetchBundle(selectedLanguageCode, canListen ? token : null)}>thử lại</button>.</p>}
     </div>
-  );
+
+    <div className={`garden-workspace${expanded ? ' is-expanded' : ''}`}>
+      <section className={`garden-directory${panel === 'places' ? ' is-open' : ''}`} aria-label="Danh sách điểm tham quan" aria-busy={Boolean(loadingLanguageCode)}>
+        <div className="garden-directory-heading"><h2>Khám phá khu vườn</h2><button type="button" className="garden-icon-button garden-mobile-only" aria-label="Đóng danh sách" onClick={() => setPanel('map')}><Icon name="close" /></button></div>
+        <label className="garden-search"><Icon name="search" /><input type="search" aria-label="Tìm điểm tham quan" placeholder="Tìm điểm bạn muốn ghé…" value={poiQuery} onChange={e => setPoiQuery(e.target.value)} /></label>
+        <div className="garden-filters" role="group" aria-label="Lọc điểm tham quan">{categories.map(c => <button type="button" key={c.id} aria-pressed={selectedCategory === c.id} onClick={() => setSelectedCategory(c.id)}>{c.label}</button>)}</div>
+        <div className="garden-result-count"><span aria-live="polite">{filteredPois.length} điểm tham quan</span><label className="garden-desktop-category"><span className="sr-only">Phân loại điểm</span><select aria-label="Phân loại điểm" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>{categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label></div>
+        <div className="garden-poi-list">
+          {filteredPois.map(poi => <button type="button" key={poi.poiId} data-poi-id={poi.poiId} className="garden-poi-row" aria-pressed={poi.poiId === selectedPoiId} onClick={() => selectPoi(poi.poiId)}>
+            <span className="garden-category-icon"><Icon name={poi.category === 'ANIMAL' ? 'paw' : poi.category === 'PLANT' ? 'leaf' : 'pin'} /></span>
+            <span><strong>{poi.text.name || poi.originalName}</strong><small>{formatCategory(poi.category)}{poi.audio.duration ? ` · ${durationLabel(poi.audio.duration)}` : ''}</small></span><Icon name="chevron" />
+          </button>)}
+          {!filteredPois.length && <div className="garden-empty" role="status"><Icon name="search" /><p>{loadingLanguageCode ? 'Đang mở khu vườn…' : bundleError ? 'Chưa có dữ liệu để hiển thị.' : 'Không tìm thấy điểm phù hợp.'}</p>{(poiQuery || selectedCategory !== 'ALL') && <button className="garden-text-button" onClick={() => { setPoiQuery(''); setSelectedCategory('ALL'); }}>Xóa bộ lọc</button>}</div>}
+        </div>
+      </section>
+
+      <section className="garden-map" aria-label="Bản đồ khu vườn">
+        <MapView pois={filteredPois} tourPois={bundle?.pois} selectedPoiId={selectedPoiId} onSelectPoi={selectPoi} userLocation={userLocation} activeTour={activeTour} filteredCategory="ALL" />
+        <button className="garden-map-options garden-icon-button" type="button" aria-label="Tùy chọn tham quan" onClick={() => setPanel('options')}><Icon name="settings" /></button>
+        <button className="garden-mobile-search" type="button" onClick={() => setPanel('places')}><Icon name="search" /><span>Tìm điểm bạn muốn ghé…</span></button>
+        <button className="garden-map-note" type="button" onClick={() => setPanel('options')}><Icon name="info" /> Vị trí tham khảo & minh họa</button>
+        {simulatedPoi && <span className="garden-simulated-label">Đang giả lập tại {simulatedPoi.text.name || simulatedPoi.originalName}</span>}
+      </section>
+
+      <section id="selected-poi-detail" className="garden-selected" aria-label="Điểm đang chọn">
+        {selectedPoi ? <>
+          <button className="garden-sheet-handle garden-mobile-only" type="button" aria-label={expanded ? 'Thu gọn thông tin điểm' : 'Mở rộng thông tin điểm'} aria-expanded={expanded} onClick={() => setExpanded(v => !v)}><span /></button>
+          <div className="garden-selected-body">
+            <span className="garden-eyebrow">{formatCategory(selectedPoi.category)}</span>
+            <div className="garden-selected-heading"><h2>{selectedPoi.text.name || selectedPoi.originalName}</h2><button type="button" className="garden-icon-button" aria-label="Xem giới thiệu" onClick={() => setExpanded(v => !v)} aria-expanded={expanded}><Icon name="info" /></button></div>
+            {selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && <p className="garden-original-name">{selectedPoi.originalName}</p>}
+            {selectedPoi.text.isFallback && <p className="garden-fallback" role="status">Giới thiệu hiện dùng {languageName(selectedPoi.text.languageCode)}, thay cho {languageName(selectedLanguageCode)}.</p>}
+            <p className={`garden-description${expanded ? ' is-expanded' : ''}`}>{selectedPoi.text.description || 'Giới thiệu cho điểm này đang được cập nhật.'}</p>
+            {expanded && <div className="garden-expanded-content">
+              {selectedPoi.conservationStatus && <p>Tình trạng bảo tồn: {selectedPoi.conservationStatus}</p>}
+              {selectedPoi.activityHours && <p>Hoạt động: {selectedPoi.activityHours}</p>}
+              {selectedPoi.locationNote && <p className="garden-location-note">{selectedPoi.locationNote.label}</p>}
+              {userLocation && <p>Khoảng cách đường thẳng {simulatedPoi ? 'từ vị trí giả lập' : 'ước tính từ thiết bị'}: {calculateHaversineDistance(userLocation.latitude, userLocation.longitude, selectedPoi.latitude, selectedPoi.longitude)} m. Không phải khoảng cách đi bộ.</p>}
+              {canListen && selectedPoi.text.audioScript && <details><summary>Đọc lời thuyết minh</summary><p>{selectedPoi.text.audioScript}</p></details>}
+            </div>}
+            <div className="garden-detail-meta"><span><Icon name="headphones" /> {languageName(selectedLanguageCode)}</span><button type="button" className="garden-text-button" onClick={() => setExpanded(v => !v)}>{expanded ? 'Thu gọn' : 'Xem giới thiệu'}</button></div>
+          </div>
+        </> : <div className="garden-empty"><Icon name="pin" /><p>Chọn một điểm trên bản đồ để khám phá.</p></div>}
+      </section>
+
+      <div className="garden-audio-dock" aria-label="Điều khiển nghe thuyết minh">
+        <div className="garden-now-playing"><span className="garden-category-icon"><Icon name="headphones" /></span><div><strong>{selectedPoi?.text.name || selectedPoi?.originalName || 'Khám phá Thảo Cầm Viên'}</strong><small>{languageName(selectedLanguageCode)} · {canListen ? 'Vé đã kích hoạt' : 'Bản đồ mở miễn phí'}</small></div></div>
+        {selectedPoi && canListen && token ? <AudioPlayer key={[selectedPoi.poiId, selectedLanguageCode, selectedPoi.audio.url, token].join(':')} autoPlayRequestId={isAutoTourActive && autoPlayRequest?.poiId === selectedPoi.poiId ? autoPlayRequest.id : null} onPlaybackStarted={handlePlaybackStarted} poi={selectedPoi} requestedLanguageCode={selectedLanguageCode} token={token} onSessionExpired={stopExpiredVisit} />
+          : <div className="garden-listen-gate"><span>Nghe câu chuyện về điểm bạn chọn.</span><Link className="btn-primary" to="/payment"><Icon name="headphones" /> Nghe thuyết minh</Link></div>}
+        <button className="garden-tour-shortcut garden-text-button" type="button" onClick={() => setPanel('tours')}><Icon name="compass" /> Lộ trình gợi ý</button>
+      </div>
+      <nav className="garden-bottom-nav" aria-label="Điều hướng khám phá">
+        {([{ id: 'map', icon: 'map', text: 'Bản đồ' }, { id: 'places', icon: 'list', text: 'Địa điểm' }, { id: 'tours', icon: 'compass', text: 'Lộ trình' }, { id: 'options', icon: 'settings', text: 'Tùy chọn' }] as const).map(item => <button key={item.id} type="button" aria-pressed={panel === item.id} onClick={() => setPanel(item.id)}><Icon name={item.icon} /><span>{item.text}</span></button>)}
+      </nav>
+    </div>
+
+    {(panel === 'options' || panel === 'tours') && <div className="garden-dialog-backdrop" onClick={() => setPanel('map')}>
+      <section className="garden-dialog" role="dialog" aria-modal="true" aria-labelledby="garden-dialog-heading" onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Escape') setPanel('map'); }}>
+        <div className="garden-dialog-heading"><h2 id="garden-dialog-heading">{panel === 'options' ? 'Tùy chọn tham quan' : 'Lộ trình của bạn'}</h2><button type="button" className="garden-icon-button" aria-label="Đóng" onClick={() => setPanel('map')}><Icon name="close" /></button></div>
+        {panel === 'options' ? <>
+          <p>Chọn điểm và bấm nghe để khám phá theo cách của bạn.</p>
+          <button type="button" className="btn-secondary" onClick={() => { if (gpsEnabled) { setGpsEnabled(false); setUserLocation(null); resetAuto(); } else { setGpsError(null); setGpsEnabled(true); } }}>{gpsEnabled ? 'Tắt định vị thiết bị' : 'Dùng vị trí của tôi'}</button>
+          {gpsError && <p role="status">{gpsError}</p>}
+          {!userLocation && <p>Chưa có vị trí của bạn. Bạn vẫn chọn và nghe từng điểm thủ công.</p>}
+          {canListen && <>
+            <label className="garden-option-row"><input type="checkbox" checked={isAutoTourActive} onChange={() => { const next = !isAutoTourActive; resetAuto(); setIsAutoTourActive(next); }} /><span>Tự phát khi đến gần điểm trình diễn</span></label>
+            <label className="garden-field">Vị trí trình diễn<select aria-label="Vị trí trình diễn" value={simulatedPoiId ?? ''} onChange={e => { setSimulatedPoiId(e.target.value ? Number(e.target.value) : null); resetAuto(); }}><option value="">Dùng vị trí thiết bị nếu được phép</option>{bundle?.pois.map(p => <option key={p.poiId} value={p.poiId}>{p.text.name || p.originalName}</option>)}</select></label>
+            {simulatedPoi && <p role="status">Đang giả lập tại {simulatedPoi.text.name || simulatedPoi.originalName}; không phải GPS thực tế.</p>}
+            {bundle?.expiresAt && <p>Quyền nghe đến {new Date(bundle.expiresAt).toLocaleString('vi-VN')}.</p>}
+          </>}
+          <details><summary>Về bản đồ và giọng đọc demo</summary><p>Vị trí tham khảo và minh họa, chưa khảo sát thực địa; không xác nhận lối vào hay khả năng tiếp cận. Đường nối các điểm không phải tuyến đi bộ.</p><p>Âm thanh là giọng đọc tổng hợp. Bản dịch và phát âm chưa được người bản ngữ nghiệm thu độc lập.</p><a href="https://saigonzoo.vn/p/ban-do-duong-di-hp13.html" target="_blank" rel="noreferrer">Xem sơ đồ chính thức ↗</a></details>
+        </> : <>
+          <p>Lộ trình demo do nhóm đề xuất. Đường nối chỉ thể hiện thứ tự điểm ghé, không phải chỉ đường đi bộ.</p>
+          {!canListen && <p>Kích hoạt vé để xem và tùy chỉnh lộ trình. <Link to="/payment">Mở vé thuyết minh</Link></p>}
+          {canListen && bundle?.tours.map(tour => <button className="garden-tour-card" type="button" key={tour.tourId} aria-pressed={activeTourId === tour.tourId} onClick={() => { setCustomTour(null); setActiveTourId(activeTourId === tour.tourId ? null : tour.tourId); }}><strong>{tour.name}</strong><span>{tour.items.length} điểm · {activeTourId === tour.tourId ? 'Đang chọn' : 'Chọn lộ trình'}</span></button>)}
+          {canListen && bundle && <TourPlanner pois={bundle.pois} location={userLocation} activeTour={activeTour} onApply={tour => { setCustomTour(tour); setActiveTourId(null); }} />}
+          <button type="button" className="btn-primary" onClick={() => setPanel('map')}>Trở về bản đồ</button>
+        </>}
+      </section>
+    </div>}
+  </div>;
 };

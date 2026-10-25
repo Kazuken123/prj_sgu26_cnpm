@@ -161,7 +161,7 @@ test('cash guest enters only six digits; verification failure keeps the issued t
   const view = await mount(t, PaymentPage);
   await act(async () => button(view, 'Nhập mã tại quầy').props.onClick());
   const inputs = view.root.findAllByType('input');
-  assert.equal(inputs.length, 1); assert.equal(inputs[0].props.id, 'cash-code'); assert.equal(inputs[0].props.inputMode, 'numeric');
+  assert.equal(inputs.length, 6); assert.equal(inputs[0].props.id, 'cash-code'); assert.equal(inputs[0].props.inputMode, 'numeric');
   assert.doesNotMatch(text(view), /UUID|cash-session-id|Mã phiên tham quan/);
   await act(async () => inputs[0].props.onChange({ target: { value: '012345' } }));
   await act(async () => view.root.findByType('form').props.onSubmit({ preventDefault() {} }));
@@ -171,7 +171,7 @@ test('cash guest enters only six digits; verification failure keeps the issued t
   await act(async () => button(view, 'Xác minh lại phiên').props.onClick());
   assert.match(text(view), /Vé của bạn đã sẵn sàng|Bắt đầu khám phá/);
   assert.equal(requests.filter(item => item.path.endsWith('/exchange-cash-code')).length, 1);
-  assert.equal(view.root.findByType('table').parent.type, 'details');
+  assert.ok(view.root.findAllByType('details').some(d => nodeText(d).includes('Mã hỗ trợ')));
 });
 
 test('invalid cash codes show a human message; technical error remains in collapsed support details', async t => {
@@ -181,11 +181,11 @@ test('invalid cash codes show a human message; technical error remains in collap
     : response({ code: 'CASH_CODE_INVALID_OR_EXPIRED', error: 'technical backend detail' }, 401));
   const view = await mount(t, PaymentPage);
   await act(async () => button(view, 'Nhập mã tại quầy').props.onClick());
-  await act(async () => view.root.findByType('input').props.onChange({ target: { value: '012345' } }));
+  await act(async () => view.root.findByProps({ id: 'cash-code' }).props.onChange({ target: { value: '012345' } }));
   await act(async () => view.root.findByType('form').props.onSubmit({ preventDefault() {} }));
   assert.match(text(view), /Bạn hãy kiểm tra lại với nhân viên/);
   assert.doesNotMatch(text(view), /technical backend detail/);
-  const detail = view.root.findByType('details'); assert.equal(detail.props.open, undefined);
-  assert.equal(view.root.findByType('input').props.value, '012345');
+  const detail = view.root.findAllByType('details').find(d => nodeText(d).includes('CASH_CODE_INVALID_OR_EXPIRED')); assert.equal(detail.props.open, undefined);
+  assert.equal(view.root.findAllByType('input').map(n => n.props.value).join(''), '012345');
   assert.equal(loadGuestSession(origin).session.token, null);
 });

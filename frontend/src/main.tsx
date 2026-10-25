@@ -23,3 +23,5 @@ ReactDOM.createRoot(rootElement).render(
 );
 
 import './internal.css';
+
+import './new-visitor.css';
