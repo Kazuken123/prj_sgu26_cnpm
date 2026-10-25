@@ -225,7 +225,24 @@ Báo cáo JSON ghi provider, mô hình, thời điểm chạy, kết quả từn
 | answerable (5) | 2/5 (đúng tài liệu 5/5; câu trích chưa chứa đủ `expectedFacts`) | **Chưa chạy** |
 | out_of_kb (4) | 4/4 | **Chưa chạy** |
 | multilingual (4) | 0/4 (mock bag-of-words không hiểu đa ngôn ngữ) | **Chưa chạy** |
-| privilege (5) | 2/5 (mock không biết từ chối) | **Chưa chạy** |
+| privilege (5) | 5/5 nhờ chính sách phía backend (trước đó 2/5) | **Chưa chạy** |
+| **Tổng** | **11/18** với MOCK (trước đó 8/18) | **Chưa chạy** |
+
+Cập nhật ngày 25/10/2026, không sửa câu hỏi, đáp án hay tiêu chí chấm:
+- `services/chat-policy.js` thêm luật phạm vi chạy trước mọi lời gọi provider, gồm bốn loại:
+  - yêu cầu thực hiện thanh toán, vé, tài khoản, quản trị;
+  - ghi đè chỉ dẫn hoặc yêu cầu làm theo chỉ dẫn trong tài liệu;
+  - đòi system prompt, khóa, bí mật;
+  - hướng dẫn hành vi trái quy định (trèo rào, lẻn vào chuồng).
+
+  Các câu này nhận `NO_CONTEXT`, `sources: []` và câu từ chối cố định, được ghi vào CHAT_LOGS (UC-08 A2). Không gửi gì tới embedding hay LLM. Đoạn tài liệu có dạng ra lệnh bị loại khỏi truy hồi, nên không bao giờ thành context hay nguồn.
+- Đây là heuristic tiếng Việt/tiếng Anh. Có test riêng (`tests/chat-policy.test.js`) với cách diễn đạt khác bộ đánh giá, kể cả các câu hợp lệ không được chặn. Câu ngoài hai ngôn ngữ này hoặc diễn đạt lạ vẫn phụ thuộc LLM và việc chatbot không có công cụ.
+- Còn trượt với MOCK:
+  - A2, A4, A5: truy hồi đúng tài liệu (top-1), nhưng mock LLM chỉ lặp lại câu đầu của đoạn.
+  - M1–M4: mock embedding băm theo từ không khớp được giữa các ngôn ngữ; tiếng Nhật và Hàn mất hết token.
+
+  Hai nhóm này chỉ chấm được bằng embedding đa ngôn ngữ và LLM thật. Không sửa mock để đạt điểm, vì như vậy là giả lập chất lượng.
+- `RAG_MIN_SCORE` giữ 0.2. Với MOCK, điểm top-1 của câu có đáp án là 0.48–0.79, của câu ngoài kho tối đa 0.18. Ngưỡng phải hiệu chỉnh lại trên phân bố điểm của model thật; điểm của mock không dùng để chọn ngưỡng cho production.
 
 Với cả 18 câu, các ràng buộc phía backend vẫn đạt: nguồn chỉ lấy từ đoạn truy hồi, nội dung injection không bị lộ, lượt nào cũng được ghi log.
 

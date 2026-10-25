@@ -5,6 +5,7 @@ const { createEmbeddingAdapter, createChatAdapter } = require("./rag-adapters");
 const AppError = require("../utils/app-error");
 const validation = require("./chat.validation");
 const { buildPrompt } = require("./chat-prompt");
+const { classifyQuestion, isInstructionLike, SCOPE_REFUSAL } = require("./chat-policy");
 const { getRagConfig } = require("./rag.config");
 const { ProviderError, providerCode, withDeadline, checkEmbeddings, isVector, cosine, redactSecrets } = require("./rag-support");
 
@@ -72,7 +73,8 @@ class ChatService {
   async retrieve(vector, config) {
     let rows;
     try { rows = await this.store.candidates(config.embeddingModel); } catch { throw new ProviderError("RETRIEVAL_FAILED"); }
-    return rows.filter(row => typeof row.text === "string" && row.text.trim() && isVector(row.embedding, config.embeddingDimensions))
+    return rows.filter(row => typeof row.text === "string" && row.text.trim() && isVector(row.embedding, config.embeddingDimensions) &&
+        !isInstructionLike(row.text) && !isInstructionLike(row.title))
       .map(row => ({ ...row, score: cosine(vector, row.embedding) }))
       .filter(row => row.score >= config.minScore)
       .sort((a, b) => b.score - a.score || Number(a.chunkId) - Number(b.chunkId))
@@ -80,6 +82,8 @@ class ChatService {
   }
   // UC-08 steps 4–6, A1, A2, E3.
   async answer(question, config) {
+    // UC-08 A2 decided by the backend: out-of-scope requests never reach a provider.
+    if (classifyQuestion(question)) return { status: "NO_CONTEXT", answer: SCOPE_REFUSAL, sources: [] };
     const reply = await withDeadline(config.embeddingTimeoutMs, signal => this.embedding().embed([question], { signal }));
     const [vector] = checkEmbeddings(reply, 1, config);
     const contexts = await this.retrieve(vector, config);
