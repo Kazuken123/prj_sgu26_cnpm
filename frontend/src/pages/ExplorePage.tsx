@@ -11,6 +11,8 @@ import { Icon } from '../components/Icon';
 import { VisitorPoiPhoto } from '../components/VisitorPoiPhoto';
 import { TourPlanner } from '../components/TourPlanner';
 import { VisitSummary } from '../components/VisitSummary';
+import { LanguagePicker } from '../components/LanguagePicker';
+import { ListeningDeadline } from '../components/ListeningDeadline';
 
 function formatCategory(category: string | null): string {
   if (!category) return 'Chưa phân loại';
@@ -287,11 +289,11 @@ export const ExplorePage: React.FC = () => {
   return <div className="garden-experience">
     <header className="garden-toolbar">
       <div><span className="garden-eyebrow">THẢO CẦM VIÊN SÀI GÒN</span><h1>Chọn một điểm, nghe một câu chuyện.</h1></div>
-      <label className="garden-language"><Icon name="globe" /><span className="sr-only">Ngôn ngữ thuyết minh</span>
-        <select aria-label="Ngôn ngữ thuyết minh" value={selectedLanguageCode} disabled={Boolean(loadingLanguageCode)} onChange={e => handleSelectLanguage(e.target.value)}>
-          {(bundle?.languages.length ? bundle.languages : [{ code: 'vi', name: 'Tiếng Việt' }, { code: 'en', name: 'English' }]).map(l => <option key={l.code} value={l.code}>{l.name}</option>)}
-        </select>
-      </label>
+      <div className="garden-toolbar-controls">
+        <ListeningDeadline expiresAt={canListen ? bundle?.expiresAt : null} />
+        <LanguagePicker languages={bundle?.languages.length ? bundle.languages : [{ code: 'vi', name: 'Tiếng Việt' }, { code: 'en', name: 'English' }]}
+          value={selectedLanguageCode} disabled={Boolean(loadingLanguageCode)} onChange={handleSelectLanguage} />
+      </div>
     </header>
     <VisitSummary baseUrl={currentBaseUrl} />
     <div className="garden-status" aria-live="polite">
@@ -333,7 +335,7 @@ export const ExplorePage: React.FC = () => {
             {selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && <p className="garden-original-name">{selectedPoi.originalName}</p>}
             {selectedPoi.text.isFallback && <p className="garden-fallback" role="status">Giới thiệu hiện dùng {languageName(selectedPoi.text.languageCode)}, thay cho {languageName(selectedLanguageCode)}.</p>}
             {expanded && <VisitorPoiPhoto key={selectedPoi.poiId} originalName={selectedPoi.originalName} name={selectedPoi.text.name || selectedPoi.originalName} avatarUrl={selectedPoi.avatarUrl} category={selectedPoi.category} variant="detail" />}
-            <p className={`garden-description${expanded ? ' is-expanded' : ''}`}>{selectedPoi.text.description || 'Giới thiệu cho điểm này đang được cập nhật.'}</p>
+            {expanded && <p className="garden-description is-expanded">{selectedPoi.text.description || 'Giới thiệu cho điểm này đang được cập nhật.'}</p>}
             {expanded && <div className="garden-expanded-content">
               {selectedPoi.conservationStatus && <p>Tình trạng bảo tồn: {selectedPoi.conservationStatus}</p>}
               {selectedPoi.activityHours && <p>Hoạt động: {selectedPoi.activityHours}</p>}
