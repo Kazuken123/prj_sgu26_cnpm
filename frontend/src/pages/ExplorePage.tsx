@@ -330,7 +330,7 @@ export const ExplorePage: React.FC = () => {
       <section id="selected-poi-detail" className="garden-selected" aria-label="Điểm đang chọn">
         {selectedPoi ? <>
           <button className="garden-sheet-handle garden-mobile-only" type="button" aria-label={expanded ? 'Thu gọn thông tin điểm' : 'Mở rộng thông tin điểm'} aria-expanded={expanded} onClick={() => setExpanded(v => !v)}><span /></button>
-          <div className="garden-selected-body">
+          <div className="garden-selected-body" key={selectedPoi.poiId}>
             <span className="garden-eyebrow">{formatCategory(selectedPoi.category)}</span>
             <div className="garden-selected-heading"><h2>{selectedPoi.text.name || selectedPoi.originalName}</h2><button type="button" className="garden-icon-button" aria-label="Xem giới thiệu" onClick={() => setExpanded(v => !v)} aria-expanded={expanded}><Icon name="info" /></button></div>
             {selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && <p className="garden-original-name">{selectedPoi.originalName}</p>}
