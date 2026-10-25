@@ -8,6 +8,7 @@ import { getContentBundle, getPublicMap, BundleDto, PoiDto, TourDto } from '../a
 import { AudioPlayer } from '../components/AudioPlayer';
 import { MapView, calculateHaversineDistance } from '../components/MapView';
 import { Icon } from '../components/Icon';
+import { VisitorPoiPhoto } from '../components/VisitorPoiPhoto';
 import { TourPlanner } from '../components/TourPlanner';
 
 function formatCategory(category: string | null): string {
@@ -306,7 +307,7 @@ export const ExplorePage: React.FC = () => {
         <div className="garden-result-count"><span aria-live="polite">{filteredPois.length} điểm tham quan</span><label className="garden-desktop-category"><span className="sr-only">Phân loại điểm</span><select aria-label="Phân loại điểm" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>{categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label></div>
         <div className="garden-poi-list">
           {filteredPois.map(poi => <button type="button" key={poi.poiId} data-poi-id={poi.poiId} className="garden-poi-row" aria-pressed={poi.poiId === selectedPoiId} onClick={() => selectPoi(poi.poiId)}>
-            <span className="garden-category-icon"><Icon name={poi.category === 'ANIMAL' ? 'paw' : poi.category === 'PLANT' ? 'leaf' : 'pin'} /></span>
+            <VisitorPoiPhoto originalName={poi.originalName} name={poi.text.name || poi.originalName} avatarUrl={poi.avatarUrl} category={poi.category} />
             <span><strong>{poi.text.name || poi.originalName}</strong><small>{formatCategory(poi.category)}{poi.audio.duration ? ` · ${durationLabel(poi.audio.duration)}` : ''}</small></span><Icon name="chevron" />
           </button>)}
           {!filteredPois.length && <div className="garden-empty" role="status"><Icon name="search" /><p>{loadingLanguageCode ? 'Đang mở khu vườn…' : bundleError ? 'Chưa có dữ liệu để hiển thị.' : 'Không tìm thấy điểm phù hợp.'}</p>{(poiQuery || selectedCategory !== 'ALL') && <button className="garden-text-button" onClick={() => { setPoiQuery(''); setSelectedCategory('ALL'); }}>Xóa bộ lọc</button>}</div>}
@@ -329,6 +330,7 @@ export const ExplorePage: React.FC = () => {
             <div className="garden-selected-heading"><h2>{selectedPoi.text.name || selectedPoi.originalName}</h2><button type="button" className="garden-icon-button" aria-label="Xem giới thiệu" onClick={() => setExpanded(v => !v)} aria-expanded={expanded}><Icon name="info" /></button></div>
             {selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && <p className="garden-original-name">{selectedPoi.originalName}</p>}
             {selectedPoi.text.isFallback && <p className="garden-fallback" role="status">Giới thiệu hiện dùng {languageName(selectedPoi.text.languageCode)}, thay cho {languageName(selectedLanguageCode)}.</p>}
+            {expanded && <VisitorPoiPhoto key={selectedPoi.poiId} originalName={selectedPoi.originalName} name={selectedPoi.text.name || selectedPoi.originalName} avatarUrl={selectedPoi.avatarUrl} category={selectedPoi.category} variant="detail" />}
             <p className={`garden-description${expanded ? ' is-expanded' : ''}`}>{selectedPoi.text.description || 'Giới thiệu cho điểm này đang được cập nhật.'}</p>
             {expanded && <div className="garden-expanded-content">
               {selectedPoi.conservationStatus && <p>Tình trạng bảo tồn: {selectedPoi.conservationStatus}</p>}
