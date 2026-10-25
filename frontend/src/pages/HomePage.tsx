@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { Icon } from '../components/Icon';
 import { DiscoveryPreview } from '../components/DiscoveryPreview';
+import { getApiBaseUrl } from '../api/client';
+import { loadGuestSession } from '../api/guestStorage';
+import { getVisitMe } from '../api/payment';
 
 const stories = [
   {
@@ -31,7 +34,28 @@ const stories = [
 ];
 
 export const HomePage: React.FC = () => {
+  const navigate = useNavigate();
   const [storyIndex, setStoryIndex] = useState(0);
+  const [starting, setStarting] = useState(false);
+  const inFlight = useRef(false), mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  const startVisit = async () => {
+    if (inFlight.current) return;
+    inFlight.current = true; setStarting(true);
+    let destination = '/payment';
+    try {
+      const baseUrl = getApiBaseUrl();
+      const { session, mismatchedBaseUrl } = loadGuestSession(baseUrl);
+      if (!mismatchedBaseUrl && session.token) {
+        const visit = await getVisitMe(session.token, baseUrl);
+        if (visit.status === 'ACTIVE' && Date.parse(visit.expiresAt || '') > Date.now()) destination = '/explore';
+      }
+    } catch { /* The payment page can recheck a stored ticket without charging again. */ }
+    finally {
+      inFlight.current = false;
+      if (mounted.current) { setStarting(false); navigate(destination); }
+    }
+  };
   const story = stories[storyIndex];
 
   return (
@@ -42,7 +66,7 @@ export const HomePage: React.FC = () => {
           <h1 id="welcome-heading"><span className="heading-line">Chậm một bước.</span><span className="heading-line"><em>Nghe thiên nhiên.</em></span></h1>
           <p>Rời nhịp phố, bước vào khoảng xanh. Lắng nghe câu chuyện của những tán cây và muôn loài, theo nhịp bước của riêng bạn.</p>
           <div className="hero-actions">
-            <Link to="/payment" className="btn-primary hero-cta">Bắt đầu tham quan <span className="button-icon"><Icon name="arrow" /></span></Link>
+            <button type="button" onClick={() => void startVisit()} disabled={starting} className="btn-primary hero-cta">{starting ? 'Đang kiểm tra vé…' : 'Bắt đầu tham quan'} <span className="button-icon"><Icon name="arrow" /></span></button>
             <a href="#ban-do" className="text-link"><Icon name="map" /> Xem bản đồ khám phá</a>
           </div>
           <div className="hero-features"><span><Icon name="headphones" /> Nghe theo nhịp của bạn</span><span><Icon name="globe" /> Thuyết minh đa ngôn ngữ</span></div>
