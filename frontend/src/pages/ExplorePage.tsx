@@ -10,6 +10,7 @@ import { MapView, calculateHaversineDistance } from '../components/MapView';
 import { Icon } from '../components/Icon';
 import { VisitorPoiPhoto } from '../components/VisitorPoiPhoto';
 import { TourPlanner } from '../components/TourPlanner';
+import { VisitSummary } from '../components/VisitSummary';
 
 function formatCategory(category: string | null): string {
   if (!category) return 'Chưa phân loại';
@@ -292,6 +293,7 @@ export const ExplorePage: React.FC = () => {
         </select>
       </label>
     </header>
+    <VisitSummary baseUrl={currentBaseUrl} />
     <div className="garden-status" aria-live="polite">
       {loadingLanguageCode && <p>Đang tải nội dung {languageName(loadingLanguageCode)}…</p>}
       {isVerifying && <p>Đang kiểm tra vé của bạn. Bạn vẫn xem được bản đồ.</p>}

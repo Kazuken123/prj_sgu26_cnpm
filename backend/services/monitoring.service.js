@@ -20,6 +20,18 @@ function metric(value, unit, scope, asOf) {
 }
 class MonitoringService {
   constructor(store = new MonitoringStore(), health = new HealthStore()) { this.store = store; this.healthStore = health; }
+  // Approved public exception: aggregate only; never expose the ADMIN dashboard.
+  async getPublicVisitSummary(query = {}) {
+    if (!query || Array.isArray(query) || typeof query !== "object" || Object.keys(query).length) {
+      throw new AppError(400, "VALIDATION_ERROR", "Thống kê vé không nhận bộ lọc.");
+    }
+    try {
+      return await this.store.snapshot(async reader => {
+        const visits = await reader.activePaidVisits("PAID", "ACTIVE");
+        return { activePaidVisits: count(visits[0].total), generatedAt: reader.now.toISOString() };
+      });
+    } catch { throw new AppError(503, "VISIT_SUMMARY_UNAVAILABLE", "Chưa cập nhật được số vé. Vui lòng thử lại sau."); }
+  }
   async health() {
     const checks = await Promise.allSettled([this.healthStore.ping(), this.healthStore.pingRedis()]);
     const checkedAt = new Date().toISOString();
