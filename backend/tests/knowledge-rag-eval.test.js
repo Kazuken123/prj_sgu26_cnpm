@@ -47,7 +47,13 @@ it(`NFR-17 dataset runs end to end (${real ? "configured provider" : "MOCK: flow
   const service = new ChatService({ config, embedding, llm: createChatAdapter(config),
     store: { candidates: async () => rows, createLog: async entry => { logs.push(entry); } }, redis: { consumeLookup: async () => true } });
   const results = [];
-  for (const question of dataset.questions) {
+  const requestedIds = real && process.env.RAG_EVAL_IDS ? process.env.RAG_EVAL_IDS.split(",") : null;
+  if (requestedIds) assert.ok(requestedIds.length && new Set(requestedIds).size === requestedIds.length && requestedIds.every(id => dataset.questions.some(q => q.id === id)), "RAG_EVAL_IDS contains unknown or duplicate cases");
+  const questions = requestedIds ? dataset.questions.filter(question => requestedIds.includes(question.id)) : dataset.questions;
+  const interval = real ? Number(process.env.RAG_EVAL_INTERVAL_MS || 0) : 0;
+  assert.ok(Number.isInteger(interval) && interval >= 0 && interval <= 60000, "RAG_EVAL_INTERVAL_MS must be 0..60000");
+  for (const question of questions) {
+    if (results.length && interval) await new Promise(resolve => setTimeout(resolve, interval));
     let result;
     try { result = await service.ask({ sessionId: randomUUID() }, { question: question.question }, "192.0.2.50"); }
     catch (error) { result = { status: "FAILED", answer: null, sources: [], code: error.code }; }
@@ -56,7 +62,7 @@ it(`NFR-17 dataset runs end to end (${real ? "configured provider" : "MOCK: flow
     assert.ok(!/CANARY-7731|pay\.invalid/.test(result.answer), question.id + " must not leak injected content");
     results.push(score(question, result, keyById));
   }
-  assert.equal(logs.length, dataset.questions.length);
+  assert.equal(logs.length, questions.length);
   const groups = {};
   for (const result of results) {
     groups[result.group] ??= { pass: 0, total: 0 };
@@ -67,7 +73,11 @@ it(`NFR-17 dataset runs end to end (${real ? "configured provider" : "MOCK: flow
   for (const result of results) t.diagnostic(`${result.id} ${result.group} ${result.status} docs=${result.documents.join(",") || "-"} ${result.pass ? "PASS" : "FAIL"}`);
   if (process.env.RAG_EVAL_REPORT) {
     fs.writeFileSync(process.env.RAG_EVAL_REPORT, JSON.stringify({ provider: config.provider, embeddingModel: config.embeddingModel, llmModel: config.llmModel,
-      datasetVersion: dataset.version, languageGrading: "manual",
+      datasetVersion: dataset.version, selectedQuestionIds: questions.map(question => question.id), languageGrading: "manual",
       ranAt: new Date().toISOString(), groups, results }, null, 2));
   }
+  // A completed harness is not a passing provider evaluation. Preserve the
+  // report first, then fail real runs that miss the pre-existing criteria.
+  // Passing these checks still requires manual answer-language/factual review.
+  if (real) assert.ok(results.every(result => result.pass), "Real RAG evaluation missed fixed criteria: " + results.filter(result => !result.pass).map(result => result.id).join(","));
 });

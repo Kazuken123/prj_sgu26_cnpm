@@ -4,7 +4,8 @@ const MockChatModelAdapter = require("../adapters/mock-llm");
 const { OpenAiCompatibleEmbeddingAdapter, OpenAiCompatibleChatAdapter } = require("../adapters/openai-compatible");
 function createEmbeddingAdapter(config) {
   if (config.provider === "OPENAI_COMPATIBLE") {
-    return new OpenAiCompatibleEmbeddingAdapter({ baseUrl: config.apiBaseUrl, apiKey: config.apiKey, model: config.embeddingModel });
+    return new OpenAiCompatibleEmbeddingAdapter({ baseUrl: config.apiBaseUrl, apiKey: config.apiKey, model: config.embeddingModel,
+      singleInput: new URL(config.apiBaseUrl).hostname === "generativelanguage.googleapis.com" });
   }
   return new MockEmbeddingAdapter({ model: config.embeddingModel, dimensions: config.embeddingDimensions });
 }

@@ -31,7 +31,8 @@ describe("server.js mounts UC-15 and UC-08 routes", () => {
   const call = (path, { method = "GET", token, body } = {}) => fetch(base + path, { method,
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: "Bearer " + token } : {}) }, body: body && JSON.stringify(body) });
   it("STAFF reaches the knowledge routes; missing or visitor tokens are 401 with the shared error shape", async () => {
-    assert.equal((await call("/api/admin/knowledge-documents?page=1", { token: staffToken })).status, 200);
+    const listed = await call("/api/admin/knowledge-documents?page=1", { token: staffToken });
+    assert.equal(listed.status, 200); assert.equal(listed.headers.get("cache-control"), "no-store");
     assert.deepEqual(calls.at(-1), ["list", "STAFF", { page: "1" }]);
     const missing = await call("/api/admin/knowledge-documents");
     assert.equal(missing.status, 401); assert.deepEqual(Object.keys(await missing.json()).sort(), ["code", "error"]);

@@ -27,8 +27,26 @@ describe("OpenAI-compatible provider adapters (local fake provider)", () => {
         if (mode === "500") { res.writeHead(500); return res.end(JSON.stringify({ error: "upstream echo " + KEY })); }
         if (mode === "redirect") { res.writeHead(302, { Location: "http://127.0.0.1:1/" }); return res.end(); }
         if (mode === "garbage") { res.writeHead(200); return res.end("not json"); }
+        if (mode === "large-header") {
+          res.writeHead(200, { "Content-Length": String(9 * 1024 * 1024) }); res.flushHeaders();
+          return;
+        }
+        if (mode === "large-stream") {
+          res.writeHead(200);
+          let sent = 0;
+          const timer = setInterval(() => {
+            res.write(Buffer.alloc(64 * 1024, "x"));
+            if (++sent === 160) { clearInterval(timer); res.end(); }
+          }, 1);
+          res.on("close", () => clearInterval(timer));
+          return;
+        }
         res.writeHead(200, { "Content-Type": "application/json" });
         if (req.url === "/v1/embeddings") {
+          if (mode === "unindexed-single") return res.end(JSON.stringify({ data: [{ embedding: vectors.vector(json.input) }] }));
+          if (mode === "bad-indices") return res.end(JSON.stringify({ data: json.input.map(text => ({ index: 0, embedding: vectors.vector(text) })) }));
+          if (mode === "missing-index") return res.end(JSON.stringify({ data: json.input.map(text => ({ embedding: vectors.vector(text) })) }));
+          if (mode === "out-of-range-index") return res.end(JSON.stringify({ data: json.input.map((text, index) => ({ index: index + 1, embedding: vectors.vector(text) })) }));
           // Deliberately out of order: the adapter must sort by index.
           return res.end(JSON.stringify({ model: json.model, data: json.input.map((text, index) => ({ index, embedding: vectors.vector(text) })).reverse() }));
         }
@@ -79,6 +97,29 @@ describe("OpenAI-compatible provider adapters (local fake provider)", () => {
     const started = Date.now();
     await assert.rejects(withDeadline(200, signal => adapter.generate({ prompt: { system: "s", user: "u" }, signal })), { code: "PROVIDER_TIMEOUT" });
     assert.ok(Date.now() - started < 1500);
+  });
+  it("duplicate, missing and out-of-range embedding indices are rejected before vectors can be assigned to chunks", async () => {
+    const adapter = createEmbeddingAdapter(getRagConfig(env()));
+    for (const invalid of ["bad-indices", "missing-index", "out-of-range-index"]) {
+      mode = invalid;
+      await assert.rejects(adapter.embed(["voi", "hươu"]), { code: "PROVIDER_INVALID_RESPONSE" });
+    }
+  });
+  it("Gemini-compatible single-input requests associate unindexed vectors with each original input without guessing batch order", async () => {
+    mode = "unindexed-single";
+    const { OpenAiCompatibleEmbeddingAdapter } = require("../adapters/openai-compatible");
+    const adapter = new OpenAiCompatibleEmbeddingAdapter({ baseUrl: base, apiKey: KEY, model: "fake-embed", singleInput: true });
+    const reply = await adapter.embed(["voi", "hươu"]);
+    assert.deepEqual(reply.vectors, [vectors.vector("voi"), vectors.vector("hươu")]);
+    assert.deepEqual(seen.slice(-2).map(request => request.json.input), ["voi", "hươu"]);
+    assert.equal(createEmbeddingAdapter(getRagConfig(env({ RAG_API_BASE_URL: "https://generativelanguage.googleapis.com/v1beta/openai" }))).singleInput, true);
+  });
+  it("oversized provider bodies are rejected from headers or while streaming, without waiting for the full body", async () => {
+    const adapter = createEmbeddingAdapter(getRagConfig(env()));
+    for (const large of ["large-header", "large-stream"]) {
+      mode = large;
+      await assert.rejects(withDeadline(3000, signal => adapter.embed(["voi"], { signal })), { code: "PROVIDER_RESPONSE_TOO_LARGE" });
+    }
   });
   it("end to end: documents are embedded and chat answers with retrieved sources through the HTTP adapters", async () => {
     mode = "ok"; const config = getRagConfig(env());

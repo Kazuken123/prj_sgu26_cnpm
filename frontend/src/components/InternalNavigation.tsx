@@ -60,7 +60,7 @@ export const InternalNavigation: React.FC = () => {
   };
 
   const isAdmin = currentUser?.role === 'ADMIN';
-  const contentArea = ['/internal/pois', '/internal/tours', '/internal/jobs'].some(path => pathname.startsWith(path));
+  const contentArea = ['/internal/pois', '/internal/tours', '/internal/jobs', '/internal/knowledge'].some(path => pathname.startsWith(path));
   const manageArea = ['/internal/audit-logs', '/internal/monitoring', '/internal/staff'].some(path => pathname.startsWith(path));
   const nav = (to: string, label: string, icon: React.ComponentProps<typeof Icon>['name']) => <NavLink to={to} className={({ isActive }) => isActive ? 'active' : ''}><Icon name={icon} />{label}</NavLink>;
   return <header className="ops-header">
@@ -75,7 +75,7 @@ export const InternalNavigation: React.FC = () => {
       {isAdmin && <Link to="/internal/audit-logs" className={manageArea ? 'active' : ''}><Icon name="lock" />Quản lý</Link>}
       <Link to="/explore" className="ops-visitor-link"><Icon name="map" />Xem trang khách</Link>
     </nav>
-    {contentArea && <nav className="ops-subnav" aria-label="Quản lý nội dung">{nav('/internal/pois','Điểm tham quan','pin')}{nav('/internal/tours','Lộ trình tham quan','map')}{nav('/internal/jobs','Xử lý bản dịch & audio','headphones')}</nav>}
+    {contentArea && <nav className="ops-subnav" aria-label="Quản lý nội dung">{nav('/internal/pois','Điểm tham quan','pin')}{nav('/internal/tours','Lộ trình tham quan','map')}{nav('/internal/jobs','Xử lý bản dịch & audio','headphones')}{nav('/internal/knowledge','Kho tri thức','book')}</nav>}
     {manageArea && isAdmin && <nav className="ops-subnav" aria-label="Quản lý vận hành">{nav('/internal/audit-logs','Lịch sử thao tác','search')}{nav('/internal/staff/new','Thêm nhân viên','lock')}{nav('/internal/monitoring','Tình trạng hệ thống','info')}</nav>}
     </>}
   </header>;

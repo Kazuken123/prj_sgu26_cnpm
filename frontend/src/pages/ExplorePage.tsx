@@ -13,6 +13,7 @@ import { TourPlanner } from '../components/TourPlanner';
 import { VisitSummary } from '../components/VisitSummary';
 import { LanguagePicker } from '../components/LanguagePicker';
 import { ListeningDeadline } from '../components/ListeningDeadline';
+import { VisitorChatWidget } from '../components/VisitorChatWidget';
 
 function formatCategory(category: string | null): string {
   if (!category) return 'Chưa phân loại';
@@ -268,12 +269,12 @@ export const ExplorePage: React.FC = () => {
   const durationLabel = (seconds: number | null) => seconds ? `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}` : '';
   const resetAuto = () => { setIsAutoTourActive(false); setAutoPlayRequest(null); attemptedPois.current.clear(); activeAutoPoi.current = null; setPlayedPoisInPass({}); };
   useEffect(() => {
-    if ((panel !== 'options' && panel !== 'tours') || typeof document === 'undefined') return;
+    if (!['options', 'tours'].includes(panel) || typeof document === 'undefined') return;
     const dialog = document.querySelector<HTMLElement>('.garden-dialog');
     const previous = document.activeElement as HTMLElement | null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),select:not(:disabled),summary') || []).filter(el => el.getClientRects().length > 0 && (!el.closest('details:not([open])') || el.tagName === 'SUMMARY'));
+    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>('button:not(:disabled),a[href],input:not(:disabled),textarea:not(:disabled),select:not(:disabled),summary') || []).filter(el => el.getClientRects().length > 0 && (!el.closest('details:not([open])') || el.tagName === 'SUMMARY'));
     focusable()[0]?.focus();
     const trap = (e: KeyboardEvent) => {
       if (e.key === 'Escape') { e.preventDefault(); setPanel('map'); }
@@ -359,6 +360,7 @@ export const ExplorePage: React.FC = () => {
       </nav>
     </div>
 
+    <VisitorChatWidget token={canListen ? token : null} baseUrl={currentBaseUrl} onSessionExpired={stopExpiredVisit} />
     {(panel === 'options' || panel === 'tours') && <div className="garden-dialog-backdrop" onClick={() => setPanel('map')}>
       <section className="garden-dialog" role="dialog" aria-modal="true" aria-labelledby="garden-dialog-heading" onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Escape') setPanel('map'); }}>
         <div className="garden-dialog-heading"><h2 id="garden-dialog-heading">{panel === 'options' ? 'Tùy chọn tham quan' : 'Lộ trình của bạn'}</h2><button type="button" className="garden-icon-button" aria-label="Đóng" onClick={() => setPanel('map')}><Icon name="close" /></button></div>

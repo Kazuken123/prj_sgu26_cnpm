@@ -99,7 +99,7 @@ class KnowledgeService {
   }
   // UC-15 steps 6–7: chunk and embed outside any transaction, then publish atomically.
   async process(actorId, document, ipAddress) {
-    const config = this.config(), version = document.contentVersion;
+    const config = this.config(), version = document.contentVersion, mode = config.provider === "MOCK" ? "MOCK" : "AI";
     const fail = async code => {
       let current = document;
       try {
@@ -111,7 +111,7 @@ class KnowledgeService {
           current = await this.store.get(document.documentId);
         }
       } catch { console.error("Knowledge processing failure was not audited:", code); }
-      return { document: this.view(current ?? document), processing: { result: "FAILED", code } };
+      return { document: this.view(current ?? document), processing: { result: "FAILED", code, mode } };
     };
     const texts = chunkText(document.content, config);
     if (!texts.length) return fail("EMPTY_CONTENT");
@@ -135,8 +135,8 @@ class KnowledgeService {
       if (error instanceof AppError) throw error;
       return fail("PUBLISH_FAILED");
     }
-    if (!result.published) return { document: this.view(result.document), processing: { result: "SUPERSEDED", code: "VERSION_CHANGED" } };
-    return { document: this.view(result.document), processing: { result: "PUBLISHED", chunkCount: texts.length } };
+    if (!result.published) return { document: this.view(result.document), processing: { result: "SUPERSEDED", code: "VERSION_CHANGED", mode } };
+    return { document: this.view(result.document), processing: { result: "PUBLISHED", chunkCount: texts.length, mode } };
   }
 }
 module.exports = new KnowledgeService();
