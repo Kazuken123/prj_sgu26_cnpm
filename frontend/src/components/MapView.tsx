@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PoiDto, TourDto } from '../api/content';
 import { iconPaths } from './Icon';
+import { constrainVisitorMap } from './visitorMapBounds';
 
 interface MapViewProps {
   pois: PoiDto[];
@@ -48,7 +49,7 @@ export const MapView: React.FC<MapViewProps> = ({
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
-  const initialViewFitted = useRef(false);
+  const viewRegionRef = useRef<ReturnType<typeof constrainVisitorMap>>(null);
   const markersRef = useRef<{ [key: number]: any }>({});
   const circlesRef = useRef<{ [key: number]: any }>({});
   const userMarkerRef = useRef<any>(null);
@@ -81,6 +82,10 @@ export const MapView: React.FC<MapViewProps> = ({
         const map = L.map(mapContainerRef.current, {
           center: defaultCenter,
           zoom: 17,
+          zoomSnap: 0.25,
+          maxZoom: 19,
+          maxBoundsViscosity: 1,
+          bounceAtZoomLimits: false,
           zoomControl: true,
           attributionControl: true
         });
@@ -143,9 +148,10 @@ export const MapView: React.FC<MapViewProps> = ({
       if (resizeTimer1) window.clearTimeout(resizeTimer1);
       if (resizeTimer2) window.clearTimeout(resizeTimer2);
       resizeObserver?.disconnect();
+      viewRegionRef.current?.dispose();
+      viewRegionRef.current = null;
       mapInstanceRef.current?.remove();
       mapInstanceRef.current = null;
-      initialViewFitted.current = false;
       markersRef.current = {};
       circlesRef.current = {};
       userMarkerRef.current = null;
@@ -213,19 +219,21 @@ export const MapView: React.FC<MapViewProps> = ({
     });
   }, [pois, selectedPoiId, filteredCategory, leafletLoaded, onSelectPoi]);
 
-  // Frame all demo points once, then pan only when the selection/coordinates change.
+  // Keep the view region independent of search/category/language selections.
   const selectedMapPoi = pois.find(p => p.poiId === selectedPoiId);
   const initialPointKey = tourPois.map(p => `${p.poiId}:${p.latitude}:${p.longitude}`).join('|');
   useEffect(() => {
     const map = mapInstanceRef.current;
     if (!map || !leafletLoaded) return;
-    if (!initialViewFitted.current && tourPois.length) {
-      map.fitBounds(tourPois.map(p => [p.latitude, p.longitude]), { padding: [44, 44], maxZoom: 18, animate: false });
-      initialViewFitted.current = true;
-      return;
-    }
+    viewRegionRef.current = constrainVisitorMap(map, tourPois);
+    return () => { viewRegionRef.current?.dispose(); viewRegionRef.current = null; };
+  }, [initialPointKey, leafletLoaded]);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !leafletLoaded) return;
     if (selectedMapPoi) map.panTo([selectedMapPoi.latitude, selectedMapPoi.longitude], { animate: true, duration: 0.5 });
-  }, [selectedPoiId, selectedMapPoi?.latitude, selectedMapPoi?.longitude, initialPointKey, leafletLoaded]);
+  }, [selectedPoiId, selectedMapPoi?.latitude, selectedMapPoi?.longitude, leafletLoaded]);
 
   // 4. Ve vi tri nguoi dung (GPS thuc te)
   useEffect(() => {
@@ -317,8 +325,7 @@ export const MapView: React.FC<MapViewProps> = ({
       {!leafletLoaded && <div className="map-load-notice" role="status">{mapError ? 'Chưa tải được bản đồ. Bạn vẫn có thể chọn điểm trong danh sách để xem giới thiệu và nghe thuyết minh.' : 'Đang mở bản đồ khu vườn…'}</div>}
       {leafletLoaded && tileError && <div className="map-load-notice" role="status">Chưa tải được một phần nền bản đồ. Bạn vẫn có thể chọn điểm trong danh sách; thử tải lại trang khi kết nối ổn định.</div>}
       {leafletLoaded && <button className="garden-map-fit" type="button" aria-label="Hiện toàn bộ điểm" onClick={() => {
-        const map = mapInstanceRef.current;
-        if (map && pois.length) map.fitBounds(pois.map(p => [p.latitude, p.longitude]), { paddingTopLeft: [30, 70], paddingBottomRight: [30, 50], maxZoom: 18 });
+        viewRegionRef.current?.fitOverview();
       }}>Toàn cảnh</button>}
 
     </div>
