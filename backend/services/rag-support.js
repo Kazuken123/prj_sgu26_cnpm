@@ -3,6 +3,12 @@
 class ProviderError extends Error {
   constructor(code) { super(code); this.name = "ProviderError"; this.code = code; }
 }
+// HTTP adapters report failures as a fixed "PROVIDER_*" code; anything else
+// (driver errors, messages that may echo input) collapses to the fallback.
+function providerCode(error, fallback) {
+  if (error instanceof ProviderError) return error.code;
+  return typeof error?.code === "string" && /^PROVIDER_[A-Z0-9_]{1,40}$/.test(error.code) ? error.code : fallback;
+}
 async function withDeadline(ms, work) {
   // The adapter receives the signal; the race still bounds adapters that ignore it.
   const controller = new AbortController();
@@ -73,4 +79,4 @@ const SECRET_PATTERNS = [
 function redactSecrets(text) {
   return SECRET_PATTERNS.reduce((value, pattern) => value.replace(pattern, "[ĐÃ ẨN]"), text);
 }
-module.exports = { ProviderError, withDeadline, isVector, checkEmbeddings, cosine, chunkText, redactSecrets };
+module.exports = { ProviderError, providerCode, withDeadline, isVector, checkEmbeddings, cosine, chunkText, redactSecrets };

@@ -4,7 +4,7 @@ const AppError = require("../utils/app-error");
 const validation = require("./knowledge.validation");
 const { assertContentEditor } = require("./internal-access");
 const { getRagConfig } = require("./rag.config");
-const { ProviderError, withDeadline, checkEmbeddings, chunkText } = require("./rag-support");
+const { providerCode, withDeadline, checkEmbeddings, chunkText } = require("./rag-support");
 
 const notFound = () => new AppError(404, "KNOWLEDGE_DOCUMENT_NOT_FOUND", "Không tìm thấy tài liệu kiến thức.");
 function parse(details) {
@@ -32,7 +32,8 @@ class KnowledgeService {
     const processingStatus = row.status === "ACTIVE" ? "READY"
       : row.lifecycleAction === "DEACTIVATE_KNOWLEDGE_DOCUMENT" ? "DEACTIVATED" : failedCurrent ? "FAILED" : "PENDING";
     const { lifecycleAction, processingAction, processingDetails, ...document } = row;
-    return { ...document, processingStatus, lastError: failedCurrent && typeof processing.code === "string" ? processing.code : null };
+    // A failed reprocess of a READY document leaves the published chunks in service, so it is not an error state.
+    return { ...document, processingStatus, lastError: processingStatus === "FAILED" && typeof processing.code === "string" ? processing.code : null };
   }
   async list(actor, query) {
     this.authorize(actor);
@@ -121,7 +122,7 @@ class KnowledgeService {
         signal => this.embedding().embed(texts.map(text => document.title + "\n" + text), { signal }));
       vectors = checkEmbeddings(reply, texts.length, config);
     } catch (error) {
-      return fail(error instanceof ProviderError ? error.code : "EMBEDDING_PROVIDER_ERROR");
+      return fail(providerCode(error, "EMBEDDING_PROVIDER_ERROR"));
     }
     let result;
     try {

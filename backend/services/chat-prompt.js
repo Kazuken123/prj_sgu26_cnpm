@@ -10,8 +10,10 @@ const SYSTEM = [
   "Chỉ trả về JSON: {\"decision\": \"ANSWER\"|\"NO_CONTEXT\"|\"REFUSE\", \"answer\": string, \"citations\": [chunkId của các đoạn đã dùng]}.",
 ].join("\n");
 const escape = text => text.replace(/[<>]/g, character => (character === "<" ? "‹" : "›"));
+// The title sits inside a quoted attribute, so a quote in it must not close the attribute.
+const attribute = text => escape(text).replace(/"/g, "”");
 function buildPrompt(question, contexts) {
-  const context = contexts.map(item => `<chunk id="${item.chunkId}" title="${escape(item.title)}">\n${escape(item.text)}\n</chunk>`).join("\n");
+  const context = contexts.map(item => `<chunk id="${item.chunkId}" title="${attribute(item.title)}">\n${escape(item.text)}\n</chunk>`).join("\n");
   return { system: SYSTEM, user: `<context>\n${context}\n</context>\n<question>\n${escape(question)}\n</question>` };
 }
 module.exports = { buildPrompt, SYSTEM };

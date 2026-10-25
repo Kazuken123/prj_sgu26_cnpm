@@ -6,7 +6,7 @@ const AppError = require("../utils/app-error");
 const validation = require("./chat.validation");
 const { buildPrompt } = require("./chat-prompt");
 const { getRagConfig } = require("./rag.config");
-const { ProviderError, withDeadline, checkEmbeddings, isVector, cosine, redactSecrets } = require("./rag-support");
+const { ProviderError, providerCode, withDeadline, checkEmbeddings, isVector, cosine, redactSecrets } = require("./rag-support");
 
 const hash = value => createHash("sha256").update(value).digest("hex");
 const MAX_ANSWER = 4000;
@@ -56,13 +56,15 @@ class ChatService {
     const safeQuestion = redactSecrets(question);
     let outcome;
     try { outcome = await this.answer(safeQuestion, config); }
-    catch (error) { outcome = { status: "FAILED", answer: null, sources: [], code: error instanceof ProviderError ? error.code : "CHAT_PROCESSING_ERROR" }; }
+    catch (error) { outcome = { status: "FAILED", answer: null, sources: [], code: providerCode(error, "CHAT_PROCESSING_ERROR") }; }
     try {
       await this.store.createLog({ sessionId: visit.sessionId, question: safeQuestion, answer: outcome.answer, sources: outcome.sources, status: outcome.status });
     } catch {
       throw new AppError(503, "CHAT_LOG_UNAVAILABLE", "Chưa ghi nhận được lượt hỏi đáp; vui lòng thử lại sau.");
     }
     if (outcome.status === "FAILED") {
+      // CHAT_LOGS has no error column; the code (never the question or provider body) goes to the server log.
+      console.error("Chat question failed:", outcome.code);
       throw new AppError(503, "CHAT_PROVIDER_UNAVAILABLE", "Trợ lý AI tạm thời gián đoạn; bản đồ và thuyết minh vẫn sử dụng bình thường.");
     }
     return { status: outcome.status, answer: outcome.answer, sources: outcome.sources };
