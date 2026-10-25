@@ -200,7 +200,7 @@ export const App: React.FC = () => {
               <span className="footer-caption">{t("Lắng nghe thiên nhiên. Kết nối di sản. Mở cửa 7:00 – 18:30 hàng ngày.")}</span>
             </div>
             <div className="footer-links">
-              <span>{t("Số 2 Nguyễn Bỉnh Khiêm, Phường Bến Nghé, Quận 1, TP.HCM")}</span>
+              <span>{t("Số 2 Nguyễn Bỉnh Khiêm, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh")}</span>
               <span>{t('Điện thoại: (028) 3829 1425')}</span>
             </div>
           </div>

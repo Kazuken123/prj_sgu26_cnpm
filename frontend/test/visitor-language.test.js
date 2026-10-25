@@ -40,6 +40,26 @@ test('all 15 visitor catalogs cover every message, preserve placeholders and pro
   assert.equal(normalizeVisitorLanguage('unknown'), 'vi');
 });
 
+test('every visitor language preserves Vietnamese proper names, including the full city name in the address', () => {
+  const properNames = ['Thảo Cầm Viên', 'Sài Gòn', 'Nguyễn Bỉnh Khiêm', 'Bến Nghé', 'Hồ Chí Minh', 'Nhan Hương', 'Việt Nam'];
+  const address = 'Số 2 Nguyễn Bỉnh Khiêm, Phường Bến Nghé, Quận 1, TP. Hồ Chí Minh';
+  for (const { code } of VISITOR_LANGUAGES) {
+    for (const [source, translation] of Object.entries(catalogs[code])) {
+      for (const name of properNames) {
+        const spelling = name.toLocaleLowerCase('vi');
+        if (source.toLocaleLowerCase('vi').includes(spelling)) {
+          assert.ok(translation.toLocaleLowerCase('vi').includes(spelling), `${code}: ${name} in ${source}`);
+        }
+      }
+    }
+    const translatedAddress = translateText(address, code);
+    for (const name of ['Nguyễn Bỉnh Khiêm', 'Bến Nghé', 'Hồ Chí Minh']) {
+      assert.ok(translatedAddress.includes(name), `${code}: address must preserve ${name}`);
+    }
+    assert.ok(!translatedAddress.includes('TP.HCM'), `${code}: use the full city name`);
+  }
+});
+
 test('existing notices translate after a language change and unexpected backend messages get a localized retry message', () => {
   assert.equal(translateText('Kiểm tra lại sau 12s', 'en'), translateText('Kiểm tra lại sau {0}s', 'en', { 0: 12 }));
   assert.doesNotMatch(translateVisitorMessage('Lỗi máy chủ không có trong danh mục', 'en'), /Lỗi máy chủ/);
