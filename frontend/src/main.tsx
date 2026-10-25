@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App';
+import { VisitorLanguageProvider } from './i18n/VisitorLanguage';
 import './index.css';
 import './visitor.css';
 import './experience.css';
@@ -17,7 +18,7 @@ if (!rootElement) {
 ReactDOM.createRoot(rootElement).render(
   <React.StrictMode>
     <BrowserRouter basename={/^\/demo(?:\/|$)/.test(window.location.pathname) ? '/demo' : '/'}>
-      <App />
+      <VisitorLanguageProvider><App /></VisitorLanguageProvider>
     </BrowserRouter>
   </React.StrictMode>
 );
@@ -26,3 +27,4 @@ import './internal.css';
 
 import './new-visitor.css';
 import './visitor-motion.css';
+import './visitor-language.css';

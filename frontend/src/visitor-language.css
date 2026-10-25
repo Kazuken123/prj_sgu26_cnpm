@@ -1,0 +1,18 @@
+.visitor-shell .header-inner { flex-wrap: wrap; }
+.visitor-shell .visitor-header-actions { flex-wrap: wrap; justify-content: flex-end; }
+.visitor-shell .visitor-header-actions .garden-language-trigger { min-width: 125px; }
+.visitor-shell .visitor-header-actions .garden-language-menu { z-index: 2200; }
+.visitor-shell .brand-titles { min-width: 0; }
+.visitor-shell .brand-sub { white-space: normal; line-height: 1.5; }
+.visitor-shell .nav-menu { flex-wrap: wrap; }
+.visitor-shell .garden-toolbar h1 { overflow-wrap: anywhere; }
+.visitor-shell .garden-payment-tabs button { overflow-wrap: anywhere; }
+.visitor-shell .garden-checkout-steps { flex-wrap: wrap; }
+.visitor-shell .garden-bottom-nav button { overflow-wrap: anywhere; }
+.visitor-shell .garden-tour-shortcut { white-space: normal; }
+@media (max-width: 760px) {
+  .visitor-shell:not(.visitor-explore) .visitor-header-actions { width: 100%; justify-content: space-between; }
+  .visitor-shell:not(.visitor-explore) .header-inner { gap: 10px; }
+  .visitor-shell .visitor-header-actions .garden-language-trigger { max-width: min(185px, 50vw); }
+  .visitor-shell .garden-toolbar-controls { max-width: 52%; }
+}
