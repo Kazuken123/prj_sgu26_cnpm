@@ -1,6 +1,14 @@
 import React from 'react';
 
 const paths = {
+  play: 'M8 4l12 8-12 8V4Z',
+  pause: 'M7 4h3v16H7zM14 4h3v16h-3z',
+  repeat: 'M4 10a8 8 0 1 1 1 8M4 4v6h6',
+  list: 'M8 6h13M8 12h13M8 18h13M3 6h.1M3 12h.1M3 18h.1',
+  settings: 'M4 7h16M4 17h16M8 4v6M16 14v6',
+  close: 'M6 6l12 12M6 18 18 6',
+  chevron: 'M8 4l8 8-8 8',
+
   map: 'M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3V6Zm6-3v15m6-12v15',
   pin: 'M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Zm-5 0a2 2 0 1 1-4 0 2 2 0 0 1 4 0Z',
   search: 'M16 16l5 5M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0Z',
@@ -15,6 +23,8 @@ const paths = {
   compass: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-6-3-2 4-4 2 2-4 4-2Z',
   check: 'M5 12l4 4L19 6',
 };
+
+export const iconPaths = paths;
 
 export const Icon: React.FC<{ name: keyof typeof paths; className?: string }> = ({ name, className }) => (
   <svg className={className} width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={paths[name]} /></svg>

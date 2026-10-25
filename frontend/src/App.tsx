@@ -44,7 +44,7 @@ export const App: React.FC = () => {
   const isInternal = pathname === '/login' || pathname.startsWith('/internal');
 
   return (
-    <div className={isInternal ? "internal-workspace" : undefined}>
+    <div className={isInternal ? "internal-workspace" : `visitor-shell${pathname === '/explore' ? ' visitor-explore' : ''}`}>
       <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
 
       {/* Tách biệt Header điều hướng giữa Khách và Nhân viên */}
@@ -189,7 +189,7 @@ export const App: React.FC = () => {
       {isInternal ? (
         <footer className="ops-footer">Thảo Cầm Viên Sài Gòn — Thu ngân và vận hành thuyết minh</footer>
       ) : (
-        <footer className="site-footer">
+        <footer className="site-footer" hidden={pathname === '/explore'}>
           <div className="footer-inner">
             <div>
               <strong>Thảo Cầm Viên Sài Gòn</strong>

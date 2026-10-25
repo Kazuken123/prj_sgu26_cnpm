@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PoiDto } from '../api/content.ts';
 import { fetchAudioBlob } from '../api/media.ts';
 import { ApiError } from '../api/client.ts';
+import { Icon } from './Icon';
 
 export type PlayerState =
   | 'IDLE'
@@ -313,136 +314,25 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
     }
   };
 
-  // Truong hop POI khong co audio san sang
   if (poi.audio.status !== 'AVAILABLE' || !poi.audio.url) {
-    return (
-      <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--tcv-slate-200)' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-          <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--tcv-slate-900)' }}>
-            Âm thanh thuyết minh
-          </h4>
-          <span className="status-pill idle" style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-            Âm thanh chưa sẵn sàng
-          </span>
-        </div>
-        <p style={{ fontSize: '0.84rem', color: 'var(--tcv-slate-500)', fontStyle: 'italic' }}>
-          Hiện chưa có tệp âm thanh thuyết minh cho điểm tham quan này. Bạn vẫn có thể đọc thông tin trong phần Giới thiệu.
-        </p>
-      </div>
-    );
+    return <div className="garden-audio-unavailable" role="status">Âm thanh chưa sẵn sàng. Bạn vẫn có thể đọc giới thiệu.</div>;
   }
-
-  const isAudioFallback = poi.audio.isFallback;
-  const audioLangText = poi.audio.languageCode ? poi.audio.languageCode.toUpperCase() : 'VI';
-  const progressPercent = duration > 0 ? Math.min(100, Math.max(0, (currentTime / duration) * 100)) : 0;
-
-  return (
-    <div style={{ marginTop: '20px', paddingTop: '16px', borderTop: '1px solid var(--tcv-slate-200)' }}>
-      {/* THONG TIN AM THANH */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '10px' }}>
-        <h4 style={{ fontSize: '0.92rem', fontWeight: 700, color: 'var(--tcv-green-950)' }}>
-          Trình phát âm thanh thuyết minh
-        </h4>
-
-        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-          <span className={`status-pill ${playerState === 'PLAYING' ? 'ready' : playerState === 'ERROR' ? 'error' : 'unready'}`} style={{ fontSize: '0.72rem', padding: '2px 8px' }}>
-            Trạng thái: {playerState}
-          </span>
-        </div>
-      </div>
-
-      {/* CANH BAO TRUNG THUC AM THU MOCK */}
-      <div style={{ background: 'var(--tcv-status-warn-bg)', border: '1px solid #fde68a', borderRadius: 'var(--radius-sm)', padding: '10px 14px', marginBottom: '14px', fontSize: '0.8rem', color: '#92400e' }}>
-        <strong>Giọng đọc tổng hợp.</strong> Âm thanh sử dụng giọng tổng hợp; chất lượng bản dịch và phát âm chưa được nghiệm thu độc lập bởi người bản ngữ.
-      </div>
-
-      {/* THONG SO AUDIO VA FALLBACK */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', fontSize: '0.82rem', marginBottom: '12px', color: 'var(--tcv-slate-700)' }}>
-        <div>
-          <span>Ngôn ngữ audio thực tế: </span>
-          <strong style={{ color: 'var(--tcv-green-800)' }}>{audioLangText}</strong>
-          {isAudioFallback && (
-            <span style={{ color: '#b45309', marginLeft: '6px', fontSize: '0.76rem' }}>
-              (Đang dùng bản thay thế, khác với ngôn ngữ yêu cầu {requestedLanguageCode.toUpperCase()})
-            </span>
-          )}
-        </div>
-
-        <div>
-          <span>Thời lượng: </span>
-          <strong style={{ fontFamily: 'var(--font-mono)' }}>
-            {currentTime.toFixed(1)}s / {duration.toFixed(1)}s
-          </strong>
-        </div>
-      </div>
-
-      {/* THANH TIEN TRINH */}
-      <div style={{ width: '100%', height: '6px', background: 'var(--tcv-slate-200)', borderRadius: '3px', overflow: 'hidden', marginBottom: '14px' }}>
-        <div
-          style={{
-            width: `${progressPercent}%`,
-            height: '100%',
-            background: 'var(--tcv-green-600)',
-            transition: 'width 0.1s linear'
-          }}
-        />
-      </div>
-
-      {/* CAC NUT DIEU KHIEN */}
-      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-        {playerState === 'PLAYING' ? (
-          <button
-            type="button"
-            onClick={handlePlayAudio}
-            className="btn-primary"
-            style={{ backgroundColor: 'var(--tcv-earth-amber)', borderColor: '#d97706' }}
-          >
-            ⏸ Tạm dừng
-          </button>
-        ) : (
-          <button
-            type="button"
-            onClick={handlePlayAudio}
-            disabled={playerState === 'LOADING'}
-            className="btn-primary"
-          >
-            {playerState === 'LOADING'
-              ? 'Đang tải tệp âm thanh...'
-              : playerState === 'PAUSED'
-              ? '▶ Tiếp tục phát'
-              : playerState === 'NEED_GESTURE'
-              ? '▶ Bấm để phát'
-              : '▶ Nghe thuyết minh'}
-          </button>
-        )}
-
-        {(playerState === 'PLAYING' || playerState === 'PAUSED' || playerState === 'ENDED') && (
-          <button
-            type="button"
-            onClick={handleReplay}
-            className="btn-secondary"
-          >
-            ↺ Phát lại từ đầu
-          </button>
-        )}
-
-        {playerState === 'ERROR' && (
-          <button
-            type="button"
-            onClick={handlePlayAudio}
-            className="btn-primary btn-sm"
-          >
-            Thử lại
-          </button>
-        )}
-      </div>
-
-      {/* THONG BAO LOI NGUYEN PHAT */}
-      {errorMessage && (
-        <div style={{ marginTop: '12px', fontSize: '0.82rem', color: '#b91c1c' }}>
-          * Lỗi: {errorMessage}
-        </div>
-      )}
+  const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
+  const languageName = (code: string | null) => {
+    try { return code ? new Intl.DisplayNames(['vi'], { type: 'language' }).of(code) || code : 'Chưa có'; } catch { return code || 'Chưa có'; }
+  };
+  const labels: Record<PlayerState, string> = { IDLE: 'Nghe thuyết minh', LOADING: 'Đang tải âm thanh…', READY: 'Bấm để nghe', PLAYING: 'Tạm dừng', PAUSED: 'Tiếp tục nghe', ENDED: 'Nghe lại', NEED_GESTURE: 'Bấm để phát', ERROR: 'Thử lại' };
+  return <div className="garden-player">
+    <div className="garden-player-actions">
+      <button type="button" onClick={handlePlayAudio} disabled={playerState === 'LOADING'} className="btn-primary garden-play-button"><Icon name={playerState === 'PLAYING' ? 'pause' : playerState === 'ERROR' ? 'repeat' : 'play'} />{labels[playerState]}</button>
+      {(playerState === 'PLAYING' || playerState === 'PAUSED' || playerState === 'ENDED') && <button type="button" className="garden-icon-button" onClick={handleReplay} aria-label="Phát lại từ đầu"><Icon name="repeat" /></button>}
     </div>
-  );
+    <div className="garden-player-timeline"><time>{clock(currentTime)}</time><input aria-label="Tiến trình nghe" type="range" min={0} max={duration} step={0.1} value={Math.min(currentTime, duration)} disabled={!activeBlobUrlRef.current || playerState === 'LOADING'} onChange={e => { const time = Number(e.target.value); if (audioElementRef.current && activeBlobUrlRef.current) { audioElementRef.current.currentTime = time; setCurrentTime(time); } }} /><time>{clock(duration)}</time></div>
+    <div className="garden-player-feedback" aria-live="polite">
+      {playerState === 'LOADING' && <span>Đang chuẩn bị câu chuyện của bạn.</span>}
+      {playerState === 'NEED_GESTURE' && <span>Chạm nút phát để cho phép trình duyệt phát âm thanh.</span>}
+      {playerState === 'ERROR' && <span role="alert">Chưa phát được âm thanh. Hãy thử lại. <details><summary>Thông tin hỗ trợ</summary>{errorMessage}</details></span>}
+      {poi.audio.isFallback && <span>Âm thanh dùng {languageName(poi.audio.languageCode)}, thay cho {languageName(requestedLanguageCode)}.</span>}
+    </div>
+  </div>;
 };

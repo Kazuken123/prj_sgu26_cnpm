@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PoiDto, TourDto } from '../api/content';
+import { iconPaths } from './Icon';
 
 interface MapViewProps {
   pois: PoiDto[];
@@ -47,6 +48,7 @@ export const MapView: React.FC<MapViewProps> = ({
 }) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
+  const initialViewFitted = useRef(false);
   const markersRef = useRef<{ [key: number]: any }>({});
   const circlesRef = useRef<{ [key: number]: any }>({});
   const userMarkerRef = useRef<any>(null);
@@ -143,6 +145,7 @@ export const MapView: React.FC<MapViewProps> = ({
       resizeObserver?.disconnect();
       mapInstanceRef.current?.remove();
       mapInstanceRef.current = null;
+      initialViewFitted.current = false;
       markersRef.current = {};
       circlesRef.current = {};
       userMarkerRef.current = null;
@@ -170,39 +173,18 @@ export const MapView: React.FC<MapViewProps> = ({
       const isSelected = poi.poiId === selectedPoiId;
       const radius = poi.triggerRadius || 30;
 
-      let iconEmoji = '📍';
       const cat = (poi.category || '').toUpperCase();
-      if (cat === 'ANIMAL') iconEmoji = '🦁';
-      else if (cat === 'PLANT') iconEmoji = '🌿';
-      else if (cat === 'HERITAGE') iconEmoji = '🏛️';
-      else if (cat === 'AMENITY') iconEmoji = '🚻';
+      const iconPath = cat === 'ANIMAL' ? iconPaths.paw : cat === 'PLANT' ? iconPaths.leaf : iconPaths.pin;
 
       const customIcon = L.divIcon({
-        className: 'poi-map-marker',
-        html: `
-          <div style="
-            background: ${isSelected ? '#a57434' : '#315c43'};
-            color: #ffffff;
-            width: ${isSelected ? '44px' : '38px'};
-            height: ${isSelected ? '44px' : '38px'};
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: ${isSelected ? '20px' : '16px'};
-            border: 2px solid #ffffff;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
-            cursor: pointer;
-            transition: all 0.2s ease;
-          ">
-            ${iconEmoji}
-          </div>
-        `,
+        className: `poi-map-marker${isSelected ? ' is-selected' : ''}`,
+        html: `<span class="garden-marker-face"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${iconPath}" /></svg></span>`,
         iconSize: [isSelected ? 44 : 38, isSelected ? 44 : 38],
         iconAnchor: [isSelected ? 22 : 19, isSelected ? 22 : 19]
       });
 
       const marker = L.marker([poi.latitude, poi.longitude], { icon: customIcon, title: poi.text?.name || poi.originalName, alt: poi.text?.name || poi.originalName }).addTo(map);
+      marker.getElement?.()?.setAttribute('aria-label', poi.text?.name || poi.originalName);
       marker.on('click', () => {
         onSelectPoi(poi.poiId);
       });
@@ -211,17 +193,19 @@ export const MapView: React.FC<MapViewProps> = ({
       const tooltip = document.createElement('strong');
       tooltip.textContent = poiName;
       marker.bindTooltip(tooltip, {
-        direction: 'top',
+        direction: 'top', permanent: isSelected,
+        className: isSelected ? 'garden-selected-tooltip' : '',
         offset: [0, isSelected ? -24 : -20]
       });
 
       markersRef.current[poi.poiId] = marker;
 
+      if (!isSelected) return;
       const circle = L.circle([poi.latitude, poi.longitude], {
         radius,
-        color: isSelected ? '#15803d' : '#52b788',
-        fillColor: isSelected ? '#52b788' : '#74c69d',
-        fillOpacity: isSelected ? 0.25 : 0.12,
+        color: '#596746',
+        fillColor: '#596746',
+        fillOpacity: 0.08,
         weight: isSelected ? 2 : 1
       }).addTo(map);
 
@@ -229,15 +213,19 @@ export const MapView: React.FC<MapViewProps> = ({
     });
   }, [pois, selectedPoiId, filteredCategory, leafletLoaded, onSelectPoi]);
 
-  // 3. Pan to selected POI
+  // Frame all demo points once, then pan only when the selection/coordinates change.
+  const selectedMapPoi = pois.find(p => p.poiId === selectedPoiId);
+  const initialPointKey = tourPois.map(p => `${p.poiId}:${p.latitude}:${p.longitude}`).join('|');
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (!map || selectedPoiId === null) return;
-    const target = pois.find((p) => p.poiId === selectedPoiId);
-    if (target) {
-      map.panTo([target.latitude, target.longitude], { animate: true, duration: 0.5 });
+    if (!map || !leafletLoaded) return;
+    if (!initialViewFitted.current && tourPois.length) {
+      map.fitBounds(tourPois.map(p => [p.latitude, p.longitude]), { padding: [44, 44], maxZoom: 18, animate: false });
+      initialViewFitted.current = true;
+      return;
     }
-  }, [selectedPoiId, pois, leafletLoaded]);
+    if (selectedMapPoi) map.panTo([selectedMapPoi.latitude, selectedMapPoi.longitude], { animate: true, duration: 0.5 });
+  }, [selectedPoiId, selectedMapPoi?.latitude, selectedMapPoi?.longitude, initialPointKey, leafletLoaded]);
 
   // 4. Ve vi tri nguoi dung (GPS thuc te)
   useEffect(() => {
@@ -328,7 +316,11 @@ export const MapView: React.FC<MapViewProps> = ({
       <div ref={mapContainerRef} className="leaflet-map-canvas" aria-label="Bản đồ điểm tham quan Thảo Cầm Viên" />
       {!leafletLoaded && <div className="map-load-notice" role="status">{mapError ? 'Chưa tải được bản đồ. Bạn vẫn có thể chọn điểm trong danh sách để xem giới thiệu và nghe thuyết minh.' : 'Đang mở bản đồ khu vườn…'}</div>}
       {leafletLoaded && tileError && <div className="map-load-notice" role="status">Chưa tải được một phần nền bản đồ. Bạn vẫn có thể chọn điểm trong danh sách; thử tải lại trang khi kết nối ổn định.</div>}
-      {leafletLoaded && <div className="map-legend"><span>🦁 Động vật</span><span>🌿 Thực vật</span><span>🏛️ Di tích</span><span>Vòng tròn: vùng kích hoạt</span></div>}
+      {leafletLoaded && <button className="garden-map-fit" type="button" aria-label="Hiện toàn bộ điểm" onClick={() => {
+        const map = mapInstanceRef.current;
+        if (map && pois.length) map.fitBounds(pois.map(p => [p.latitude, p.longitude]), { paddingTopLeft: [30, 70], paddingBottomRight: [30, 50], maxZoom: 18 });
+      }}>Toàn cảnh</button>}
+
     </div>
   );
 };

@@ -55,6 +55,9 @@ const text = view => JSON.stringify(view.toJSON());
 const nodeText = node => typeof node === 'string' ? node : (node.children || []).map(nodeText).join('');
 const button = (view, label) => view.root.findAllByType('button').find(node => nodeText(node).includes(label));
 const preventDefault = () => {};
+const openOptions = async view => { await act(async () => view.root.findAllByType('button').find(n => n.props['aria-label'] === 'Tùy chọn tham quan').props.onClick()); };
+const closeOptions = async view => { await act(async () => view.root.findAllByType('button').find(n => n.props['aria-label'] === 'Đóng').props.onClick()); };
+
 
 for (const conflict of [false, true]) {
   test('tour edit submits backend revision and ' + (conflict ? 'preserves stale-edit conflict' : 'saves successfully'), async t => {
@@ -171,7 +174,7 @@ test('blocked autoplay is not marked played, waits for a manual gesture, then re
   await act(async () => view.update(h(AudioPlayer, { ...props, autoPlayRequestId: 1 })));
   assert.deepEqual(started, []);
   assert.equal(instances[0].calls, 1);
-  assert.match(text(view), /NEED_GESTURE/);
+  assert.match(text(view), /Bấm để phát/);
   instances[0].blocked = false;
   await act(async () => button(view, 'Bấm để phát').props.onClick());
   assert.deepEqual(started, [1]);
@@ -185,7 +188,7 @@ test('media download failure does not mark a POI played', async t => {
   const view = await mount(t, h(AudioPlayer, { poi: poi(), requestedLanguageCode: 'vi', token: 'guest-test', autoPlayRequestId: 1, onSessionExpired() {}, onPlaybackStarted: id => started.push(id) }));
   assert.deepEqual(started, []);
   assert.equal(instances[0].calls, 0);
-  assert.match(text(view), /ERROR/);
+  assert.match(text(view), /Chưa phát được âm thanh/);
 });
 
 for (const cancel of ['disable', 'switch']) {
@@ -219,13 +222,14 @@ test('public POI listening link opens payment with ONLINE and six-digit CASH opt
   const view = await mount(t, h(MemoryRouter, { initialEntries: ['/explore'] },
     h(Routes, null, h(Route, { path: '/explore', element: h(ExplorePage) }), h(Route, { path: '/payment', element: h(PaymentPage) }))));
   assert.equal(view.root.findAllByType(AudioPlayer).length, 0);
-  const listen = view.root.findAllByType('a').find(node => node.props.href === '/payment' && nodeText(node) === 'Nghe thuyết minh');
+  const listen = view.root.findAllByType('a').find(node => node.props.href === '/payment' && nodeText(node).trim() === 'Nghe thuyết minh');
   assert.ok(listen);
   await act(async () => listen.props.onClick({ button: 0, preventDefault() {}, metaKey: false, ctrlKey: false, shiftKey: false, altKey: false }));
   assert.ok(button(view, 'Trực tuyến')); assert.ok(button(view, 'Nhập mã tại quầy'));
-  assert.match(text(view), /không thu tiền thật/);
+  assert.match(text(view), /KHÔNG THU TIỀN THẬT/);
   await act(async () => button(view, 'Nhập mã tại quầy').props.onClick());
-  assert.equal(view.root.findByType('input').props.maxLength, 6);
+  assert.equal(view.root.findAllByType('input').length, 6);
+  assert.ok(view.root.findAllByType('input').every(n => n.props.inputMode === 'numeric'));
   assert.equal(calls.some(call => call.method === 'POST'), false);
 });
 
@@ -244,9 +248,9 @@ for (const savedToken of [false, true]) test('public map remains usable without 
   const view = await mount(t, h(MemoryRouter, null, h(ExplorePage)));
   assert.equal(view.root.findByType(MapView).props.pois.length, 1);
   assert.equal(view.root.findAllByType(AudioPlayer).length, 0);
-  assert.equal(button(view, 'Bắt đầu tham quan').props.disabled, true);
-  assert.match(text(view), /Bản đồ miễn phí|Chưa xác minh được quyền nghe/);
-  assert.match(text(view), /Kích hoạt quyền nghe/);
+  assert.equal(view.root.findAllByType('input').some(n => n.props.type === 'checkbox'), false);
+  assert.match(text(view), /Bản đồ mở miễn phí|Chưa xác minh được quyền nghe/);
+  assert.match(text(view), /Nghe thuyết minh/);
   assert.ok(!calls.some(path => path.includes('/media/') || path.includes('/bundle')));
   if (savedToken) assert.ok(window.localStorage.getItem('tcv_guest_session_v1'), 'temporary failure retains retry credentials');
 });
@@ -266,7 +270,11 @@ test('Explore uses real GPS, auto-plays once per pass and rearms after leaving t
     return jsonResponse({ data: { status: 'ACTIVE', expiresAt: new Date(Date.now() + 86400000).toISOString() } });
   });
   const view = await mount(t, h(MemoryRouter, { future: { v7_startTransition: true, v7_relativeSplatPath: true } }, h(ExplorePage)));
-  await act(async () => button(view, 'Bắt đầu tham quan').props.onClick());
+  await openOptions(view);
+  assert.equal(typeof position, 'undefined', 'GPS is requested only after an explicit gesture');
+  await act(async () => button(view, 'Dùng vị trí của tôi').props.onClick());
+  await act(async () => view.root.findAllByType('input').find(n => n.props.type === 'checkbox').props.onChange());
+  await closeOptions(view);
   assert.equal(instances[0].calls, 0, 'default map center must not trigger playback');
   await act(async () => position({ coords: { latitude: 10.7875, longitude: 106.7053 } }));
   assert.equal(instances[0].calls, 1);
@@ -275,8 +283,7 @@ test('Explore uses real GPS, auto-plays once per pass and rearms after leaving t
   await act(async () => position({ coords: { latitude: 11, longitude: 106.7053 } }));
   await act(async () => position({ coords: { latitude: 10.7875, longitude: 106.7053 } }));
   assert.equal(instances[0].calls, 2);
-  await act(async () => button(view, 'Tra cứu điểm tham quan').props.onClick());
-  assert.match(text(view), /Chưa tích hợp chatbot RAG/);
+  assert.equal(button(view, 'Tra cứu điểm tham quan'), undefined, 'keyword lookup is not presented as a chatbot');
   assert.doesNotMatch(text(view), /tư liệu chính thức|Thảo Cầm Viên AI/);
 });
 
@@ -315,7 +322,7 @@ test('discovery filters and unaccented search share map results while preserving
   assert.match(text(view), /Không tìm thấy điểm phù hợp/);
   await act(async () => button(view, 'Xóa bộ lọc').props.onClick());
   assert.equal(map().props.pois.length, 2);
-  const treeButton = view.root.findAllByType('button').find(node => node.props.className === 'poi-list-item' && nodeText(node).includes('Cây dầu'));
+  const treeButton = view.root.findAllByType('button').find(node => node.props.className === 'garden-poi-row' && nodeText(node).includes('Cây dầu'));
   await act(async () => treeButton.props.onClick());
   assert.equal(map().props.selectedPoiId, 2);
   assert.match(nodeText(view.root.findByProps({ id: 'selected-poi-detail' })), /Cây dầu/);
@@ -341,18 +348,21 @@ for (const initialEntry of ['/explore', '/explore?category=ANIMAL']) {
     const view = await mount(t, h(MemoryRouter, { initialEntries: [initialEntry], future: { v7_startTransition: true, v7_relativeSplatPath: true } }, h(ExplorePage)));
     const map = () => view.root.findByType(MapView);
     assert.equal(map().props.selectedPoiId, initialEntry.includes('?') ? 2 : 1);
+    await openOptions(view);
+    await act(async () => button(view, 'Dùng vị trí của tôi').props.onClick());
+    await closeOptions(view);
     await act(async () => position({ coords: { latitude: 10.7875, longitude: 106.7053 } }));
-    assert.match(text(view), /GPS đã bật/);
+    assert.ok(view.root.findByType(MapView).props.userLocation);
     await act(async () => button(view, 'Tất cả').props.onClick());
     assert.equal(map().props.pois.length, 2);
-    const unclassifiedButton = view.root.findAllByType('button').find(node => node.props.className === 'poi-list-item' && nodeText(node).includes('Điểm chưa phân loại'));
+    const unclassifiedButton = view.root.findAllByType('button').find(node => node.props.className === 'garden-poi-row' && nodeText(node).includes('Điểm chưa phân loại'));
     await act(async () => unclassifiedButton.props.onClick());
     assert.match(nodeText(view.root.findByProps({ id: 'selected-poi-detail' })), /Chưa phân loại/);
-    assert.ok(view.root.findAllByProps({ 'aria-label': 'Chưa có ảnh Điểm chưa phân loại' }).length > 0);
+    assert.match(nodeText(view.root.findByProps({ id: 'selected-poi-detail' })), /Điểm chưa phân loại/);
     await act(async () => button(view, 'Động vật').props.onClick());
     assert.deepEqual(map().props.pois.map(item => item.poiId), [2]);
     await act(async () => position({ coords: { latitude: 10.788, longitude: 106.706 } }));
-    assert.match(text(view), /GPS đã bật/);
+    assert.ok(view.root.findByType(MapView).props.userLocation);
   });
 }
 
@@ -430,8 +440,9 @@ test('text fallback is labelled separately from real-language audio and no longe
     requestedLanguageCode: 'vi', languages: [], pois: [fallback], tours: [], expiresAt: new Date(Date.now() + 60000).toISOString()
   } : { status: 'ACTIVE', expiresAt: new Date(Date.now() + 86400000).toISOString() } }));
   const view = await mount(t, h(MemoryRouter, null, h(ExplorePage)));
-  assert.match(text(view), /Văn bản thay thế bằng/);
-  assert.match(text(view), /Giọng đọc tổng hợp/);
+  assert.match(text(view), /Giới thiệu hiện dùng/);
+  await openOptions(view);
+  assert.match(text(view), /giọng đọc tổng hợp/);
   assert.doesNotMatch(text(view), /Âm thử MOCK|một giây|Phát âm thử/);
 });
 
