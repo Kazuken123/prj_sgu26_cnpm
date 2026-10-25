@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { PoiDto, TourDto } from '../api/content';
-import { iconPaths } from './Icon';
+import { handleMarkerPhotoError, visitorMarkerHtml } from './visitorMapMarker';
 import { constrainVisitorMap } from './visitorMapBounds';
 
 interface MapViewProps {
@@ -179,17 +179,15 @@ export const MapView: React.FC<MapViewProps> = ({
       const isSelected = poi.poiId === selectedPoiId;
       const radius = poi.triggerRadius || 30;
 
-      const cat = (poi.category || '').toUpperCase();
-      const iconPath = cat === 'ANIMAL' ? iconPaths.paw : cat === 'PLANT' ? iconPaths.leaf : iconPaths.pin;
-
       const customIcon = L.divIcon({
         className: `poi-map-marker${isSelected ? ' is-selected' : ''}`,
-        html: `<span class="garden-marker-face"><svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${iconPath}" /></svg></span>`,
+        html: visitorMarkerHtml(poi),
         iconSize: [isSelected ? 44 : 38, isSelected ? 44 : 38],
         iconAnchor: [isSelected ? 22 : 19, isSelected ? 22 : 19]
       });
 
       const marker = L.marker([poi.latitude, poi.longitude], { icon: customIcon, title: poi.text?.name || poi.originalName, alt: poi.text?.name || poi.originalName }).addTo(map);
+      handleMarkerPhotoError(marker);
       marker.getElement?.()?.setAttribute('aria-label', poi.text?.name || poi.originalName);
       marker.on('click', () => {
         onSelectPoi(poi.poiId);

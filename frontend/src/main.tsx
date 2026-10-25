@@ -25,3 +25,4 @@ ReactDOM.createRoot(rootElement).render(
 import './internal.css';
 
 import './new-visitor.css';
+import './visitor-motion.css';

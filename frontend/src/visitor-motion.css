@@ -1,0 +1,111 @@
+/* Animate the visitor panels, keeping Leaflet's positioning transforms untouched. */
+.visitor-shell .garden-toolbar,
+.visitor-shell .garden-payment-heading {
+  animation: garden-panel-arrive 600ms var(--ease-spring) backwards;
+}
+
+.visitor-shell .garden-map {
+  animation: garden-fade-in 700ms var(--ease-spring) backwards;
+}
+
+.visitor-shell .garden-directory,
+.visitor-shell .garden-pass-summary {
+  animation: garden-panel-arrive 600ms 70ms var(--ease-spring) backwards;
+}
+
+.visitor-shell .garden-audio-dock,
+.visitor-shell .garden-checkout {
+  animation: garden-panel-arrive 650ms 140ms var(--ease-spring) backwards;
+}
+
+.visitor-shell .garden-poi-row {
+  animation: garden-panel-arrive 450ms var(--ease-spring) backwards;
+  transition: background 250ms var(--ease-spring), border-color 250ms var(--ease-spring), box-shadow 250ms var(--ease-spring);
+}
+.visitor-shell .garden-poi-row:nth-child(2) { animation-delay: 35ms; }
+.visitor-shell .garden-poi-row:nth-child(3) { animation-delay: 70ms; }
+.visitor-shell .garden-poi-row:nth-child(4) { animation-delay: 105ms; }
+.visitor-shell .garden-poi-row:nth-child(n+5) { animation-delay: 140ms; }
+
+.visitor-shell .garden-selected-body,
+.visitor-shell .garden-expanded-content,
+.visitor-shell .garden-cash-form,
+.visitor-shell .garden-online-form,
+.visitor-shell .garden-checkout-state,
+.visitor-shell .garden-ticket-ready,
+.visitor-shell .garden-language-menu {
+  animation: garden-panel-arrive 400ms var(--ease-spring) backwards;
+}
+
+.visitor-shell .garden-dialog-backdrop { animation: garden-fade-in 200ms var(--ease-spring) backwards; }
+.visitor-shell .garden-dialog { animation: garden-panel-arrive 400ms var(--ease-spring) backwards; }
+
+.visitor-shell .garden-marker-face {
+  position: relative;
+  overflow: hidden;
+  transition: box-shadow 250ms var(--ease-spring), border-color 250ms var(--ease-spring);
+}
+.visitor-shell .garden-marker-photo {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 50% 30%;
+}
+.visitor-shell .is-selected .garden-marker-face {
+  animation: garden-marker-select 450ms var(--ease-spring) backwards;
+  box-shadow: 0 0 0 3px var(--garden-primary), 0 4px 14px #343a2b30;
+}
+.visitor-shell .poi-map-marker:focus-visible .garden-marker-face {
+  box-shadow: 0 0 0 3px var(--garden-primary);
+}
+
+.visitor-shell .garden-payment-tabs button,
+.visitor-shell .garden-filters button,
+.visitor-shell .garden-bottom-nav button,
+.visitor-shell .garden-icon-button,
+.visitor-shell .garden-language-chevron,
+.visitor-shell .garden-checkout-steps li,
+.visitor-shell .garden-checkout-steps span {
+  transition: background 250ms var(--ease-spring), color 250ms var(--ease-spring), border-color 250ms var(--ease-spring), box-shadow 250ms var(--ease-spring), transform 250ms var(--ease-spring);
+}
+.visitor-shell .garden-code-input input,
+.visitor-shell .garden-search {
+  transition: border-color 250ms var(--ease-spring), box-shadow 250ms var(--ease-spring);
+}
+.visitor-shell .garden-ready-icon { animation: garden-marker-select 500ms 100ms var(--ease-spring) backwards; }
+.visitor-shell .garden-checkout-steps [aria-current='step'] span { animation: garden-marker-select 400ms var(--ease-spring) backwards; }
+.visitor-shell .garden-payment-help[open] > p { animation: garden-panel-arrive 350ms var(--ease-spring) backwards; }
+.visitor-shell .garden-poi-thumbnail img { transition: transform 400ms var(--ease-spring); }
+
+.visitor-shell .garden-experience button:active:not(:disabled),
+.visitor-shell .garden-payment button:active:not(:disabled),
+.visitor-shell .garden-payment .btn-primary:active,
+.visitor-shell .garden-listen-gate .btn-primary:active {
+  transform: scale(.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .visitor-shell .garden-poi-row:hover .garden-poi-thumbnail img { transform: scale(1.08); }
+}
+
+@keyframes garden-panel-arrive {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes garden-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@keyframes garden-marker-select {
+  from { transform: scale(.82); }
+  to { transform: scale(1); }
+}
+
+/* The existing full/reduce preference also controls these visitor animations. */
+@media print {
+  .visitor-shell .garden-experience *,
+  .visitor-shell .garden-payment * { animation: none !important; transition: none !important; }
+}
