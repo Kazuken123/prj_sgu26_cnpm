@@ -1,5 +1,7 @@
+import { LanguagePicker } from './LanguagePicker';
+import { useVisitorLanguage } from '../i18n/VisitorLanguage';
 import React, { useEffect, useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Icon } from './Icon';
 import { loadGuestSession } from '../api/guestStorage';
 import { getApiBaseUrl } from '../api/client';
@@ -8,6 +10,8 @@ import { GUEST_SESSION_CHANGED } from '../api/sessionEvents';
 import { useVisitExpiry } from '../hooks/useVisitExpiry';
 
 export const VisitorNavigation: React.FC = () => {
+  const { t, language: locale, languages, setLanguage } = useVisitorLanguage();
+  const { pathname } = useLocation();
   const [isScrolled, setIsScrolled] = useState(() => window.scrollY > 40);
   const [hasValidTicket, setHasValidTicket] = useState(false);
   const [ticketExpiry, setTicketExpiry] = useState<string | null>(null);
@@ -51,35 +55,30 @@ export const VisitorNavigation: React.FC = () => {
   return (
     <header className={`site-header${isScrolled ? ' is-scrolled' : ''}`}>
       <div className="header-inner">
-        <Link to="/" className="brand-section" aria-label="Thảo Cầm Viên Sài Gòn — Trang chủ">
+        <Link to="/" className="brand-section" aria-label={t("Thảo Cầm Viên Sài Gòn — Trang chủ")}>
           <span className="brand-badge-icon"><Icon name="leaf" /></span>
           <span className="brand-titles">
-            <span className="brand-title">Thảo Cầm Viên</span>
-            <span className="brand-sub">Sài Gòn • Thuyết Minh Đa Ngôn Ngữ</span>
+            <span className="brand-title" lang="vi">Thảo Cầm Viên</span>
+            <span className="brand-sub">{t("Sài Gòn • Thuyết Minh Đa Ngôn Ngữ")}</span>
           </span>
         </Link>
 
-        <nav aria-label="Điều hướng khách tham quan">
+        <nav aria-label={t("Điều hướng khách tham quan")}>
           <ul className="nav-menu">
             <li>
-              <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                Trang chủ
-              </NavLink>
+              <NavLink to="/" end className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>{t(" Trang chủ ")}</NavLink>
             </li>
             <li>
-              <NavLink to="/explore" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                Khám phá
-              </NavLink>
+              <NavLink to="/explore" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>{t(" Khám phá ")}</NavLink>
             </li>
             <li>
-              <NavLink to="/payment" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>
-                Vé thuyết minh
-              </NavLink>
+              <NavLink to="/payment" className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}>{t(" Vé thuyết minh ")}</NavLink>
             </li>
           </ul>
         </nav>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <div className="visitor-header-actions" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          {pathname !== '/explore' && <LanguagePicker languages={languages} value={locale} disabled={false} onChange={setLanguage} />}
           {hasValidTicket ? (
             <Link
               to="/explore"
@@ -94,10 +93,10 @@ export const VisitorNavigation: React.FC = () => {
                 fontWeight: 600,
                 borderRadius: '999px'
               }}
-              title="Bạn đang có vé tham quan hoạt động — Nhấn để vào bản đồ"
+              title={t("Bạn đang có vé tham quan hoạt động — Nhấn để vào bản đồ")}
             >
               <Icon name="ticket" />
-              <span>Đã kích hoạt nghe</span>
+              <span>{t("Đã kích hoạt nghe")}</span>
             </Link>
           ) : (
             <Link
@@ -113,10 +112,10 @@ export const VisitorNavigation: React.FC = () => {
                 fontWeight: 600,
                 borderRadius: '999px'
               }}
-              title="Mua vé trực tuyến hoặc đổi mã tiền mặt"
+              title={t("Mua vé trực tuyến hoặc đổi mã tiền mặt")}
             >
               <Icon name="ticket" />
-              <span>Kích hoạt vé</span>
+              <span>{t("Kích hoạt vé")}</span>
             </Link>
           )}
         </div>

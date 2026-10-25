@@ -1,3 +1,4 @@
+import { useVisitorLanguage } from '../i18n/VisitorLanguage';
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { PoiDto } from '../api/content.ts';
 import { fetchAudioBlob } from '../api/media.ts';
@@ -31,6 +32,7 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   autoPlayRequestId = null,
   onPlaybackStarted
 }) => {
+  const { t, language: locale, message } = useVisitorLanguage();
   const [playerState, setPlayerState] = useState<PlayerState>('IDLE');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [currentTime, setCurrentTime] = useState<number>(0);
@@ -315,24 +317,24 @@ export const AudioPlayer: React.FC<AudioPlayerProps> = ({
   };
 
   if (poi.audio.status !== 'AVAILABLE' || !poi.audio.url) {
-    return <div className="garden-audio-unavailable" role="status">Âm thanh chưa sẵn sàng. Bạn vẫn có thể đọc giới thiệu.</div>;
+    return <div className="garden-audio-unavailable" role="status">{t("Âm thanh chưa sẵn sàng. Bạn vẫn có thể đọc giới thiệu.")}</div>;
   }
   const clock = (seconds: number) => `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}`;
   const languageName = (code: string | null) => {
-    try { return code ? new Intl.DisplayNames(['vi'], { type: 'language' }).of(code) || code : 'Chưa có'; } catch { return code || 'Chưa có'; }
+    try { return code ? new Intl.DisplayNames([locale], { type: 'language' }).of(code) || code : t("Chưa có"); } catch { return code || t("Chưa có"); }
   };
-  const labels: Record<PlayerState, string> = { IDLE: 'Nghe thuyết minh', LOADING: 'Đang tải âm thanh…', READY: 'Bấm để nghe', PLAYING: 'Tạm dừng', PAUSED: 'Tiếp tục nghe', ENDED: 'Nghe lại', NEED_GESTURE: 'Bấm để phát', ERROR: 'Thử lại' };
+  const labels: Record<PlayerState, string> = { IDLE: t("Nghe thuyết minh"), LOADING: t("Đang tải âm thanh…"), READY: t("Bấm để nghe"), PLAYING: t("Tạm dừng"), PAUSED: t("Tiếp tục nghe"), ENDED: t("Nghe lại"), NEED_GESTURE: t("Bấm để phát"), ERROR: t("Thử lại") };
   return <div className="garden-player">
     <div className="garden-player-actions">
       <button type="button" onClick={handlePlayAudio} disabled={playerState === 'LOADING'} className="btn-primary garden-play-button"><Icon name={playerState === 'PLAYING' ? 'pause' : playerState === 'ERROR' ? 'repeat' : 'play'} />{labels[playerState]}</button>
-      {(playerState === 'PLAYING' || playerState === 'PAUSED' || playerState === 'ENDED') && <button type="button" className="garden-icon-button" onClick={handleReplay} aria-label="Phát lại từ đầu"><Icon name="repeat" /></button>}
+      {(playerState === 'PLAYING' || playerState === 'PAUSED' || playerState === 'ENDED') && <button type="button" className="garden-icon-button" onClick={handleReplay} aria-label={t("Phát lại từ đầu")}><Icon name="repeat" /></button>}
     </div>
-    <div className="garden-player-timeline"><time>{clock(currentTime)}</time><input aria-label="Tiến trình nghe" type="range" min={0} max={duration} step={0.1} value={Math.min(currentTime, duration)} disabled={!activeBlobUrlRef.current || playerState === 'LOADING'} onChange={e => { const time = Number(e.target.value); if (audioElementRef.current && activeBlobUrlRef.current) { audioElementRef.current.currentTime = time; setCurrentTime(time); } }} /><time>{clock(duration)}</time></div>
+    <div className="garden-player-timeline"><time>{clock(currentTime)}</time><input aria-label={t("Tiến trình nghe")} type="range" min={0} max={duration} step={0.1} value={Math.min(currentTime, duration)} disabled={!activeBlobUrlRef.current || playerState === 'LOADING'} onChange={e => { const time = Number(e.target.value); if (audioElementRef.current && activeBlobUrlRef.current) { audioElementRef.current.currentTime = time; setCurrentTime(time); } }} /><time>{clock(duration)}</time></div>
     <div className="garden-player-feedback" aria-live="polite">
-      {playerState === 'LOADING' && <span>Đang chuẩn bị câu chuyện của bạn.</span>}
-      {playerState === 'NEED_GESTURE' && <span>Chạm nút phát để cho phép trình duyệt phát âm thanh.</span>}
-      {playerState === 'ERROR' && <span role="alert">Chưa phát được âm thanh. Hãy thử lại. <details><summary>Thông tin hỗ trợ</summary>{errorMessage}</details></span>}
-      {poi.audio.isFallback && <span>Âm thanh dùng {languageName(poi.audio.languageCode)}, thay cho {languageName(requestedLanguageCode)}.</span>}
+      {playerState === 'LOADING' && <span>{t("Đang chuẩn bị câu chuyện của bạn.")}</span>}
+      {playerState === 'NEED_GESTURE' && <span>{t("Chạm nút phát để cho phép trình duyệt phát âm thanh.")}</span>}
+      {playerState === 'ERROR' && <span role="alert">{t("Chưa phát được âm thanh. Hãy thử lại. ")}<details><summary>{t("Thông tin hỗ trợ")}</summary>{message(errorMessage)}</details></span>}
+      {poi.audio.isFallback && <span>{t("Âm thanh dùng {0}, thay cho {1}.", { 0: languageName(poi.audio.languageCode), 1: languageName(requestedLanguageCode) })}</span>}
     </div>
   </div>;
 };

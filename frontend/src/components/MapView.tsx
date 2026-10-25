@@ -1,3 +1,4 @@
+import { useVisitorLanguage } from '../i18n/VisitorLanguage';
 import React, { useEffect, useRef, useState } from 'react';
 import { PoiDto, TourDto } from '../api/content';
 import { handleMarkerPhotoError, visitorMarkerHtml } from './visitorMapMarker';
@@ -47,6 +48,7 @@ export const MapView: React.FC<MapViewProps> = ({
   activeTour,
   filteredCategory
 }) => {
+  const { t, language: locale } = useVisitorLanguage();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<any>(null);
   const viewRegionRef = useRef<ReturnType<typeof constrainVisitorMap>>(null);
@@ -99,7 +101,7 @@ export const MapView: React.FC<MapViewProps> = ({
             ? 'https://a.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
             : 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
             maxZoom: 19,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors' +
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> <span data-map-contributors>contributors</span>' +
               (fallback ? ' | <a href="https://www.hotosm.org/">HOT</a>, tiles <a href="https://www.openstreetmap.fr/usage/">OpenStreetMap France</a>' : '')
           });
           currentLayer = tiles;
@@ -159,6 +161,16 @@ export const MapView: React.FC<MapViewProps> = ({
     };
   }, []);
 
+  useEffect(() => {
+    const container = mapContainerRef.current;
+    const attribution = container?.querySelector?.('[data-map-contributors]');
+    if (attribution) attribution.textContent = t('đóng góp bản đồ');
+    container?.querySelector?.('.leaflet-control-zoom-in')?.setAttribute('title', t('Phóng to'));
+    container?.querySelector?.('.leaflet-control-zoom-in')?.setAttribute('aria-label', t('Phóng to'));
+    container?.querySelector?.('.leaflet-control-zoom-out')?.setAttribute('title', t('Thu nhỏ'));
+    container?.querySelector?.('.leaflet-control-zoom-out')?.setAttribute('aria-label', t('Thu nhỏ'));
+  }, [locale, leafletLoaded, t]);
+
   // 2. Ve cac POI markers va trigger circles
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -181,7 +193,7 @@ export const MapView: React.FC<MapViewProps> = ({
 
       const customIcon = L.divIcon({
         className: `poi-map-marker${isSelected ? ' is-selected' : ''}`,
-        html: visitorMarkerHtml(poi),
+        html: visitorMarkerHtml(poi, locale),
         iconSize: [isSelected ? 44 : 38, isSelected ? 44 : 38],
         iconAnchor: [isSelected ? 22 : 19, isSelected ? 22 : 19]
       });
@@ -215,7 +227,7 @@ export const MapView: React.FC<MapViewProps> = ({
 
       circlesRef.current[poi.poiId] = circle;
     });
-  }, [pois, selectedPoiId, filteredCategory, leafletLoaded, onSelectPoi]);
+  }, [pois, selectedPoiId, filteredCategory, leafletLoaded, onSelectPoi, locale]);
 
   // Keep the view region independent of search/category/language selections.
   const selectedMapPoi = pois.find(p => p.poiId === selectedPoiId);
@@ -276,10 +288,10 @@ export const MapView: React.FC<MapViewProps> = ({
       });
 
       const marker = L.marker([userLocation.latitude, userLocation.longitude], { icon: userIcon }).addTo(map);
-      marker.bindTooltip('👤 Vị trí hiện tại của bạn', { permanent: false, direction: 'top' });
+      marker.bindTooltip(t("👤 Vị trí hiện tại của bạn"), { permanent: false, direction: 'top' });
       userMarkerRef.current = marker;
     }
-  }, [userLocation, leafletLoaded]);
+  }, [userLocation, leafletLoaded, locale]);
 
   // 5. Ve duong noi lo trinh Tour
   useEffect(() => {
@@ -319,12 +331,12 @@ export const MapView: React.FC<MapViewProps> = ({
 
   return (
     <div className="leaflet-map-shell">
-      <div ref={mapContainerRef} className="leaflet-map-canvas" aria-label="Bản đồ điểm tham quan Thảo Cầm Viên" />
-      {!leafletLoaded && <div className="map-load-notice" role="status">{mapError ? 'Chưa tải được bản đồ. Bạn vẫn có thể chọn điểm trong danh sách để xem giới thiệu và nghe thuyết minh.' : 'Đang mở bản đồ khu vườn…'}</div>}
-      {leafletLoaded && tileError && <div className="map-load-notice" role="status">Chưa tải được một phần nền bản đồ. Bạn vẫn có thể chọn điểm trong danh sách; thử tải lại trang khi kết nối ổn định.</div>}
-      {leafletLoaded && <button className="garden-map-fit" type="button" aria-label="Hiện toàn bộ điểm" onClick={() => {
+      <div ref={mapContainerRef} className="leaflet-map-canvas" aria-label={t("Bản đồ điểm tham quan Thảo Cầm Viên")} />
+      {!leafletLoaded && <div className="map-load-notice" role="status">{mapError ? t("Chưa tải được bản đồ. Bạn vẫn có thể chọn điểm trong danh sách để xem giới thiệu và nghe thuyết minh.") : t("Đang mở bản đồ khu vườn…")}</div>}
+      {leafletLoaded && tileError && <div className="map-load-notice" role="status">{t("Chưa tải được một phần nền bản đồ. Bạn vẫn có thể chọn điểm trong danh sách; thử tải lại trang khi kết nối ổn định.")}</div>}
+      {leafletLoaded && <button className="garden-map-fit" type="button" aria-label={t("Hiện toàn bộ điểm")} onClick={() => {
         viewRegionRef.current?.fitOverview();
-      }}>Toàn cảnh</button>}
+      }}>{t("Toàn cảnh")}</button>}
 
     </div>
   );

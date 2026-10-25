@@ -1,3 +1,4 @@
+import { useVisitorLanguage } from '../i18n/VisitorLanguage';
 import { useEffect, useId, useRef, useState, KeyboardEvent } from 'react';
 import type { LanguageDto } from '../api/content';
 import { Icon } from './Icon';
@@ -12,6 +13,7 @@ const vietnameseNames: Record<string, string> = {
 export function LanguagePicker({ languages, value, disabled, onChange }: {
   languages: LanguageDto[]; value: string; disabled: boolean; onChange: (code: string) => void;
 }) {
+  const { t, language: locale } = useVisitorLanguage();
   const id = useId();
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
@@ -50,20 +52,24 @@ export function LanguagePicker({ languages, value, disabled, onChange }: {
   return <div className="garden-language-picker" ref={root} onBlur={event => {
     if (event.relatedTarget && !event.currentTarget.contains(event.relatedTarget as Node)) close();
   }}>
-    <button ref={trigger} className="garden-language-trigger" type="button" role="combobox" aria-label="Ngôn ngữ thuyết minh"
+    <button ref={trigger} className="garden-language-trigger" type="button" role="combobox" aria-label={t('Ngôn ngữ giao diện')}
       aria-haspopup="listbox" aria-expanded={open} aria-controls={id} disabled={disabled || !languages.length}
       onClick={() => open ? close() : show()} onKeyDown={event => {
         if (['ArrowDown', 'ArrowUp', 'Home', 'End'].includes(event.key)) {
           event.preventDefault(); show(event.key === 'End' ? languages.length - 1 : event.key === 'Home' ? 0 : Math.max(0, selected));
         }
       }}><Icon name="globe" /><span>{current?.name || value}</span><Icon name="chevron" className="garden-language-chevron" /></button>
-    {open && <div id={id} role="listbox" aria-label="Ngôn ngữ thuyết minh" className="garden-language-menu" onKeyDown={onListKey}>
+    {open && <div id={id} role="listbox" aria-label={t('Ngôn ngữ giao diện')} className="garden-language-menu" onKeyDown={onListKey}>
       {languages.map((language, index) => {
-        const translated = vietnameseNames[language.code.toLowerCase()];
+        let translated = vietnameseNames[language.code.toLowerCase()];
+        if (locale !== 'vi') {
+          try { translated = new Intl.DisplayNames([locale], { type: 'language' }).of(language.code) || language.name; }
+          catch { translated = language.name; }
+        }
         return <button ref={node => { options.current[index] = node; }} key={language.code} type="button" role="option"
           aria-selected={language.code === value} tabIndex={active === index ? 0 : -1} lang={language.code}
           className="garden-language-option" onClick={() => choose(language.code)}>
-          <span><strong>{language.name}</strong>{translated && translated !== language.name && <small lang="vi">{translated}</small>}</span>
+          <span><strong>{language.name}</strong>{translated && translated !== language.name && <small lang={locale}>{translated}</small>}</span>
           {language.code === value && <Icon name="check" />}
         </button>;
       })}

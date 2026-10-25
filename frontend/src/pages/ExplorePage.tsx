@@ -1,3 +1,5 @@
+import type { Translator } from '../i18n/translate';
+import { useVisitorLanguage } from '../i18n/VisitorLanguage';
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { getApiBaseUrl, ApiError } from '../api/client';
@@ -15,23 +17,24 @@ import { LanguagePicker } from '../components/LanguagePicker';
 import { ListeningDeadline } from '../components/ListeningDeadline';
 import { VisitorChatWidget } from '../components/VisitorChatWidget';
 
-function formatCategory(category: string | null): string {
-  if (!category) return 'Chưa phân loại';
+function formatCategory(category: string | null, t: Translator): string {
+  if (!category) return t("Chưa phân loại");
   switch (category.toUpperCase()) {
     case 'ANIMAL':
-      return 'Động vật';
+      return t("Động vật");
     case 'PLANT':
-      return 'Thực vật';
+      return t("Thực vật");
     case 'HERITAGE':
-      return 'Di tích';
+      return t("Di tích");
     case 'AMENITY':
-      return 'Tiện ích';
+      return t("Tiện ích");
     default:
       return category;
   }
 }
 
 export const ExplorePage: React.FC = () => {
+  const { t, language: locale, message, setLanguage, languages: uiLanguages } = useVisitorLanguage();
   const currentBaseUrl = getApiBaseUrl();
   const { session, mismatchedBaseUrl } = loadGuestSession(currentBaseUrl);
   const token = mismatchedBaseUrl ? null : session.token;
@@ -39,7 +42,7 @@ export const ExplorePage: React.FC = () => {
   const [publicReload, setPublicReload] = useState(0);
 
   const [bundle, setBundle] = useState<BundleDto | null>(null);
-  const [selectedLanguageCode, setSelectedLanguageCode] = useState<string>('vi');
+  const selectedLanguageCode = locale;
   const [loadingLanguageCode, setLoadingLanguageCode] = useState<string | null>(null);
   const [selectedPoiId, setSelectedPoiId] = useState<number | null>(null);
 
@@ -121,7 +124,7 @@ export const ExplorePage: React.FC = () => {
       if (currentSeq !== requestSeqRef.current) return;
 
       setBundle(data);
-      setSelectedLanguageCode(data.requestedLanguageCode);
+
       setLoadingLanguageCode(null);
 
       setSelectedPoiId((prevId) => {
@@ -145,7 +148,7 @@ export const ExplorePage: React.FC = () => {
       } else {
         setBundleError({
           code: 'NETWORK_ERROR',
-          message: 'Không thể kết nối máy chủ để tải gói dữ liệu tham quan.'
+          message: t("Không thể kết nối máy chủ để tải gói dữ liệu tham quan.")
         });
       }
     }
@@ -163,7 +166,7 @@ export const ExplorePage: React.FC = () => {
           if (cancelled) return;
           if (visit.status !== 'ACTIVE' || !visit.expiresAt || !Number.isFinite(Date.parse(visit.expiresAt)) || Date.parse(visit.expiresAt) <= Date.now()) { stopExpiredVisit(); return; }
           setCanListen(true); setSessionError(null); setIsVerifying(false);
-          await fetchBundle('vi', token);
+          await fetchBundle(locale, token);
           return;
         } catch (err) {
           if (cancelled) return;
@@ -173,11 +176,11 @@ export const ExplorePage: React.FC = () => {
       }
       if (cancelled) return;
       setIsVerifying(false);
-      await fetchBundle('vi', null);
+      await fetchBundle(locale, null);
     };
     void initialize();
     return () => { cancelled = true; requestSeqRef.current++; abortControllerRef.current?.abort(); };
-  }, [token, currentBaseUrl, fetchBundle, publicReload, stopExpiredVisit]);
+  }, [token, currentBaseUrl, fetchBundle, publicReload, stopExpiredVisit, locale]);
 
   // GPS theo dõi vị trí thực tế liên tục
   useEffect(() => {
@@ -204,7 +207,7 @@ export const ExplorePage: React.FC = () => {
 
   // LOGIC TỰ ĐỘNG KÍCH HOẠT THUYẾT MINH THEO VỊ TRÍ (US-B02)
   useEffect(() => {
-    if (!canListen || !isAutoTourActive || !userLocation || !bundle || bundle.pois.length === 0) return;
+    if (!canListen || !isAutoTourActive || !userLocation || !bundle || bundle.requestedLanguageCode !== locale || bundle.pois.length === 0) return;
 
     let nearestPoi: PoiDto | null = null;
     let minDistance = Infinity;
@@ -247,11 +250,11 @@ export const ExplorePage: React.FC = () => {
       activeAutoPoi.current = poiToPlay.poiId;
       setAutoPlayRequest({ id: ++autoPlaySequence.current, poiId: poiToPlay.poiId });
     }
-  }, [canListen, userLocation, isAutoTourActive, bundle, playedPoisInPass]);
+  }, [canListen, userLocation, isAutoTourActive, bundle, playedPoisInPass, locale]);
 
   const handleSelectLanguage = (langCode: string) => {
     if (langCode === selectedLanguageCode || loadingLanguageCode === langCode) return;
-    fetchBundle(langCode, canListen ? token : null);
+    setLanguage(langCode);
   };
 
   const selectedPoi: PoiDto | undefined = bundle?.pois.find((p) => p.poiId === selectedPoiId);
@@ -264,8 +267,11 @@ export const ExplorePage: React.FC = () => {
     return categoryMatches && normalize(`${poi.text.name || ''} ${poi.originalName}`).includes(normalize(poiQuery.trim()));
   });
 
-  const languageName = (code: string | null) => bundle?.languages.find(l => l.code === code)?.name || code || 'Chưa có';
-  const categories = [{ id: 'ALL', label: 'Tất cả' }, { id: 'ANIMAL', label: 'Động vật' }, { id: 'PLANT', label: 'Thực vật' }, { id: 'HERITAGE', label: 'Di tích' }, { id: 'AMENITY', label: 'Tiện ích' }];
+  const languageName = (code: string | null) => {
+    try { return code ? new Intl.DisplayNames([locale], { type: 'language' }).of(code) || code : t('Chưa có'); }
+    catch { return code || t('Chưa có'); }
+  };
+  const categories = [{ id: 'ALL', label: t("Tất cả") }, { id: 'ANIMAL', label: t("Động vật") }, { id: 'PLANT', label: t("Thực vật") }, { id: 'HERITAGE', label: t("Di tích") }, { id: 'AMENITY', label: t("Tiện ích") }];
   const durationLabel = (seconds: number | null) => seconds ? `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, '0')}` : '';
   const resetAuto = () => { setIsAutoTourActive(false); setAutoPlayRequest(null); attemptedPois.current.clear(); activeAutoPoi.current = null; setPlayedPoisInPass({}); };
   useEffect(() => {
@@ -289,99 +295,99 @@ export const ExplorePage: React.FC = () => {
 
   return <div className="garden-experience">
     <header className="garden-toolbar">
-      <div><span className="garden-eyebrow">THẢO CẦM VIÊN SÀI GÒN</span><h1>Chọn một điểm, nghe một câu chuyện.</h1></div>
+      <div><span className="garden-eyebrow">{t("THẢO CẦM VIÊN SÀI GÒN")}</span><h1>{t("Chọn một điểm, nghe một câu chuyện.")}</h1></div>
       <div className="garden-toolbar-controls">
         <ListeningDeadline expiresAt={canListen ? bundle?.expiresAt : null} />
-        <LanguagePicker languages={bundle?.languages.length ? bundle.languages : [{ code: 'vi', name: 'Tiếng Việt' }, { code: 'en', name: 'English' }]}
+        <LanguagePicker languages={uiLanguages}
           value={selectedLanguageCode} disabled={Boolean(loadingLanguageCode)} onChange={handleSelectLanguage} />
       </div>
     </header>
     <VisitSummary baseUrl={currentBaseUrl} />
     <div className="garden-status" aria-live="polite">
-      {loadingLanguageCode && <p>Đang tải nội dung {languageName(loadingLanguageCode)}…</p>}
-      {isVerifying && <p>Đang kiểm tra vé của bạn. Bạn vẫn xem được bản đồ.</p>}
-      {sessionError && <p>{sessionError} <button type="button" className="garden-text-button" onClick={() => setPublicReload(n => n + 1)}>Kiểm tra lại</button></p>}
-      {bundleError && <p role="alert">Chưa tải được nội dung. Kiểm tra kết nối rồi <button type="button" className="garden-text-button" onClick={() => fetchBundle(selectedLanguageCode, canListen ? token : null)}>thử lại</button>.</p>}
+      {loadingLanguageCode && <p>{t("Đang tải nội dung ")}{languageName(loadingLanguageCode)}…</p>}
+      {isVerifying && <p>{t("Đang kiểm tra vé của bạn. Bạn vẫn xem được bản đồ.")}</p>}
+      {sessionError && <p>{message(sessionError)} <button type="button" className="garden-text-button" onClick={() => setPublicReload(n => n + 1)}>{t("Kiểm tra lại")}</button></p>}
+      {bundleError && <p role="alert">{t("Chưa tải được nội dung. Kiểm tra kết nối rồi ")}<button type="button" className="garden-text-button" onClick={() => fetchBundle(selectedLanguageCode, canListen ? token : null)}>{t("thử lại")}</button>.</p>}
     </div>
 
     <div className={`garden-workspace${expanded ? ' is-expanded' : ''}`}>
-      <section className={`garden-directory${panel === 'places' ? ' is-open' : ''}`} aria-label="Danh sách điểm tham quan" aria-busy={Boolean(loadingLanguageCode)}>
-        <div className="garden-directory-heading"><h2>Khám phá khu vườn</h2><button type="button" className="garden-icon-button garden-mobile-only" aria-label="Đóng danh sách" onClick={() => setPanel('map')}><Icon name="close" /></button></div>
-        <label className="garden-search"><Icon name="search" /><input type="search" aria-label="Tìm điểm tham quan" placeholder="Tìm điểm bạn muốn ghé…" value={poiQuery} onChange={e => setPoiQuery(e.target.value)} /></label>
-        <div className="garden-filters" role="group" aria-label="Lọc điểm tham quan">{categories.map(c => <button type="button" key={c.id} aria-pressed={selectedCategory === c.id} onClick={() => setSelectedCategory(c.id)}>{c.label}</button>)}</div>
-        <div className="garden-result-count"><span aria-live="polite">{filteredPois.length} điểm tham quan</span><label className="garden-desktop-category"><span className="sr-only">Phân loại điểm</span><select aria-label="Phân loại điểm" value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>{categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label></div>
+      <section className={`garden-directory${panel === 'places' ? ' is-open' : ''}`} aria-label={t("Danh sách điểm tham quan")} aria-busy={Boolean(loadingLanguageCode)}>
+        <div className="garden-directory-heading"><h2>{t("Khám phá khu vườn")}</h2><button type="button" className="garden-icon-button garden-mobile-only" aria-label={t("Đóng danh sách")} onClick={() => setPanel('map')}><Icon name="close" /></button></div>
+        <label className="garden-search"><Icon name="search" /><input type="search" aria-label={t("Tìm điểm tham quan")} placeholder={t("Tìm điểm bạn muốn ghé…")} value={poiQuery} onChange={e => setPoiQuery(e.target.value)} /></label>
+        <div className="garden-filters" role="group" aria-label={t("Lọc điểm tham quan")}>{categories.map(c => <button type="button" key={c.id} aria-pressed={selectedCategory === c.id} onClick={() => setSelectedCategory(c.id)}>{c.label}</button>)}</div>
+        <div className="garden-result-count"><span aria-live="polite">{filteredPois.length}{t(" điểm tham quan")}</span><label className="garden-desktop-category"><span className="sr-only">{t("Phân loại điểm")}</span><select aria-label={t("Phân loại điểm")} value={selectedCategory} onChange={e => setSelectedCategory(e.target.value)}>{categories.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}</select></label></div>
         <div className="garden-poi-list">
           {filteredPois.map(poi => <button type="button" key={poi.poiId} data-poi-id={poi.poiId} className="garden-poi-row" aria-pressed={poi.poiId === selectedPoiId} onClick={() => selectPoi(poi.poiId)}>
             <VisitorPoiPhoto originalName={poi.originalName} name={poi.text.name || poi.originalName} avatarUrl={poi.avatarUrl} category={poi.category} />
-            <span><strong>{poi.text.name || poi.originalName}</strong><small>{formatCategory(poi.category)}{poi.audio.duration ? ` · ${durationLabel(poi.audio.duration)}` : ''}</small></span><Icon name="chevron" />
+            <span><strong>{poi.text.name || poi.originalName}</strong><small>{formatCategory(poi.category, t)}{poi.audio.duration ? ` · ${durationLabel(poi.audio.duration)}` : ''}</small></span><Icon name="chevron" />
           </button>)}
-          {!filteredPois.length && <div className="garden-empty" role="status"><Icon name="search" /><p>{loadingLanguageCode ? 'Đang mở khu vườn…' : bundleError ? 'Chưa có dữ liệu để hiển thị.' : 'Không tìm thấy điểm phù hợp.'}</p>{(poiQuery || selectedCategory !== 'ALL') && <button className="garden-text-button" onClick={() => { setPoiQuery(''); setSelectedCategory('ALL'); }}>Xóa bộ lọc</button>}</div>}
+          {!filteredPois.length && <div className="garden-empty" role="status"><Icon name="search" /><p>{loadingLanguageCode ? t("Đang mở khu vườn…") : bundleError ? t("Chưa có dữ liệu để hiển thị.") : t("Không tìm thấy điểm phù hợp.")}</p>{(poiQuery || selectedCategory !== 'ALL') && <button className="garden-text-button" onClick={() => { setPoiQuery(''); setSelectedCategory('ALL'); }}>{t("Xóa bộ lọc")}</button>}</div>}
         </div>
       </section>
 
-      <section className="garden-map" aria-label="Bản đồ khu vườn">
+      <section className="garden-map" aria-label={t("Bản đồ khu vườn")}>
         <MapView pois={filteredPois} tourPois={bundle?.pois} selectedPoiId={selectedPoiId} onSelectPoi={selectPoi} userLocation={userLocation} activeTour={activeTour} filteredCategory="ALL" />
-        <button className="garden-map-options garden-icon-button" type="button" aria-label="Tùy chọn tham quan" onClick={() => setPanel('options')}><Icon name="settings" /></button>
-        <button className="garden-mobile-search" type="button" onClick={() => setPanel('places')}><Icon name="search" /><span>Tìm điểm bạn muốn ghé…</span></button>
-        <button className="garden-map-note" type="button" onClick={() => setPanel('options')}><Icon name="info" /> Vị trí tham khảo & minh họa</button>
-        {simulatedPoi && <span className="garden-simulated-label">Đang giả lập tại {simulatedPoi.text.name || simulatedPoi.originalName}</span>}
+        <button className="garden-map-options garden-icon-button" type="button" aria-label={t("Tùy chọn tham quan")} onClick={() => setPanel('options')}><Icon name="settings" /></button>
+        <button className="garden-mobile-search" type="button" onClick={() => setPanel('places')}><Icon name="search" /><span>{t("Tìm điểm bạn muốn ghé…")}</span></button>
+        <button className="garden-map-note" type="button" onClick={() => setPanel('options')}><Icon name="info" />{t(" Vị trí tham khảo & minh họa")}</button>
+        {simulatedPoi && <span className="garden-simulated-label">{t("Đang giả lập tại ")}{simulatedPoi.text.name || simulatedPoi.originalName}</span>}
       </section>
 
-      <section id="selected-poi-detail" className="garden-selected" aria-label="Điểm đang chọn">
+      <section id="selected-poi-detail" className="garden-selected" aria-label={t("Điểm đang chọn")}>
         {selectedPoi ? <>
-          <button className="garden-sheet-handle garden-mobile-only" type="button" aria-label={expanded ? 'Thu gọn thông tin điểm' : 'Mở rộng thông tin điểm'} aria-expanded={expanded} onClick={() => setExpanded(v => !v)}><span /></button>
+          <button className="garden-sheet-handle garden-mobile-only" type="button" aria-label={expanded ? t("Thu gọn thông tin điểm") : t("Mở rộng thông tin điểm")} aria-expanded={expanded} onClick={() => setExpanded(v => !v)}><span /></button>
           <div className="garden-selected-body" key={selectedPoi.poiId}>
-            <span className="garden-eyebrow">{formatCategory(selectedPoi.category)}</span>
-            <div className="garden-selected-heading"><h2>{selectedPoi.text.name || selectedPoi.originalName}</h2><button type="button" className="garden-icon-button" aria-label="Xem giới thiệu" onClick={() => setExpanded(v => !v)} aria-expanded={expanded}><Icon name="info" /></button></div>
-            {selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && <p className="garden-original-name">{selectedPoi.originalName}</p>}
-            {selectedPoi.text.isFallback && <p className="garden-fallback" role="status">Giới thiệu hiện dùng {languageName(selectedPoi.text.languageCode)}, thay cho {languageName(selectedLanguageCode)}.</p>}
+            <span className="garden-eyebrow">{formatCategory(selectedPoi.category, t)}</span>
+            <div className="garden-selected-heading"><h2>{selectedPoi.text.name || selectedPoi.originalName}</h2><button type="button" className="garden-icon-button" aria-label={t("Xem giới thiệu")} onClick={() => setExpanded(v => !v)} aria-expanded={expanded}><Icon name="info" /></button></div>
+            {locale === 'vi' && selectedPoi.text.name && selectedPoi.text.name !== selectedPoi.originalName && <p className="garden-original-name">{selectedPoi.originalName}</p>}
+            {selectedPoi.text.isFallback && <p className="garden-fallback" role="status">{t("Giới thiệu hiện dùng {0}, thay cho {1}.", { 0: languageName(selectedPoi.text.languageCode), 1: languageName(selectedLanguageCode) })}</p>}
             {expanded && <VisitorPoiPhoto key={selectedPoi.poiId} originalName={selectedPoi.originalName} name={selectedPoi.text.name || selectedPoi.originalName} avatarUrl={selectedPoi.avatarUrl} category={selectedPoi.category} variant="detail" />}
-            {expanded && <p className="garden-description is-expanded">{selectedPoi.text.description || 'Giới thiệu cho điểm này đang được cập nhật.'}</p>}
+            {expanded && <p className="garden-description is-expanded">{selectedPoi.text.description || t("Giới thiệu cho điểm này đang được cập nhật.")}</p>}
             {expanded && <div className="garden-expanded-content">
-              {selectedPoi.conservationStatus && <p>Tình trạng bảo tồn: {selectedPoi.conservationStatus}</p>}
-              {selectedPoi.activityHours && <p>Hoạt động: {selectedPoi.activityHours}</p>}
-              {selectedPoi.locationNote && <p className="garden-location-note">{selectedPoi.locationNote.label}</p>}
-              {userLocation && <p>Khoảng cách đường thẳng {simulatedPoi ? 'từ vị trí giả lập' : 'ước tính từ thiết bị'}: {calculateHaversineDistance(userLocation.latitude, userLocation.longitude, selectedPoi.latitude, selectedPoi.longitude)} m. Không phải khoảng cách đi bộ.</p>}
-              {canListen && selectedPoi.text.audioScript && <details><summary>Đọc lời thuyết minh</summary><p>{selectedPoi.text.audioScript}</p></details>}
+              {selectedPoi.conservationStatus && <p>{t("Tình trạng bảo tồn: ")}{selectedPoi.conservationStatus}</p>}
+              {selectedPoi.activityHours && <p>{t("Hoạt động: ")}{selectedPoi.activityHours}</p>}
+              {selectedPoi.locationNote && <p className="garden-location-note">{t(selectedPoi.locationNote.label)}</p>}
+              {userLocation && <p>{t("Khoảng cách đường thẳng ")}{simulatedPoi ? t("từ vị trí giả lập") : t("ước tính từ thiết bị")}: {calculateHaversineDistance(userLocation.latitude, userLocation.longitude, selectedPoi.latitude, selectedPoi.longitude)}{t(" m. Không phải khoảng cách đi bộ.")}</p>}
+              {canListen && selectedPoi.text.audioScript && <details><summary>{t("Đọc lời thuyết minh")}</summary><p>{selectedPoi.text.audioScript}</p></details>}
             </div>}
-            <div className="garden-detail-meta"><span><Icon name="headphones" /> {languageName(selectedLanguageCode)}</span><button type="button" className="garden-text-button" onClick={() => setExpanded(v => !v)}>{expanded ? 'Thu gọn' : 'Xem giới thiệu'}</button></div>
+            <div className="garden-detail-meta"><span><Icon name="headphones" /> {languageName(selectedLanguageCode)}</span><button type="button" className="garden-text-button" onClick={() => setExpanded(v => !v)}>{expanded ? t("Thu gọn") : t("Xem giới thiệu")}</button></div>
           </div>
-        </> : <div className="garden-empty"><Icon name="pin" /><p>Chọn một điểm trên bản đồ để khám phá.</p></div>}
+        </> : <div className="garden-empty"><Icon name="pin" /><p>{t("Chọn một điểm trên bản đồ để khám phá.")}</p></div>}
       </section>
 
-      <div className="garden-audio-dock" aria-label="Điều khiển nghe thuyết minh">
-        <div className="garden-now-playing"><span className="garden-category-icon"><Icon name="headphones" /></span><div><strong>{selectedPoi?.text.name || selectedPoi?.originalName || 'Khám phá Thảo Cầm Viên'}</strong><small>{languageName(selectedLanguageCode)} · {canListen ? 'Vé đã kích hoạt' : 'Bản đồ mở miễn phí'}</small></div></div>
-        {selectedPoi && canListen && token ? <AudioPlayer key={[selectedPoi.poiId, selectedLanguageCode, selectedPoi.audio.url, token].join(':')} autoPlayRequestId={isAutoTourActive && autoPlayRequest?.poiId === selectedPoi.poiId ? autoPlayRequest.id : null} onPlaybackStarted={handlePlaybackStarted} poi={selectedPoi} requestedLanguageCode={selectedLanguageCode} token={token} onSessionExpired={stopExpiredVisit} />
-          : <div className="garden-listen-gate"><span>Nghe câu chuyện về điểm bạn chọn.</span><Link className="btn-primary" to="/payment"><Icon name="headphones" /> Nghe thuyết minh</Link></div>}
-        <button className="garden-tour-shortcut garden-text-button" type="button" onClick={() => setPanel('tours')}><Icon name="compass" /> Lộ trình gợi ý</button>
+      <div className="garden-audio-dock" aria-label={t("Điều khiển nghe thuyết minh")}>
+        <div className="garden-now-playing"><span className="garden-category-icon"><Icon name="headphones" /></span><div><strong>{selectedPoi?.text.name || selectedPoi?.originalName || t("Khám phá Thảo Cầm Viên")}</strong><small>{languageName(selectedLanguageCode)} · {canListen ? t("Vé đã kích hoạt") : t("Bản đồ mở miễn phí")}</small></div></div>
+        {selectedPoi && canListen && token && bundle?.requestedLanguageCode === locale ? <AudioPlayer key={[selectedPoi.poiId, selectedLanguageCode, selectedPoi.audio.url, token].join(':')} autoPlayRequestId={isAutoTourActive && autoPlayRequest?.poiId === selectedPoi.poiId ? autoPlayRequest.id : null} onPlaybackStarted={handlePlaybackStarted} poi={selectedPoi} requestedLanguageCode={selectedLanguageCode} token={token} onSessionExpired={stopExpiredVisit} />
+          : <div className="garden-listen-gate"><span>{t("Nghe câu chuyện về điểm bạn chọn.")}</span><Link className="btn-primary" to="/payment"><Icon name="headphones" />{t(" Nghe thuyết minh")}</Link></div>}
+        <button className="garden-tour-shortcut garden-text-button" type="button" onClick={() => setPanel('tours')}><Icon name="compass" />{t(" Lộ trình gợi ý")}</button>
       </div>
-      <nav className="garden-bottom-nav" aria-label="Điều hướng khám phá">
-        {([{ id: 'map', icon: 'map', text: 'Bản đồ' }, { id: 'places', icon: 'list', text: 'Địa điểm' }, { id: 'tours', icon: 'compass', text: 'Lộ trình' }, { id: 'options', icon: 'settings', text: 'Tùy chọn' }] as const).map(item => <button key={item.id} type="button" aria-pressed={panel === item.id} onClick={() => setPanel(item.id)}><Icon name={item.icon} /><span>{item.text}</span></button>)}
+      <nav className="garden-bottom-nav" aria-label={t("Điều hướng khám phá")}>
+        {([{ id: 'map', icon: 'map', text: t("Bản đồ") }, { id: 'places', icon: 'list', text: t("Địa điểm") }, { id: 'tours', icon: 'compass', text: t("Lộ trình") }, { id: 'options', icon: 'settings', text: t("Tùy chọn") }] as const).map(item => <button key={item.id} type="button" aria-pressed={panel === item.id} onClick={() => setPanel(item.id)}><Icon name={item.icon} /><span>{item.text}</span></button>)}
       </nav>
     </div>
 
     <VisitorChatWidget token={canListen ? token : null} baseUrl={currentBaseUrl} onSessionExpired={stopExpiredVisit} />
     {(panel === 'options' || panel === 'tours') && <div className="garden-dialog-backdrop" onClick={() => setPanel('map')}>
       <section className="garden-dialog" role="dialog" aria-modal="true" aria-labelledby="garden-dialog-heading" onClick={e => e.stopPropagation()} onKeyDown={e => { if (e.key === 'Escape') setPanel('map'); }}>
-        <div className="garden-dialog-heading"><h2 id="garden-dialog-heading">{panel === 'options' ? 'Tùy chọn tham quan' : 'Lộ trình của bạn'}</h2><button type="button" className="garden-icon-button" aria-label="Đóng" onClick={() => setPanel('map')}><Icon name="close" /></button></div>
+        <div className="garden-dialog-heading"><h2 id="garden-dialog-heading">{panel === 'options' ? t("Tùy chọn tham quan") : t("Lộ trình của bạn")}</h2><button type="button" className="garden-icon-button" aria-label={t("Đóng")} onClick={() => setPanel('map')}><Icon name="close" /></button></div>
         {panel === 'options' ? <>
-          <p>Chọn điểm và bấm nghe để khám phá theo cách của bạn.</p>
-          <button type="button" className="btn-secondary" onClick={() => { if (gpsEnabled) { setGpsEnabled(false); setUserLocation(null); resetAuto(); } else { setGpsError(null); setGpsEnabled(true); } }}>{gpsEnabled ? 'Tắt định vị thiết bị' : 'Dùng vị trí của tôi'}</button>
-          {gpsError && <p role="status">{gpsError}</p>}
-          {!userLocation && <p>Chưa có vị trí của bạn. Bạn vẫn chọn và nghe từng điểm thủ công.</p>}
+          <p>{t("Chọn điểm và bấm nghe để khám phá theo cách của bạn.")}</p>
+          <button type="button" className="btn-secondary" onClick={() => { if (gpsEnabled) { setGpsEnabled(false); setUserLocation(null); resetAuto(); } else { setGpsError(null); setGpsEnabled(true); } }}>{gpsEnabled ? t("Tắt định vị thiết bị") : t("Dùng vị trí của tôi")}</button>
+          {gpsError && <p role="status">{message(gpsError)}</p>}
+          {!userLocation && <p>{t("Chưa có vị trí của bạn. Bạn vẫn chọn và nghe từng điểm thủ công.")}</p>}
           {canListen && <>
-            <label className="garden-option-row"><input type="checkbox" checked={isAutoTourActive} onChange={() => { const next = !isAutoTourActive; resetAuto(); setIsAutoTourActive(next); }} /><span>Tự phát khi đến gần điểm trình diễn</span></label>
-            <label className="garden-field">Vị trí trình diễn<select aria-label="Vị trí trình diễn" value={simulatedPoiId ?? ''} onChange={e => { setSimulatedPoiId(e.target.value ? Number(e.target.value) : null); resetAuto(); }}><option value="">Dùng vị trí thiết bị nếu được phép</option>{bundle?.pois.map(p => <option key={p.poiId} value={p.poiId}>{p.text.name || p.originalName}</option>)}</select></label>
-            {simulatedPoi && <p role="status">Đang giả lập tại {simulatedPoi.text.name || simulatedPoi.originalName}; không phải GPS thực tế.</p>}
-            {bundle?.expiresAt && <p>Quyền nghe đến {new Date(bundle.expiresAt).toLocaleString('vi-VN')}.</p>}
+            <label className="garden-option-row"><input type="checkbox" checked={isAutoTourActive} onChange={() => { const next = !isAutoTourActive; resetAuto(); setIsAutoTourActive(next); }} /><span>{t("Tự phát khi đến gần điểm trình diễn")}</span></label>
+            <label className="garden-field">{t("Vị trí trình diễn")}<select aria-label={t("Vị trí trình diễn")} value={simulatedPoiId ?? ''} onChange={e => { setSimulatedPoiId(e.target.value ? Number(e.target.value) : null); resetAuto(); }}><option value="">{t("Dùng vị trí thiết bị nếu được phép")}</option>{bundle?.pois.map(p => <option key={p.poiId} value={p.poiId}>{p.text.name || p.originalName}</option>)}</select></label>
+            {simulatedPoi && <p role="status">{t("Đang giả lập tại ")}{simulatedPoi.text.name || simulatedPoi.originalName}{t("; không phải GPS thực tế.")}</p>}
+            {bundle?.expiresAt && <p>{t("Quyền nghe đến ")}{new Date(bundle.expiresAt).toLocaleString(locale)}.</p>}
           </>}
-          <details><summary>Về bản đồ và giọng đọc demo</summary><p>Vị trí tham khảo và minh họa, chưa khảo sát thực địa; không xác nhận lối vào hay khả năng tiếp cận. Đường nối các điểm không phải tuyến đi bộ.</p><p>Âm thanh là giọng đọc tổng hợp. Bản dịch và phát âm chưa được người bản ngữ nghiệm thu độc lập.</p><a href="https://saigonzoo.vn/p/ban-do-duong-di-hp13.html" target="_blank" rel="noreferrer">Xem sơ đồ chính thức ↗</a></details>
+          <details><summary>{t("Về bản đồ và giọng đọc demo")}</summary><p>{t("Vị trí tham khảo và minh họa, chưa khảo sát thực địa; không xác nhận lối vào hay khả năng tiếp cận. Đường nối các điểm không phải tuyến đi bộ.")}</p><p>{t("Âm thanh là giọng đọc tổng hợp. Bản dịch và phát âm chưa được người bản ngữ nghiệm thu độc lập.")}</p><a href="https://saigonzoo.vn/p/ban-do-duong-di-hp13.html" target="_blank" rel="noreferrer">{t("Xem sơ đồ chính thức ↗")}</a></details>
         </> : <>
-          <p>Lộ trình demo do nhóm đề xuất. Đường nối chỉ thể hiện thứ tự điểm ghé, không phải chỉ đường đi bộ.</p>
-          {!canListen && <p>Kích hoạt vé để xem và tùy chỉnh lộ trình. <Link to="/payment">Mở vé thuyết minh</Link></p>}
-          {canListen && bundle?.tours.map(tour => <button className="garden-tour-card" type="button" key={tour.tourId} aria-pressed={activeTourId === tour.tourId} onClick={() => { setCustomTour(null); setActiveTourId(activeTourId === tour.tourId ? null : tour.tourId); }}><strong>{tour.name}</strong><span>{tour.items.length} điểm · {activeTourId === tour.tourId ? 'Đang chọn' : 'Chọn lộ trình'}</span></button>)}
+          <p>{t("Lộ trình demo do nhóm đề xuất. Đường nối chỉ thể hiện thứ tự điểm ghé, không phải chỉ đường đi bộ.")}</p>
+          {!canListen && <p>{t("Kích hoạt vé để xem và tùy chỉnh lộ trình. ")}<Link to="/payment">{t("Mở vé thuyết minh")}</Link></p>}
+          {canListen && bundle?.tours.map(tour => <button className="garden-tour-card" type="button" key={tour.tourId} aria-pressed={activeTourId === tour.tourId} onClick={() => { setCustomTour(null); setActiveTourId(activeTourId === tour.tourId ? null : tour.tourId); }}><strong>{t(tour.name)}</strong><span>{tour.items.length}{t(" điểm · ")}{activeTourId === tour.tourId ? t("Đang chọn") : t("Chọn lộ trình")}</span></button>)}
           {canListen && bundle && <TourPlanner pois={bundle.pois} location={userLocation} activeTour={activeTour} onApply={tour => { setCustomTour(tour); setActiveTourId(null); }} />}
-          <button type="button" className="btn-primary" onClick={() => setPanel('map')}>Trở về bản đồ</button>
+          <button type="button" className="btn-primary" onClick={() => setPanel('map')}>{t("Trở về bản đồ")}</button>
         </>}
       </section>
     </div>}

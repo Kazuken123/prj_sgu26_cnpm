@@ -1,3 +1,4 @@
+import { useVisitorLanguage } from '../i18n/VisitorLanguage';
 import { PointerEvent, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Icon } from './Icon';
 import { VisitorChat } from './VisitorChat';
@@ -9,6 +10,7 @@ const clamp = (value: number, min: number, max: number) => Math.max(min, Math.mi
 export function VisitorChatWidget(props: {
   token: string | null; baseUrl: string; onSessionExpired: () => void;
 }) {
+  const { t } = useVisitorLanguage();
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState<Point | null>(null);
   const [size, setSize] = useState(viewport);
@@ -59,20 +61,20 @@ export function VisitorChatWidget(props: {
     gesture.current = null; setDragging(false);
     if (event.currentTarget.hasPointerCapture(event.pointerId)) event.currentTarget.releasePointerCapture(event.pointerId);
   };
-  return <aside className="garden-chat-widget" aria-label="Trợ lý tham quan"
+  return <aside className="garden-chat-widget" aria-label={t("Trợ lý tham quan")}
     style={position ? { left: position.x, top: position.y, right: 'auto', bottom: 'auto' } : undefined}>
     <section id="visitor-chat-window" className="garden-chat-window" role="dialog" aria-labelledby="visitor-chat-title" hidden={!open} style={box}
       onKeyDown={event => { if (event.key === 'Escape') { event.stopPropagation(); close(); } }}>
       <header className="garden-chat-header">
         <span className="garden-chat-avatar" aria-hidden="true"><Icon name="chat" /></span>
-        <div><h2 id="visitor-chat-title">Hỏi đáp khu vườn</h2><p>Trợ lý tham quan · Có nguồn tham khảo</p></div>
-        <button ref={minimize} type="button" className="garden-chat-minimize" aria-label="Thu gọn trò chuyện" onClick={close}><Icon name="close" /></button>
+        <div><h2 id="visitor-chat-title">{t("Hỏi đáp khu vườn")}</h2><p>{t("Trợ lý tham quan · Có nguồn tham khảo")}</p></div>
+        <button ref={minimize} type="button" className="garden-chat-minimize" aria-label={t("Thu gọn trò chuyện")} onClick={close}><Icon name="close" /></button>
       </header>
       <VisitorChat {...props} open={open} />
     </section>
     <button ref={launcher} className={`garden-chat-launcher${dragging ? ' is-dragging' : ''}`} type="button"
-      aria-label={open ? 'Thu gọn trò chuyện' : 'Mở chat hỏi đáp'} aria-expanded={open} aria-controls="visitor-chat-window"
-      title="Kéo để di chuyển · Bấm để trò chuyện · Alt + phím mũi tên để di chuyển"
+      aria-label={open ? t("Thu gọn trò chuyện") : t("Mở chat hỏi đáp")} aria-expanded={open} aria-controls="visitor-chat-window"
+      title={t("Kéo để di chuyển · Bấm để trò chuyện · Alt + phím mũi tên để di chuyển")}
       onPointerDown={startDrag} onPointerMove={moveDrag} onPointerUp={event => endDrag(event)} onPointerCancel={event => endDrag(event, true)}
       onKeyDown={event => {
         if (!event.altKey || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(event.key)) return;

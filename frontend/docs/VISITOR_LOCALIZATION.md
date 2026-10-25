@@ -1,0 +1,11 @@
+# Visitor interface languages
+
+Home, Explore and Payment share a language context and the existing accessible language picker. The selector is in the visitor header on Home and Payment and in the Explore toolbar. The choice is stored separately from ticket credentials under `tcv.visitor.language`, survives navigation and reload, and synchronizes across tabs. Storage failures leave the current selection usable.
+
+The packaged catalog covers all 15 languages currently enabled by the content API. Catalogs contain interface text, errors, accessibility labels, photo labels and demo notices. They were initially machine translated, with editing of primary English copy and audio-guide terminology. Native-speaker review of longer copy is still recommended; these translations are not certified or represented as reviewed backend content. Placeholders and the protected brand terms are validated by tests. No translation service is called by the deployed frontend, and visitor questions or ticket details are never submitted for translation.
+
+The logo keeps **Thảo Cầm Viên** and **Sài Gòn**. Its audio-guide tagline, navigation, footer and public page metadata follow the selected language. Proper names, source credits, reference URLs and technical support identifiers retain their original spelling.
+
+Explore uses the same language for the existing `languageCode` requests. Changing language cancels superseded requests and stops the old player through its existing request/source lifecycle. Actual backend translation and audio fallback indicators remain visible and localized. User questions, sourced chatbot answers and other backend content remain backend data, not fabricated frontend translations. The chatbot's existing contract accepts only a question and is unchanged.
+
+Internal login, staff and administration screens stay Vietnamese. Language changes do not create a checkout, exchange a code, replace ticket credentials or alter authorization and concurrency rules.

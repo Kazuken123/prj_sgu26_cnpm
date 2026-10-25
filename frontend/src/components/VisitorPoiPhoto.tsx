@@ -1,3 +1,4 @@
+import { useVisitorLanguage } from '../i18n/VisitorLanguage';
 import { useState } from 'react';
 import { Icon } from './Icon';
 
@@ -15,21 +16,22 @@ export function resolveVisitorPhoto(originalName: string, avatarUrl: string | nu
 export function VisitorPoiPhoto({ originalName, name, avatarUrl, category, variant = 'thumbnail' }: {
   originalName: string; name: string; avatarUrl: string | null; category: string | null; variant?: 'thumbnail' | 'detail';
 }) {
+  const { t } = useVisitorLanguage();
   const photo = resolveVisitorPhoto(originalName, avatarUrl);
   const [failedSource, setFailedSource] = useState<string | null>(null);
   const source = photo?.[variant === 'detail' ? 'detail' : 'thumbnail'];
   const icon = category?.toUpperCase() === 'ANIMAL' ? 'paw' : category?.toUpperCase() === 'PLANT' ? 'leaf' : 'pin';
   if (!source || source === failedSource) {
     return variant === 'thumbnail' ? <span className="garden-category-icon"><Icon name={icon} /></span>
-      : source ? <p className="garden-photo-error" role="status">Chưa tải được ảnh. Bạn vẫn có thể đọc giới thiệu và nghe thuyết minh.</p> : null;
+      : source ? <p className="garden-photo-error" role="status">{t("Chưa tải được ảnh. Bạn vẫn có thể đọc giới thiệu và nghe thuyết minh.")}</p> : null;
   }
-  const img = <img src={source} alt={photo?.label ? `${photo.label}: ${name}` : name} loading="lazy" decoding="async" width={variant === 'detail' ? photo?.detailWidth : photo?.thumbnailWidth} height={variant === 'detail' ? photo?.detailHeight : photo?.thumbnailHeight} onError={() => setFailedSource(source)} />;
+  const img = <img src={source} alt={photo?.label ? `${t(photo.label)}: ${name}` : name} loading="lazy" decoding="async" width={variant === 'detail' ? photo?.detailWidth : photo?.thumbnailWidth} height={variant === 'detail' ? photo?.detailHeight : photo?.thumbnailHeight} onError={() => setFailedSource(source)} />;
   if (variant === 'thumbnail') return <span className="garden-poi-thumbnail">{img}</span>;
   return <figure className="garden-poi-figure">
     {img}
     {photo?.label && <figcaption>
-      <span>{photo.label}</span>
-      <span>{photo.credit && <><a href={photo.credit.source} target="_blank" rel="noreferrer">{photo.credit.author}</a> · <a href={photo.credit.licenseUrl} target="_blank" rel="noreferrer">{photo.credit.license}</a> · </>}<a href="/images/pois/SOURCES.md" target="_blank" rel="noreferrer">Nguồn ảnh</a></span>
+      <span>{t(photo.label)}</span>
+      <span>{photo.credit && <><a href={photo.credit.source} target="_blank" rel="noreferrer">{photo.credit.author}</a> · <a href={photo.credit.licenseUrl} target="_blank" rel="noreferrer">{photo.credit.license}</a> · </>}<a href="/images/pois/SOURCES.md" target="_blank" rel="noreferrer">{t("Nguồn ảnh")}</a></span>
     </figcaption>}
   </figure>;
 }

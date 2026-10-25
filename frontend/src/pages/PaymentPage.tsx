@@ -1,3 +1,4 @@
+import { useVisitorLanguage } from '../i18n/VisitorLanguage';
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useVisitExpiry } from '../hooks/useVisitExpiry';
 import { Link } from 'react-router-dom';
@@ -36,6 +37,7 @@ type UiStep =
 type PaymentTab = 'ONLINE' | 'CASH';
 
 export const PaymentPage: React.FC = () => {
+  const { t, language: locale, message } = useVisitorLanguage();
   const currentBaseUrl = getApiBaseUrl();
   const [price, setPrice] = useState<VisitPrice | null>(null);
   const [priceError, setPriceError] = useState(false);
@@ -109,7 +111,7 @@ export const PaymentPage: React.FC = () => {
         const next = updater(prev);
         const { success, error } = saveGuestSession(next);
         if (!success && error) {
-          setStorageWarning(`Cảnh báo bộ nhớ tạm: ${error}. Dữ liệu có thể không giữ được khi tải lại trang.`);
+          setStorageWarning(`Cảnh báo bộ nhớ tạm: ${message(error)}. Dữ liệu có thể không giữ được khi tải lại trang.`);
         } else {
           setStorageWarning(null);
         }
@@ -456,45 +458,45 @@ export const PaymentPage: React.FC = () => {
   const busy = isExchangingCash || isSimulatingPayment || ['CREATING_CHECKOUT', 'CHECKING_STATUS', 'EXCHANGING_TOKEN', 'VERIFYING_VISIT'].includes(uiStep);
   const amount = session.sessionId && session.amount ? session.amount : price?.amount;
   return <div className="garden-payment">
-    <Link className="garden-back-link" to="/explore">← Trở lại bản đồ</Link>
-    <header className="garden-payment-heading"><span className="garden-eyebrow">VÉ THUYẾT MINH</span><h1>Thêm một cách để<br />khám phá khu vườn.</h1><p>Chọn điểm yêu thích và lắng nghe câu chuyện bằng ngôn ngữ của bạn. Không cần tạo tài khoản.</p></header>
+    <Link className="garden-back-link" to="/explore">{t("← Trở lại bản đồ")}</Link>
+    <header className="garden-payment-heading"><span className="garden-eyebrow">{t("VÉ THUYẾT MINH")}</span><h1>{t("Thêm một cách để")}<br />{t("khám phá khu vườn.")}</h1><p>{t("Chọn điểm yêu thích và lắng nghe câu chuyện bằng ngôn ngữ của bạn. Không cần tạo tài khoản.")}</p></header>
     <div className="garden-payment-layout">
-      <aside className="garden-pass-summary" aria-label="Thông tin quyền nghe">
-        <span className="garden-pass-icon"><Icon name="headphones" /></span><span className="garden-eyebrow">THẢO CẦM VIÊN SÀI GÒN</span><h2>Một khu vườn.<br />Nhiều câu chuyện.</h2>
-        <p>Thuyết minh đa ngôn ngữ cho các điểm tham quan trong bộ demo.</p>
-        <ul><li><Icon name="globe" /> Chọn ngôn ngữ bạn muốn nghe</li><li><Icon name="map" /> Khám phá trên bản đồ</li><li><Icon name="play" /> Nghe theo nhịp tham quan của bạn</li></ul>
-        <div className="garden-pass-price" aria-live="polite"><span>Quyền nghe thuyết minh</span>{amount ? <strong>{Number(amount).toLocaleString('vi-VN')} <small>{session.currency || price?.currency || 'VND'}</small></strong> : priceError ? <><p role="alert">Chưa tải được giá.</p><button type="button" className="garden-text-button" onClick={() => setPriceAttempt(n => n + 1)}>Tải lại giá</button></> : <p>Đang tải giá…</p>}<p>Đây là quyền nghe trong đồ án demo, không phải vé vào cổng Thảo Cầm Viên.</p></div>
+      <aside className="garden-pass-summary" aria-label={t("Thông tin quyền nghe")}>
+        <span className="garden-pass-icon"><Icon name="headphones" /></span><span className="garden-eyebrow">{t("THẢO CẦM VIÊN SÀI GÒN")}</span><h2>{t("Một khu vườn.")}<br />{t("Nhiều câu chuyện.")}</h2>
+        <p>{t("Thuyết minh đa ngôn ngữ cho các điểm tham quan trong bộ demo.")}</p>
+        <ul><li><Icon name="globe" />{t(" Chọn ngôn ngữ bạn muốn nghe")}</li><li><Icon name="map" />{t(" Khám phá trên bản đồ")}</li><li><Icon name="play" />{t(" Nghe theo nhịp tham quan của bạn")}</li></ul>
+        <div className="garden-pass-price" aria-live="polite"><span>{t("Quyền nghe thuyết minh")}</span>{amount ? <strong>{Number(amount).toLocaleString(locale)} <small>{session.currency || price?.currency || 'VND'}</small></strong> : priceError ? <><p role="alert">{t("Chưa tải được giá.")}</p><button type="button" className="garden-text-button" onClick={() => setPriceAttempt(n => n + 1)}>{t("Tải lại giá")}</button></> : <p>{t("Đang tải giá…")}</p>}<p>{t("Đây là quyền nghe trong đồ án demo, không phải vé vào cổng Thảo Cầm Viên.")}</p></div>
       </aside>
 
-      <section className="garden-checkout" aria-label="Kích hoạt vé thuyết minh">
-        <ol className="garden-checkout-steps" aria-label="Tiến trình kích hoạt"><li aria-current={!session.sessionId && !session.token ? 'step' : undefined}><span>1</span> Chọn cách mở vé</li><li aria-current={session.sessionId && uiStep !== 'VISIT_ACTIVE' ? 'step' : undefined}><span>2</span> Xác nhận</li><li aria-current={uiStep === 'VISIT_ACTIVE' ? 'step' : undefined}><span>3</span> Bắt đầu nghe</li></ol>
-        {storageWarning && <div className="garden-alert" role="alert">Trình duyệt chưa lưu được vé. Giữ trang này mở và nhờ nhân viên hỗ trợ nếu cần.<details><summary>Thông tin hỗ trợ</summary>{storageWarning}</details></div>}
-        {mismatchedEnv && <div className="garden-alert" role="alert"><h2>Vé đang thuộc một địa chỉ khác</h2><p>Để bảo vệ vé, hệ thống chưa gửi quyền truy cập sang địa chỉ hiện tại. Hãy mở lại trang đã dùng hoặc nhờ nhân viên kiểm tra.</p><details><summary>Thông tin hỗ trợ</summary><p>{session.apiBaseUrl} → {currentBaseUrl}</p><button type="button" className="btn-secondary" onClick={() => { if (window.confirm('Bỏ thông tin vé đã lưu tại địa chỉ cũ? Việc này không hoàn tiền hoặc khôi phục vé.')) handleClearSession(); }}>Bỏ thông tin vé cũ</button></details></div>}
-        {errorMessage && <div className="garden-alert garden-alert-error" role="alert"><strong>Chưa thể hoàn tất</strong><p>{errorMessage}</p>{errorCode && <details><summary>Thông tin hỗ trợ</summary><code>{errorCode}</code></details>}</div>}
-        {statusNotice && <p className="garden-status-notice" role="status">{statusNotice}</p>}
+      <section className="garden-checkout" aria-label={t("Kích hoạt vé thuyết minh")}>
+        <ol className="garden-checkout-steps" aria-label={t("Tiến trình kích hoạt")}><li aria-current={!session.sessionId && !session.token ? 'step' : undefined}><span>1</span>{t(" Chọn cách mở vé")}</li><li aria-current={session.sessionId && uiStep !== 'VISIT_ACTIVE' ? 'step' : undefined}><span>2</span>{t(" Xác nhận")}</li><li aria-current={uiStep === 'VISIT_ACTIVE' ? 'step' : undefined}><span>3</span>{t(" Bắt đầu nghe")}</li></ol>
+        {storageWarning && <div className="garden-alert" role="alert">{t("Trình duyệt chưa lưu được vé. Giữ trang này mở và nhờ nhân viên hỗ trợ nếu cần.")}<details><summary>{t("Thông tin hỗ trợ")}</summary>{message(storageWarning)}</details></div>}
+        {mismatchedEnv && <div className="garden-alert" role="alert"><h2>{t("Vé đang thuộc một địa chỉ khác")}</h2><p>{t("Để bảo vệ vé, hệ thống chưa gửi quyền truy cập sang địa chỉ hiện tại. Hãy mở lại trang đã dùng hoặc nhờ nhân viên kiểm tra.")}</p><details><summary>{t("Thông tin hỗ trợ")}</summary><p>{session.apiBaseUrl} → {currentBaseUrl}</p><button type="button" className="btn-secondary" onClick={() => { if (window.confirm(t("Bỏ thông tin vé đã lưu tại địa chỉ cũ? Việc này không hoàn tiền hoặc khôi phục vé."))) handleClearSession(); }}>{t("Bỏ thông tin vé cũ")}</button></details></div>}
+        {errorMessage && <div className="garden-alert garden-alert-error" role="alert"><strong>{t("Chưa thể hoàn tất")}</strong><p>{message(errorMessage)}</p>{errorCode && <details><summary>{t("Thông tin hỗ trợ")}</summary><code>{errorCode}</code></details>}</div>}
+        {statusNotice && <p className="garden-status-notice" role="status">{message(statusNotice)}</p>}
 
-        {uiStep === 'VISIT_ACTIVE' ? <div className="garden-ticket-ready"><span className="garden-ready-icon"><Icon name="check" /></span><h2>Vé của bạn đã sẵn sàng.</h2><p>Mời bạn trở lại bản đồ, chọn một điểm dừng và bắt đầu nghe.</p><p>Quyền nghe đến <strong>{session.expiresAt ? new Date(session.expiresAt).toLocaleString('vi-VN') : 'Đang kiểm tra'}</strong>.</p><Link className="btn-primary" to="/explore">Bắt đầu khám phá <Icon name="arrow" /></Link></div>
-          : session.token && !mismatchedEnv ? <div className="garden-checkout-state"><Icon name="ticket" /><h2>Vé đã được lưu trên thiết bị.</h2><p>Cần kiểm tra với máy chủ trước khi mở quyền nghe. Bạn không cần nhập mã hoặc thanh toán lại.</p><button type="button" className="btn-primary" onClick={handleVerifyAgain} disabled={busy}>{uiStep === 'VERIFYING_VISIT' ? 'Đang xác minh…' : 'Xác minh lại phiên'}</button><Link className="garden-text-button" to="/explore">Tiếp tục xem bản đồ</Link></div>
+        {uiStep === 'VISIT_ACTIVE' ? <div className="garden-ticket-ready"><span className="garden-ready-icon"><Icon name="check" /></span><h2>{t("Vé của bạn đã sẵn sàng.")}</h2><p>{t("Mời bạn trở lại bản đồ, chọn một điểm dừng và bắt đầu nghe.")}</p><p>{t("Quyền nghe đến ")}<strong>{session.expiresAt ? new Date(session.expiresAt).toLocaleString(locale) : t("Đang kiểm tra")}</strong>.</p><Link className="btn-primary" to="/explore">{t("Bắt đầu khám phá ")}<Icon name="arrow" /></Link></div>
+          : session.token && !mismatchedEnv ? <div className="garden-checkout-state"><Icon name="ticket" /><h2>{t("Vé đã được lưu trên thiết bị.")}</h2><p>{t("Cần kiểm tra với máy chủ trước khi mở quyền nghe. Bạn không cần nhập mã hoặc thanh toán lại.")}</p><button type="button" className="btn-primary" onClick={handleVerifyAgain} disabled={busy}>{uiStep === 'VERIFYING_VISIT' ? t("Đang xác minh…") : t("Xác minh lại phiên")}</button><Link className="garden-text-button" to="/explore">{t("Tiếp tục xem bản đồ")}</Link></div>
           : !mismatchedEnv && <>
-            <div className="garden-payment-tabs" role="group" aria-label="Hình thức kích hoạt"><button type="button" disabled={busy} aria-pressed={paymentTab === 'ONLINE'} onClick={() => { setPaymentTab('ONLINE'); setErrorMessage(null); }}><Icon name="globe" /> Trực tuyến mô phỏng</button><button type="button" disabled={busy} aria-pressed={paymentTab === 'CASH'} onClick={() => { setPaymentTab('CASH'); setErrorMessage(null); }}><Icon name="ticket" /> Nhập mã tại quầy</button></div>
-            {paymentTab === 'CASH' ? <div className="garden-cash-form"><h2>Bạn đã có mã từ quầy?</h2><p>Nhập 6 chữ số nhân viên đã cấp sau khi nhận thanh toán.</p><form onSubmit={handleExchangeCashCode}><label htmlFor="cash-code">Mã kích hoạt 6 số</label>
+            <div className="garden-payment-tabs" role="group" aria-label={t("Hình thức kích hoạt")}><button type="button" disabled={busy} aria-pressed={paymentTab === 'ONLINE'} onClick={() => { setPaymentTab('ONLINE'); setErrorMessage(null); }}><Icon name="globe" />{t(" Trực tuyến mô phỏng")}</button><button type="button" disabled={busy} aria-pressed={paymentTab === 'CASH'} onClick={() => { setPaymentTab('CASH'); setErrorMessage(null); }}><Icon name="ticket" />{t(" Nhập mã tại quầy")}</button></div>
+            {paymentTab === 'CASH' ? <div className="garden-cash-form"><h2>{t("Bạn đã có mã từ quầy?")}</h2><p>{t("Nhập 6 chữ số nhân viên đã cấp sau khi nhận thanh toán.")}</p><form onSubmit={handleExchangeCashCode}><label htmlFor="cash-code">{t("Mã kích hoạt 6 số")}</label>
               <ActivationCode value={cashShortedCodeInput} onChange={setCashShortedCodeInput} disabled={busy} />
-              <p className="garden-field-hint">Giữ cả số 0 ở đầu. Mã chỉ sử dụng một lần và có thời hạn.</p><button type="submit" disabled={busy || cashShortedCodeInput.length !== 6} className="btn-primary garden-wide-button">{isExchangingCash || uiStep === 'EXCHANGING_TOKEN' ? 'Đang kích hoạt vé…' : uiStep === 'VERIFYING_VISIT' ? 'Đang kiểm tra vé…' : 'Kích hoạt vé'}<Icon name="arrow" /></button></form></div>
-              : <div className="garden-online-form"><span className="garden-demo-tag">DEMO · KHÔNG THU TIỀN THẬT</span>
-                {uiStep === 'IDLE' || uiStep === 'CREATING_CHECKOUT' ? <><h2>Mở vé trực tuyến.</h2><p>Bạn sẽ thử quy trình thanh toán mô phỏng, sau đó kích hoạt quyền nghe trên thiết bị này.</p><button type="button" className="btn-primary garden-wide-button" disabled={!price || busy} onClick={handleStartCheckout}>{uiStep === 'CREATING_CHECKOUT' ? 'Đang chuẩn bị lượt nghe…' : session.idempotencyKey ? 'Tiếp tục yêu cầu đang có' : 'Tạo yêu cầu thanh toán mô phỏng'}<Icon name="arrow" /></button></>
-                  : <div className="garden-checkout-state"><Icon name={session.paymentStatus === 'PAID' ? 'check' : 'ticket'} /><h2>{session.paymentStatus === 'PAID' ? 'Đã xác nhận thanh toán.' : session.paymentStatus === 'FAILED' ? 'Thanh toán chưa thành công.' : 'Lượt nghe đang chờ xác nhận.'}</h2><p>{session.paymentStatus === 'PAID' ? 'Chỉ còn một bước để mở câu chuyện đầu tiên.' : 'Ở bản demo, nút bên dưới giả lập kết quả từ cổng thanh toán. Không có giao dịch tiền thật.'}</p>
-                    {session.paymentStatus === 'PENDING' && <button type="button" className="btn-primary garden-wide-button" disabled={busy} onClick={handleSimulatePayment}>{isSimulatingPayment ? 'Đang xác nhận…' : 'Mô phỏng thanh toán thành công (Demo)'}</button>}
-                    {session.paymentStatus === 'PAID' && session.sessionStatus === 'ACTIVE' && session.authCode && <button type="button" className="btn-primary garden-wide-button" disabled={busy} onClick={handleExchangeCode}>{uiStep === 'EXCHANGING_TOKEN' ? 'Đang kích hoạt…' : uiStep === 'VERIFYING_VISIT' ? 'Đang kiểm tra vé…' : 'Kích hoạt vé và bắt đầu nghe'}</button>}
-                    <button type="button" className="garden-text-button" disabled={busy || cooldownSeconds > 0} onClick={handleCheckStatus}>{cooldownSeconds > 0 ? `Kiểm tra lại sau ${cooldownSeconds}s` : uiStep === 'CHECKING_STATUS' ? 'Đang kiểm tra…' : 'Kiểm tra trạng thái thanh toán'}</button>
-                    {session.codeExpiresAt && <p className="garden-field-hint">Hoàn tất kích hoạt trước {new Date(session.codeExpiresAt).toLocaleTimeString('vi-VN')}.</p>}
+              <p className="garden-field-hint">{t("Giữ cả số 0 ở đầu. Mã chỉ sử dụng một lần và có thời hạn.")}</p><button type="submit" disabled={busy || cashShortedCodeInput.length !== 6} className="btn-primary garden-wide-button">{isExchangingCash || uiStep === 'EXCHANGING_TOKEN' ? t("Đang kích hoạt vé…") : uiStep === 'VERIFYING_VISIT' ? t("Đang kiểm tra vé…") : t("Kích hoạt vé")}<Icon name="arrow" /></button></form></div>
+              : <div className="garden-online-form"><span className="garden-demo-tag">{t("DEMO · KHÔNG THU TIỀN THẬT")}</span>
+                {uiStep === 'IDLE' || uiStep === 'CREATING_CHECKOUT' ? <><h2>{t("Mở vé trực tuyến.")}</h2><p>{t("Bạn sẽ thử quy trình thanh toán mô phỏng, sau đó kích hoạt quyền nghe trên thiết bị này.")}</p><button type="button" className="btn-primary garden-wide-button" disabled={!price || busy} onClick={handleStartCheckout}>{uiStep === 'CREATING_CHECKOUT' ? t("Đang chuẩn bị lượt nghe…") : session.idempotencyKey ? t("Tiếp tục yêu cầu đang có") : t("Tạo yêu cầu thanh toán mô phỏng")}<Icon name="arrow" /></button></>
+                  : <div className="garden-checkout-state"><Icon name={session.paymentStatus === 'PAID' ? 'check' : 'ticket'} /><h2>{session.paymentStatus === 'PAID' ? t("Đã xác nhận thanh toán.") : session.paymentStatus === 'FAILED' ? t("Thanh toán chưa thành công.") : t("Lượt nghe đang chờ xác nhận.")}</h2><p>{session.paymentStatus === 'PAID' ? t("Chỉ còn một bước để mở câu chuyện đầu tiên.") : t("Ở bản demo, nút bên dưới giả lập kết quả từ cổng thanh toán. Không có giao dịch tiền thật.")}</p>
+                    {session.paymentStatus === 'PENDING' && <button type="button" className="btn-primary garden-wide-button" disabled={busy} onClick={handleSimulatePayment}>{isSimulatingPayment ? t("Đang xác nhận…") : t("Mô phỏng thanh toán thành công (Demo)")}</button>}
+                    {session.paymentStatus === 'PAID' && session.sessionStatus === 'ACTIVE' && session.authCode && <button type="button" className="btn-primary garden-wide-button" disabled={busy} onClick={handleExchangeCode}>{uiStep === 'EXCHANGING_TOKEN' ? t("Đang kích hoạt…") : uiStep === 'VERIFYING_VISIT' ? t("Đang kiểm tra vé…") : t("Kích hoạt vé và bắt đầu nghe")}</button>}
+                    <button type="button" className="garden-text-button" disabled={busy || cooldownSeconds > 0} onClick={handleCheckStatus}>{cooldownSeconds > 0 ? t("Kiểm tra lại sau {0}s", { 0: cooldownSeconds }) : uiStep === 'CHECKING_STATUS' ? t("Đang kiểm tra…") : t("Kiểm tra trạng thái thanh toán")}</button>
+                    {session.codeExpiresAt && <p className="garden-field-hint">{t("Hoàn tất kích hoạt trước ")}{new Date(session.codeExpiresAt).toLocaleTimeString(locale)}.</p>}
                   </div>}
               </div>}
           </>}
 
-        <details className="garden-payment-help"><summary>Cần trợ giúp với vé?</summary><p>Nếu đã thanh toán mà chưa nghe được, hãy nhờ nhân viên kiểm tra trước khi thanh toán lại. Dùng cùng trình duyệt và giữ dữ liệu của trang để tiếp tục dùng vé.</p>
-          <p>Mã quầy hết hạn hoặc đã sử dụng? Nhờ nhân viên đối soát giao dịch. Xóa dữ liệu trình duyệt không cấp lại vé.</p>
-          {session.sessionId && <p>Mã hỗ trợ: <code>{session.sessionId}</code></p>}{session.paymentRef && <p>Tham chiếu: <code>{session.paymentRef}</code></p>}
-          {(session.sessionId || session.token || session.idempotencyKey) && <button type="button" className="garden-text-button" disabled={busy} onClick={() => { if (window.confirm('Bỏ thông tin vé trên trình duyệt này? Vé đã thanh toán không được hoàn tiền hay cấp lại tự động. Chỉ tiếp tục sau khi đã đối soát nếu có giao dịch đang chờ.')) handleClearSession(); }}>Bỏ thông tin vé trên thiết bị này</button>}
+        <details className="garden-payment-help"><summary>{t("Cần trợ giúp với vé?")}</summary><p>{t("Nếu đã thanh toán mà chưa nghe được, hãy nhờ nhân viên kiểm tra trước khi thanh toán lại. Dùng cùng trình duyệt và giữ dữ liệu của trang để tiếp tục dùng vé.")}</p>
+          <p>{t("Mã quầy hết hạn hoặc đã sử dụng? Nhờ nhân viên đối soát giao dịch. Xóa dữ liệu trình duyệt không cấp lại vé.")}</p>
+          {session.sessionId && <p>{t("Mã hỗ trợ: ")}<code>{session.sessionId}</code></p>}{session.paymentRef && <p>{t("Tham chiếu: ")}<code>{session.paymentRef}</code></p>}
+          {(session.sessionId || session.token || session.idempotencyKey) && <button type="button" className="garden-text-button" disabled={busy} onClick={() => { if (window.confirm(t("Bỏ thông tin vé trên trình duyệt này? Vé đã thanh toán không được hoàn tiền hay cấp lại tự động. Chỉ tiếp tục sau khi đã đối soát nếu có giao dịch đang chờ."))) handleClearSession(); }}>{t("Bỏ thông tin vé trên thiết bị này")}</button>}
         </details>
       </section>
     </div>

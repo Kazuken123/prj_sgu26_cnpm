@@ -1,3 +1,4 @@
+import { useVisitorLanguage } from './i18n/VisitorLanguage';
 import React from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { VisitorNavigation } from './components/VisitorNavigation';
@@ -28,6 +29,7 @@ import { InternalMonitoringPage } from './pages/InternalMonitoringPage';
 import { InternalKnowledgePage } from './pages/InternalKnowledgePage';
 
 export const App: React.FC = () => {
+  const { t } = useVisitorLanguage();
   const { pathname, hash, key: locationKey } = useLocation();
   const { reducedMotion } = useMotionPreference();
   const mainRef = useScrollReveal(pathname, reducedMotion);
@@ -46,7 +48,7 @@ export const App: React.FC = () => {
 
   return (
     <div className={isInternal ? "internal-workspace" : `visitor-shell${pathname === '/explore' ? ' visitor-explore' : ''}`}>
-      <a href="#main-content" className="skip-link">Chuyển đến nội dung chính</a>
+      <a href="#main-content" className="skip-link">{isInternal ? 'Chuyển đến nội dung chính' : t('Chuyển đến nội dung chính')}</a>
 
       {/* Tách biệt Header điều hướng giữa Khách và Nhân viên */}
       {isInternal ? <InternalNavigation /> : <VisitorNavigation />}
@@ -195,11 +197,11 @@ export const App: React.FC = () => {
           <div className="footer-inner">
             <div>
               <strong>Thảo Cầm Viên Sài Gòn</strong>
-              <span className="footer-caption">Lắng nghe thiên nhiên. Kết nối di sản. Mở cửa 7:00 – 18:30 hàng ngày.</span>
+              <span className="footer-caption">{t("Lắng nghe thiên nhiên. Kết nối di sản. Mở cửa 7:00 – 18:30 hàng ngày.")}</span>
             </div>
             <div className="footer-links">
-              <span>Số 2 Nguyễn Bỉnh Khiêm, Phường Bến Nghé, Quận 1, TP.HCM</span>
-              <span>Hotline: (028) 3829 1425</span>
+              <span>{t("Số 2 Nguyễn Bỉnh Khiêm, Phường Bến Nghé, Quận 1, TP.HCM")}</span>
+              <span>{t('Điện thoại: (028) 3829 1425')}</span>
             </div>
           </div>
         </footer>
