@@ -6,7 +6,13 @@ Trạng thái ngày 23/10/2026:
 - Đã gắn vào `server.js` và chạy qua `docker compose` chính thức.
 - Kiểm thử bằng adapter MOCK và provider giả lập trên máy.
 - **Chưa kiểm chứng chất lượng RAG với embedding/LLM thật**, vì chưa có provider được duyệt.
-- Nhánh `codex/knowledge-rag`, gốc từ `main` `76f1603`. Nhánh chưa được merge vào `main`.
+- Nhánh `codex/knowledge-rag`, gốc từ `main` `76f1603`. Đã có trên `main` (commit `7f7c239`, `c075554`).
+
+Cập nhật ngày 25/10/2026, đối chiếu lại `CNPM_BAOCAO (8).docx` (US-D01/D02, UC-08, UC-15, QT-01/11/12, NFR-07/08/09/11/13/17, bảng 4.4.4 m–o):
+- Mã lỗi `PROVIDER_*` của adapter HTTP (ví dụ `PROVIDER_HTTP_429`) được giữ lại trong `processing.code`, `lastError` và audit `FAIL_KNOWLEDGE_PROCESSING`. Lỗi khác vẫn quy về `EMBEDDING_PROVIDER_ERROR`, không ghi thông điệp gốc. Lượt chat `FAILED` ghi mã lỗi (không có câu hỏi, không có body của provider) vào log máy chủ.
+- `lastError` chỉ có giá trị khi `processingStatus = FAILED`. Nếu xử lý lại tài liệu đang `READY` thất bại, tài liệu vẫn `READY` và tiếp tục dùng bộ đoạn đã công bố. Phản hồi của lệnh xử lý lại vẫn trả `processing.result = FAILED` kèm mã lỗi.
+- Tiêu đề tài liệu trong prompt được escape cả dấu `"`.
+- Nguồn vẫn không bắt buộc: UC-15 bước 5 ghi "khuyến nghị", 4.4.4 m) ghi `source` cho phép NULL và chỉ kiểm tra tiêu đề/nội dung không rỗng.
 
 ## 1. Thay đổi
 
@@ -242,7 +248,7 @@ Với cả 18 câu, các ràng buộc phía backend vẫn đạt: nguồn chỉ 
 
 ## 9. Còn lại / cần nhóm trưởng
 
-1. **Merge:** nhánh `codex/knowledge-rag` cần PR vào `main` và nhóm trưởng duyệt. Theo tài liệu giao việc, người nhận không tự đẩy `main`.
+1. **Merge:** đã có trên `main`.
 2. **Provider thật:** chọn nhà cung cấp tương thích OpenAI (embedding đa ngôn ngữ + LLM), chốt dữ liệu được phép gửi và ngân sách, cấp `RAG_API_KEY` qua `.env` hoặc secret. Sau đó chạy mục 7 và hiệu chỉnh `RAG_MIN_SCORE`.
 3. **Quyết định đặc tả:** nguồn có bắt buộc không; có duyệt migration trạng thái xử lý không (mục 3).
 4. **Ngoài phạm vi gói:** `audit.validation.js`/`audit-details.js` cần thêm các action `*_KNOWLEDGE_*` nếu muốn lọc và xem qua API audit; monitoring vẫn trả `chatbot: NOT_IMPLEMENTED` (dữ liệu CHAT_LOGS đã sẵn sàng).

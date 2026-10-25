@@ -2,7 +2,7 @@ const express = require("express");
 const defaultPaymentService = require("../services/payment.service");
 const defaultChatService = require("../services/chat.service");
 const { createVisitorMiddleware } = require("../middlewares/visitor.middleware");
-// Proposed contract (not yet mounted in server.js): POST /api/chat/questions
+// UC-08: POST /api/chat/questions, mounted at /api/chat in server.js; visitor token only (QT-01).
 function createChatRouter(paymentService = defaultPaymentService, chatService = defaultChatService) {
   const router = express.Router();
   router.use((req, res, next) => { res.set("Cache-Control", "no-store"); next(); });

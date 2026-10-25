@@ -169,6 +169,30 @@ describe("UC-15 service flow with in-memory Store and MOCK embeddings", () => {
       assert.equal(retried.document.lastError, null);
     });
   }
+  it("HTTP adapter codes are kept for retry triage; other errors never leak their message into audit", async () => {
+    const failing = error => ({ embed: async () => { throw error; } });
+    const http429 = Object.assign(new Error("PROVIDER_HTTP_429"), { code: "PROVIDER_HTTP_429" });
+    const leaky = Object.assign(new Error("connect failed sk-secretsecretsecret1234"), { code: "ECONNRESET" });
+    for (const [error, code] of [[http429, "PROVIDER_HTTP_429"], [leaky, "EMBEDDING_PROVIDER_ERROR"]]) {
+      const { service, state } = make(failing(error));
+      const result = await service.create(actor, doc);
+      assert.equal(result.processing.code, code); assert.equal(result.document.lastError, code);
+      const audit = state.audits.find(entry => entry.action === "FAIL_KNOWLEDGE_PROCESSING");
+      assert.deepEqual(JSON.parse(audit.details), { contentVersion: 1, code });
+      assert.doesNotMatch(JSON.stringify(state.audits), /sk-secret|connect failed/);
+    }
+  });
+  it("a failed reprocess of a READY document keeps it in service without reporting an error state", async () => {
+    const embedding = new MockEmbeddingAdapter({ dimensions: 32 });
+    const { service, state } = make(embedding);
+    const created = await service.create(actor, doc);
+    embedding.mode = "timeout";
+    const again = await service.reprocess(actor, created.document.documentId);
+    assert.equal(again.processing.result, "FAILED"); assert.equal(again.processing.code, "PROVIDER_TIMEOUT");
+    assert.equal(again.document.status, "ACTIVE"); assert.equal(again.document.processingStatus, "READY");
+    assert.equal(again.document.lastError, null); assert.equal(again.document.chunkCount, created.document.chunkCount);
+    assert.equal(state.chunks.length, created.document.chunkCount);
+  });
   it("chunk write or publish audit failure rolls back phase 2 entirely", async () => {
     for (const failure of ["chunks", "audit"]) {
       const { service, state } = make();
