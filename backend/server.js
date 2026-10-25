@@ -9,7 +9,7 @@ const { createTourRouter } = require("./routers/tour.router");
 const defaultTourService = require("./services/tour.service");
 const { createAuditRouter } = require("./routers/audit.router");
 const defaultAuditService = require("./services/audit.service");
-const { createMonitoringRouter } = require("./routers/monitoring.router");
+const { createMonitoringRouter, createPublicVisitSummaryRouter } = require("./routers/monitoring.router");
 const { createOperationsRouter } = require("./routers/operations.router");
 const { createVisitorAnalyticsRouter, createVisitorReportRouter } = require("./routers/visitor-analytics.router");
 const defaultMonitoringService = require("./services/monitoring.service");
@@ -61,6 +61,7 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use("/api/analytics", createVisitorAnalyticsRouter(visitorAnalyticsService));
   app.use("/api/admin/content-jobs", createContentJobRouter(authService, contentJobService));
   app.use("/api/payments", createPaymentRouter(paymentService));
+  app.use("/api/visits", createPublicVisitSummaryRouter(monitoringService));
   app.use("/api/visits", createVisitRouter(paymentService));
   app.use("/api/media", createMediaRouter(paymentService, mediaService));
   app.use("/api/content", createContentRouter(paymentService, contentService));

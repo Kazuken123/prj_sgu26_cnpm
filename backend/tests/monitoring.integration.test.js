@@ -89,6 +89,17 @@ describe("UC-18 real MySQL/Redis statistics and ADMIN HTTP authorization", { ski
     assert.deepEqual(all.metrics.paidPayments.value.totals, [{ currency: "USD", amount: "1.25" }, { currency: "VND", amount: "10000249999.99" }]);
     assert.equal((await data("")).metrics.paidPayments.value.count, 0); // Filter paid_at, not creation or activation time.
   });
+  it("public summary matches real SQL current paid visits without token and does not change payment or session data", async () => {
+    const before = await snapshot();
+    const response = await fetch(base + "/api/visits/summary");
+    assert.equal(response.status, 200);
+    const summary = (await response.json()).data;
+    assert.deepEqual(Object.keys(summary).sort(), ["activePaidVisits", "generatedAt"]);
+    assert.equal(summary.activePaidVisits, 4); // Excludes PENDING, FAILED, revoked and expired fixtures above; token is not required.
+    assert.equal(summary.activePaidVisits, (await data()).metrics.activePaidVisits.value);
+    assert.ok(Number.isFinite(Date.parse(summary.generatedAt)));
+    assert.equal(await snapshot(), before);
+  });
   it("bundle reloads count issuances, unique sessions are not the sum of per-language visitors and end boundary is excluded", async () => {
     for (const [lang, at] of [["vi", "2024-02-29 00:00:00"], ["vi", "2024-02-29 12:00:00"], ["en", "2024-02-29 13:00:00"], ["en", "2024-03-01 00:00:00"]]) {
       await db.query("INSERT INTO BUNDLE_ACCESS_LOGS(session_id,language_code,created_at) VALUES(?,?,?)", [firstSession, lang, at]);

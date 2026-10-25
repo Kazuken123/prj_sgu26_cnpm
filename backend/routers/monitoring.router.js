@@ -12,4 +12,13 @@ function createMonitoringRouter(authService = defaultAuthService, monitoringServ
   });
   return router;
 }
-module.exports = { createMonitoringRouter };
+function createPublicVisitSummaryRouter(monitoringService = defaultMonitoringService) {
+  const router = express.Router();
+  router.get("/summary", async (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    try { res.json({ data: await monitoringService.getPublicVisitSummary(req.query) }); }
+    catch (error) { next(error); }
+  });
+  return router;
+}
+module.exports = { createMonitoringRouter, createPublicVisitSummaryRouter };
