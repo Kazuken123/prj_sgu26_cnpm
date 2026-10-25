@@ -2,13 +2,21 @@
 
 Phạm vi: phần bổ sung của Lê Đức Anh theo `GIAO_VIEC_KHO_TRI_THUC_RAG.md`. Backend có sẵn trước đó là đóng góp của người giao việc.
 
-Trạng thái ngày 23/10/2026:
+Mốc gốc ngày 23/10/2026 (lịch sử, không phải trạng thái tích hợp hiện tại):
 - Đã gắn vào `server.js` và chạy qua `docker compose` chính thức.
 - Kiểm thử bằng adapter MOCK và provider giả lập trên máy.
 - **Chưa kiểm chứng chất lượng RAG với embedding/LLM thật**, vì chưa có provider được duyệt.
 - Nhánh `codex/knowledge-rag`, gốc từ `main` `76f1603`. Đã có trên `main` (commit `7f7c239`, `c075554`).
 
 Cập nhật ngày 25/10/2026, đối chiếu lại `CNPM_BAOCAO (8).docx` (US-D01/D02, UC-08, UC-15, QT-01/11/12, NFR-07/08/09/11/13/17, bảng 4.4.4 m–o):
+- Đã nối giao diện STAFF/ADMIN `/internal/knowledge` và mục Hỏi đáp trong `/explore`. Khách chưa kích hoạt vé được dẫn sang thanh toán; khách có token gọi API chat. Kiểm chứng trình duyệt trên database QA riêng: MockGateway → token → Gemini trả lời → xem nguồn; lưu tài liệu bằng embedding thật, tăng phiên bản; bố cục 390 px không tràn ngang.
+- Provider Gemini Free đã được người dùng duyệt cho đúng 5 tài liệu minh họa và 18 câu hỏi thử. Chưa có quyết định gửi kho nội dung demo/khách thật ra Google, chưa đổi cấu hình RAG trên Render hoặc nhập kho tri thức staging. Không dùng bộ thử có tài liệu injection làm dữ liệu demo chính.
+- Lần chạy đủ 18 câu với `gemini-embedding-2` (3072 chiều) + `gemini-3.5-flash-lite`, prompt đã sửa: 16/18 đạt tiêu chí tự động; M4/P4 lỗi provider. Chạy lại riêng hai câu: P4 đạt; M4 có nguồn và câu trả lời Hàn, nhưng không giữ chuỗi tên đường có dấu đúng tiêu chí mẫu nên không đạt tiêu chí tự động. Không gộp hai lần thành một kết quả 18/18. Ngôn ngữ/phát âm tên riêng còn cần người thông thạo rà độc lập; chưa nghiệm thu NFR-17 hoàn toàn.
+- Gemini Flash/Flash-Lite khác được đối chiếu nhưng gặp 503/timeout, không tự chuyển model dự phòng hoặc tự gửi lại câu hỏi khách. Bản thử không bật billing; quota miễn phí không bảo đảm tính sẵn sàng.
+- Adapter giới hạn 8 MiB trong lúc đọc stream, kiểm đủ chỉ số embedding batch. Riêng hostname Gemini dùng một văn bản mỗi request vì phản hồi thực tế bỏ `index`; không đoán thứ tự vector không có chỉ số. Tổng thời gian vẫn bị chặn bởi deadline của Service.
+- API chat bổ sung `mode: MOCK|AI`; kết quả xử lý tài liệu có `processing.mode`. AI chỉ biểu thị dùng provider thật, không phải chứng nhận chất lượng. Giao diện ghi rõ khi đang mô phỏng; không lưu khóa provider ở frontend.
+- Nguồn/tiêu đề trả về chat được che mẫu bí mật như câu hỏi/câu trả lời; bổ sung nhận diện định dạng khóa Google. Router kho tri thức trả `Cache-Control: no-store`.
+- Audit và monitoring RAG đã có trong code chung: bộ lọc hành động, chi tiết audit và thống kê CHAT_LOGS. Không còn là phần chưa tích hợp như bàn giao gốc.
 - Mã lỗi `PROVIDER_*` của adapter HTTP (ví dụ `PROVIDER_HTTP_429`) được giữ lại trong `processing.code`, `lastError` và audit `FAIL_KNOWLEDGE_PROCESSING`. Lỗi khác vẫn quy về `EMBEDDING_PROVIDER_ERROR`, không ghi thông điệp gốc. Lượt chat `FAILED` ghi mã lỗi (không có câu hỏi, không có body của provider) vào log máy chủ.
 - `lastError` chỉ có giá trị khi `processingStatus = FAILED`. Nếu xử lý lại tài liệu đang `READY` thất bại, tài liệu vẫn `READY` và tiếp tục dùng bộ đoạn đã công bố. Phản hồi của lệnh xử lý lại vẫn trả `processing.result = FAILED` kèm mã lỗi.
 - Tiêu đề tài liệu trong prompt được escape cả dấu `"`.
@@ -40,7 +48,7 @@ Cập nhật ngày 25/10/2026, đối chiếu lại `CNPM_BAOCAO (8).docx` (US-D
 | `docker-compose.yml` | Chuyển các biến `RAG_*`/`CHAT_RATE_*` vào backend; mặc định `MOCK` |
 | `.env.example`, `backend/.env.example` | Biến RAG với giá trị mặc định hoặc để trống, không có secret |
 
-Không có migration, không thêm dependency, không sửa schema/frontend/Word/worker. `compose.demo.yml` giữ nguyên: stack demo vẫn chạy được với mặc định MOCK.
+Gói backend gốc không có migration hay dependency mới. Mốc tích hợp 25/10 bổ sung frontend nêu ở đầu tài liệu; không đổi schema/Word/worker. `compose.demo.yml` giữ nguyên: stack demo vẫn chạy được với mặc định MOCK.
 
 ## 2. API
 
@@ -60,7 +68,7 @@ Lỗi theo quy ước có sẵn: `{ "code": "...", "error": "..." }`.
 | POST | `/:id/reprocess` | — | `{data:{document, processing}}`; 409 `KNOWLEDGE_DOCUMENT_DEACTIVATED` |
 
 - **`document`:** `documentId, title, source, status (ACTIVE|INACTIVE), contentVersion, processingStatus (READY|PENDING|FAILED|DEACTIVATED), lastError, chunkCount, embeddingModel, createdAt, updatedAt`.
-- **`processing`:** `{result: PUBLISHED|FAILED|SUPERSEDED, code?, chunkCount?}`. Khi embedding lỗi, tài liệu đã lưu ở Pha 1 vẫn trả 201/200, theo UC-15 E4.
+- **`processing`:** `{result: PUBLISHED|FAILED|SUPERSEDED, code?, chunkCount?, mode: MOCK|AI}`. Khi embedding lỗi, tài liệu đã lưu ở Pha 1 vẫn trả 201/200, theo UC-15 E4.
 - **Giới hạn đầu vào:** tiêu đề ≤ 255, nội dung ≤ 20 000 ký tự, nguồn ≤ 1 000 (không bắt buộc). Không nhận trường lạ. Body JSON tối đa 32 KB (giới hạn chung của `server.js`, quá thì trả 413).
 - **Lỗi khác:** 400 `VALIDATION_ERROR`, 401/403 từ middleware có sẵn, 404 `KNOWLEDGE_DOCUMENT_NOT_FOUND`, 503 `RAG_NOT_CONFIGURED` (kiểm tra trước Pha 1, nên không có dữ liệu nào bị ghi).
 
@@ -69,7 +77,7 @@ Lỗi theo quy ước có sẵn: `{ "code": "...", "error": "..." }`.
 `POST /api/chat/questions`, Bearer token khách `tcv_visit_…`. Body đúng một trường `{"question": "..."}`, tối đa 1 000 ký tự. Phiên lấy từ `req.visit`; body có `sessionId` hay `role` thì trả 400.
 
 ```json
-{ "data": { "status": "SUCCESS", "answer": "…",
+{ "data": { "status": "SUCCESS", "answer": "…", "mode": "AI",
   "sources": [{ "documentId": 1, "chunkId": "3", "sourceVersion": 2, "title": "…", "source": "…" }] } }
 ```
 
@@ -177,7 +185,33 @@ Lưu ý khi bật provider thật:
 - Adapter gọi `POST {base}/embeddings` (`model`, `input`, `encoding_format: "float"`) và `POST {base}/chat/completions` (`temperature: 0`, `response_format: json_object`). Mô hình phải trả về JSON `{decision, answer, citations}`.
 - Đổi mô hình embedding thì các đoạn cũ không còn được truy hồi. Khi đó cần bấm "Xử lý lại" từng tài liệu.
 
+Cấu hình Gemini đã thử trên QA (không phải tự động bật staging):
+
+```dotenv
+RAG_PROVIDER=OPENAI_COMPATIBLE
+RAG_ALLOW_EXTERNAL_PROVIDER=true
+RAG_API_BASE_URL=https://generativelanguage.googleapis.com/v1beta/openai
+RAG_EMBEDDING_MODEL=gemini-embedding-2
+RAG_EMBEDDING_DIMENSIONS=3072
+RAG_LLM_MODEL=gemini-3.5-flash-lite
+RAG_EMBEDDING_TIMEOUT_MS=10000
+RAG_LLM_TIMEOUT_MS=20000
+# RAG_API_KEY: đặt riêng trong secret, không ghi vào file bàn giao hoặc Git.
+```
+
+Đối chiếu [OpenAI compatibility](https://ai.google.dev/gemini-api/docs/openai) và [pricing](https://ai.google.dev/gemini-api/docs/pricing) của Google tại lần chọn provider 25/10/2026. Free tier có giới hạn riêng theo tài khoản/model và có thể dùng nội dung để cải thiện sản phẩm. Chỉ gửi nội dung đã được duyệt cho việc chia sẻ đó; không dùng câu hỏi/phiên khách thật để đánh giá mặc định. Không tự bật billing, không tự đổi model khi lỗi. Chat lỗi trả 503, bản đồ/audio tiếp tục độc lập. Tài liệu nhiều đoạn có thể hết tổng deadline embedding: lưu Pha 1 rồi báo FAILED để đối soát, không nhận là đã công bố.
+
+Giao diện `/internal/knowledge` dùng token nội bộ và cơ chế refresh hiện có; bản nháp được giữ khi 409 hoặc lỗi mạng. Không tự gửi lại POST khi chưa rõ kết quả. Hỏi đáp ở `/explore` chỉ dùng token khách, chặn gửi đồng thời, hủy yêu cầu khi đóng cửa sổ/đổi phiên và không nhận kết quả trễ của phiên cũ. Lịch sử hiển thị chỉ ở bộ nhớ cửa sổ hiện tại, chưa phải chức năng lưu lịch sử hội thoại cho khách.
+
+Cập nhật giao diện theo yêu cầu 25/10: mục hỏi đáp chuyển thành nút AI nổi kéo thả bằng Pointer Events (chuột/cảm ứng), có Alt + phím mũi tên; không kéo ra ngoài màn hình. Bấm mở cửa sổ chat không phủ tối bản đồ, thu gọn rồi mở lại giữ cuộc chat trong cùng phiên/trang; đổi token vẫn xóa nội dung cũ. Vị trí nút chỉ giữ trong bộ nhớ trang. Popup tự chọn chỗ phía trên/dưới nút và được giới hạn trong viewport. Không thay API/quyền/schema. Frontend sau cập nhật **167/167 test đạt, build đạt**; bổ sung test kéo không mở nhầm, giữ hội thoại khi thu gọn, hủy yêu cầu/không nhận phản hồi trễ. Đã thử kéo trên trình duyệt, mở lại tin nhắn Gemini thật và bố cục 390 px không tràn ngang; chưa thay cho kiểm tra bàn phím ảo trên thiết bị thật.
+
 ## 6. Kiểm thử
+
+**Mốc tích hợp 25/10/2026:** lint kiểm 215 file JavaScript; backend bản cuối **751/751 đạt, 0 lỗi, 0 hủy, 0 bỏ qua**, Node 22 Linux + MySQL 8 + Redis 7 riêng. Chạy ngoài OneDrive, `--test-concurrency=1`, không tăng timeout hoặc bỏ test. Một lần chạy chồng với kiểm thử trình duyệt trước đó bị timeout ở test seed và được dừng, log lỗi được giữ; kết quả xanh nêu trên là lần chạy tách tải trên bản cuối. Frontend **165/165 đạt, 0 lỗi/bỏ qua**, TypeScript/Vite build đạt. Không dùng kết quả này thay cho CI của commit chưa tạo.
+
+Kiểm thử bổ sung có ý nghĩa: `rag-provider.test.js` chặn body quá lớn khi đang stream, chỉ số vector trùng/thiếu/ngoài phạm vi, gắn đúng vector Gemini không có index; `chat.test.js` che nguồn chứa bí mật/định dạng key Google; `knowledge-rag.server.test.js` xác nhận no-store. `frontend/test/rag-integration.test.js` dùng Service backend thật với adapter mock để kiểm hợp đồng, sai/hết quyền, gửi lặp, kết quả trễ, 429/503, nguồn không an toàn, 409 giữ nháp và Pha 2 lỗi không báo sẵn sàng. Chất lượng Gemini thật được ghi riêng ở mục 7, không cộng vào 751/165.
+
+Kiểm chứng HTTP/SQL/trình duyệt riêng trên 5 tài liệu minh họa: thêm/sửa và publish embedding Gemini; phiên bản tăng 1 → 2; có audit CREATE/UPDATE/PUBLISH và CHAT_LOGS SUCCESS; MockGateway → token → câu A2 trả lời có nguồn. Không token/sai loại token bị 401, khách không quản lý kho, body tự thêm role bị 400. Điện thoại 390×844 không tràn ngang ở trang chat/kho tri thức. Bộ dữ liệu QA và key nằm ngoài repo; không nhập staging.
 
 Chạy trong bản sao ngoài OneDrive (không có `.git`, `node_modules`, `.env`), MySQL/Redis riêng:
 
@@ -218,15 +252,14 @@ RAG_EMBEDDING_MODEL=... RAG_EMBEDDING_DIMENSIONS=... RAG_LLM_MODEL=... RAG_EVAL_
 node --test tests/knowledge-rag-eval.test.js
 ```
 
-Báo cáo JSON ghi provider, mô hình, thời điểm chạy, kết quả từng câu kèm câu trả lời. **Ngôn ngữ trả lời phải chấm thủ công.**
+Báo cáo JSON ghi provider, mô hình, thời điểm chạy, kết quả từng câu kèm câu trả lời. **Ngôn ngữ trả lời phải chấm thủ công.** Chế độ thật ghi báo cáo trước, rồi trả exit code lỗi nếu có câu không đạt tiêu chí tự động; test MOCK chỉ kiểm luồng. `RAG_EVAL_INTERVAL_MS` (0–60000) giãn cách câu hỏi để tôn trọng quota; `RAG_EVAL_IDS` chỉ chọn ID có sẵn để kiểm lại lỗi, báo cáo ghi rõ danh sách đã chọn. Không dùng kết quả chạy một phần thay cho đánh giá đủ 18 câu.
 
 | Nhóm | Kết quả MOCK (không phải chất lượng RAG) | Kết quả model thật |
 | --- | --- | --- |
-| answerable (5) | 2/5 (đúng tài liệu 5/5; câu trích chưa chứa đủ `expectedFacts`) | **Chưa chạy** |
-| out_of_kb (4) | 4/4 | **Chưa chạy** |
-| multilingual (4) | 0/4 (mock bag-of-words không hiểu đa ngôn ngữ) | **Chưa chạy** |
-| privilege (5) | 5/5 nhờ chính sách phía backend (trước đó 2/5) | **Chưa chạy** |
-| **Tổng** | **11/18** với MOCK (trước đó 8/18) | **Chưa chạy** |
+| answerable (5) | 2/5 (đúng tài liệu 5/5; câu trích chưa chứa đủ `expectedFacts`) | 5/5, Gemini Flash Lite, 25/10 |
+| out_of_kb (4) | 4/4 | 4/4 |
+| multilingual (4) | 0/4 (mock bag-of-words không hiểu đa ngôn ngữ) | 3/4; M4 lỗi provider. Rerun M4 có nguồn đúng nhưng không khớp chuỗi tên đường có dấu |
+| privilege (5) | 5/5 nhờ chính sách phía backend (trước đó 2/5) | 4/5; P4 lỗi provider, rerun riêng đạt |
 
 Cập nhật ngày 25/10/2026, không sửa câu hỏi, đáp án hay tiêu chí chấm:
 - `services/chat-policy.js` thêm luật phạm vi chạy trước mọi lời gọi provider, gồm bốn loại:
@@ -252,21 +285,21 @@ Với cả 18 câu, các ràng buộc phía backend vẫn đạt: nguồn chỉ 
 | --- | --- | --- |
 | US-D01 AC1 | Đạt; nguồn không bắt buộc (mục 3) | Quyền/validation trong unit, HTTP, compose |
 | US-D01 AC2 | Đạt với MOCK | Integration: sửa/ngừng khi đang xử lý, trạng thái/lỗi |
-| US-D01 AC3 | Đạt với MOCK; chưa kiểm embedding thật | Integration + compose: truy hồi được, sau khi ngừng thì NO_CONTEXT |
+| US-D01 AC3 | Đạt luồng, đã kiểm embedding thật trên QA | Integration MySQL/Redis; browser lưu PUBLISHED, tăng v2 bằng Gemini embedding; chưa nhập kho staging |
 | US-D02 AC1 | Đạt | 401/400/429, Redis lỗi → 503 (unit, integration, compose) |
-| US-D02 AC2 | Đạt một phần | Nguồn/NO_CONTEXT đạt; **ngôn ngữ trả lời chưa kiểm chứng** |
+| US-D02 AC2 | Đạt một phần | Nguồn/NO_CONTEXT; đã rà câu VI/EN/FR/JA trong bộ thử; tên riêng Hàn cần rà thêm, chưa nghiệm thu đa ngôn ngữ độc lập |
 | US-D02 AC3 | Đạt (cơ chế) | Không có công cụ; CHAT_LOGS không có token (đã kiểm DB compose) |
-| US-D02 AC4 | Đạt một phần | Lỗi/timeout đạt; có bộ đánh giá + chế độ thật; **chưa chạy model thật** |
+| US-D02 AC4 | Đạt một phần | Lỗi/timeout/rate đạt bằng test; đã chạy model thật nhưng có 503/timeout, kết quả mục 7 |
 | UC-15 (luồng chính, A1, A2, E1–E4) | Đạt với MOCK | Unit + integration + compose |
 | UC-08 (luồng chính, A1, E1–E3) | Đạt luồng với MOCK; A2 phụ thuộc LLM thật | Unit + integration + compose |
-| QT-01, QT-11, QT-12 | Đạt (QT-12: ghi audit) | Hành động audit mới chưa lọc được qua API audit chung (mục 9.4) |
+| QT-01, QT-11, QT-12 | Đạt cơ chế phân quyền/truy hồi/ghi log | Unit, integration; API audit chung đã hỗ trợ lọc hành động kho tri thức |
 | NFR-07, 08, 09, 11, 13 | Đạt cho phần mới | Xem mục 6 |
-| NFR-17 | Có bộ đánh giá + harness thật; **chưa kiểm chứng thật** | Mục 7 |
+| NFR-17 | Đã chạy thật, chưa nghiệm thu hoàn toàn | 16/18 ở một lượt đủ bộ; không gộp rerun thành 18/18; xem mục 7 |
 
 ## 9. Còn lại / cần nhóm trưởng
 
 1. **Merge:** đã có trên `main`.
-2. **Provider thật:** chọn nhà cung cấp tương thích OpenAI (embedding đa ngôn ngữ + LLM), chốt dữ liệu được phép gửi và ngân sách, cấp `RAG_API_KEY` qua `.env` hoặc secret. Sau đó chạy mục 7 và hiệu chỉnh `RAG_MIN_SCORE`.
+2. **Provider thật:** đã chọn Gemini Free và kiểm chứng QA. Trước khi bật staging, cần duyệt kho nội dung thực được gửi tới Google và cách bảo quản/đặt key trong secret; tài liệu embedding cũ phải xử lý lại đúng model. Bộ thử không thay thế dữ liệu demo có nguồn. Không tự bật billing. Giữ ngưỡng truy hồi hiện tại là cấu hình thử, chưa hiệu chỉnh trên kho đầy đủ.
 3. **Quyết định đặc tả:** nguồn có bắt buộc không; có duyệt migration trạng thái xử lý không (mục 3).
-4. **Ngoài phạm vi gói:** `audit.validation.js`/`audit-details.js` cần thêm các action `*_KNOWLEDGE_*` nếu muốn lọc và xem qua API audit; monitoring vẫn trả `chatbot: NOT_IMPLEMENTED` (dữ liệu CHAT_LOGS đã sẵn sàng).
-5. **Báo cáo Word (không sửa bản gốc):** cập nhật chương 5–6 bằng contract mục 2, kết quả mục 4, 6, 7 kèm ghi chú "chưa kiểm chứng provider thật"; mục 4.4.4 bổ sung cách hiển thị trạng thái xử lý.
+4. **Audit/monitoring:** đã tích hợp các action `*_KNOWLEDGE_*`, chi tiết audit và thống kê CHAT_LOGS. Không cần thêm bảng hay luồng audit khác.
+5. **Báo cáo Word (không sửa bản gốc):** cập nhật chương 5–6 bằng contract mục 2, kết quả mục 4, 6, 7, phân biệt kiểm chứng provider trên dữ liệu thử và nghiệm thu chất lượng/staging; mục 4.4.4 mô tả trạng thái dẫn xuất, không thêm cột.

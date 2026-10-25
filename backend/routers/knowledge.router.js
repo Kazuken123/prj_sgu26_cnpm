@@ -2,9 +2,10 @@ const express = require("express");
 const defaultAuthService = require("../services/auth.service");
 const defaultKnowledgeService = require("../services/knowledge.service");
 const { createAuthMiddleware, requireRole } = require("../middlewares/auth.middleware");
-// Proposed contract (not yet mounted in server.js): /api/admin/knowledge-documents
+// UC-15, mounted at /api/admin/knowledge-documents in server.js.
 function createKnowledgeRouter(authService = defaultAuthService, knowledgeService = defaultKnowledgeService) {
   const router = express.Router();
+  router.use((req, res, next) => { res.set("Cache-Control", "no-store"); next(); });
   router.use(createAuthMiddleware(authService).verifyToken, requireRole("STAFF", "ADMIN"));
   router.get("/", async (req, res, next) => {
     try { res.json({ data: await knowledgeService.list(req.user, req.query) }); } catch (error) { next(error); }

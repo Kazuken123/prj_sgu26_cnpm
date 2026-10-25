@@ -68,7 +68,7 @@ class ChatService {
       console.error("Chat question failed:", outcome.code);
       throw new AppError(503, "CHAT_PROVIDER_UNAVAILABLE", "Trợ lý AI tạm thời gián đoạn; bản đồ và thuyết minh vẫn sử dụng bình thường.");
     }
-    return { status: outcome.status, answer: outcome.answer, sources: outcome.sources };
+    return { status: outcome.status, answer: outcome.answer, sources: outcome.sources, mode: config.provider === "MOCK" ? "MOCK" : "AI" };
   }
   async retrieve(vector, config) {
     let rows;
@@ -94,7 +94,8 @@ class ChatService {
     if (generated.decision === "ANSWER") {
       const cited = contexts.filter(context => generated.citations.includes(context.chunkId));
       if (!cited.length) return { status: "NO_CONTEXT", answer: NO_CONTEXT_ANSWER, sources: [] };
-      const sources = cited.map(({ documentId, chunkId, sourceVersion, title, source }) => ({ documentId, chunkId, sourceVersion, title, source }));
+      const sources = cited.map(({ documentId, chunkId, sourceVersion, title, source }) => ({ documentId, chunkId, sourceVersion,
+        title: redactSecrets(title), source: typeof source === "string" ? redactSecrets(source) : null }));
       return { status: "SUCCESS", answer: stripUnlistedLinks(redactSecrets(generated.answer), sources), sources };
     }
     // The model's localized refusal is kept, but it may not carry links or secrets.

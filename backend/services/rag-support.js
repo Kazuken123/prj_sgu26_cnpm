@@ -72,6 +72,7 @@ const SECRET_PATTERNS = [
   /\bBearer\s+[A-Za-z0-9._~+/=-]{8,}/gi,
   /\beyJ[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}\.[A-Za-z0-9_-]{5,}/g,
   /\bsk-[A-Za-z0-9_-]{16,}/g,
+  /\bAIza[A-Za-z0-9_-]{35}\b/g,
   /\b(?:api[_-]?key|secret|password|mật khẩu)\s*[:=]\s*\S+/gi,
   /\b[a-f0-9]{64}\b/gi,
 ];

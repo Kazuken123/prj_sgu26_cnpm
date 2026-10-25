@@ -25,6 +25,7 @@ import { InternalToursPage } from './pages/InternalToursPage';
 import { InternalTourEditPage } from './pages/InternalTourEditPage';
 import { InternalAuditLogsPage } from './pages/InternalAuditLogsPage';
 import { InternalMonitoringPage } from './pages/InternalMonitoringPage';
+import { InternalKnowledgePage } from './pages/InternalKnowledgePage';
 
 export const App: React.FC = () => {
   const { pathname, hash, key: locationKey } = useLocation();
@@ -62,6 +63,7 @@ export const App: React.FC = () => {
           <Route path="/internal" element={<Navigate to="/internal/cash" replace />} />
           <Route path="/internal/login" element={<LoginPage />} />
           <Route path="/internal/today" element={<InternalProtectedRoute><InternalDashboardPage /></InternalProtectedRoute>} />
+          <Route path="/internal/knowledge" element={<InternalProtectedRoute><InternalKnowledgePage /></InternalProtectedRoute>} />
 
           <Route
             path="/internal/cash"
