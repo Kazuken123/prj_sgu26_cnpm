@@ -81,7 +81,7 @@ export function VisitorChatWidget(props: {
           y: clamp(rect.top + (event.key === 'ArrowUp' ? -24 : event.key === 'ArrowDown' ? 24 : 0), 8, size.height - rect.height - 8) });
       }}
       onClick={event => { if (event.detail !== 0 && suppressClick.current) { suppressClick.current = false; return; } open ? close() : setOpen(true); }}>
-      <Icon name={open ? 'close' : 'chat'} /><span>Hỏi đáp</span><span className="garden-chat-ai">AI</span>
+      <Icon name={open ? 'close' : 'chat'} />
     </button>
   </aside>;
 }
