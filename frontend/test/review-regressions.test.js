@@ -91,6 +91,9 @@ test('monitoring renders production health objects and audioRecords; unavailable
   const urls = [];
   t.mock.method(globalThis, 'fetch', async url => {
     const parsed = new URL(url);
+    if (parsed.pathname === '/api/admin/online-visitors') return down
+      ? jsonResponse({ code: 'ONLINE_VISITORS_UNAVAILABLE', error: 'Unavailable' }, 503)
+      : jsonResponse({ data: { count: 4, generatedAt: new Date().toISOString(), windowSeconds: 120, measurement: 'BROWSER_SESSIONS' } });
     urls.push(parsed);
     const service = monitoringService(down ? {
       activePaidVisits: async () => null, paidPayments: async () => null,
@@ -543,16 +546,21 @@ test('cash initialization retries an uncertain response with the same idempotenc
 for (const Page of [InternalAuditLogsPage, InternalMonitoringPage]) {
   test(Page.name + ' refreshes expired credentials before retrying protected reads', async t => {
     browser(t);
-    let refreshes = 0, reads = 0;
+    let refreshes = 0, reads = 0, onlineReads = 0;
     t.mock.method(globalThis, 'fetch', async (url, options) => {
       if (String(url).endsWith('/refresh')) { refreshes++; return jsonResponse({ data: { user: actor, accessToken: 'rotated', refreshToken: 'rotated-refresh' } }); }
       if (options.headers.Authorization !== 'Bearer rotated') return jsonResponse({ code: 'INVALID_ACCESS_TOKEN', error: 'expired' }, 401);
+      if (String(url).endsWith('/api/admin/online-visitors')) {
+        onlineReads++;
+        return jsonResponse({ data: { count: 4, generatedAt: new Date().toISOString(), windowSeconds: 120, measurement: 'BROWSER_SESSIONS' } });
+      }
       reads++;
       return Page === InternalMonitoringPage ? serviceResponse(() => monitoringService().get(actor, {})) : jsonResponse({ data: { items: [], total: 0, page: 1, actions: [] } });
     });
     const view = await mount(t, h(Page));
     assert.equal(refreshes, 1);
     assert.equal(reads, 1);
+    if (Page === InternalMonitoringPage) assert.equal(onlineReads, 1);
     assert.doesNotMatch(text(view), /expired|Không thể tải/);
   });
 }

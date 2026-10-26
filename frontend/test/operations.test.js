@@ -31,7 +31,9 @@ function browser(t) {
 test('report consumes production service DTO, sends table filters, and links directly to customer work',async t=>{
   const b=browser(t);let selected;
   const service=new OperationsService({read:async(actor,filters)=>{selected=filters;return snapshot();}});
-  t.mock.method(globalThis,'fetch',async url=>response({data:await service.get(user,Object.fromEntries(new URL(url).searchParams))}));
+  t.mock.method(globalThis,'fetch',async url=>new URL(url).pathname==='/api/admin/online-visitors'
+    ? response({data:{count:4,generatedAt:now.toISOString(),windowSeconds:120,measurement:'BROWSER_SESSIONS'}})
+    : response({data:await service.get(user,Object.fromEntries(new URL(url).searchParams))}));
   const view=await b.mount(InternalDashboardPage);
   assert.match(text(view),/50\.000/);assert.match(text(view),/Tổng quan kinh doanh/);
   assert.ok(view.root.findAllByType('a').some(a=>a.props.href.includes('/internal/cash?session=11111111')));

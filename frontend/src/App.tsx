@@ -6,6 +6,7 @@ import { InternalNavigation } from './components/InternalNavigation';
 import { InternalProtectedRoute } from './components/InternalProtectedRoute';
 import { useScrollReveal } from './hooks/useScrollReveal';
 import { useMotionPreference } from './hooks/useMotionPreference';
+import { useVisitorOnline } from './hooks/useVisitorOnline';
 
 // Trang danh cho khach tham quan
 import { HomePage } from './pages/HomePage';
@@ -45,6 +46,7 @@ export const App: React.FC = () => {
 
   // Kiem tra phan he: Khach hang (Visitor) hay Nhan vien (Internal)
   const isInternal = pathname === '/login' || pathname.startsWith('/internal');
+  useVisitorOnline(!isInternal);
 
   return (
     <div className={isInternal ? "internal-workspace" : `visitor-shell${pathname === '/explore' ? ' visitor-explore' : ''}`}>

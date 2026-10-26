@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { getMonitoringData, monitoringRange, MonitoringDto, MonitoringWindow } from '../api/monitoring';
 import { executeAuthenticatedInternalRequest } from '../api/auth';
 import { getApiBaseUrl } from '../api/client';
+import { OnlineVisitorsCard } from '../components/OnlineVisitorsCard';
 
 export const InternalMonitoringPage: React.FC = () => {
   const baseUrl = getApiBaseUrl();
@@ -86,6 +87,7 @@ export const InternalMonitoringPage: React.FC = () => {
         </div>
       )}
 
+      <OnlineVisitorsCard />
       {/* SUC KHOE HE THONG (LIVENESS / READINESS) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '24px' }}>
         <div className="tcv-card" style={{ padding: '18px', borderLeft: `5px solid ${data?.health.readiness.status === 'READY' ? '#16a34a' : '#dc2626'}` }}>

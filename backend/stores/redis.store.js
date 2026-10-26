@@ -94,10 +94,11 @@ redis.call('SET', KEYS[1], ARGV[1], 'PX', string.format('%.0f', candidate.expire
 return {1, ARGV[1]}`;
 class RedisStore {
   constructor({ url = process.env.REDIS_URL || "redis://127.0.0.1:6379", clientFactory = createClient,
-    cashCodePrefix = "tcv:cash-code:v2:", onlineCodePrefix = "tcv:online-code:v1:" } = {}) {
+    cashCodePrefix = "tcv:cash-code:v2:", onlineCodePrefix = "tcv:online-code:v1:", onlineVisitorPrefix = "tcv:visitor-online:v1" } = {}) {
     this.url = url; this.clientFactory = clientFactory; this.cashCodePrefix = cashCodePrefix;
     this.onlineCodePrefix = onlineCodePrefix;
     this.cashLookupPrefix = cashCodePrefix + "lookup:";
+    this.onlineVisitorPrefix = onlineVisitorPrefix;
   }
   async execute(work) {
     const client = this.clientFactory({ url: this.url, disableOfflineQueue: true,
@@ -124,6 +125,33 @@ class RedisStore {
   async ping() {
     return this.execute(async client => {
       if (await client.ping() !== "PONG") throw new Error("INVALID_REDIS_PING_REPLY");
+    });
+  }
+  async touchOnlineVisitor(visitorHash, ipHash, windowSeconds) {
+    return this.execute(async client => {
+      const result = Number(await client.eval(`
+local time = redis.call('TIME')
+local now = tonumber(time[1]) * 1000 + math.floor(tonumber(time[2]) / 1000)
+local requests = redis.call('INCR', KEYS[2])
+if requests == 1 then redis.call('EXPIRE', KEYS[2], 60) end
+if requests > 120 then return -1 end
+redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', now - tonumber(ARGV[2]) * 1000)
+if not redis.call('ZSCORE', KEYS[1], ARGV[1]) and redis.call('ZCARD', KEYS[1]) >= 10000 then return -2 end
+redis.call('ZADD', KEYS[1], now, ARGV[1])
+redis.call('EXPIRE', KEYS[1], tonumber(ARGV[2]) + 60)
+return 1`, { keys: [this.onlineVisitorPrefix, this.onlineVisitorPrefix + ":rate:" + ipHash], arguments: [visitorHash, String(windowSeconds)] }));
+      return result === 1 ? "ACCEPTED" : result === -1 ? "RATE_LIMITED" : "UNAVAILABLE";
+    });
+  }
+  async countOnlineVisitors(windowSeconds) {
+    return this.execute(async client => {
+      const row = await client.eval(`
+local time = redis.call('TIME')
+local now = tonumber(time[1]) * 1000 + math.floor(tonumber(time[2]) / 1000)
+redis.call('ZREMRANGEBYSCORE', KEYS[1], '-inf', now - tonumber(ARGV[1]) * 1000)
+return {redis.call('ZCARD', KEYS[1]), now}`, { keys: [this.onlineVisitorPrefix], arguments: [String(windowSeconds)] });
+      if (!Array.isArray(row) || row.length !== 2) throw new Error("INVALID_ONLINE_COUNT");
+      return { count: Number(row[0]), nowMs: Number(row[1]) };
     });
   }
   async inspectOnlineCode(sessionId, authCode) {

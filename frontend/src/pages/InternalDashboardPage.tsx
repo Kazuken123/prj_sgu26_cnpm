@@ -5,6 +5,7 @@ import { ApiError, getApiBaseUrl } from '../api/client';
 import { businessDate, getOperations, localTime, money, operationsCsv, OperationsData, OperationStatus } from '../api/operations';
 import { Icon } from '../components/Icon';
 import { VisitorAnalyticsPanel } from '../components/VisitorAnalyticsPanel';
+import { OnlineVisitorsCard } from '../components/OnlineVisitorsCard';
 
 const labels: Record<OperationStatus, string> = { ALL: 'Tất cả', PAID: 'Đã thu tiền', PENDING: 'Chờ thu tiền', UNCLAIMED: 'Chưa đổi mã', FAILED: 'Thanh toán lỗi' };
 export const InternalDashboardPage: React.FC = () => {
@@ -61,6 +62,7 @@ export const InternalDashboardPage: React.FC = () => {
       <div><h1>{admin ? 'Tổng quan kinh doanh' : 'Công việc hôm nay'}</h1><p>{admin ? 'Theo dõi tiền đã thu và những việc cần xử lý tại quầy.' : 'Các giao dịch bạn tạo hoặc xác nhận, cùng việc phục vụ khách tiếp theo.'}</p></div>
       <Link className="ops-primary" to="/internal/cash"><Icon name="ticket" /> Phục vụ khách mới <span><Icon name="arrow" /></span></Link>
     </header>
+    {admin && <OnlineVisitorsCard />}
     <VisitorAnalyticsPanel />
     <h2 className="ops-revenue-heading">Thu ngân & doanh thu</h2>
     <div className="ops-toolbar">
