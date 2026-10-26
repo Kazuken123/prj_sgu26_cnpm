@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "6af1397d-5b3f-401b-8d60-5e2c07563dad",
+  "status": "current",
+  "command": "deliver",
+  "type": "architecture",
+  "input": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\architecture-tcv-audioguide-20261026-130800\\candidate.json",
+  "output": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\architecture-tcv-audioguide-20261026-130800\\architecture-tcv-audioguide.html",
+  "specification": {
+    "sha256": "cd8aa37600c29fe6cf140b7fdd927b6817515546372ec708fab754213f7e81ca",
+    "bytes": 9691
+  },
+  "artifact": {
+    "sha256": "302228eb849be9d3ed6b1fc910a43ab20065445bd83ff319827208913c744c01",
+    "bytes": 867802
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "erd",
+  "quality": "standard",
+  "specification": {
+    "path": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\erd-tcv-database-20261026-131300\\candidate.json",
+    "sha256": "2ae462f751dbfcf16a04e3d32a3e6cfdab12f1fa85e8297b43b19bd8cbb0de72",
+    "bytes": 14307
+  },
+  "artifact": {
+    "path": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\erd-tcv-database-20261026-131300\\erd-tcv-database.html",
+    "sha256": "009aea35ee686941edbbebb5d5efc4c99e408d87fd262041003a33918cb17942",
+    "bytes": 913663
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\erd-tcv-database-20261026-131300\\erd-tcv-database.finalize.json",
+    "summaryReceipt": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\erd-tcv-database-20261026-131300\\erd-tcv-database.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\erd-tcv-database-20261026-131300\\erd-tcv-database.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-26T06:11:19.035Z",
+    "source": "cache",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 19574,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  },
+  "visualReviewRecommendation": {
+    "action": "inspect-route-readability",
+    "signals": {
+      "routesOverSuggestedBends": 1
+    },
+    "reason": "Automated gates passed, but crossings or detours still need perceptual review before claiming visual quality.",
+    "affectedRoutes": {
+      "crossings": [],
+      "detours": [
+        {
+          "relationship": {
+            "id": "translations_languages",
+            "from": "poi_translations",
+            "to": "languages",
+            "label": "language_code",
+            "collectionIndex": 10,
+            "artifactIndex": 11
+          },
+          "bends": 4,
+          "stretch": 1.108
+        }
+      ],
+      "truncated": false
+    },
+    "repair": "Advisory only: this mode places or routes these relationships itself. Report them; do not remove relationships or meaning to reduce crossings."
+  }
+}

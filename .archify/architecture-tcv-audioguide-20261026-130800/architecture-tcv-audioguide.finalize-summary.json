@@ -1,0 +1,51 @@
+{
+  "schemaVersion": 1,
+  "ok": true,
+  "command": "finalize",
+  "status": "pass",
+  "type": "architecture",
+  "quality": "showcase",
+  "specification": {
+    "path": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\architecture-tcv-audioguide-20261026-130800\\candidate.json",
+    "sha256": "cd8aa37600c29fe6cf140b7fdd927b6817515546372ec708fab754213f7e81ca",
+    "bytes": 9691
+  },
+  "artifact": {
+    "path": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\architecture-tcv-audioguide-20261026-130800\\architecture-tcv-audioguide.html",
+    "sha256": "302228eb849be9d3ed6b1fc910a43ab20065445bd83ff319827208913c744c01",
+    "bytes": 867802
+  },
+  "gates": {
+    "validate": "pass",
+    "deliver": "pass",
+    "check": "pass",
+    "browser-check": "pass"
+  },
+  "diagnostics": [],
+  "diagnosticSummary": {
+    "total": 0,
+    "shown": 0,
+    "truncated": false
+  },
+  "evidence": {
+    "receipt": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\architecture-tcv-audioguide-20261026-130800\\architecture-tcv-audioguide.finalize.json",
+    "summaryReceipt": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\architecture-tcv-audioguide-20261026-130800\\architecture-tcv-audioguide.finalize-summary.json",
+    "browserCheckReceipt": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\architecture-tcv-audioguide-20261026-130800\\architecture-tcv-audioguide.browser-check.json"
+  },
+  "update": {
+    "status": "current",
+    "installedVersion": "3.2.0",
+    "availableVersion": "3.2.0",
+    "releaseNotes": null,
+    "checkedAt": "2026-10-26T06:11:19.035Z",
+    "source": "network",
+    "noticeRequired": false,
+    "noticeText": null
+  },
+  "visualReview": "not-requested",
+  "durationMs": 15164,
+  "browserCheck": {
+    "requested": true,
+    "ran": true
+  }
+}

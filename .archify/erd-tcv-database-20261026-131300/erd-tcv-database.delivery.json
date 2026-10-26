@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "receiptId": "00107844-6981-4f3e-a81e-41c5b1e3aa47",
+  "status": "current",
+  "command": "deliver",
+  "type": "erd",
+  "input": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\erd-tcv-database-20261026-131300\\candidate.json",
+  "output": "C:\\Users\\giuag\\.gemini\\antigravity\\scratch\\prj_sgu26_cnpm\\.archify\\erd-tcv-database-20261026-131300\\erd-tcv-database.html",
+  "specification": {
+    "sha256": "2ae462f751dbfcf16a04e3d32a3e6cfdab12f1fa85e8297b43b19bd8cbb0de72",
+    "bytes": 14307
+  },
+  "artifact": {
+    "sha256": "009aea35ee686941edbbebb5d5efc4c99e408d87fd262041003a33918cb17942",
+    "bytes": 913663
+  }
+}
