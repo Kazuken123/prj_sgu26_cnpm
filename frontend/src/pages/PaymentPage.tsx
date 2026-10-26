@@ -63,6 +63,8 @@ export const PaymentPage: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
   const [statusNotice, setStatusNotice] = useState<string | null>(null);
+  // UC-02: ket qua o "Du dieu kien doi token?" (Co -> "hello", Khong -> "hello hello").
+  const [cashExchangeHello, setCashExchangeHello] = useState<string | null>(null);
   const [cooldownSeconds, setCooldownSeconds] = useState<number>(0);
   const [mismatchedEnv, setMismatchedEnv] = useState<boolean>(false);
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
@@ -358,11 +360,13 @@ export const PaymentPage: React.FC = () => {
     setErrorMessage(null);
     setErrorCode(null);
     setStatusNotice(null);
+    setCashExchangeHello(null);
 
     const cleanCode = cashShortedCodeInput.trim();
 
     if (!cleanCode || !/^\d{6}$/.test(cleanCode)) {
       setErrorMessage('Vui lòng nhập đủ 6 chữ số nhân viên đã cấp.');
+      setCashExchangeHello('hello hello');
       return;
     }
 
@@ -372,6 +376,7 @@ export const PaymentPage: React.FC = () => {
     try {
       const exchangeData = await exchangeCashCode(cleanCode, currentBaseUrl);
       if (!acceptVisit(exchangeData, epoch)) return;
+      setCashExchangeHello('hello');
 
       updateAndPersistSession((prev) => ({
         ...prev,
@@ -405,6 +410,7 @@ export const PaymentPage: React.FC = () => {
     } catch (err: unknown) {
       setIsExchangingCash(false);
       setUiStep('IDLE');
+      setCashExchangeHello('hello hello');
       if (err instanceof ApiError) {
         setErrorCode(err.code);
         const cashMessages: Record<string, string> = {
@@ -474,6 +480,7 @@ export const PaymentPage: React.FC = () => {
         {mismatchedEnv && <div className="garden-alert" role="alert"><h2>{t("Vé đang thuộc một địa chỉ khác")}</h2><p>{t("Để bảo vệ vé, hệ thống chưa gửi quyền truy cập sang địa chỉ hiện tại. Hãy mở lại trang đã dùng hoặc nhờ nhân viên kiểm tra.")}</p><details><summary>{t("Thông tin hỗ trợ")}</summary><p>{session.apiBaseUrl} → {currentBaseUrl}</p><button type="button" className="btn-secondary" onClick={() => { if (window.confirm(t("Bỏ thông tin vé đã lưu tại địa chỉ cũ? Việc này không hoàn tiền hoặc khôi phục vé."))) handleClearSession(); }}>{t("Bỏ thông tin vé cũ")}</button></details></div>}
         {errorMessage && <div className="garden-alert garden-alert-error" role="alert"><strong>{t("Chưa thể hoàn tất")}</strong><p>{message(errorMessage)}</p>{errorCode && <details><summary>{t("Thông tin hỗ trợ")}</summary><code>{errorCode}</code></details>}</div>}
         {statusNotice && <p className="garden-status-notice" role="status">{message(statusNotice)}</p>}
+        {cashExchangeHello && <p className="garden-status-notice" role="status">{cashExchangeHello}</p>}
 
         {uiStep === 'VISIT_ACTIVE' ? <div className="garden-ticket-ready"><span className="garden-ready-icon"><Icon name="check" /></span><h2>{t("Vé của bạn đã sẵn sàng.")}</h2><p>{t("Mời bạn trở lại bản đồ, chọn một điểm dừng và bắt đầu nghe.")}</p><p>{t("Quyền nghe đến ")}<strong>{session.expiresAt ? new Date(session.expiresAt).toLocaleString(locale) : t("Đang kiểm tra")}</strong>.</p><Link className="btn-primary" to="/explore">{t("Bắt đầu khám phá ")}<Icon name="arrow" /></Link></div>
           : session.token && !mismatchedEnv ? <div className="garden-checkout-state"><Icon name="ticket" /><h2>{t("Vé đã được lưu trên thiết bị.")}</h2><p>{t("Cần kiểm tra với máy chủ trước khi mở quyền nghe. Bạn không cần nhập mã hoặc thanh toán lại.")}</p><button type="button" className="btn-primary" onClick={handleVerifyAgain} disabled={busy}>{uiStep === 'VERIFYING_VISIT' ? t("Đang xác minh…") : t("Xác minh lại phiên")}</button><Link className="garden-text-button" to="/explore">{t("Tiếp tục xem bản đồ")}</Link></div>
