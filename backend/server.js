@@ -35,12 +35,15 @@ const defaultKnowledgeService = require("./services/knowledge.service");
 const { createChatRouter } = require("./routers/chat.router");
 const defaultChatService = require("./services/chat.service");
 const { deploymentMetadata } = require("./config/deployment");
+const { OnlineVisitorService } = require("./services/online-visitor.service");
+const { createOnlineHeartbeatRouter, createOnlineVisitorAdminRouter } = require("./routers/online-visitor.router");
 
 function createApp({ authService = defaultAuthService, healthService = defaultHealthService, poiService = defaultPoiService,
   contentJobService = defaultContentJobService, paymentService = defaultPaymentService, mediaService = new MediaService(), contentService = new ContentService(),
   frontendDir = path.resolve(__dirname, "../frontend/dist"), tourService = defaultTourService, auditService = defaultAuditService,
   monitoringService = defaultMonitoringService, translationService = defaultTranslationService,
-  knowledgeService = defaultKnowledgeService, chatService = defaultChatService, operationsService, visitorAnalyticsService } = {}) {
+  knowledgeService = defaultKnowledgeService, chatService = defaultChatService, operationsService, visitorAnalyticsService,
+  onlineVisitorService = new OnlineVisitorService() } = {}) {
   const app = express();
   app.disable("x-powered-by");
   const origins = (process.env.CORS_ORIGINS || "http://localhost:5500,http://127.0.0.1:5500").split(",").map(value => value.trim());
@@ -49,6 +52,8 @@ function createApp({ authService = defaultAuthService, healthService = defaultHe
   app.use("/api/payments/webhooks/mock", (req, res, next) => { res.set("Cache-Control", "no-store"); next(); },
     express.raw({ type: "application/json", limit: "32kb", inflate: false }));
   app.use(express.json({ limit: "32kb" }));
+  app.use("/api/presence", createOnlineHeartbeatRouter(onlineVisitorService));
+  app.use("/api/admin/online-visitors", createOnlineVisitorAdminRouter(authService, onlineVisitorService));
   app.use("/api/auth", createAuthRouter(authService));
   app.use("/api/admin", createAdminRouter(authService));
   app.use("/api/admin/pois", createTranslationRouter(authService, translationService));
