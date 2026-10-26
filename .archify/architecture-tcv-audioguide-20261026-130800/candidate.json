@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Kien truc He thong Thuyet minh & Huong dan Tham quan Thao Cam Vien Sai Gon",
+    "output": ".archify/architecture-tcv-audioguide-20261026-130800/architecture-tcv-audioguide.html",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/Kazuken123/prj_sgu26_cnpm.git",
+      "revision": "1b9e17c3de63386d6c875c1dafb8e370a4ebc9f2",
+      "provider": "github"
+    },
+    "views": [
+      {
+        "id": "visitor-experience",
+        "label": "Visitor Experience",
+        "focus": ["visitor_client", "fe_visitor_app", "api_gateway", "content_svc", "mariadb"],
+        "note": "Kham pha ban do tuong tac, GPS trigger va nghe thuyet minh 15 ngon ngu."
+      },
+      {
+        "id": "rag-ai-assistant",
+        "label": "RAG AI Assistant",
+        "focus": ["visitor_client", "fe_visitor_app", "api_gateway", "rag_chat_svc", "gemini_ai", "mariadb"],
+        "note": "Hoi dap thong tin dong thuc vat qua Gemini va Vector Search da ngu."
+      },
+      {
+        "id": "staff-operations",
+        "label": "Staff Desk & Operations",
+        "focus": ["staff_client", "fe_admin_portal", "api_gateway", "payment_svc", "redis_cache", "mariadb"],
+        "note": "Ban ve tien mat tai quay, cap ma kich hoat 6 so va quan ly tri thuc."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "visitor_client",
+      "type": "external",
+      "label": "Visitor Mobile",
+      "sublabel": "Browser / PWA",
+      "pos": [40, 170],
+      "size": [120, 60],
+      "sources": [
+        { "path": "frontend/src/App.tsx", "line": 1, "end_line": 50, "label": "App entry" }
+      ]
+    },
+    {
+      "id": "staff_client",
+      "type": "external",
+      "label": "Staff Counter",
+      "sublabel": "Desktop / POS",
+      "pos": [40, 410],
+      "size": [120, 60],
+      "sources": [
+        { "path": "frontend/src/pages/InternalCashPage.tsx", "line": 1, "end_line": 45, "label": "Cash desk" }
+      ]
+    },
+    {
+      "id": "fe_visitor_app",
+      "type": "frontend",
+      "label": "Visitor Web App",
+      "sublabel": "Map - Audio - Chat",
+      "pos": [230, 170],
+      "size": [130, 60],
+      "tag": "React + Leaflet",
+      "sources": [
+        { "path": "frontend/src/pages/ExplorePage.tsx", "line": 1, "end_line": 60, "label": "Explore view" }
+      ]
+    },
+    {
+      "id": "fe_admin_portal",
+      "type": "frontend",
+      "label": "Staff Portal",
+      "sublabel": "Cash - Tours - KB",
+      "pos": [230, 410],
+      "size": [130, 60],
+      "sources": [
+        { "path": "frontend/src/pages/InternalKnowledgePage.tsx", "line": 1, "end_line": 45, "label": "KB admin" }
+      ]
+    },
+    {
+      "id": "auth_middleware",
+      "type": "security",
+      "label": "Auth & Visitor Guard",
+      "sublabel": "JWT & Visitor Token",
+      "pos": [430, 50],
+      "size": [130, 60],
+      "tag": "Role + Expiry",
+      "sources": [
+        { "path": "backend/middlewares/visitor.middleware.js", "line": 1, "end_line": 14, "label": "Visitor auth" }
+      ]
+    },
+    {
+      "id": "api_gateway",
+      "type": "backend",
+      "label": "Express API Server",
+      "sublabel": "HTTP REST / Port 3000",
+      "pos": [430, 290],
+      "size": [130, 60],
+      "tag": "Node.js v20+",
+      "sources": [
+        { "path": "backend/server.js", "line": 1, "end_line": 60, "label": "Express app" }
+      ]
+    },
+    {
+      "id": "payment_svc",
+      "type": "backend",
+      "label": "Payment Service",
+      "sublabel": "Cash Desk & Exchange",
+      "pos": [630, 50],
+      "size": [130, 60],
+      "sources": [
+        { "path": "backend/services/payment.service.js", "line": 1, "end_line": 60, "label": "Payment service" }
+      ]
+    },
+    {
+      "id": "content_svc",
+      "type": "backend",
+      "label": "Content Service",
+      "sublabel": "POI Geo & 15-Lang Bundle",
+      "pos": [630, 170],
+      "size": [130, 60],
+      "sources": [
+        { "path": "backend/services/content.service.js", "line": 1, "end_line": 50, "label": "Content service" }
+      ]
+    },
+    {
+      "id": "rag_chat_svc",
+      "type": "backend",
+      "label": "RAG Chatbot Service",
+      "sublabel": "Prompt Guard & Context",
+      "pos": [630, 410],
+      "size": [130, 60],
+      "tag": "Scope Shield",
+      "sources": [
+        { "path": "backend/services/chat.service.js", "line": 1, "end_line": 50, "label": "Chat service" }
+      ]
+    },
+    {
+      "id": "piper_worker",
+      "type": "backend",
+      "label": "Piper TTS Worker",
+      "sublabel": "Local Audio Synthesis",
+      "pos": [630, 530],
+      "size": [130, 60],
+      "sources": [
+        { "path": "backend/adapters/piper-tts.js", "line": 1, "end_line": 45, "label": "Piper adapter" }
+      ]
+    },
+    {
+      "id": "redis_cache",
+      "type": "database",
+      "label": "Redis Store",
+      "sublabel": "Cash Code & Rate Limits",
+      "pos": [830, 50],
+      "size": [130, 60],
+      "tag": "In-Memory :6379",
+      "sources": [
+        { "path": "backend/stores/redis.store.js", "line": 1, "end_line": 50, "label": "Redis store" }
+      ]
+    },
+    {
+      "id": "mariadb",
+      "type": "database",
+      "label": "MariaDB Primary",
+      "sublabel": "InnoDB Schema :3306",
+      "pos": [830, 290],
+      "size": [130, 60],
+      "tag": "UTF8MB4 + UTC",
+      "sources": [
+        { "path": "database/init_db.sql", "line": 8, "end_line": 70, "label": "Database DDL" }
+      ]
+    },
+    {
+      "id": "audio_storage",
+      "type": "cloud",
+      "label": "Audio Repository",
+      "sublabel": "15 Languages Tarball",
+      "pos": [830, 530],
+      "size": [130, 60],
+      "sources": [
+        { "path": "data/demo/fifteen/audio-manifest.json", "line": 1, "end_line": 35, "label": "Audio manifest" }
+      ]
+    },
+    {
+      "id": "render_cloud",
+      "type": "cloud",
+      "label": "Render Platform",
+      "sublabel": "Docker Container Staging",
+      "pos": [1030, 290],
+      "size": [130, 60],
+      "tag": "CI/CD Staging",
+      "sources": [
+        { "path": "deploy/render/Dockerfile", "line": 1, "end_line": 25, "label": "Dockerfile" }
+      ]
+    },
+    {
+      "id": "gemini_ai",
+      "type": "cloud",
+      "label": "Google Gemini",
+      "sublabel": "LLM & Text Embeddings",
+      "pos": [1030, 410],
+      "size": [130, 60],
+      "tag": "generativelanguage",
+      "sources": [
+        { "path": "backend/services/rag-adapters.js", "line": 1, "end_line": 18, "label": "RAG adapters" }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "TCV Backend & Data Infrastructure",
+      "wraps": [
+        "auth_middleware",
+        "payment_svc",
+        "redis_cache",
+        "content_svc",
+        "api_gateway",
+        "mariadb",
+        "rag_chat_svc",
+        "piper_worker",
+        "audio_storage"
+      ]
+    },
+    {
+      "kind": "security-group",
+      "label": "Core Application Services",
+      "wraps": [
+        "auth_middleware",
+        "payment_svc",
+        "content_svc",
+        "api_gateway",
+        "rag_chat_svc"
+      ]
+    }
+  ],
+  "connections": [
+    { "from": "visitor_client", "to": "fe_visitor_app", "label": "HTTPS", "variant": "emphasis" },
+    { "from": "staff_client", "to": "fe_admin_portal", "label": "HTTPS", "variant": "emphasis" },
+    { "from": "fe_visitor_app", "to": "api_gateway", "label": "/api/content" },
+    { "from": "fe_admin_portal", "to": "api_gateway", "label": "/api/admin" },
+    { "from": "api_gateway", "to": "auth_middleware", "label": "verify token", "variant": "security", "fromSide": "top", "toSide": "bottom" },
+    { "from": "auth_middleware", "to": "payment_svc", "label": "auth context" },
+    { "from": "payment_svc", "to": "redis_cache", "label": "cash code TTL", "variant": "emphasis" },
+    { "from": "payment_svc", "to": "mariadb", "label": "sessions SQL" },
+    { "from": "api_gateway", "to": "content_svc", "label": "POI query" },
+    { "from": "content_svc", "to": "mariadb", "label": "POIs & tours" },
+    { "from": "api_gateway", "to": "rag_chat_svc", "label": "ask question" },
+    { "from": "rag_chat_svc", "to": "mariadb", "label": "vector match" },
+    { "from": "rag_chat_svc", "to": "gemini_ai", "label": "Gemini API", "variant": "emphasis" },
+    { "from": "piper_worker", "to": "audio_storage", "label": "write MP3" },
+    { "from": "render_cloud", "to": "mariadb", "label": "managed DB", "variant": "dashed" }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Trải nghiệm Khách tham quan",
+      "items": [
+        "Bản đồ Leaflet tự động định vị GPS và kích hoạt thuyết minh tại điểm tham quan",
+        "Hỗ trợ 15 ngôn ngữ với file âm thanh bản địa và phụ đề song ngữ",
+        "Trợ lý AI Gemini trả lời trực tiếp thắc mắc kèm trích dẫn tài liệu chính thức"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Quầy vé & Vận hành Nội bộ",
+      "items": [
+        "Nhân viên bán vé tiền mặt và cấp mã 6 số lưu tạm trong Redis với TTL xác định",
+        "Khách nhập mã 6 số để mở khóa phiên nghe trọn gói trong ngày",
+        "Cổng quản trị nội bộ cho phép biên tập tour, tài liệu tri thức và kiểm toán"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Bảo mật & Hạ tầng",
+      "items": [
+        "Token phiên khách băm SHA-256 đối soát trực tiếp trong CSDL MariaDB",
+        "Scope shield chặn prompt injection và câu hỏi ngoài phạm vi Thảo Cầm Viên",
+        "Triển khai Docker staging tự động trên Render sau khi kiểm thử CI hoàn tất"
+      ]
+    }
+  ]
+}

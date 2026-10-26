@@ -1,0 +1,422 @@
+{
+  "schema_version": 1,
+  "diagram_type": "erd",
+  "meta": {
+    "title": "So do Thuc the Lien ket (ERD) Co so Du lieu Thao Cam Vien",
+    "locale": "en",
+    "output": ".archify/erd-tcv-database-20261026-131300/erd-tcv-database.html",
+    "quality_profile": "standard",
+    "repository": {
+      "url": "https://github.com/Kazuken123/prj_sgu26_cnpm.git",
+      "revision": "1b9e17c3de63386d6c875c1dafb8e370a4ebc9f2",
+      "provider": "github"
+    },
+    "views": [
+      {
+        "id": "visitor-sessions",
+        "label": "Sessions & Payments",
+        "focus": ["visit_sessions", "payments", "users"],
+        "note": "Phien tham quan va thanh toan tien mat tai quay."
+      },
+      {
+        "id": "content-structure",
+        "label": "POIs & Multilingual Audios",
+        "focus": ["pois", "poi_translations", "audios", "tours", "tour_pois"],
+        "note": "Cau truc diem tham quan va audio da ngon ngu."
+      },
+      {
+        "id": "knowledge-rag",
+        "label": "Knowledge & Embeddings",
+        "focus": ["knowledge_documents", "knowledge_chunks", "chat_logs"],
+        "note": "Tai lieu tri thuc va vector embeddings cho RAG chatbot."
+      }
+    ]
+  },
+  "layout": {
+    "mode": "grid",
+    "gapY": 34,
+    "gapX": 64
+  },
+  "entities": [
+    {
+      "id": "languages",
+      "label": "LANGUAGES",
+      "tag": "auth_users",
+      "row": 0,
+      "col": 0,
+      "sources": [{ "path": "database/init_db.sql", "line": 8, "end_line": 14, "label": "Languages DDL" }],
+      "attributes": [
+        { "name": "code", "type": "varchar(10)", "key": "pk" },
+        { "name": "name", "type": "varchar(50)" },
+        { "name": "is_active", "type": "tinyint(1)" }
+      ]
+    },
+    {
+      "id": "users",
+      "label": "USERS",
+      "tag": "auth_users",
+      "row": 1,
+      "col": 0,
+      "width": 260,
+      "sources": [{ "path": "database/init_db.sql", "line": 16, "end_line": 34, "label": "Users DDL" }],
+      "attributes": [
+        { "name": "user_id", "type": "int", "key": "pk" },
+        { "name": "email", "type": "varchar(255)", "key": "uk" },
+        { "name": "password_hash", "type": "varchar(255)" },
+        { "name": "full_name", "type": "varchar(100)" },
+        { "name": "role", "type": "enum" },
+        { "name": "preferred_language", "type": "varchar(10)", "key": "fk", "references": "languages.code" },
+        { "name": "status", "type": "enum" },
+        { "name": "created_at", "type": "datetime" }
+      ]
+    },
+    {
+      "id": "refresh_tokens",
+      "label": "REFRESH_TOKENS",
+      "tag": "auth_users",
+      "row": 2,
+      "col": 0,
+      "sources": [{ "path": "database/init_db.sql", "line": 36, "end_line": 51, "label": "Tokens DDL" }],
+      "attributes": [
+        { "name": "token_id", "type": "bigint", "key": "pk" },
+        { "name": "user_id", "type": "int", "key": "fk", "references": "users.user_id" },
+        { "name": "session_id", "type": "char(36)", "key": "uk" },
+        { "name": "token_hash", "type": "char(64)", "key": "uk" },
+        { "name": "expires_at", "type": "datetime(3)" }
+      ]
+    },
+    {
+      "id": "audit_logs",
+      "label": "AUDIT_LOGS",
+      "tag": "auth_users",
+      "row": 3,
+      "col": 0,
+      "sources": [{ "path": "database/init_db.sql", "line": 53, "end_line": 68, "label": "Audit DDL" }],
+      "attributes": [
+        { "name": "log_id", "type": "bigint", "key": "pk" },
+        { "name": "user_id", "type": "int", "key": "fk", "references": "users.user_id" },
+        { "name": "action", "type": "varchar(100)" },
+        { "name": "resource_type", "type": "varchar(50)" },
+        { "name": "details", "type": "text" },
+        { "name": "ip_address", "type": "varchar(45)" },
+        { "name": "created_at", "type": "datetime" }
+      ]
+    },
+    {
+      "id": "visit_sessions",
+      "label": "VISIT_SESSIONS",
+      "tag": "visitor_payment",
+      "row": 0,
+      "col": 1,
+      "sources": [{ "path": "database/init_db.sql", "line": 70, "end_line": 87, "label": "Sessions DDL" }],
+      "attributes": [
+        { "name": "session_id", "type": "char(36)", "key": "pk" },
+        { "name": "created_by", "type": "int", "key": "fk", "references": "users.user_id" },
+        { "name": "status", "type": "enum" },
+        { "name": "token_hash", "type": "char(64)", "key": "uk" },
+        { "name": "activated_at", "type": "datetime" },
+        { "name": "expires_at", "type": "datetime" }
+      ]
+    },
+    {
+      "id": "payments",
+      "label": "PAYMENTS",
+      "tag": "visitor_payment",
+      "row": 1,
+      "col": 1,
+      "sources": [{ "path": "database/init_db.sql", "line": 89, "end_line": 114, "label": "Payments DDL" }],
+      "attributes": [
+        { "name": "payment_id", "type": "bigint", "key": "pk" },
+        { "name": "session_id", "type": "char(36)", "key": ["uk", "fk"], "references": "visit_sessions.session_id" },
+        { "name": "payment_ref", "type": "varchar(100)", "key": "uk" },
+        { "name": "confirmed_by", "type": "int", "key": "fk", "references": "users.user_id" },
+        { "name": "payment_method", "type": "enum" },
+        { "name": "amount", "type": "decimal(12,2)" },
+        { "name": "status", "type": "enum" },
+        { "name": "paid_at", "type": "datetime" }
+      ]
+    },
+    {
+      "id": "chat_logs",
+      "label": "CHAT_LOGS",
+      "tag": "visitor_payment",
+      "row": 2,
+      "col": 1,
+      "sources": [{ "path": "database/init_db.sql", "line": 250, "end_line": 263, "label": "Chat logs DDL" }],
+      "attributes": [
+        { "name": "chat_log_id", "type": "bigint", "key": "pk" },
+        { "name": "session_id", "type": "char(36)", "key": "fk", "references": "visit_sessions.session_id" },
+        { "name": "question", "type": "text" },
+        { "name": "answer", "type": "text" },
+        { "name": "sources", "type": "json" },
+        { "name": "status", "type": "enum" },
+        { "name": "created_at", "type": "datetime" }
+      ]
+    },
+    {
+      "id": "tours",
+      "label": "TOURS",
+      "tag": "tours_pois",
+      "row": 0,
+      "col": 2,
+      "sources": [{ "path": "database/init_db.sql", "line": 199, "end_line": 206, "label": "Tours DDL" }],
+      "attributes": [
+        { "name": "tour_id", "type": "int", "key": "pk" },
+        { "name": "name", "type": "varchar(255)" },
+        { "name": "description", "type": "text" },
+        { "name": "created_at", "type": "datetime" }
+      ]
+    },
+    {
+      "id": "tour_pois",
+      "label": "TOUR_POIS",
+      "tag": "tours_pois",
+      "row": 1,
+      "col": 2,
+      "sources": [{ "path": "database/init_db.sql", "line": 208, "end_line": 220, "label": "Tour POIs DDL" }],
+      "attributes": [
+        { "name": "tour_id", "type": "int", "key": ["pk", "fk"], "references": "tours.tour_id" },
+        { "name": "poi_id", "type": "int", "key": ["pk", "fk"], "references": "pois.poi_id" },
+        { "name": "sequence_no", "type": "int", "key": "uk" }
+      ]
+    },
+    {
+      "id": "pois",
+      "label": "POIS",
+      "tag": "tours_pois",
+      "row": 2,
+      "col": 2,
+      "sources": [{ "path": "database/init_db.sql", "line": 116, "end_line": 137, "label": "POIs DDL" }],
+      "attributes": [
+        { "name": "poi_id", "type": "int", "key": "pk" },
+        { "name": "name", "type": "varchar(255)" },
+        { "name": "category", "type": "enum" },
+        { "name": "latitude", "type": "decimal(10,8)" },
+        { "name": "longitude", "type": "decimal(11,8)" },
+        { "name": "trigger_radius", "type": "int" },
+        { "name": "status", "type": "enum" },
+        { "name": "content_version", "type": "int" }
+      ]
+    },
+    {
+      "id": "poi_translations",
+      "label": "POI_TRANSLATIONS",
+      "tag": "tours_pois",
+      "row": 3,
+      "col": 2,
+      "sources": [{ "path": "database/init_db.sql", "line": 139, "end_line": 158, "label": "Translations DDL" }],
+      "attributes": [
+        { "name": "translation_id", "type": "int", "key": "pk" },
+        { "name": "poi_id", "type": "int", "key": "fk", "references": "pois.poi_id" },
+        { "name": "language_code", "type": "varchar(10)", "key": "fk", "references": "languages.code" },
+        { "name": "name", "type": "varchar(255)" },
+        { "name": "description", "type": "text" },
+        { "name": "status", "type": "enum" }
+      ]
+    },
+    {
+      "id": "audios",
+      "label": "AUDIOS",
+      "tag": "tours_pois",
+      "row": 4,
+      "col": 2,
+      "sources": [{ "path": "database/init_db.sql", "line": 160, "end_line": 177, "label": "Audios DDL" }],
+      "attributes": [
+        { "name": "audio_id", "type": "int", "key": "pk" },
+        { "name": "translation_id", "type": "int", "key": ["uk", "fk"], "references": "poi_translations.translation_id" },
+        { "name": "file_url", "type": "varchar(500)" },
+        { "name": "duration", "type": "int" },
+        { "name": "file_size", "type": "bigint" },
+        { "name": "status", "type": "enum" }
+      ]
+    },
+    {
+      "id": "knowledge_documents",
+      "label": "KNOWLEDGE_DOCUMENTS",
+      "tag": "knowledge_rag",
+      "row": 0,
+      "col": 3,
+      "sources": [{ "path": "database/init_db.sql", "line": 222, "end_line": 233, "label": "Knowledge DDL" }],
+      "attributes": [
+        { "name": "document_id", "type": "int", "key": "pk" },
+        { "name": "title", "type": "varchar(255)" },
+        { "name": "content", "type": "longtext" },
+        { "name": "status", "type": "enum" },
+        { "name": "content_version", "type": "int" }
+      ]
+    },
+    {
+      "id": "knowledge_chunks",
+      "label": "KNOWLEDGE_CHUNKS",
+      "tag": "knowledge_rag",
+      "row": 1,
+      "col": 3,
+      "sources": [{ "path": "database/init_db.sql", "line": 235, "end_line": 248, "label": "Chunks DDL" }],
+      "attributes": [
+        { "name": "chunk_id", "type": "bigint", "key": "pk" },
+        { "name": "document_id", "type": "int", "key": "fk", "references": "knowledge_documents.document_id" },
+        { "name": "chunk_text", "type": "text" },
+        { "name": "embedding", "type": "json" },
+        { "name": "embedding_model", "type": "varchar(100)" }
+      ]
+    },
+    {
+      "id": "content_jobs",
+      "label": "CONTENT_JOBS",
+      "tag": "knowledge_rag",
+      "row": 2,
+      "col": 3,
+      "sources": [{ "path": "database/init_db.sql", "line": 179, "end_line": 197, "label": "Jobs DDL" }],
+      "attributes": [
+        { "name": "job_id", "type": "bigint", "key": "pk" },
+        { "name": "poi_id", "type": "int", "key": "fk", "references": "pois.poi_id" },
+        { "name": "language_code", "type": "varchar(10)", "key": "fk", "references": "languages.code" },
+        { "name": "status", "type": "enum" }
+      ]
+    }
+  ],
+  "relationships": [
+    {
+      "id": "users_languages",
+      "from": "users",
+      "to": "languages",
+      "fromCardinality": "many",
+      "fromOptional": true,
+      "toCardinality": "one",
+      "label": "preferred_language"
+    },
+    {
+      "id": "refresh_tokens_users",
+      "from": "refresh_tokens",
+      "to": "users",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "user_id"
+    },
+    {
+      "id": "audit_logs_users",
+      "from": "audit_logs",
+      "to": "users",
+      "fromCardinality": "many",
+      "fromOptional": true,
+      "toCardinality": "one",
+      "label": "user_id"
+    },
+    {
+      "id": "sessions_users",
+      "from": "visit_sessions",
+      "to": "users",
+      "fromCardinality": "many",
+      "fromOptional": true,
+      "toCardinality": "one",
+      "label": "created_by"
+    },
+    {
+      "id": "payments_sessions",
+      "from": "payments",
+      "to": "visit_sessions",
+      "fromCardinality": "one",
+      "toCardinality": "one",
+      "label": "session_id"
+    },
+    {
+      "id": "payments_confirmer",
+      "from": "payments",
+      "to": "users",
+      "fromCardinality": "many",
+      "fromOptional": true,
+      "toCardinality": "one",
+      "label": "confirmed_by"
+    },
+    {
+      "id": "chat_logs_sessions",
+      "from": "chat_logs",
+      "to": "visit_sessions",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "session_id"
+    },
+    {
+      "id": "tour_pois_tours",
+      "from": "tour_pois",
+      "to": "tours",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "tour_id"
+    },
+    {
+      "id": "tour_pois_pois",
+      "from": "tour_pois",
+      "to": "pois",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "poi_id"
+    },
+    {
+      "id": "translations_pois",
+      "from": "poi_translations",
+      "to": "pois",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "poi_id"
+    },
+    {
+      "id": "translations_languages",
+      "from": "poi_translations",
+      "to": "languages",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "language_code"
+    },
+    {
+      "id": "audios_translations",
+      "from": "audios",
+      "to": "poi_translations",
+      "fromCardinality": "one",
+      "toCardinality": "one",
+      "label": "translation_id"
+    },
+    {
+      "id": "chunks_documents",
+      "from": "knowledge_chunks",
+      "to": "knowledge_documents",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "document_id"
+    },
+    {
+      "id": "jobs_pois",
+      "from": "content_jobs",
+      "to": "pois",
+      "fromCardinality": "many",
+      "toCardinality": "one",
+      "label": "poi_id"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Khoa ngoai & Quyen han",
+      "items": [
+        "Bang USERS tach biet ro rang role STAFF va ADMIN, lien ket phien REFRESH_TOKENS",
+        "VISIT_SESSIONS la trung tam quan ly phien cua khach voi token_hash băm an toan"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Dia ly & Da ngon ngu",
+      "items": [
+        "POIS luu toa do GPS chuan xac va ban kinh kich hoat trigger_radius (met)",
+        "Moi POI ket noi POI_TRANSLATIONS va file am thanh AUDIOS theo ngon ngu tuong ung"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "RAG Chatbot & Tri thuc",
+      "items": [
+        "KNOWLEDGE_CHUNKS luu vector embedding de thuc hien tim kiem tuong dong cosine",
+        "CHAT_LOGS ghi nhan toan bo cau hoi, cau tra loi va nguon trich dan cua Gemini"
+      ]
+    }
+  ]
+}

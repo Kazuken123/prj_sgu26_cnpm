@@ -1,10 +1,12 @@
 node_modules/
 .env
 *.local.env
+.local-data/
 *.log
 .DS_Store
 Thumbs.db
 dist/
-.agents/
+.agents/*
+!.agents/skills/
 skills-lock.json
 repomix-output.xml

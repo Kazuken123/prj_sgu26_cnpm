@@ -76,6 +76,14 @@ Thiết kế sử dụng JavaScript, Node.js, Express, MySQL và Redis. Giao di�
 
 Phiên đăng nhập nội bộ và phiên tham quan được quản lý độc lập. Xác thực tài khoản nội bộ sử dụng mật khẩu băm bằng bcrypt, access token JWT và refresh token được lưu dạng hash.
 
+### Sơ đồ Kiến trúc & Cơ sở dữ liệu tương tác (Archify)
+
+Hệ thống cung cấp sơ đồ kiến trúc và cơ sở dữ liệu tương tác độc lập (interactive standalone HTML) được biên soạn và kiểm chứng bằng công cụ **Archify**:
+
+- **Sơ đồ Kiến trúc Hệ thống:** [docs/architecture/architecture-tcv-audioguide.html](docs/architecture/architecture-tcv-audioguide.html) (Mô hình trực quan các tầng Client PWA, Staff POS, Express API, RAG Gemini, Piper TTS, MariaDB và Redis).
+- **Sơ đồ Cơ sở Dữ liệu (ERD):** [docs/architecture/erd-tcv-database.html](docs/architecture/erd-tcv-database.html) (Toàn bộ thực thể, khóa chính/ngoại, kiểu dữ liệu và quan hệ CSDL).
+- Hướng dẫn chi tiết và cách cập nhật sơ đồ: xem tại [docs/architecture/README.md](docs/architecture/README.md).
+
 ## Cấu trúc thư mục
 
 ```text
