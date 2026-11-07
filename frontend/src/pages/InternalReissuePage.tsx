@@ -122,8 +122,8 @@ export const InternalReissuePage: React.FC = () => {
     setForm({ sessionId: '', paymentRef: '', paidAtLocal: '', reason: '' });
     setErrors({}); setSummary(null); setResult(null); setRequestError(null); setCopied(null);
   };
-  const copy = async (text: string) => {
-    try { await navigator.clipboard.writeText(text); setCopied('Đã sao chép mã nhận vé.'); }
+  const copy = async (text: string, label = 'mã nhận vé') => {
+    try { await navigator.clipboard.writeText(text); setCopied(`Đã sao chép ${label}.`); }
     catch { setCopied('Không sao chép tự động được. Hãy đọc mã cho khách.'); }
   };
 
@@ -169,7 +169,7 @@ export const InternalReissuePage: React.FC = () => {
           <DescriptionList items={[
             { label: 'Lần cấp lại', value: <>{result.reissueNumber} / {result.maxReissues}{result.renewedCode && <> <Badge tone="info">Tạo lại mã, không tính thêm</Badge></>}</> },
             { label: 'Còn được cấp lại', value: `${result.remainingAfter} lần` },
-            { label: 'Mã phiên', value: result.sessionId, mono: true },
+            { label: 'Mã phiên', value: <span className="adm-row" style={{ gap: 8 }}><span className="adm-mono">{result.sessionId}</span><button type="button" className="adm-btn adm-btn--ghost adm-btn--sm" onClick={() => void copy(result.sessionId, 'mã phiên')}>Sao chép</button></span> },
             { label: 'Token cũ', value: <Badge tone="danger" dot>Đã thu hồi</Badge> },
           ]} />
           <div className="adm-row adm-row--end" style={{ marginTop: 20 }}>
