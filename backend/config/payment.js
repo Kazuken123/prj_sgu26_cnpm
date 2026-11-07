@@ -41,4 +41,13 @@ function getCashExchangeConfig(env = process.env) {
     sessionLimit: positiveInteger(env.CASH_EXCHANGE_SESSION_LIMIT, 5, 10000),
   };
 }
-module.exports = { getLookupConfig, getVisitPrice, getVisitValidityMs, getCashCodeTtlMs, getCashExchangeConfig };
+// UC-12 (Could Have): unapproved assumption from Word 1.6.2 — at most two
+// reissues per ticket; the declared payment time may differ from paid_at by
+// a bounded tolerance (minutes) because visitors rarely remember it exactly.
+function getTokenReissueConfig(env = process.env) {
+  return {
+    maxReissues: positiveInteger(env.VISIT_TOKEN_REISSUE_LIMIT, 2, 10),
+    paidAtToleranceMs: positiveInteger(env.VISIT_TOKEN_REISSUE_PAID_AT_TOLERANCE_MINUTES, 10, 1440) * 60000,
+  };
+}
+module.exports = { getLookupConfig, getVisitPrice, getVisitValidityMs, getCashCodeTtlMs, getCashExchangeConfig, getTokenReissueConfig };

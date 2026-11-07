@@ -1,7 +1,7 @@
 const { createHash, randomUUID, randomBytes, randomInt } = require("node:crypto");
 const PaymentStore = require("../stores/payment.store");
 const RedisStore = require("../stores/redis.store");
-const { getVisitPrice, getLookupConfig, getVisitValidityMs, getCashCodeTtlMs, getCashExchangeConfig } = require("../config/payment");
+const { getVisitPrice, getLookupConfig, getVisitValidityMs, getCashCodeTtlMs, getCashExchangeConfig, getTokenReissueConfig } = require("../config/payment");
 const AppError = require("../utils/app-error");
 const MockGateway = require("../adapters/mock-gateway");
 const { getOnlineCodeTtlMs, getOnlineExchangeConfig, isMockSimulationEnabled } = require("../config/online-payment");
@@ -9,6 +9,7 @@ const { simulateMockPayment } = require("./mock-payment-simulation");
 const { initializeOnline } = require("./online-checkout");
 const { processMockWebhook } = require("./online-webhook");
 const { exchangeOnlineCode } = require("./online-exchange");
+const { verifyTokenReissue, reissueToken } = require("./token-reissue");
 const uuid = /^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$/i;
 const hash = value => createHash("sha256").update(value).digest("hex");
 function authorize(actor) {
@@ -24,7 +25,8 @@ class PaymentService {
   constructor(store = new PaymentStore(), redis = new RedisStore(), { price = getVisitPrice, lookupConfig = getLookupConfig,
     validityMs = getVisitValidityMs, cashCodeTtlMs = getCashCodeTtlMs, exchangeConfig = getCashExchangeConfig, now = () => Date.now(),
     gateway = new MockGateway(), onlineCodeTtlMs = getOnlineCodeTtlMs, gatewayTimeoutMs = 2000, onlineExchangeConfig = getOnlineExchangeConfig,
-    simulationEnabled = isMockSimulationEnabled, cashCode = () => String(randomInt(0, 1000000)).padStart(6, "0") } = {}) {
+    simulationEnabled = isMockSimulationEnabled, cashCode = () => String(randomInt(0, 1000000)).padStart(6, "0"),
+    reissueConfig = getTokenReissueConfig } = {}) {
     this.store = store; this.redis = redis; this.price = price; this.lookupConfig = lookupConfig; this.validityMs = validityMs;
     this.cashCodeTtlMs = cashCodeTtlMs; this.now = now;
     this.exchangeConfig = exchangeConfig;
@@ -32,8 +34,12 @@ class PaymentService {
     this.onlineExchangeConfig = onlineExchangeConfig;
     this.simulationEnabled = simulationEnabled;
     this.cashCode = cashCode;
+    this.reissueConfig = reissueConfig;
+    this.authorize = authorize;
   }
   async initializeOnline(input, requestKey) { return initializeOnline(this, input, requestKey); }
+  async verifyTokenReissue(actor, input) { return verifyTokenReissue(this, actor, input); }
+  async reissueToken(actor, input, options) { return reissueToken(this, actor, input, options); }
   quote() {
     try { return { amount: this.price(), currency: "VND" }; }
     catch { throw new AppError(503, "VISIT_PRICE_NOT_CONFIGURED", "Giá vé chưa được cấu hình hợp lệ."); }
@@ -214,11 +220,14 @@ class PaymentService {
     try {
       result = await this.store.withCashTokenExchange(id, async (row, operations) => {
         if (!row) throw new AppError(404, "VISIT_SESSION_NOT_FOUND", "Không tìm thấy phiên tham quan.");
-        if (row.paymentMethod !== "CASH") throw new AppError(409, "CASH_PAYMENT_REQUIRED", "Phiên không sử dụng thanh toán tiền mặt.");
+        // UC-12 pickup: after a staff reissue (token_hash cleared, count > 0) the
+        // same 6-digit form redeems the pickup code, for CASH and ONLINE tickets.
+        const reissue = Number.isSafeInteger(row.reissueCount) && row.reissueCount > 0;
+        if (!reissue && row.paymentMethod !== "CASH") throw new AppError(409, "CASH_PAYMENT_REQUIRED", "Phiên không sử dụng thanh toán tiền mặt.");
         if (row.paymentStatus === "PENDING") throw new AppError(409, "CASH_PAYMENT_PENDING", "Đang chờ nhân viên xác nhận; không tạo thanh toán mới.");
         if (row.paymentStatus !== "PAID") throw new AppError(409, "CASH_PAYMENT_NOT_PAID", "Thanh toán chưa hợp lệ để đổi mã.");
         if (row.sessionStatus !== "ACTIVE") throw new AppError(409, "VISIT_SESSION_NOT_ACTIVE", "Phiên tham quan không hoạt động.");
-        if (row.tokenHash !== null || row.reissueCount !== 0) {
+        if (row.tokenHash !== null || (!reissue && row.reissueCount !== 0)) {
           throw new AppError(409, "VISIT_TOKEN_ALREADY_ISSUED", "Phiên đã được cấp token. Nếu chưa nhận được token, hãy liên hệ nhân viên; không thanh toán lại.");
         }
         const end = row.expiresAt?.getTime(), current = operations.now.getTime();
@@ -235,8 +244,14 @@ class PaymentService {
           throw new AppError(503, "CASH_CODE_UNAVAILABLE", "Trạng thái mã chưa hợp lệ; kết quả thanh toán được giữ nguyên.");
         }
         if (record.expiresAtMs <= current) throw new AppError(401, "CASH_CODE_INVALID_OR_EXPIRED", "Mã không hợp lệ hoặc đã hết hạn.");
+        // A first-issue code cannot redeem a reissue and vice versa; a stale
+        // pickup from an older reissue cannot redeem the current one.
+        if (reissue ? record.purpose !== "REISSUE" || record.reissueNumber !== row.reissueCount : record.purpose !== undefined) {
+          throw new AppError(401, "CASH_CODE_INVALID_OR_EXPIRED", "Mã không hợp lệ hoặc đã hết hạn; hãy kiểm tra với nhân viên.");
+        }
         const token = "tcv_visit_" + randomBytes(32).toString("hex");
-        const saved = await operations.persist({ tokenHash: hash(token), issueId: record.issueId, codeExpiresAt: new Date(record.expiresAtMs), ipAddress });
+        const saved = await operations.persist({ tokenHash: hash(token), issueId: record.issueId, codeExpiresAt: new Date(record.expiresAtMs), ipAddress,
+          reissueCount: reissue ? row.reissueCount : 0 });
         if (!saved) throw new AppError(409, "CASH_EXCHANGE_CHANGED", "Mã hoặc phiên không còn cho phép đổi; hãy kiểm tra lại trạng thái.");
         return { data: { sessionId: id, token, tokenType: "Bearer", expiresAt: row.expiresAt }, issueId: record.issueId };
       });

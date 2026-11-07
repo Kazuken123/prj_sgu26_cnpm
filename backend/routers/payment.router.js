@@ -75,6 +75,17 @@ function createStaffPaymentRouter(authService, paymentService) {
     try { res.json({ data: await paymentService.issueCashCode(req.user, req.params.sessionId, req.body, { ipAddress: req.ip }) }); }
     catch (error) { next(error); }
   });
+  // UC-12: verify reconciliation data (step 3), then reissue (step 5).
+  router.post("/reissue/verify", async (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    try { res.json({ data: await paymentService.verifyTokenReissue(req.user, req.body) }); }
+    catch (error) { next(error); }
+  });
+  router.post("/reissue", async (req, res, next) => {
+    res.set("Cache-Control", "no-store");
+    try { res.json({ data: await paymentService.reissueToken(req.user, req.body, { ipAddress: req.ip }) }); }
+    catch (error) { next(error); }
+  });
   router.post("/", async (req, res, next) => {
     try {
       const result = await paymentService.initialize(req.body, req.get("Idempotency-Key"), req.user);

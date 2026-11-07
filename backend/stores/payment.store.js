@@ -120,17 +120,53 @@ class PaymentStore {
       }
       return work(rows[0], {
         now: clock[0].nowUtc, ...(online ? { preparation, ready } : {}),
-        persist: async ({ tokenHash, issueId, codeExpiresAt, ipAddress }) => {
+        // reissueCount > 0 only for a UC-12 reissue pickup; the count itself is
+        // never changed here, so redeeming the code cannot consume another reissue.
+        persist: async ({ tokenHash, issueId, codeExpiresAt, ipAddress, reissueCount = 0 }) => {
           const [saved] = await connection.query(`UPDATE VISIT_SESSIONS SET token_hash = ?
-            WHERE session_id = ? AND token_hash IS NULL AND reissue_count = 0
+            WHERE session_id = ? AND token_hash IS NULL AND reissue_count = ?
             AND status = 'ACTIVE' AND expires_at > UTC_TIMESTAMP(3) AND ? > UTC_TIMESTAMP(3)`,
-          [tokenHash, sessionId, codeExpiresAt]);
+          [tokenHash, sessionId, reissueCount, codeExpiresAt]);
           if (saved.affectedRows !== 1) return false;
           await this.audit.create({ userId: null, action: "ISSUE_VISITOR_TOKEN", resourceType: "VISIT_SESSIONS", resourceId: sessionId,
-            details: JSON.stringify({ paymentRef: rows[0].paymentRef, issueId }), ipAddress, createdAt: clock[0].nowUtc }, connection);
+            details: JSON.stringify({ paymentRef: rows[0].paymentRef, issueId, ...(reissueCount > 0 ? { reissueNumber: reissueCount } : {}) }),
+            ipAddress, createdAt: clock[0].nowUtc }, connection);
           return true;
         },
       });
+    });
+  }
+  // UC-12: staff reissue. Same payment/visit lock order as confirmation, code
+  // issuance and exchange. Redis work runs inside `work` before commit, so a
+  // Redis failure rolls back the revocation and the old token keeps working.
+  async withTokenReissue(actorId, sessionId, authorize, work) {
+    return this.transactions.transaction(async connection => {
+      authorize(await this.users.getUserById(actorId, connection, true));
+      const [rows] = await connection.query(confirmationProjection + " FOR UPDATE", [sessionId]);
+      const [clock] = await connection.query("SELECT UTC_TIMESTAMP(3) AS nowUtc");
+      return work(rows[0], {
+        now: clock[0].nowUtc,
+        // Clearing token_hash rejects the old token at the next protected request
+        // (visitor auth looks the session up by token_hash). expires_at untouched.
+        revoke: async ({ previousTokenHash, previousCount }) => {
+          const [saved] = await connection.query(`UPDATE VISIT_SESSIONS SET token_hash = NULL, reissue_count = reissue_count + 1
+            WHERE session_id = ? AND token_hash = ? AND reissue_count = ? AND status = 'ACTIVE' AND expires_at > UTC_TIMESTAMP(3)`,
+          [sessionId, previousTokenHash, previousCount]);
+          return saved.affectedRows === 1;
+        },
+        audit: ({ issueId, reissueNumber, renewedCode, reason, codeExpiresAt, ipAddress }) => this.audit.create({
+          userId: actorId, action: "REISSUE_VISITOR_TOKEN", resourceType: "VISIT_SESSIONS", resourceId: sessionId,
+          details: JSON.stringify({ sessionId, paymentRef: rows[0].paymentRef, issueId, reissueNumber, renewedCode, reason,
+            codeExpiresAt: codeExpiresAt.toISOString() }), ipAddress, createdAt: clock[0].nowUtc }, connection),
+      });
+    });
+  }
+  async lookupForReissue(actorId, sessionId, authorize) {
+    return this.transactions.transaction(async connection => {
+      authorize(await this.users.getUserById(actorId, connection, true));
+      const [rows] = await connection.query(confirmationProjection, [sessionId]);
+      const [clock] = await connection.query("SELECT UTC_TIMESTAMP(3) AS nowUtc");
+      return { row: rows[0], now: clock[0].nowUtc };
     });
   }
   async withOnlineWebhook(paymentRef, work) {
