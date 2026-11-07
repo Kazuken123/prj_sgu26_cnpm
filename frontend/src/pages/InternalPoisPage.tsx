@@ -6,6 +6,8 @@ import { clearInternalSession } from '../api/authStorage.ts';
 import type { InternalUser } from '../api/authStorage.ts';
 import { getPois, deactivatePoi } from '../api/poi.ts';
 import type { PoiDto, PoiCategory, PoiStatus } from '../api/poi.ts';
+import { Icon } from '../components/Icon';
+import { AdminPage, PageHeader, Card, Alert, Badge, StatusBadge, Field, EmptyState, LoadingState, Pagination, ConfirmDialog } from '../components/admin/AdminUI';
 
 export const InternalPoisPage: React.FC = () => {
   const navigate = useNavigate();
@@ -150,287 +152,107 @@ export const InternalPoisPage: React.FC = () => {
   };
 
   if (isVerifying) {
-    return (
-      <div className="container" style={{ padding: '60px 16px', textAlign: 'center' }}>
-        <p>Đang kiểm tra quyền hạn tài khoản nội bộ...</p>
-      </div>
-    );
+    return <AdminPage><LoadingState label="Đang kiểm tra quyền hạn tài khoản nội bộ..." /></AdminPage>;
   }
 
   const totalPages = Math.ceil(total / limit) || 1;
+  const categoryLabels: Record<string, string> = { ANIMAL: 'Động vật', PLANT: 'Thực vật', HERITAGE: 'Di tích', AMENITY: 'Tiện ích' };
 
   return (
-    <div className="container" style={{ padding: '32px 16px', maxWidth: '1100px' }}>
-      <div className="page-header" style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <h1 className="page-title" style={{ margin: 0 }}>Quản lý điểm tham quan (POI)</h1>
-            <p className="page-subtitle" style={{ margin: '6px 0 0 0' }}>
-              Danh sách các điểm tham quan, quản lý phiên bản nội dung tiếng Việt và tác vụ đa ngôn ngữ
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Link to="/internal/pois/new" className="btn-primary" style={{ backgroundColor: '#059669' }}>
-              + Thêm điểm tham quan mới
-            </Link>
-            <Link to="/internal/jobs" className="btn-secondary">
-              Xem tác vụ nội dung
-            </Link>
-            <Link to="/internal/account" className="btn-secondary">
-              Tài khoản
-            </Link>
-          </div>
-        </div>
-      </div>
+    <AdminPage>
+      <PageHeader eyebrow="Nội dung thuyết minh" title="Quản lý điểm tham quan (POI)"
+        description="Danh sách các điểm tham quan, quản lý phiên bản nội dung tiếng Việt và tác vụ đa ngôn ngữ."
+        actions={<>
+          <Link to="/internal/jobs" className="adm-btn adm-btn--secondary"><Icon name="headphones" />Xem tác vụ nội dung</Link>
+          <Link to="/internal/pois/new" className="adm-btn adm-btn--primary"><Icon name="plus" />Thêm điểm tham quan mới</Link>
+        </>} />
 
-      {actionNotice && (
-        <div className="panel" style={{ marginBottom: '20px', borderLeft: '4px solid #10b981', backgroundColor: '#f0fdf4', padding: '12px 16px' }}>
-          <div style={{ color: '#166534', fontWeight: 600 }}>{actionNotice}</div>
-        </div>
-      )}
+      {actionNotice && <Alert tone="success" onDismiss={() => setActionNotice(null)}>{actionNotice}</Alert>}
+      {errorMessage && <Alert tone="danger" onDismiss={() => setErrorMessage(null)}>{errorMessage}</Alert>}
 
-      {errorMessage && (
-        <div className="panel" style={{ marginBottom: '20px', borderLeft: '4px solid #dc2626', backgroundColor: '#fef2f2', padding: '12px 16px' }}>
-          <div style={{ color: '#991b1b', fontWeight: 600 }}>{errorMessage}</div>
-        </div>
-      )}
-
-      {/* Bo loc du lieu */}
-      <div className="panel" style={{ marginBottom: '20px', padding: '16px 20px', backgroundColor: '#f8fafc' }}>
-        <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <label htmlFor="filter-category" style={{ fontSize: '0.88rem', fontWeight: 600 }}>
-              Phân loại:
-            </label>
-            <select
-              id="filter-category"
-              value={selectedCategory}
-              onChange={(e) => {
-                setSelectedCategory(e.target.value as PoiCategory | '');
-                setPage(1);
-              }}
-              style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.88rem' }}
-            >
+      <Card flush>
+        <div className="adm-toolbar">
+          <Field label="Phân loại" htmlFor="filter-category">
+            <select id="filter-category" value={selectedCategory} onChange={(e) => { setSelectedCategory(e.target.value as PoiCategory | ''); setPage(1); }}>
               <option value="">Tất cả phân loại</option>
               <option value="ANIMAL">Động vật (ANIMAL)</option>
               <option value="PLANT">Thực vật (PLANT)</option>
               <option value="HERITAGE">Di tích lịch sử (HERITAGE)</option>
               <option value="AMENITY">Tiện ích (AMENITY)</option>
             </select>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <label htmlFor="filter-status" style={{ fontSize: '0.88rem', fontWeight: 600 }}>
-              Trạng thái:
-            </label>
-            <select
-              id="filter-status"
-              value={selectedStatus}
-              onChange={(e) => {
-                setSelectedStatus(e.target.value as PoiStatus | '');
-                setPage(1);
-              }}
-              style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.88rem' }}
-            >
+          </Field>
+          <Field label="Trạng thái" htmlFor="filter-status">
+            <select id="filter-status" value={selectedStatus} onChange={(e) => { setSelectedStatus(e.target.value as PoiStatus | ''); setPage(1); }}>
               <option value="">Tất cả trạng thái</option>
               <option value="ACTIVE">Hoạt động (ACTIVE)</option>
               <option value="INACTIVE">Ngừng hoạt động (INACTIVE)</option>
             </select>
-          </div>
-
-          <button
-            type="button"
-            onClick={fetchPoiList}
-            disabled={isLoading}
-            className="btn-secondary"
-            style={{ padding: '6px 12px', fontSize: '0.88rem' }}
-          >
-            {isLoading ? 'Đang làm mới...' : 'Làm mới'}
-          </button>
+          </Field>
+          {(selectedCategory || selectedStatus) && <button type="button" className="adm-btn adm-btn--ghost" onClick={() => { setSelectedCategory(''); setSelectedStatus(''); setPage(1); }}>Xóa bộ lọc</button>}
+          <span className="adm-toolbar__spacer" />
+          <button type="button" onClick={fetchPoiList} disabled={isLoading} className="adm-btn adm-btn--secondary"><Icon name="refresh" />{isLoading ? 'Đang làm mới...' : 'Làm mới'}</button>
         </div>
-      </div>
 
-      {/* Bang danh sach POI */}
-      <div className="panel" style={{ padding: '0', overflowX: 'auto' }}>
-        <table className="status-detail-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #cbd5e1' }}>
-              <th style={{ padding: '10px 14px', textAlign: 'left', width: '60px' }}>ID</th>
-              <th style={{ padding: '10px 14px', textAlign: 'left' }}>Tên điểm tham quan</th>
-              <th style={{ padding: '10px 14px', textAlign: 'left', width: '130px' }}>Phân loại</th>
-              <th style={{ padding: '10px 14px', textAlign: 'center', width: '110px' }}>Trạng thái</th>
-              <th style={{ padding: '10px 14px', textAlign: 'center', width: '90px' }}>Phiên bản</th>
-              <th style={{ padding: '10px 14px', textAlign: 'center', width: '80px' }}>Thứ tự</th>
-              <th style={{ padding: '10px 14px', textAlign: 'right', width: '250px' }}>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
+        <div className="adm-table-wrap">
+          <table className="adm-table">
+            <caption className="sr-only">Danh sách điểm tham quan</caption>
+            <thead>
               <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
-                  Đang tải danh sách điểm tham quan...
-                </td>
+                <th style={{ width: 70 }}>ID</th>
+                <th>Tên điểm tham quan</th>
+                <th>Phân loại</th>
+                <th className="adm-center">Trạng thái</th>
+                <th className="adm-center">Phiên bản</th>
+                <th className="adm-center">Thứ tự</th>
+                <th className="adm-actions-cell">Thao tác</th>
               </tr>
-            ) : pois.length === 0 ? (
-              <tr>
-                <td colSpan={7} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
-                  Không tìm thấy điểm tham quan nào phù hợp với bộ lọc hiện tại.
-                </td>
-              </tr>
-            ) : (
-              pois.map((poi) => (
-                <tr key={poi.poiId} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                  <td style={{ padding: '10px 14px', fontFamily: 'monospace' }}>#{poi.poiId}</td>
-                  <td style={{ padding: '10px 14px' }}>
-                    <div style={{ fontWeight: 600, color: '#1e293b' }}>{poi.name}</div>
-                    {poi.conservationStatus && (
-                      <div style={{ fontSize: '0.78rem', color: '#64748b' }}>
-                        Bảo tồn: {poi.conservationStatus}
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr className="adm-state-row"><td colSpan={7}><LoadingState label="Đang tải danh sách điểm tham quan..." /></td></tr>
+              ) : pois.length === 0 ? (
+                <tr className="adm-state-row"><td colSpan={7}><EmptyState icon="pin" title="Không tìm thấy điểm tham quan nào phù hợp với bộ lọc hiện tại."
+                  action={<Link to="/internal/pois/new" className="adm-btn adm-btn--secondary adm-btn--sm"><Icon name="plus" />Thêm điểm tham quan</Link>} /></td></tr>
+              ) : (
+                pois.map((poi) => (
+                  <tr key={poi.poiId}>
+                    <td className="adm-mono adm-muted">#{poi.poiId}</td>
+                    <td>
+                      <Link to={`/internal/pois/${poi.poiId}`} className="adm-cell-title" style={{ textDecoration: 'none', color: 'inherit' }}>{poi.name}</Link>
+                      {poi.conservationStatus && <small>Bảo tồn: {poi.conservationStatus}</small>}
+                    </td>
+                    <td><Badge tone="brand">{categoryLabels[poi.category] ?? poi.category}</Badge></td>
+                    <td className="adm-center"><StatusBadge status={poi.status} /></td>
+                    <td className="adm-center adm-mono">v{poi.contentVersion}</td>
+                    <td className="adm-center adm-mono">{poi.displayOrder}</td>
+                    <td className="adm-actions-cell">
+                      <div className="adm-row-actions">
+                        <Link to={`/internal/pois/${poi.poiId}`} className="adm-btn adm-btn--ghost adm-btn--sm">Chi tiết</Link>
+                        <Link to={`/internal/pois/${poi.poiId}/edit`} className="adm-btn adm-btn--secondary adm-btn--sm"><Icon name="edit" />Sửa</Link>
+                        <Link to={`/internal/jobs?poiId=${poi.poiId}`} className="adm-btn adm-btn--ghost adm-btn--sm">Tác vụ</Link>
+                        {poi.status === 'ACTIVE' && <button type="button" onClick={() => setDeactivatingPoi(poi)} className="adm-btn adm-btn--danger-soft adm-btn--sm">Ngừng</button>}
                       </div>
-                    )}
-                  </td>
-                  <td style={{ padding: '10px 14px' }}>
-                    <span style={{ fontSize: '0.82rem', padding: '2px 6px', borderRadius: '4px', backgroundColor: '#e2e8f0', color: '#334155' }}>
-                      {poi.category}
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '2px 8px',
-                        borderRadius: '9999px',
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                        backgroundColor: poi.status === 'ACTIVE' ? '#dcfce7' : '#fee2e2',
-                        color: poi.status === 'ACTIVE' ? '#166534' : '#991b1b'
-                      }}
-                    >
-                      {poi.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 14px', textAlign: 'center', fontFamily: 'monospace' }}>
-                    v{poi.contentVersion}
-                  </td>
-                  <td style={{ padding: '10px 14px', textAlign: 'center', fontFamily: 'monospace' }}>
-                    {poi.displayOrder}
-                  </td>
-                  <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                    <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                      <Link
-                        to={`/internal/pois/${poi.poiId}`}
-                        style={{ padding: '4px 8px', fontSize: '0.82rem', textDecoration: 'none', backgroundColor: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '4px', color: '#334155' }}
-                      >
-                        Chi tiết
-                      </Link>
-                      <Link
-                        to={`/internal/pois/${poi.poiId}/edit`}
-                        style={{ padding: '4px 8px', fontSize: '0.82rem', textDecoration: 'none', backgroundColor: '#e0f2fe', border: '1px solid #bae6fd', borderRadius: '4px', color: '#0369a1' }}
-                      >
-                        Sửa
-                      </Link>
-                      <Link
-                        to={`/internal/jobs?poiId=${poi.poiId}`}
-                        style={{ padding: '4px 8px', fontSize: '0.82rem', textDecoration: 'none', backgroundColor: '#fef3c7', border: '1px solid #fde68a', borderRadius: '4px', color: '#92400e' }}
-                      >
-                        Tác vụ
-                      </Link>
-                      {poi.status === 'ACTIVE' && (
-                        <button
-                          type="button"
-                          onClick={() => setDeactivatingPoi(poi)}
-                          style={{ padding: '4px 8px', fontSize: '0.82rem', cursor: 'pointer', backgroundColor: '#fee2e2', border: '1px solid #fecaca', borderRadius: '4px', color: '#b91c1c' }}
-                        >
-                          Ngừng
-                        </button>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Phan trang */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', flexWrap: 'wrap', gap: '10px' }}>
-        <div style={{ fontSize: '0.88rem', color: '#64748b' }}>
-          Tổng cộng: <strong>{total}</strong> điểm tham quan • Trang <strong>{page}</strong> / <strong>{totalPages}</strong>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1 || isLoading}
-            className="btn-secondary"
-            style={{ padding: '6px 12px', fontSize: '0.85rem' }}
-          >
-            ← Trang trước
-          </button>
-          <button
-            type="button"
-            onClick={() => setPage((p) => (p < totalPages ? p + 1 : p))}
-            disabled={page >= totalPages || isLoading}
-            className="btn-secondary"
-            style={{ padding: '6px 12px', fontSize: '0.85rem' }}
-          >
-            Trang sau →
-          </button>
-        </div>
-      </div>
+        <Pagination page={page} totalPages={totalPages} disabled={isLoading}
+          summary={<>Tổng cộng: <strong>{total}</strong> điểm tham quan</>}
+          onChange={next => setPage(Math.min(Math.max(1, next), totalPages))} />
+      </Card>
 
-      {/* Modal xac nhan ngung su dung POI */}
-      {deactivatingPoi && (
-        <div
-          style={{
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            zIndex: 1000,
-            padding: '16px'
-          }}
-        >
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '8px', maxWidth: '500px', width: '100%', padding: '24px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)' }}>
-            <h3 style={{ margin: '0 0 12px 0', color: '#991b1b', fontSize: '1.2rem' }}>
-              Xác nhận ngừng sử dụng điểm tham quan
-            </h3>
-            <p style={{ margin: '0 0 16px 0', fontSize: '0.92rem', lineHeight: '1.5', color: '#334155' }}>
-              Bạn có chắc chắn muốn chuyển điểm tham quan <strong>#{deactivatingPoi.poiId} - {deactivatingPoi.name}</strong> sang trạng thái <strong>INACTIVE</strong>?
-            </p>
-            <div style={{ backgroundColor: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '6px', padding: '12px', marginBottom: '20px', fontSize: '0.85rem', color: '#92400e' }}>
-              * Lưu ý: Thao tác này chỉ chuyển trạng thái điểm tham quan sang INACTIVE để không hiển thị trong các gói dữ liệu mới của khách; không xóa vĩnh viễn dữ liệu trong hệ thống.
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button
-                type="button"
-                onClick={() => setDeactivatingPoi(null)}
-                disabled={isDeactivating}
-                className="btn-secondary"
-              >
-                Hủy bỏ
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmDeactivate}
-                disabled={isDeactivating}
-                className="btn-primary"
-                style={{ backgroundColor: '#dc2626', borderColor: '#b91c1c' }}
-              >
-                {isDeactivating ? 'Đang xử lý...' : 'Xác nhận ngừng sử dụng'}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+      <ConfirmDialog open={!!deactivatingPoi} tone="danger" title="Xác nhận ngừng sử dụng điểm tham quan"
+        confirmLabel="Xác nhận ngừng sử dụng" busy={isDeactivating} busyLabel="Đang xử lý..."
+        onCancel={() => setDeactivatingPoi(null)} onConfirm={handleConfirmDeactivate}>
+        {deactivatingPoi && <>
+          <p>Bạn có chắc chắn muốn chuyển điểm tham quan <strong>#{deactivatingPoi.poiId} - {deactivatingPoi.name}</strong> sang trạng thái <strong>INACTIVE</strong>?</p>
+          <Alert tone="warning">Thao tác này chỉ chuyển trạng thái điểm tham quan sang INACTIVE để không hiển thị trong các gói dữ liệu mới của khách; không xóa vĩnh viễn dữ liệu trong hệ thống.</Alert>
+        </>}
+      </ConfirmDialog>
+    </AdminPage>
   );
 };

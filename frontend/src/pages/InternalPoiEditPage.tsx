@@ -6,6 +6,7 @@ import { clearInternalSession } from '../api/authStorage.ts';
 import type { InternalUser } from '../api/authStorage.ts';
 import { getPoiDetail, createPoi, updatePoi } from '../api/poi.ts';
 import type { PoiDto, PoiCategory, PoiStatus, PoiSaveInput } from '../api/poi.ts';
+import { AdminPage, PageHeader, Card, Alert, Badge, DescriptionList, Field, LoadingState } from '../components/admin/AdminUI';
 
 export const InternalPoiEditPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -327,397 +328,119 @@ export const InternalPoiEditPage: React.FC = () => {
   };
 
   if (isVerifying || isLoadingPoi) {
-    return (
-      <div className="container" style={{ padding: '60px 16px', textAlign: 'center' }}>
-        <p>Đang tải dữ liệu biểu mẫu...</p>
-      </div>
-    );
+    return <AdminPage><LoadingState label="Đang tải dữ liệu biểu mẫu..." /></AdminPage>;
   }
 
+  // Every field marks the draft dirty so the unload guard keeps unsaved input.
+  const bind = (setter: (value: string) => void) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => { setter(e.target.value); setIsDirty(true); };
+  const counter = (value: string) => <span style={{ color: value.length > 5500 ? 'var(--adm-danger)' : undefined }}>{value.length} / 6000 ký tự</span>;
+
   return (
-    <div className="container" style={{ padding: '32px 16px', maxWidth: '860px' }}>
-      <div style={{ marginBottom: '16px' }}>
-        <Link to={isCreate ? '/internal/pois' : `/internal/pois/${id}`} style={{ fontSize: '0.88rem', textDecoration: 'none', color: '#0369a1' }}>
-          ← {isCreate ? 'Quay lại danh sách điểm tham quan' : 'Quay lại chi tiết điểm'}
-        </Link>
-      </div>
+    <AdminPage width="narrow">
+      <Link to={isCreate ? '/internal/pois' : `/internal/pois/${id}`} className="adm-link">
+        ← {isCreate ? 'Quay lại danh sách điểm tham quan' : 'Quay lại chi tiết điểm'}
+      </Link>
+      <PageHeader eyebrow="Nội dung thuyết minh"
+        title={isCreate ? 'Thêm điểm tham quan mới' : `Chỉnh sửa điểm tham quan #${id} (v${serverPoi?.contentVersion})`}
+        description={isCreate
+          ? 'Khởi tạo điểm tham quan mới. Hệ thống đề xuất trạng thái INACTIVE để chuẩn bị nội dung trước khi công bố.'
+          : 'Chỉnh sửa nguồn tiếng Việt và thông số kỹ thuật. Thay đổi nội dung nguồn sẽ tự động tạo tác vụ dịch và âm thanh.'}
+        actions={isDirty ? <Badge tone="warning" dot>Có thay đổi chưa lưu</Badge> : undefined} />
 
-      <div className="page-header" style={{ marginBottom: '24px' }}>
-        <h1 className="page-title" style={{ margin: 0 }}>
-          {isCreate ? 'Thêm điểm tham quan mới' : `Chỉnh sửa điểm tham quan #${id} (v${serverPoi?.contentVersion})`}
-        </h1>
-        <p className="page-subtitle" style={{ margin: '6px 0 0 0' }}>
-          {isCreate
-            ? 'Khởi tạo điểm tham quan mới. Hệ thống đề xuất trạng thái INACTIVE để chuẩn bị nội dung trước khi công bố.'
-            : 'Chỉnh sửa nguồn tiếng Việt và thông số kỹ thuật. Thay đổi nội dung nguồn sẽ tự động tạo tác vụ dịch và âm thanh.'}
-        </p>
-      </div>
-
-      {successMessage && (
-        <div className="panel" style={{ marginBottom: '20px', borderLeft: '4px solid #10b981', backgroundColor: '#f0fdf4', padding: '14px 16px' }}>
-          <div style={{ color: '#166534', fontWeight: 600 }}>{successMessage}</div>
-        </div>
-      )}
-
-      {formError && (
-        <div className="panel" style={{ marginBottom: '20px', borderLeft: '4px solid #dc2626', backgroundColor: '#fef2f2', padding: '14px 16px' }}>
-          <div style={{ color: '#991b1b', fontWeight: 600 }}>{formError}</div>
-        </div>
-      )}
+      {successMessage && <Alert tone="success">{successMessage}</Alert>}
+      {formError && <Alert tone="danger">{formError}</Alert>}
 
       {/* KHỐI XỬ LÝ XUNG ĐỘT PHIÊN BẢN (409 POI_VERSION_CONFLICT) */}
       {conflictData && (
-        <div className="panel" style={{ marginBottom: '24px', border: '2px solid #f59e0b', backgroundColor: '#fffbeb', padding: '20px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
-            <span style={{ fontSize: '1.4rem' }}>⚠️</span>
-            <h3 style={{ margin: 0, color: '#92400e', fontSize: '1.1rem' }}>
-              Xung đột phiên bản nội dung
-            </h3>
-          </div>
-
-          <p style={{ margin: '0 0 14px 0', fontSize: '0.9rem', color: '#78350f', lineHeight: '1.5' }}>
-            Phiên bản bạn đang chỉnh sửa dựa trên <strong>v{conflictData.expectedVersion}</strong>, nhưng máy chủ hiện đã là <strong>v{conflictData.serverVersion}</strong>. Toàn bộ nội dung bạn vừa nhập vẫn đang được giữ nguyên trong biểu mẫu bên dưới.
-          </p>
-
-          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginBottom: '16px' }}>
-            <button
-              type="button"
-              onClick={handleCopyDraft}
-              className="btn-secondary"
-              style={{ fontSize: '0.85rem' }}
-            >
-              {copiedDraftNotice ? 'Đã chép bản nháp!' : 'Sao chép bản nháp ra bộ nhớ tạm'}
-            </button>
-
-            {conflictData.serverPoiLatest && (
-              <button
-                type="button"
-                onClick={handleAdoptLatestVersion}
-                className="btn-primary"
-                style={{ backgroundColor: '#d97706', fontSize: '0.85rem' }}
-              >
-                Áp dụng bản nháp lên phiên bản mới (v{conflictData.serverVersion})
-              </button>
-            )}
-          </div>
-
-          {/* Bang so sanh don gian giua may chu va ban nhap */}
+        <Card className="adm-conflict" title="Xung đột phiên bản nội dung"
+          description={<>Phiên bản bạn đang chỉnh sửa dựa trên <strong>v{conflictData.expectedVersion}</strong>, nhưng máy chủ hiện đã là <strong>v{conflictData.serverVersion}</strong>. Toàn bộ nội dung bạn vừa nhập vẫn đang được giữ nguyên trong biểu mẫu bên dưới.</>}
+          actions={<>
+            <button type="button" onClick={handleCopyDraft} className="adm-btn adm-btn--secondary adm-btn--sm">{copiedDraftNotice ? 'Đã chép bản nháp!' : 'Sao chép bản nháp ra bộ nhớ tạm'}</button>
+            {conflictData.serverPoiLatest && <button type="button" onClick={handleAdoptLatestVersion} className="adm-btn adm-btn--primary adm-btn--sm">Áp dụng bản nháp lên phiên bản mới (v{conflictData.serverVersion})</button>}
+          </>}>
           {conflictData.serverPoiLatest && (
-            <div style={{ backgroundColor: '#ffffff', border: '1px solid #fcd34d', borderRadius: '6px', padding: '14px' }}>
-              <h4 style={{ margin: '0 0 10px 0', fontSize: '0.92rem', color: '#92400e' }}>
-                Đối chiếu nội dung trên máy chủ (v{conflictData.serverPoiLatest.contentVersion}):
-              </h4>
-              <div style={{ fontSize: '0.85rem', marginBottom: '8px' }}>
-                <strong>Tên hiện tại trên máy chủ:</strong> {conflictData.serverPoiLatest.name}
-              </div>
-              <div style={{ fontSize: '0.85rem', marginBottom: '8px' }}>
-                <strong>Mô tả hiện tại:</strong> {conflictData.serverPoiLatest.description.slice(0, 150)}...
-              </div>
-              <div style={{ fontSize: '0.85rem' }}>
-                <strong>Kịch bản đọc hiện tại:</strong> {conflictData.serverPoiLatest.audioScript.slice(0, 150)}...
-              </div>
+            <div style={{ background: 'var(--adm-warning-bg)', border: '1px solid var(--adm-warning-border)', borderRadius: 'var(--adm-r-md)', padding: 14 }}>
+              <p className="adm-label" style={{ margin: '0 0 8px' }}>Đối chiếu nội dung trên máy chủ (v{conflictData.serverPoiLatest.contentVersion}):</p>
+              <DescriptionList columns={1} items={[
+                { label: 'Tên hiện tại trên máy chủ', value: conflictData.serverPoiLatest.name },
+                { label: 'Mô tả hiện tại', value: `${conflictData.serverPoiLatest.description.slice(0, 150)}...` },
+                { label: 'Kịch bản đọc hiện tại', value: `${conflictData.serverPoiLatest.audioScript.slice(0, 150)}...` },
+              ]} />
             </div>
           )}
-        </div>
+        </Card>
       )}
 
       {/* FORM NHAP LIEU */}
-      <form onSubmit={handleSubmit}>
-        <div className="panel" style={{ marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '1.1rem', margin: '0 0 16px 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-            Thông tin cơ bản
-          </h2>
-
-          <div style={{ marginBottom: '16px' }}>
-            <label htmlFor="poi-name" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-              Tên điểm tham quan *
-            </label>
-            <input
-              id="poi-name"
-              type="text"
-              value={name}
-              onChange={(e) => {
-                setName(e.target.value);
-                setIsDirty(true);
-              }}
-              placeholder="Ví dụ: Hươu cao cổ, Voi châu Á, Đền vua Hùng..."
-              maxLength={255}
-              required
-              style={{ width: '100%', padding: '8px 12px', border: `1px solid ${fieldErrors.name ? '#dc2626' : '#cbd5e1'}`, borderRadius: '4px', fontSize: '0.92rem' }}
-            />
-            {fieldErrors.name && <div style={{ color: '#dc2626', fontSize: '0.78rem', marginTop: '4px' }}>{fieldErrors.name}</div>}
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-            <div>
-              <label htmlFor="poi-category" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                Phân loại (Category) *
-              </label>
-              <select
-                id="poi-category"
-                value={category}
-                onChange={(e) => {
-                  setCategory(e.target.value as PoiCategory);
-                  setIsDirty(true);
-                }}
-                style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.92rem' }}
-              >
+      <form onSubmit={handleSubmit} className="adm-stack" style={{ gap: 20 }} noValidate>
+        <Card title="Thông tin cơ bản">
+          <div className="adm-form-grid">
+            <Field label="Tên điểm tham quan" htmlFor="poi-name" required error={fieldErrors.name} className="adm-field--full">
+              <input id="poi-name" type="text" value={name} onChange={bind(setName)} placeholder="Ví dụ: Hươu cao cổ, Voi châu Á, Đền vua Hùng..." maxLength={255} required aria-invalid={!!fieldErrors.name} />
+            </Field>
+            <Field label="Phân loại (Category)" htmlFor="poi-category" required>
+              <select id="poi-category" value={category} onChange={(e) => { setCategory(e.target.value as PoiCategory); setIsDirty(true); }}>
                 <option value="ANIMAL">Động vật (ANIMAL)</option>
                 <option value="PLANT">Thực vật (PLANT)</option>
                 <option value="HERITAGE">Di tích lịch sử (HERITAGE)</option>
                 <option value="AMENITY">Tiện ích (AMENITY)</option>
               </select>
-            </div>
-
-            <div>
-              <label htmlFor="poi-status" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                Trạng thái hiển thị *
-              </label>
-              <select
-                id="poi-status"
-                value={status}
-                onChange={(e) => {
-                  setStatus(e.target.value as PoiStatus);
-                  setIsDirty(true);
-                }}
-                style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.92rem' }}
-              >
+            </Field>
+            <Field label="Trạng thái hiển thị" htmlFor="poi-status" required hint="INACTIVE được đề xuất khi đang chuẩn bị nội dung.">
+              <select id="poi-status" value={status} onChange={(e) => { setStatus(e.target.value as PoiStatus); setIsDirty(true); }}>
                 <option value="INACTIVE">Ngừng hoạt động (INACTIVE) - Đề xuất khi chuẩn bị nội dung</option>
                 <option value="ACTIVE">Hoạt động (ACTIVE) - Xuất hiện trong gói tham quan</option>
               </select>
-            </div>
+            </Field>
+            <Field label="Tình trạng bảo tồn" htmlFor="poi-conservation" hint="Tùy chọn">
+              <input id="poi-conservation" type="text" value={conservationStatus} onChange={bind(setConservationStatus)} placeholder="Ví dụ: Ít quan tâm, Nguy cấp..." maxLength={100} />
+            </Field>
+            <Field label="Khung giờ hoạt động" htmlFor="poi-hours" hint="Tùy chọn">
+              <input id="poi-hours" type="text" value={activityHours} onChange={bind(setActivityHours)} placeholder="Ví dụ: 07:00 - 17:30" maxLength={100} />
+            </Field>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '16px' }}>
-            <div>
-              <label htmlFor="poi-conservation" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                Tình trạng bảo tồn (Tùy chọn)
-              </label>
-              <input
-                id="poi-conservation"
-                type="text"
-                value={conservationStatus}
-                onChange={(e) => {
-                  setConservationStatus(e.target.value);
-                  setIsDirty(true);
-                }}
-                placeholder="Ví dụ: Ít quan tâm, Nguy cấp..."
-                maxLength={100}
-                style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.92rem' }}
-              />
-            </div>
-
-            <div>
-              <label htmlFor="poi-hours" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                Khung giờ hoạt động (Tùy chọn)
-              </label>
-              <input
-                id="poi-hours"
-                type="text"
-                value={activityHours}
-                onChange={(e) => {
-                  setActivityHours(e.target.value);
-                  setIsDirty(true);
-                }}
-                placeholder="Ví dụ: 07:00 - 17:30"
-                maxLength={100}
-                style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.92rem' }}
-              />
-            </div>
-          </div>
-        </div>
+        </Card>
 
         {/* THONG SO TOA DO VA KHONG GIAN */}
-        <div className="panel" style={{ marginBottom: '20px' }}>
-          <h2 style={{ fontSize: '1.1rem', margin: '0 0 16px 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-            Tọa độ và bán kính kích hoạt GPS
-          </h2>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '16px' }}>
-            <div>
-              <label htmlFor="poi-lat" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                Vĩ độ (Latitude) *
-              </label>
-              <input
-                id="poi-lat"
-                type="number"
-                step="any"
-                value={latitude}
-                onChange={(e) => {
-                  setLatitude(e.target.value);
-                  setIsDirty(true);
-                }}
-                placeholder="Ví dụ: 10.7915"
-                required
-                style={{ width: '100%', padding: '8px 12px', border: `1px solid ${fieldErrors.latitude ? '#dc2626' : '#cbd5e1'}`, borderRadius: '4px', fontSize: '0.92rem', fontFamily: 'monospace' }}
-              />
-              {fieldErrors.latitude && <div style={{ color: '#dc2626', fontSize: '0.78rem', marginTop: '4px' }}>{fieldErrors.latitude}</div>}
-            </div>
-
-            <div>
-              <label htmlFor="poi-lng" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                Kinh độ (Longitude) *
-              </label>
-              <input
-                id="poi-lng"
-                type="number"
-                step="any"
-                value={longitude}
-                onChange={(e) => {
-                  setLongitude(e.target.value);
-                  setIsDirty(true);
-                }}
-                placeholder="Ví dụ: 106.7052"
-                required
-                style={{ width: '100%', padding: '8px 12px', border: `1px solid ${fieldErrors.longitude ? '#dc2626' : '#cbd5e1'}`, borderRadius: '4px', fontSize: '0.92rem', fontFamily: 'monospace' }}
-              />
-              {fieldErrors.longitude && <div style={{ color: '#dc2626', fontSize: '0.78rem', marginTop: '4px' }}>{fieldErrors.longitude}</div>}
-            </div>
-
-            <div>
-              <label htmlFor="poi-radius" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                Bán kính kích hoạt (mét) *
-              </label>
-              <input
-                id="poi-radius"
-                type="number"
-                min="1"
-                step="1"
-                value={triggerRadius}
-                onChange={(e) => {
-                  setTriggerRadius(e.target.value);
-                  setIsDirty(true);
-                }}
-                placeholder="Mặc định: 30"
-                required
-                style={{ width: '100%', padding: '8px 12px', border: `1px solid ${fieldErrors.triggerRadius ? '#dc2626' : '#cbd5e1'}`, borderRadius: '4px', fontSize: '0.92rem', fontFamily: 'monospace' }}
-              />
-              {fieldErrors.triggerRadius && <div style={{ color: '#dc2626', fontSize: '0.78rem', marginTop: '4px' }}>{fieldErrors.triggerRadius}</div>}
-            </div>
-
-            <div>
-              <label htmlFor="poi-order" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-                Thứ tự hiển thị
-              </label>
-              <input
-                id="poi-order"
-                type="number"
-                min="0"
-                step="1"
-                value={displayOrder}
-                onChange={(e) => {
-                  setDisplayOrder(e.target.value);
-                  setIsDirty(true);
-                }}
-                placeholder="Mặc định: 0"
-                style={{ width: '100%', padding: '8px 12px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.92rem', fontFamily: 'monospace' }}
-              />
-            </div>
+        <Card title="Tọa độ và bán kính kích hoạt GPS" description="Bán kính mặc định 30 m; ngưỡng đặt lại lượt tiếp cận là 1,5 lần bán kính.">
+          <div className="adm-form-grid">
+            <Field label="Vĩ độ (Latitude)" htmlFor="poi-lat" required error={fieldErrors.latitude}>
+              <input id="poi-lat" type="number" step="any" value={latitude} onChange={bind(setLatitude)} placeholder="Ví dụ: 10.7915" required className="adm-mono" aria-invalid={!!fieldErrors.latitude} />
+            </Field>
+            <Field label="Kinh độ (Longitude)" htmlFor="poi-lng" required error={fieldErrors.longitude}>
+              <input id="poi-lng" type="number" step="any" value={longitude} onChange={bind(setLongitude)} placeholder="Ví dụ: 106.7052" required className="adm-mono" aria-invalid={!!fieldErrors.longitude} />
+            </Field>
+            <Field label="Bán kính kích hoạt (mét)" htmlFor="poi-radius" required error={fieldErrors.triggerRadius}>
+              <input id="poi-radius" type="number" min="1" step="1" value={triggerRadius} onChange={bind(setTriggerRadius)} placeholder="Mặc định: 30" required className="adm-mono" aria-invalid={!!fieldErrors.triggerRadius} />
+            </Field>
+            <Field label="Thứ tự hiển thị" htmlFor="poi-order">
+              <input id="poi-order" type="number" min="0" step="1" value={displayOrder} onChange={bind(setDisplayOrder)} placeholder="Mặc định: 0" className="adm-mono" />
+            </Field>
+            <Field label="Đường dẫn ảnh đại diện" htmlFor="poi-avatar" error={fieldErrors.avatarUrl} className="adm-field--full"
+              hint="Tùy chọn. Hệ thống nhận đường dẫn URL hoặc đường dẫn nội bộ máy chủ; chưa hỗ trợ tải tệp ảnh trực tiếp từ máy khách.">
+              <input id="poi-avatar" type="text" value={avatarUrl} onChange={bind(setAvatarUrl)} placeholder="Ví dụ: /assets/images/tcv_huou_thao_em.jpg hoặc https://..." maxLength={500} aria-invalid={!!fieldErrors.avatarUrl} />
+            </Field>
           </div>
-
-          <div>
-            <label htmlFor="poi-avatar" style={{ display: 'block', fontWeight: 600, fontSize: '0.88rem', marginBottom: '6px' }}>
-              Đường dẫn ảnh đại diện (Tùy chọn)
-            </label>
-            <input
-              id="poi-avatar"
-              type="text"
-              value={avatarUrl}
-              onChange={(e) => {
-                setAvatarUrl(e.target.value);
-                setIsDirty(true);
-              }}
-              placeholder="Ví dụ: /assets/images/tcv_huou_thao_em.jpg hoặc https://..."
-              maxLength={500}
-              style={{ width: '100%', padding: '8px 12px', border: `1px solid ${fieldErrors.avatarUrl ? '#dc2626' : '#cbd5e1'}`, borderRadius: '4px', fontSize: '0.92rem' }}
-            />
-            {fieldErrors.avatarUrl && <div style={{ color: '#dc2626', fontSize: '0.78rem', marginTop: '4px' }}>{fieldErrors.avatarUrl}</div>}
-            <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
-              * Lưu ý: Hiện tại hệ thống nhận đường dẫn URL hoặc đường dẫn nội bộ máy chủ; chưa hỗ trợ tải tệp ảnh trực tiếp từ máy khách.
-            </div>
-          </div>
-        </div>
+        </Card>
 
         {/* NGUON TIENG VIET: MO TA VA KICH BAN */}
-        <div className="panel" style={{ marginBottom: '24px' }}>
-          <h2 style={{ fontSize: '1.1rem', margin: '0 0 16px 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-            Nội dung nguồn tiếng Việt
-          </h2>
-
-          <div style={{ marginBottom: '16px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <label htmlFor="poi-description" style={{ fontWeight: 600, fontSize: '0.88rem' }}>
-                Nội dung mô tả tiếng Việt *
-              </label>
-              <span style={{ fontSize: '0.78rem', color: description.length > 5500 ? '#b91c1c' : '#64748b' }}>
-                {description.length} / 6000 ký tự
-              </span>
-            </div>
-            <textarea
-              id="poi-description"
-              rows={6}
-              value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-                setIsDirty(true);
-              }}
-              placeholder="Nhập nội dung giới thiệu chi tiết về điểm tham quan bằng tiếng Việt..."
-              maxLength={6000}
-              required
-              style={{ width: '100%', padding: '10px 12px', border: `1px solid ${fieldErrors.description ? '#dc2626' : '#cbd5e1'}`, borderRadius: '4px', fontSize: '0.92rem', lineHeight: '1.5' }}
-            />
-            {fieldErrors.description && <div style={{ color: '#dc2626', fontSize: '0.78rem', marginTop: '4px' }}>{fieldErrors.description}</div>}
+        <Card title="Nội dung nguồn tiếng Việt" description="Thay đổi Tên, Mô tả hoặc Kịch bản đọc sẽ làm tăng phiên bản nguồn của POI và kích hoạt các tác vụ dịch/tạo âm thanh mới.">
+          <div className="adm-form">
+            <Field label="Nội dung mô tả tiếng Việt" htmlFor="poi-description" required error={fieldErrors.description} hint={counter(description)}>
+              <textarea id="poi-description" rows={6} value={description} onChange={bind(setDescription)} placeholder="Nhập nội dung giới thiệu chi tiết về điểm tham quan bằng tiếng Việt..." maxLength={6000} required aria-invalid={!!fieldErrors.description} />
+            </Field>
+            <Field label="Kịch bản đọc thuyết minh tiếng Việt" htmlFor="poi-audio" required error={fieldErrors.audioScript} hint={counter(audioScript)}>
+              <textarea id="poi-audio" rows={6} value={audioScript} onChange={bind(setAudioScript)} placeholder="Nhập lời đọc văn bản dùng cho hệ thống chuyển văn bản thành giọng nói (TTS)..." maxLength={6000} required aria-invalid={!!fieldErrors.audioScript} />
+            </Field>
           </div>
-
-          <div>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
-              <label htmlFor="poi-audio" style={{ fontWeight: 600, fontSize: '0.88rem' }}>
-                Kịch bản đọc thuyết minh tiếng Việt *
-              </label>
-              <span style={{ fontSize: '0.78rem', color: audioScript.length > 5500 ? '#b91c1c' : '#64748b' }}>
-                {audioScript.length} / 6000 ký tự
-              </span>
-            </div>
-            <textarea
-              id="poi-audio"
-              rows={6}
-              value={audioScript}
-              onChange={(e) => {
-                setAudioScript(e.target.value);
-                setIsDirty(true);
-              }}
-              placeholder="Nhập lời đọc văn bản dùng cho hệ thống chuyển văn bản thành giọng nói (TTS)..."
-              maxLength={6000}
-              required
-              style={{ width: '100%', padding: '10px 12px', border: `1px solid ${fieldErrors.audioScript ? '#dc2626' : '#cbd5e1'}`, borderRadius: '4px', fontSize: '0.92rem', lineHeight: '1.5' }}
-            />
-            {fieldErrors.audioScript && <div style={{ color: '#dc2626', fontSize: '0.78rem', marginTop: '4px' }}>{fieldErrors.audioScript}</div>}
-            <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
-              * Lưu ý: Thay đổi Tên, Mô tả hoặc Kịch bản đọc sẽ làm tăng phiên bản nguồn của POI và kích hoạt các tác vụ dịch/tạo âm thanh mới.
-            </div>
-          </div>
-        </div>
+        </Card>
 
         {/* HANH DONG SUBMIT */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', alignItems: 'center' }}>
-          <button
-            type="button"
-            onClick={() => navigate(isCreate ? '/internal/pois' : `/internal/pois/${id}`)}
-            disabled={isSubmitting}
-            className="btn-secondary"
-          >
-            Hủy bỏ
-          </button>
-          <button
-            type="submit"
-            disabled={isSubmitting}
-            className="btn-primary"
-            style={{ backgroundColor: '#059669', borderColor: '#047857' }}
-          >
-            {isSubmitting ? 'Đang lưu dữ liệu...' : isCreate ? 'Tạo điểm tham quan' : 'Lưu thay đổi'}
-          </button>
+        <div className="adm-form-actions" style={{ borderTop: 0, paddingTop: 0 }}>
+          <button type="button" onClick={() => navigate(isCreate ? '/internal/pois' : `/internal/pois/${id}`)} disabled={isSubmitting} className="adm-btn adm-btn--secondary">Hủy bỏ</button>
+          <button type="submit" disabled={isSubmitting} className="adm-btn adm-btn--primary">{isSubmitting ? 'Đang lưu dữ liệu...' : isCreate ? 'Tạo điểm tham quan' : 'Lưu thay đổi'}</button>
         </div>
       </form>
-    </div>
+    </AdminPage>
   );
 };

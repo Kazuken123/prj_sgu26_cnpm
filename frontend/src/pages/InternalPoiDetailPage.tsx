@@ -9,6 +9,8 @@ import type { PoiDto } from '../api/poi.ts';
 import { getContentJobs, retryContentJob } from '../api/contentJob.ts';
 import type { ContentJobDto } from '../api/contentJob.ts';
 import { ReviewedTranslationPanel } from '../components/ReviewedTranslationPanel';
+import { Icon } from '../components/Icon';
+import { AdminPage, PageHeader, Card, Alert, Badge, StatusBadge, DescriptionList, EmptyState, LoadingState, ConfirmDialog } from '../components/admin/AdminUI';
 
 export const InternalPoiDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -26,6 +28,7 @@ export const InternalPoiDetailPage: React.FC = () => {
 
   const [imgError, setImgError] = useState<boolean>(false);
   const [isDeactivating, setIsDeactivating] = useState<boolean>(false);
+  const [confirmDeactivate, setConfirmDeactivate] = useState<boolean>(false);
   const [retryingJobId, setRetryingJobId] = useState<number | null>(null);
 
   // Kiem tra quyen STAFF hoac ADMIN
@@ -107,12 +110,9 @@ export const InternalPoiDetailPage: React.FC = () => {
   }, [isVerifying, user, fetchPoiData]);
 
   // Ngung su dung POI
+  // The confirmation step is the ConfirmDialog below (replaces window.confirm).
   const handleDeactivate = async () => {
     if (!poi) return;
-    if (!window.confirm(`Xác nhận chuyển điểm tham quan #${poi.poiId} - ${poi.name} sang INACTIVE?`)) {
-      return;
-    }
-
     setIsDeactivating(true);
     setActionNotice(null);
     setErrorMessage(null);
@@ -125,9 +125,11 @@ export const InternalPoiDetailPage: React.FC = () => {
       );
       setPoi(updated);
       setIsDeactivating(false);
+      setConfirmDeactivate(false);
       setActionNotice('Điểm tham quan đã được chuyển sang trạng thái INACTIVE thành công.');
     } catch (err: unknown) {
       setIsDeactivating(false);
+      setConfirmDeactivate(false);
       if (err instanceof ApiError) {
         setErrorMessage(err.message);
       } else {
@@ -171,24 +173,16 @@ export const InternalPoiDetailPage: React.FC = () => {
   };
 
   if (isVerifying || isLoading) {
-    return (
-      <div className="container" style={{ padding: '60px 16px', textAlign: 'center' }}>
-        <p>Đang tải thông tin điểm tham quan...</p>
-      </div>
-    );
+    return <AdminPage><LoadingState label="Đang tải thông tin điểm tham quan..." /></AdminPage>;
   }
 
   if (errorMessage && !poi) {
     return (
-      <div className="container" style={{ padding: '40px 16px', maxWidth: '700px' }}>
-        <div className="panel" style={{ borderLeft: '4px solid #dc2626' }}>
-          <h2 style={{ color: '#991b1b', marginTop: 0 }}>Không thể tải dữ liệu</h2>
-          <p>{errorMessage}</p>
-          <Link to="/internal/pois" className="btn-secondary" style={{ display: 'inline-block', marginTop: '12px' }}>
-            ← Quay lại danh sách điểm tham quan
-          </Link>
-        </div>
-      </div>
+      <AdminPage width="narrow">
+        <Card>
+          <EmptyState icon="info" title="Không thể tải dữ liệu" action={<Link to="/internal/pois" className="adm-btn adm-btn--secondary">← Quay lại danh sách điểm tham quan</Link>}>{errorMessage}</EmptyState>
+        </Card>
+      </AdminPage>
     );
   }
 
@@ -199,254 +193,98 @@ export const InternalPoiDetailPage: React.FC = () => {
     poi.avatarUrl &&
     !/^javascript:/i.test(poi.avatarUrl) &&
     (/^https?:\/\//i.test(poi.avatarUrl) || /^\/(?!\/)/.test(poi.avatarUrl));
+  const categoryLabels: Record<string, string> = { ANIMAL: 'Động vật', PLANT: 'Thực vật', HERITAGE: 'Di tích', AMENITY: 'Tiện ích' };
 
   return (
-    <div className="container" style={{ padding: '32px 16px', maxWidth: '1000px' }}>
-      <div style={{ marginBottom: '16px' }}>
-        <Link to="/internal/pois" style={{ fontSize: '0.88rem', textDecoration: 'none', color: '#0369a1' }}>
-          ← Quay lại danh sách điểm tham quan
-        </Link>
-      </div>
+    <AdminPage>
+      <Link to="/internal/pois" className="adm-link">← Quay lại danh sách điểm tham quan</Link>
+      <PageHeader
+        eyebrow={<span className="adm-row" style={{ gap: 8 }}><span className="adm-mono">#{poi.poiId}</span><Badge tone="brand">{categoryLabels[poi.category] ?? poi.category}</Badge><StatusBadge status={poi.status} /><Badge tone="info">v{poi.contentVersion}</Badge></span>}
+        title={poi.name}
+        actions={<>
+          <Link to={`/internal/jobs?poiId=${poi.poiId}`} className="adm-btn adm-btn--secondary">Xem tác vụ ({jobs.length})</Link>
+          {poi.status === 'ACTIVE' && <button type="button" onClick={() => setConfirmDeactivate(true)} disabled={isDeactivating} className="adm-btn adm-btn--danger-soft">{isDeactivating ? 'Đang xử lý...' : 'Ngừng sử dụng'}</button>}
+          <Link to={`/internal/pois/${poi.poiId}/edit`} className="adm-btn adm-btn--primary"><Icon name="edit" />Chỉnh sửa điểm này</Link>
+        </>} />
 
-      <div className="page-header" style={{ marginBottom: '20px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
-              <span style={{ fontFamily: 'monospace', fontWeight: 600, color: '#64748b' }}>#{poi.poiId}</span>
-              <span style={{ fontSize: '0.82rem', padding: '2px 8px', borderRadius: '4px', backgroundColor: '#e2e8f0', color: '#334155', fontWeight: 600 }}>
-                {poi.category}
-              </span>
-              <span
-                style={{
-                  padding: '2px 8px',
-                  borderRadius: '9999px',
-                  fontSize: '0.78rem',
-                  fontWeight: 600,
-                  backgroundColor: poi.status === 'ACTIVE' ? '#dcfce7' : '#fee2e2',
-                  color: poi.status === 'ACTIVE' ? '#166534' : '#991b1b'
-                }}
-              >
-                {poi.status}
-              </span>
-              <span style={{ fontSize: '0.82rem', fontFamily: 'monospace', color: '#0369a1' }}>
-                v{poi.contentVersion}
-              </span>
-            </div>
+      {actionNotice && <Alert tone="success" onDismiss={() => setActionNotice(null)}>{actionNotice}</Alert>}
+      {errorMessage && <Alert tone="danger" onDismiss={() => setErrorMessage(null)}>{errorMessage}</Alert>}
 
-            <h1 className="page-title" style={{ margin: 0 }}>{poi.name}</h1>
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Link to={`/internal/pois/${poi.poiId}/edit`} className="btn-primary" style={{ backgroundColor: '#0284c7' }}>
-              Chỉnh sửa điểm này
-            </Link>
-            {poi.status === 'ACTIVE' && (
-              <button
-                type="button"
-                onClick={handleDeactivate}
-                disabled={isDeactivating}
-                className="btn-secondary"
-                style={{ color: '#b91c1c', borderColor: '#fecaca' }}
-              >
-                {isDeactivating ? 'Đang xử lý...' : 'Ngừng sử dụng'}
-              </button>
-            )}
-            <Link to={`/internal/jobs?poiId=${poi.poiId}`} className="btn-secondary">
-              Xem tác vụ ({jobs.length})
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {actionNotice && (
-        <div className="panel" style={{ marginBottom: '20px', borderLeft: '4px solid #10b981', backgroundColor: '#f0fdf4', padding: '12px 16px' }}>
-          <div style={{ color: '#166534', fontWeight: 600 }}>{actionNotice}</div>
-        </div>
-      )}
-
-      {errorMessage && (
-        <div className="panel" style={{ marginBottom: '20px', borderLeft: '4px solid #dc2626', backgroundColor: '#fef2f2', padding: '12px 16px' }}>
-          <div style={{ color: '#991b1b', fontWeight: 600 }}>{errorMessage}</div>
-        </div>
-      )}
-
-      {/* Thong so ky thuat va anh */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-        <div className="panel">
-          <h2 style={{ fontSize: '1.1rem', margin: '0 0 14px 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-            Thông số kỹ thuật và vị trí
-          </h2>
-
-          <table className="status-detail-table">
-            <tbody>
-              <tr>
-                <th>Vĩ độ (Latitude)</th>
-                <td><code>{poi.latitude}</code></td>
-              </tr>
-              <tr>
-                <th>Kinh độ (Longitude)</th>
-                <td><code>{poi.longitude}</code></td>
-              </tr>
-              <tr>
-                <th>Bán kính kích hoạt (Radius)</th>
-                <td>{poi.triggerRadius} mét</td>
-              </tr>
-              <tr>
-                <th>Thứ tự hiển thị</th>
-                <td>{poi.displayOrder}</td>
-              </tr>
-              <tr>
-                <th>Khung giờ hoạt động</th>
-                <td>{poi.activityHours || 'Không có thông tin'}</td>
-              </tr>
-              <tr>
-                <th>Tình trạng bảo tồn</th>
-                <td>{poi.conservationStatus || 'Không có thông tin'}</td>
-              </tr>
-              <tr>
-                <th>Phiên bản nội dung</th>
-                <td><strong>v{poi.contentVersion}</strong></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        <div className="panel">
-          <h2 style={{ fontSize: '1.1rem', margin: '0 0 14px 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-            Hình ảnh đại diện
-          </h2>
-
+      <div className="adm-grid adm-grid--main-aside">
+        <Card title="Thông số kỹ thuật và vị trí">
+          <DescriptionList columns={1} items={[
+            { label: 'Vĩ độ (Latitude)', value: poi.latitude, mono: true },
+            { label: 'Kinh độ (Longitude)', value: poi.longitude, mono: true },
+            { label: 'Bán kính kích hoạt (Radius)', value: `${poi.triggerRadius} mét` },
+            { label: 'Thứ tự hiển thị', value: poi.displayOrder },
+            { label: 'Khung giờ hoạt động', value: poi.activityHours || 'Không có thông tin' },
+            { label: 'Tình trạng bảo tồn', value: poi.conservationStatus || 'Không có thông tin' },
+            { label: 'Phiên bản nội dung', value: <strong>v{poi.contentVersion}</strong> },
+          ]} />
+        </Card>
+        <Card title="Hình ảnh đại diện">
           {isSafeImageUrl && !imgError ? (
-            <div style={{ textAlign: 'center' }}>
-              <img
-                src={poi.avatarUrl || ''}
-                alt={poi.name}
-                onError={() => setImgError(true)}
-                style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-              />
-              <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '6px', wordBreak: 'break-all' }}>
-                Đường dẫn: <code>{poi.avatarUrl}</code>
-              </div>
-            </div>
+            <figure style={{ margin: 0 }}>
+              <img src={poi.avatarUrl || ''} alt={poi.name} onError={() => setImgError(true)}
+                style={{ width: '100%', maxHeight: 240, objectFit: 'cover', borderRadius: 'var(--adm-r-md)', border: '1px solid var(--adm-border)' }} />
+              <figcaption className="adm-small adm-muted" style={{ marginTop: 8, wordBreak: 'break-all' }}>Đường dẫn: <code>{poi.avatarUrl}</code></figcaption>
+            </figure>
           ) : (
-            <div style={{ height: '180px', backgroundColor: '#f1f5f9', border: '1px dashed #cbd5e1', borderRadius: '6px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: '#64748b' }}>
-              <div style={{ fontSize: '1.8rem', marginBottom: '6px' }}>🖼️</div>
-              <div style={{ fontSize: '0.88rem' }}>
-                {poi.avatarUrl ? 'Không thể tải ảnh từ đường dẫn đã cung cấp' : 'Chưa có ảnh đại diện'}
-              </div>
-              {poi.avatarUrl && (
-                <div style={{ fontSize: '0.75rem', marginTop: '4px', wordBreak: 'break-all', padding: '0 12px' }}>
-                  {poi.avatarUrl}
-                </div>
-              )}
-            </div>
+            <EmptyState icon="pin" title={poi.avatarUrl ? 'Không thể tải ảnh từ đường dẫn đã cung cấp' : 'Chưa có ảnh đại diện'}>
+              {poi.avatarUrl && <span style={{ wordBreak: 'break-all' }}>{poi.avatarUrl}</span>}
+            </EmptyState>
           )}
-        </div>
+        </Card>
       </div>
 
-      {/* Noi dung tieng Viet */}
-      <div className="panel" style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '1.1rem', margin: '0 0 12px 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-          Nội dung mô tả tiếng Việt (Nguồn văn bản)
-        </h2>
-        <div style={{ fontSize: '0.92rem', lineHeight: '1.6', color: '#1e293b', whiteSpace: 'pre-wrap' }}>
-          {poi.description}
-        </div>
+      <div className="adm-grid adm-grid--2" style={{ alignItems: 'start' }}>
+        <Card title="Nội dung mô tả tiếng Việt" description="Nguồn văn bản">
+          <div style={{ fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap', color: 'var(--adm-text)' }}>{poi.description}</div>
+        </Card>
+        <Card title="Kịch bản đọc thuyết minh tiếng Việt" description="Nguồn âm thanh">
+          <div style={{ fontSize: 14, lineHeight: 1.7, whiteSpace: 'pre-wrap', background: 'var(--adm-surface-2)', padding: 14, borderRadius: 'var(--adm-r-md)', border: '1px solid var(--adm-border)' }}>{poi.audioScript}</div>
+        </Card>
       </div>
 
-      {/* Kich ban doc tieng Viet */}
-      <div className="panel" style={{ marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '1.1rem', margin: '0 0 12px 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-          Kịch bản đọc thuyết minh tiếng Việt (Nguồn âm thanh)
-        </h2>
-        <div style={{ fontSize: '0.92rem', lineHeight: '1.6', color: '#1e293b', whiteSpace: 'pre-wrap', backgroundColor: '#f8fafc', padding: '14px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-          {poi.audioScript}
-        </div>
-      </div>
-
-      {/* Danh sach tac vu noi dung lien quan */}
-      <div className="panel">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginBottom: '14px', borderBottom: '1px solid #e2e8f0', paddingBottom: '8px' }}>
-          <h2 style={{ fontSize: '1.1rem', margin: 0 }}>
-            Tác vụ nội dung liên quan (Content Jobs)
-          </h2>
-          <Link to={`/internal/jobs?poiId=${poi.poiId}`} style={{ fontSize: '0.85rem', textDecoration: 'none', color: '#0369a1' }}>
-            Xem toàn bộ tác vụ →
-          </Link>
-        </div>
-
+      <Card flush title="Tác vụ nội dung liên quan (Content Jobs)" actions={<Link to={`/internal/jobs?poiId=${poi.poiId}`} className="adm-link">Xem toàn bộ tác vụ <Icon name="arrow" /></Link>}>
         {jobs.length === 0 ? (
-          <div style={{ padding: '20px', textAlign: 'center', color: '#64748b' }}>
-            Chưa có tác vụ xử lý nội dung nào cho điểm tham quan này.
-          </div>
+          <EmptyState icon="headphones" title="Chưa có tác vụ xử lý nội dung nào cho điểm tham quan này." />
         ) : (
-          <table className="status-detail-table" style={{ width: '100%', margin: 0 }}>
-            <thead>
-              <tr style={{ backgroundColor: '#f1f5f9' }}>
-                <th>Job ID</th>
-                <th>Ngôn ngữ</th>
-                <th>Phiên bản nguồn</th>
-                <th>Trạng thái chung</th>
-                <th>Dịch thuật</th>
-                <th>Âm thanh</th>
-                <th style={{ textAlign: 'right' }}>Thao tác</th>
-              </tr>
-            </thead>
-            <tbody>
-              {jobs.map((job) => (
-                <tr key={job.jobId}>
-                  <td style={{ fontFamily: 'monospace' }}>#{job.jobId}</td>
-                  <td><strong>{job.languageCode}</strong></td>
-                  <td style={{ fontFamily: 'monospace' }}>
-                    v{job.sourceVersion} {job.isCurrent ? '(Hiện hành)' : '(Cũ)'}
-                  </td>
-                  <td>
-                    <span
-                      style={{
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                        backgroundColor:
-                          job.status === 'COMPLETED' ? '#dcfce7' : job.status === 'FAILED' ? '#fee2e2' : '#fef3c7',
-                        color:
-                          job.status === 'COMPLETED' ? '#166534' : job.status === 'FAILED' ? '#991b1b' : '#92400e'
-                      }}
-                    >
-                      {job.status}
-                    </span>
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '0.82rem' }}>
-                      {job.translation.status || 'Chưa có'}
-                    </span>
-                  </td>
-                  <td>
-                    <span style={{ fontSize: '0.82rem' }}>
-                      {job.audio.status || 'Chưa có'}
-                    </span>
-                  </td>
-                  <td style={{ textAlign: 'right' }}>
-                    {job.canRetry ? (
-                      <button
-                        type="button"
-                        onClick={() => handleRetryJob(job.jobId)}
-                        disabled={retryingJobId === job.jobId}
-                        style={{ padding: '4px 8px', fontSize: '0.8rem', cursor: 'pointer', backgroundColor: '#fef3c7', border: '1px solid #fde68a', borderRadius: '4px', color: '#92400e' }}
-                      >
-                        {retryingJobId === job.jobId ? 'Đang gửi...' : 'Thử lại'}
-                      </button>
-                    ) : (
-                      <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>-</span>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="adm-table-wrap">
+            <table className="adm-table">
+              <thead>
+                <tr><th>Job ID</th><th>Ngôn ngữ</th><th>Phiên bản nguồn</th><th>Trạng thái chung</th><th>Dịch thuật</th><th>Âm thanh</th><th className="adm-actions-cell">Thao tác</th></tr>
+              </thead>
+              <tbody>
+                {jobs.map((job) => (
+                  <tr key={job.jobId}>
+                    <td className="adm-mono adm-muted">#{job.jobId}</td>
+                    <td><strong>{job.languageCode}</strong></td>
+                    <td className="adm-mono">v{job.sourceVersion} <Badge tone={job.isCurrent ? 'success' : 'neutral'}>{job.isCurrent ? 'Hiện hành' : 'Cũ'}</Badge></td>
+                    <td><StatusBadge status={job.status} /></td>
+                    <td><StatusBadge status={job.translation.status} label={job.translation.status || 'Chưa có'} /></td>
+                    <td><StatusBadge status={job.audio.status} label={job.audio.status || 'Chưa có'} /></td>
+                    <td className="adm-actions-cell">
+                      {job.canRetry ? (
+                        <button type="button" onClick={() => handleRetryJob(job.jobId)} disabled={retryingJobId === job.jobId} className="adm-btn adm-btn--secondary adm-btn--sm">
+                          <Icon name="refresh" />{retryingJobId === job.jobId ? 'Đang gửi...' : 'Thử lại'}
+                        </button>
+                      ) : <span className="adm-muted">—</span>}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         )}
-      </div>
+      </Card>
       <ReviewedTranslationPanel key={poi.poiId} poiId={poi.poiId} />
-    </div>
+
+      <ConfirmDialog open={confirmDeactivate} tone="danger" title="Ngừng sử dụng điểm tham quan?" confirmLabel="Xác nhận ngừng sử dụng"
+        busy={isDeactivating} busyLabel="Đang xử lý..." onCancel={() => setConfirmDeactivate(false)} onConfirm={handleDeactivate}>
+        <p>Xác nhận chuyển điểm tham quan <strong>#{poi.poiId} - {poi.name}</strong> sang <strong>INACTIVE</strong>?</p>
+        <Alert tone="warning">Điểm sẽ không xuất hiện trong gói dữ liệu và lộ trình ở lần tải tiếp theo của khách; dữ liệu không bị xóa.</Alert>
+      </ConfirmDialog>
+    </AdminPage>
   );
 };
