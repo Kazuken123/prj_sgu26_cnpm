@@ -3,6 +3,26 @@ import { getMonitoringData, monitoringRange, MonitoringDto, MonitoringWindow } f
 import { executeAuthenticatedInternalRequest } from '../api/auth';
 import { getApiBaseUrl } from '../api/client';
 import { OnlineVisitorsCard } from '../components/OnlineVisitorsCard';
+import { Icon } from '../components/Icon';
+import { AdminPage, PageHeader, Card, Alert, Badge, LoadingState, EmptyState } from '../components/admin/AdminUI';
+
+const windows: Record<MonitoringWindow, string> = { '1h': '1 Giờ gần nhất', '24h': '24 Giờ gần nhất', '7d': '7 Ngày gần nhất', '30d': '30 Ngày gần nhất' };
+const unavailable = 'Không khả dụng';
+
+const HealthCard: React.FC<{ title: string; ready: boolean | null; readyLabel: string; downLabel: string; hint: React.ReactNode; icon: React.ComponentProps<typeof Icon>['name'] }> = ({ title, ready, readyLabel, downLabel, hint, icon }) => (
+  <div className={`adm-stat adm-stat--${ready === null ? 'neutral' : ready ? 'success' : 'danger'}`}>
+    <div className="adm-stat__top"><span className="adm-stat__label">{title}</span><span className="adm-stat__icon"><Icon name={icon} /></span></div>
+    <strong className="adm-stat__value" style={{ fontSize: 18, color: ready === null ? 'var(--adm-text-3)' : ready ? 'var(--adm-success)' : 'var(--adm-danger)' }}>
+      {ready === null ? 'CHƯA CÓ DỮ LIỆU' : ready ? readyLabel : downLabel}
+    </strong>
+    <span className="adm-stat__hint">{hint}</span>
+  </div>
+);
+const Metric: React.FC<{ label: string; value: React.ReactNode; tone?: 'success' | 'warning' | 'danger' | 'info' | 'neutral' }> = ({ label, value, tone = 'neutral' }) => (
+  <div className="adm-row adm-row--between" style={{ padding: '10px 0', borderBottom: '1px solid var(--adm-border)', fontSize: 13 }}>
+    <span className="adm-muted">{label}</span><Badge tone={value === unavailable ? 'neutral' : tone}>{value}</Badge>
+  </div>
+);
 
 export const InternalMonitoringPage: React.FC = () => {
   const baseUrl = getApiBaseUrl();
@@ -39,247 +59,88 @@ export const InternalMonitoringPage: React.FC = () => {
     return () => { clearInterval(interval); requestSeq.current += 1; };
   }, [windowOption, baseUrl]);
 
+  const health = data?.health;
+  const payments = data?.metrics.paidPayments.value;
+  const bundles = data?.metrics.bundleAccess.value;
+  const chatbot = data?.metrics.chatbot.value;
+  const jobs = data?.metrics.contentJobs.value;
+  const audios = data?.metrics.audioRecords.value;
+  const maxLanguage = Math.max(1, ...(bundles?.byLanguage?.map(item => item.total) ?? [1]));
+
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h1 style={{ fontSize: '1.6rem', color: '#132a13', margin: 0, fontWeight: 700 }}>
-            Giám Sát Sức Khỏe & Sử Dụng Hệ Thống
-          </h1>
-          <p style={{ color: '#4b5563', fontSize: '0.86rem', margin: '4px 0 0' }}>
-            Theo dõi tình trạng vận hành thời gian thực, phiên tham quan, doanh thu và tác vụ xử lý âm thanh
-          </p>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <select
-            value={windowOption}
-            onChange={(e) => { setData(null); setLastRefreshed(''); setWindowOption(e.target.value as MonitoringWindow); }}
-            style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #d1d5db', fontSize: '0.86rem' }}
-          >
-            <option value="1h">1 Giờ gần nhất</option>
-            <option value="24h">24 Giờ gần nhất</option>
-            <option value="7d">7 Ngày gần nhất</option>
-            <option value="30d">30 Ngày gần nhất</option>
+    <AdminPage>
+      <PageHeader eyebrow="Tổng quan · Quản trị" title="Giám sát sức khỏe & sử dụng hệ thống"
+        description="Theo dõi tình trạng vận hành thời gian thực, phiên tham quan, doanh thu và tác vụ xử lý âm thanh."
+        actions={<>
+          <label className="sr-only" htmlFor="monitoring-window">Khoảng thời gian</label>
+          <select id="monitoring-window" value={windowOption} style={{ width: 'auto' }}
+            onChange={(e) => { setData(null); setLastRefreshed(''); setWindowOption(e.target.value as MonitoringWindow); }}>
+            {Object.entries(windows).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
           </select>
+          <button type="button" onClick={fetchMonitoring} disabled={loading} className="adm-btn adm-btn--secondary"><Icon name="refresh" />{loading ? 'Đang nạp...' : 'Làm mới'}</button>
+        </>} />
 
-          <button
-            type="button"
-            onClick={fetchMonitoring}
-            disabled={loading}
-            className="btn-secondary btn-sm"
-            style={{ padding: '6px 12px' }}
-          >
-            🔄 {loading ? 'Đang nạp...' : 'Làm mới'}
-          </button>
-        </div>
-      </div>
+      {lastRefreshed && <p className="adm-small adm-muted" style={{ margin: '12px 0 0' }}><span className="adm-live-dot" aria-hidden="true" />Cập nhật lần cuối lúc: <strong>{lastRefreshed}</strong> (Tự động làm mới mỗi 30s)</p>}
+      {error && <Alert tone="danger">{error}{data && ' Đang hiển thị dữ liệu của lần tải thành công trước.'}</Alert>}
 
-      {lastRefreshed && (
-        <div style={{ fontSize: '0.78rem', color: '#6b7280', marginBottom: '16px' }}>
-          Cập nhật lần cuối lúc: <strong>{lastRefreshed}</strong> (Tự động làm mới mỗi 30s)
-        </div>
-      )}
+      <section aria-label="Sức khỏe hệ thống" className="adm-grid adm-grid--4">
+        <HealthCard title="Trạng thái máy chủ" icon="activity" ready={health ? health.readiness.status === 'READY' : null}
+          readyLabel="SẴN SÀNG (READY)" downLabel="CHƯA SẴN SÀNG (NOT_READY)" hint={<>Liveness: {health?.liveness.status ?? 'CHƯA XÁC ĐỊNH'}</>} />
+        <HealthCard title="Cơ sở dữ liệu MySQL" icon="book" ready={health ? health.database.status === 'READY' : null}
+          readyLabel="SẴN SÀNG (READY)" downLabel="KHÔNG KHẢ DỤNG" hint="Bộ lưu trữ dữ liệu 16 bảng nghiệp vụ" />
+        <HealthCard title="Bộ nhớ tạm Redis" icon="clock" ready={health ? health.redis.status === 'READY' : null}
+          readyLabel="SẴN SÀNG (READY)" downLabel="KHÔNG KHẢ DỤNG" hint="Quản lý mã truy cập có TTL & Rate limit" />
+        <OnlineVisitorsCard />
+      </section>
 
-      {error && (
-        <div className="banner-notice" style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', marginBottom: '16px' }}>
-          <div>{error}{data && ' Đang hiển thị dữ liệu của lần tải thành công trước.'}</div>
-        </div>
-      )}
-
-      <OnlineVisitorsCard />
-      {/* SUC KHOE HE THONG (LIVENESS / READINESS) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <div className="tcv-card" style={{ padding: '18px', borderLeft: `5px solid ${data?.health.readiness.status === 'READY' ? '#16a34a' : '#dc2626'}` }}>
-          <div style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-            Trạng thái máy chủ
+      {!data && !error && <LoadingState label="Đang tải số liệu giám sát…" />}
+      {data && <div className="adm-grid adm-grid--2" style={{ alignItems: 'start' }}>
+        <Card title="Phiên tham quan & doanh thu" description={`Khoảng: ${windows[windowOption]}`}>
+          <div className="adm-grid adm-grid--2" style={{ gap: 12 }}>
+            <div className="adm-stat adm-stat--success"><span className="adm-stat__label">Phiên Active hiện tại</span><strong className="adm-stat__value">{data.metrics.activePaidVisits.value ?? unavailable}</strong></div>
+            <div className="adm-stat adm-stat--info"><span className="adm-stat__label">Giao dịch thành công ({windowOption})</span><strong className="adm-stat__value">{payments?.count ?? unavailable}</strong></div>
           </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: data?.health.readiness.status === 'READY' ? '#15803d' : '#b91c1c', marginTop: '4px' }}>
-            {data ? (data.health.readiness.status === 'READY' ? 'SẴN SÀNG (READY)' : 'CHƯA SẴN SÀNG (NOT_READY)') : 'CHƯA CÓ DỮ LIỆU'}
+          <div style={{ marginTop: 16 }}>
+            <p className="adm-label" style={{ margin: '0 0 6px' }}>Tổng doanh thu vé ghi nhận</p>
+            {payments?.totals && payments.totals.length > 0
+              ? payments.totals.map((t, idx) => <div key={idx} style={{ fontSize: 22, fontWeight: 750, color: 'var(--adm-brand)' }}>{Number(t.amount).toLocaleString('vi-VN')} {t.currency}</div>)
+              : <p className="adm-muted" style={{ margin: 0 }}>{payments === null ? 'Doanh thu không khả dụng' : 'Không có giao dịch trong khoảng thời gian này'}</p>}
           </div>
-          <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '6px' }}>
-            Liveness: {data?.health.liveness.status ?? 'CHƯA XÁC ĐỊNH'}
+        </Card>
+
+        <Card title="Lượt tải gói nội dung đa ngôn ngữ" description="Số lượt cấp bundle không đồng nghĩa số khách duy nhất.">
+          <div className="adm-grid adm-grid--2" style={{ gap: 12 }}>
+            <div className="adm-stat"><span className="adm-stat__label">Tổng lượt cấp gói</span><strong className="adm-stat__value">{bundles?.total ?? unavailable}</strong></div>
+            <div className="adm-stat"><span className="adm-stat__label">Khách duy nhất</span><strong className="adm-stat__value">{bundles?.uniqueSessions ?? unavailable}</strong></div>
           </div>
-        </div>
+          <p className="adm-label" style={{ margin: '16px 0 6px' }}>Phân bổ theo ngôn ngữ yêu cầu</p>
+          {bundles?.byLanguage && bundles.byLanguage.length > 0 ? <div className="adm-stack" style={{ gap: 10 }}>
+            {bundles.byLanguage.map(item => <div key={item.languageCode}>
+              <div className="adm-row adm-row--between" style={{ fontSize: 13 }}><strong>{item.languageCode.toUpperCase()}</strong><span className="adm-muted"><strong>{item.total}</strong> lượt ({item.uniqueSessions} khách)</span></div>
+              <span className="adm-bar-track" style={{ maxWidth: 'none' }}><span style={{ width: `${item.total / maxLanguage * 100}%` }} /></span>
+            </div>)}
+          </div> : <EmptyState icon="globe" title={bundles === null ? 'Thống kê lượt tải không khả dụng' : 'Chưa có lượt tải bundle nào trong khoảng thời gian này.'} />}
+        </Card>
 
-        <div className="tcv-card" style={{ padding: '18px', borderLeft: `5px solid ${data?.health.database.status === 'READY' ? '#16a34a' : '#dc2626'}` }}>
-          <div style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-            Cơ sở dữ liệu MySQL
-          </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: data?.health.database.status === 'READY' ? '#15803d' : '#b91c1c', marginTop: '4px' }}>
-            {data ? (data.health.database.status === 'READY' ? 'SẴN SÀNG (READY)' : 'KHÔNG KHẢ DỤNG') : 'CHƯA CÓ DỮ LIỆU'}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '6px' }}>
-            Bộ lưu trữ dữ liệu 16 bảng nghiệp vụ
-          </div>
-        </div>
+        <Card title="Lượt hỏi chatbot được ghi nhận">
+          <p style={{ margin: '0 0 8px', fontSize: 14 }}>Trong khoảng UTC đã chọn: <strong>{chatbot?.total ?? unavailable}</strong></p>
+          <Metric label="Có câu trả lời" value={chatbot?.byStatus.SUCCESS ?? unavailable} tone="success" />
+          <Metric label="Không có ngữ cảnh" value={chatbot?.byStatus.NO_CONTEXT ?? unavailable} tone="warning" />
+          <Metric label="Lỗi xử lý" value={chatbot?.byStatus.FAILED ?? unavailable} tone="danger" />
+          <p className="adm-small adm-muted" style={{ marginBottom: 0 }}>Đây là số lượt đã ghi trong nhật ký, không phải đánh giá độ đúng của câu trả lời.</p>
+        </Card>
 
-        <div className="tcv-card" style={{ padding: '18px', borderLeft: `5px solid ${data?.health.redis.status === 'READY' ? '#16a34a' : '#dc2626'}` }}>
-          <div style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: 600, textTransform: 'uppercase' }}>
-            Bộ nhớ tạm Redis
-          </div>
-          <div style={{ fontSize: '1.4rem', fontWeight: 700, color: data?.health.redis.status === 'READY' ? '#15803d' : '#b91c1c', marginTop: '4px' }}>
-            {data ? (data.health.redis.status === 'READY' ? 'SẴN SÀNG (READY)' : 'KHÔNG KHẢ DỤNG') : 'CHƯA CÓ DỮ LIỆU'}
-          </div>
-          <div style={{ fontSize: '0.8rem', color: '#6b7280', marginTop: '6px' }}>
-            Quản lý mã truy cập có TTL & Rate limit
-          </div>
-        </div>
-      </div>
-
-      {/* METRICS GRID */}
-      {data && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-          
-          {/* PHIEN THAM QUAN & DOANH THU */}
-          <div className="tcv-card" style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '1.05rem', color: '#14532d', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🎟️</span>
-              <span>Phiên Tham Quan & Doanh Thu</span>
-            </h3>
-
-            <div style={{ display: 'flex', gap: '20px', marginBottom: '16px' }}>
-              <div style={{ flex: 1, padding: '12px', background: '#f0fdf4', borderRadius: '6px' }}>
-                <div style={{ fontSize: '0.8rem', color: '#166534' }}>Phiên Active hiện tại</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#14532d', marginTop: '2px' }}>
-                  {data.metrics.activePaidVisits.value ?? 'Không khả dụng'}
-                </div>
-              </div>
-
-              <div style={{ flex: 1, padding: '12px', background: '#eff6ff', borderRadius: '6px' }}>
-                <div style={{ fontSize: '0.8rem', color: '#1e40af' }}>Giao dịch thành công ({windowOption})</div>
-                <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#1e3a8a', marginTop: '2px' }}>
-                  {data.metrics.paidPayments.value?.count ?? 'Không khả dụng'}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ padding: '12px', background: '#f8fafc', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '0.8rem', color: '#475569', fontWeight: 600, marginBottom: '6px' }}>
-                Tổng doanh thu vé ghi nhận:
-              </div>
-              {data.metrics.paidPayments.value?.totals && data.metrics.paidPayments.value.totals.length > 0 ? (
-                data.metrics.paidPayments.value.totals.map((t, idx) => (
-                  <div key={idx} style={{ fontSize: '1.2rem', fontWeight: 700, color: '#0f766e' }}>
-                    {Number(t.amount).toLocaleString('vi-VN')} {t.currency}
-                  </div>
-                ))
-              ) : (
-                <div style={{ fontSize: '0.9rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                  {data.metrics.paidPayments.value === null ? 'Doanh thu không khả dụng' : 'Không có giao dịch trong khoảng thời gian này'}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* LUOT TAI BUNDLE THEO NGON NGU */}
-          <div className="tcv-card" style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '1.05rem', color: '#14532d', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>🌐</span>
-              <span>Lượt Tải Gói Nội Dung Đa Ngôn Ngữ</span>
-            </h3>
-
-            <div style={{ display: 'flex', gap: '16px', marginBottom: '14px' }}>
-              <div style={{ flex: 1 }}>
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Tổng lượt cấp gói: </span>
-                <strong style={{ fontSize: '1.1rem', color: '#0f172a' }}>
-                  {data.metrics.bundleAccess.value?.total ?? 'Không khả dụng'}
-                </strong>
-              </div>
-              <div style={{ flex: 1 }}>
-                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Khách duy nhất: </span>
-                <strong style={{ fontSize: '1.1rem', color: '#0f172a' }}>
-                  {data.metrics.bundleAccess.value?.uniqueSessions ?? 'Không khả dụng'}
-                </strong>
-              </div>
-            </div>
-
-            <div style={{ fontSize: '0.82rem', fontWeight: 600, color: '#334155', marginBottom: '8px' }}>
-              Phân bổ theo ngôn ngữ yêu cầu:
-            </div>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              {data.metrics.bundleAccess.value?.byLanguage && data.metrics.bundleAccess.value.byLanguage.length > 0 ? (
-                data.metrics.bundleAccess.value.byLanguage.map((item) => (
-                  <div
-                    key={item.languageCode}
-                    style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      padding: '6px 10px',
-                      background: '#f8fafc',
-                      borderRadius: '4px',
-                      fontSize: '0.84rem'
-                    }}
-                  >
-                    <span style={{ fontWeight: 600, color: '#1e293b' }}>
-                      {item.languageCode.toUpperCase()}
-                    </span>
-                    <span style={{ color: '#475569' }}>
-                      <strong>{item.total}</strong> lượt ({item.uniqueSessions} khách)
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <div style={{ fontSize: '0.84rem', color: '#94a3b8', fontStyle: 'italic', padding: '10px 0' }}>
-                  {data.metrics.bundleAccess.value === null ? 'Thống kê lượt tải không khả dụng' : 'Chưa có lượt tải bundle nào trong khoảng thời gian này.'}
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="tcv-card" style={{ padding: '20px' }}>
-            <h3>Lượt hỏi chatbot được ghi nhận</h3>
-            <p>Trong khoảng UTC đã chọn: <strong>{data.metrics.chatbot.value?.total ?? 'Không khả dụng'}</strong></p>
-            <p>Có câu trả lời: {data.metrics.chatbot.value?.byStatus.SUCCESS ?? 'Không khả dụng'}</p>
-            <p>Không có ngữ cảnh: {data.metrics.chatbot.value?.byStatus.NO_CONTEXT ?? 'Không khả dụng'}</p>
-            <p>Lỗi xử lý: {data.metrics.chatbot.value?.byStatus.FAILED ?? 'Không khả dụng'}</p>
-            <p>Đây là số lượt đã ghi trong nhật ký, không phải đánh giá độ đúng của câu trả lời.</p>
-          </div>
-          {/* TIEN TRINH AUDIO & CONTENT JOBS */}
-          <div className="tcv-card" style={{ padding: '20px' }}>
-            <h3 style={{ fontSize: '1.05rem', color: '#14532d', margin: '0 0 16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>⚙️</span>
-              <span>Tác Vụ Xử Lý Nội Dung & Âm Thanh</span>
-            </h3>
-
-            <div style={{ marginBottom: '16px' }}>
-              <div style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '4px' }}>
-                Tổng tác vụ đa ngôn ngữ: <strong>{data.metrics.contentJobs.value?.total ?? 'Không khả dụng'}</strong>
-              </div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <span className="status-pill ready" style={{ fontSize: '0.75rem' }}>
-                  Hoàn tất: {data.metrics.contentJobs.value?.byStatus?.COMPLETED ?? 'Không khả dụng'}
-                </span>
-                <span className="status-pill idle" style={{ fontSize: '0.75rem' }}>
-                  Đang xử lý: {data.metrics.contentJobs.value?.byStatus?.PROCESSING ?? 'Không khả dụng'}
-                </span>
-                <span className="status-pill unready" style={{ fontSize: '0.75rem' }}>
-                  Chờ: {data.metrics.contentJobs.value?.byStatus?.PENDING ?? 'Không khả dụng'}
-                </span>
-                <span style={{ background: '#fee2e2', color: '#991b1b', padding: '2px 8px', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 }}>
-                  Lỗi: {data.metrics.contentJobs.value?.byStatus?.FAILED ?? 'Không khả dụng'}
-                </span>
-              </div>
-            </div>
-
-            <div style={{ paddingTop: '12px', borderTop: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '0.82rem', color: '#64748b', marginBottom: '4px' }}>
-                Bản ghi âm thanh: <strong>{data.metrics.audioRecords.value?.total ?? 'Không khả dụng'}</strong>
-              </div>
-              <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                <span className="status-pill ready" style={{ fontSize: '0.75rem' }}>
-                  Trạng thái AVAILABLE: {data.metrics.audioRecords.value?.byStatus?.AVAILABLE ?? 'Không khả dụng'}
-                </span>
-                <span className="status-pill unready" style={{ fontSize: '0.75rem' }}>
-                  Chờ tệp: {data.metrics.audioRecords.value?.byStatus?.PENDING ?? 'Không khả dụng'}
-                </span>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      )}
-    </div>
+        <Card title="Tác vụ xử lý nội dung & âm thanh">
+          <p style={{ margin: '0 0 8px', fontSize: 14 }}>Tổng tác vụ đa ngôn ngữ: <strong>{jobs?.total ?? unavailable}</strong></p>
+          <Metric label="Hoàn tất" value={jobs?.byStatus?.COMPLETED ?? unavailable} tone="success" />
+          <Metric label="Đang xử lý" value={jobs?.byStatus?.PROCESSING ?? unavailable} tone="info" />
+          <Metric label="Chờ" value={jobs?.byStatus?.PENDING ?? unavailable} tone="warning" />
+          <Metric label="Lỗi" value={jobs?.byStatus?.FAILED ?? unavailable} tone="danger" />
+          <p style={{ margin: '16px 0 8px', fontSize: 14 }}>Bản ghi âm thanh: <strong>{audios?.total ?? unavailable}</strong></p>
+          <Metric label="Trạng thái AVAILABLE" value={audios?.byStatus?.AVAILABLE ?? unavailable} tone="success" />
+          <Metric label="Chờ tệp" value={audios?.byStatus?.PENDING ?? unavailable} tone="warning" />
+        </Card>
+      </div>}
+    </AdminPage>
   );
 };
