@@ -67,3 +67,18 @@ test('signed-out visitors only get the brand and a link back to the public site'
   assert.equal(view.root.findAllByType('aside').length, 0);
   assert.deepEqual(hrefs(view).sort(), ['/', '/internal/login']);
 });
+test('tab title follows the internal page and the original title returns after leaving', async t => {
+  browser(t); saveInternalSession(session('STAFF'));
+  const previous = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { configurable: true, writable: true, value: { title: 'Thảo Cầm Viên — Thuyết minh' } });
+  let view;
+  await act(async () => { view = create(React.createElement(MemoryRouter, { initialEntries: ['/internal/reissue'], future: { v7_startTransition: true, v7_relativeSplatPath: true } },
+    React.createElement(InternalNavigation), React.createElement(Navigator))); });
+  assert.equal(globalThis.document.title, 'Cấp lại vé · Thảo Cầm Viên nội bộ');
+  await act(async () => navigateTo('/internal/pois/4/edit'));
+  assert.equal(globalThis.document.title, 'Chỉnh sửa · Thảo Cầm Viên nội bộ');
+  await act(async () => view.unmount());
+  assert.equal(globalThis.document.title, 'Thảo Cầm Viên — Thuyết minh');
+  if (previous) Object.defineProperty(globalThis, 'document', previous); else delete globalThis.document;
+  restoreWindow();
+});

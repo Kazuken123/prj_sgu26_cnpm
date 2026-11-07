@@ -92,6 +92,20 @@ export const InternalNavigation: React.FC = () => {
     };
   }, []);
 
+  // Tab title follows the current internal page; the original (visitor) title
+  // is restored when the workspace header unmounts.
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const original = document.title;
+    return () => { document.title = original; };
+  }, []);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const trail = breadcrumbFor(pathname);
+    const page = trail[trail.length - 1]?.label ?? (pathname.startsWith('/internal/login') ? 'Đăng nhập' : null);
+    document.title = page ? `${page} · Thảo Cầm Viên nội bộ` : 'Thảo Cầm Viên nội bộ';
+  }, [pathname]);
+
   // Close the mobile drawer on navigation and with Escape.
   useEffect(() => { setMenuOpen(false); }, [pathname]);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
