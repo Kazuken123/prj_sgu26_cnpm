@@ -10,6 +10,8 @@ Xem [hướng dẫn dựng backend có dữ liệu và API cho frontend](data/de
 
 ## Hiện trạng backend theo báo cáo 8
 
+UC-12 [cấp lại token khách](docs/BACKEND_TOKEN_REISSUE_UC12.md) (Could Have): STAFF/ADMIN đối chiếu session_id, payment_ref và giờ thanh toán (±10 phút), thu hồi token cũ, tăng reissue_count (tối đa 2 lần) và cấp mã nhận vé 6 số; khách nhập mã trên trang Quyền nghe như luồng tiền mặt. Hạn vé giữ nguyên, không thu tiền lại, không migration. Giới hạn cấu hình bằng `VISIT_TOKEN_REISSUE_LIMIT` và `VISIT_TOKEN_REISSUE_PAID_AT_TOLERANCE_MINUTES`. Kiểm chứng bằng unit/HTTP test; integration test MySQL chạy khi `RUN_DB_TESTS=1`, chưa thử trên staging. Giao diện quản trị đã được thiết kế lại theo [hệ thống thiết kế ADMIN](docs/ADMIN_UI_DESIGN_SYSTEM.md); giao diện khách không thay đổi.
+
 Mốc 15 đang local: [hạn giữ quyền và phục hồi job gián đoạn](docs/BACKEND_JOB_RECOVERY_STAGE15.md). Migration 006 thêm lease_expires_at nullable đã được duyệt; mặc định 120 giây, heartbeat 15 giây. Job hết hạn mất quyền ghi; jobs:recover mặc định dry-run, --apply mới chuyển FAILED có audit. Legacy thiếu hạn chỉ đối soát. Đạt 372 test local, kiểm tra 102 file JavaScript; chưa commit/push/CI mới. Chưa worker tự lấy PENDING. Chạy db:migrate đến 006 trước code mới.
 
 Mốc 12 [nhận một tác vụ nội dung an toàn](docs/BACKEND_PIPELINE_CLAIM_STAGE12.md) đã push bằng f382be7 và [CI xanh](https://github.com/Kazuken123/prj_sgu26_cnpm/actions/runs/39383566623). PipelineService nhận PENDING đúng một lần; job lỗi thời chuyển FAILED, audit cùng giao dịch. Ghi chú chưa push trong tài liệu mốc 12 là lịch sử trước khi chốt commit.
