@@ -132,7 +132,7 @@ describe("Cash exchange SQL / " + (realRedis ? "real Redis" : "Redis replacement
       const before = await snapshot(item.id); await assert.rejects(exchange(item), error => error.status === 409);
       assert.deepEqual(await snapshot(item.id), before);
     }
-    for (const change of ["status = 'REVOKED'", "expires_at = '2020-01-01 00:00:00'", "paid_at = NULL", "token_hash = 'already-issued'", "token_hash = 'already-issued', reissue_count = 1"]) {
+    for (const change of ["status = 'REVOKED'", "expires_at = '2020-01-01 00:00:00'", "paid_at = NULL", "token_hash = 'already-issued'", "token_hash = 'already-reissued', reissue_count = 1"]) {
       const item = await create();
       if (change.startsWith("paid_at")) await db.query("UPDATE PAYMENTS SET paid_at = NULL WHERE session_id = ?", [item.id]);
       else await db.query("UPDATE VISIT_SESSIONS SET " + change + " WHERE session_id = ?", [item.id]);

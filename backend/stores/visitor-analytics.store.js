@@ -43,8 +43,8 @@ class VisitorAnalyticsStore {
       if (!meta) throw Error('ANALYTICS_SCHEMA_REQUIRED');
       const window = analyticsWindow(query,meta.nowUtc), args=[window.from,window.cutoff,window.cutoff,window.from];
       const events = await run(`SELECT at,SUM(delta) AS delta FROM (
-        SELECT GREATEST(started_at,?) AS at,1 AS delta FROM ANALYTICS_PRESENCE WHERE started_at<? AND ends_at>?
-        UNION ALL SELECT LEAST(ends_at,?) AS at,-1 AS delta FROM ANALYTICS_PRESENCE WHERE started_at<? AND ends_at>?
+        SELECT CAST(GREATEST(started_at,?) AS DATETIME(3)) AS at,1 AS delta FROM ANALYTICS_PRESENCE WHERE started_at<? AND ends_at>?
+        UNION ALL SELECT CAST(LEAST(ends_at,?) AS DATETIME(3)) AS at,-1 AS delta FROM ANALYTICS_PRESENCE WHERE started_at<? AND ends_at>?
         ) events GROUP BY at ORDER BY at`,[window.from,window.cutoff,window.from,window.cutoff,window.cutoff,window.from]);
       const [counts] = await run(`SELECT COUNT(DISTINCT session_id) AS visitors,COUNT(*) AS entries
         FROM ANALYTICS_PRESENCE WHERE started_at<? AND ends_at>?`,[args[1],args[0]]);
