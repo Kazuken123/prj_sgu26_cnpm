@@ -188,6 +188,16 @@ Bộ kiểm thử tích hợp sử dụng schema 16 bảng và kiểm tra phân 
 
 Kiểm thử tích hợp cần thông tin kết nối và quyền tạo/xóa database thử nghiệm. Database thử được tạo riêng, không dùng database nghiệp vụ của nhóm.
 
+Kiểm thử frontend (react-test-renderer, không cần trình duyệt) và build, tại thư mục `frontend`:
+
+```powershell
+npx tsc --noEmit
+npm test
+npm run build
+```
+
+Test frontend bao phủ cả giao diện khách và phân hệ quản trị (điều hướng theo vai trò, hộp thoại xác nhận, trang cấp lại vé, bảng điều khiển, quầy thu ngân).
+
 ## Tài liệu và quy ước
 
 - Sơ đồ ERD: [erd_diagram.drawio](docs/diagram/erd_diagram.drawio).
@@ -195,6 +205,8 @@ Kiểm thử tích hợp cần thông tin kết nối và quyền tạo/xóa dat
 - Sơ đồ Activity: [`docs/diagram/activity/`](docs/diagram/activity/).
 - Sơ đồ Use Case: [`docs/diagram/use case/`](docs/diagram/use%20case/).
 - Cấu hình workflow: [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml).
+- Giao diện quản trị: [ADMIN_UI_DESIGN_SYSTEM.md](docs/ADMIN_UI_DESIGN_SYSTEM.md), [ADMIN_DAILY_WORKSPACE.md](docs/ADMIN_DAILY_WORKSPACE.md).
+- Cấp lại token khách (UC-12): [BACKEND_TOKEN_REISSUE_UC12.md](docs/BACKEND_TOKEN_REISSUE_UC12.md).
 - Thay đổi schema được quản lý bằng migration; các phần yêu cầu, thiết kế và kiểm thử cần được cập nhật nhất quán.
 - Không commit file `.env`, mật khẩu, token hoặc khóa dịch vụ.
 
