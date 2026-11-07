@@ -1,5 +1,7 @@
 # Mốc 7 — Đổi mã tiền mặt lấy token khách
 
+> **Cập nhật sau mốc 7 (UC-12):** mất token sau khi đã đổi mã nay được nhân viên xử lý bằng chức năng cấp lại token — xem [BACKEND_TOKEN_REISSUE_UC12.md](./BACKEND_TOKEN_REISSUE_UC12.md). Luồng đổi mã tiền mặt của mốc này chấp nhận thêm mã nhận vé có mục đích REISSUE cho phiên đã cấp lại; các điều kiện cấp token lần đầu mô tả dưới đây không đổi. Các ghi chú “chưa có cấp lại token” bên dưới là phạm vi lịch sử của mốc 7.
+
 ## Nguồn, phạm vi và lựa chọn đã được giao
 
 Đọc lại trực tiếp `CNPM_BAOCAO (8).docx` (Thảo Cầm Viên) ngày 20/10/2026: US-A03 AC4, US-A04 AC1–AC2; QT-01/03/04/05/13/14; NFR-05/06/07/08/13/18; UC-02 đầy đủ, phần phối hợp UC-11; mục 1.6.2, 4.2–4.3 và bảng VISIT_SESSIONS/PAYMENTS tại 4.4.4.
