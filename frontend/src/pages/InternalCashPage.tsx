@@ -336,7 +336,8 @@ export const InternalCashPage: React.FC = () => {
   return <AdminPage className="ops-cash-page">
     <PageHeader eyebrow="Quầy vé" title="Quầy thu ngân" description="Một khách, ba bước. Số tiền được xác nhận bởi máy chủ."
       actions={<><Link className="adm-btn adm-btn--secondary" to="/internal/reissue"><Icon name="key" />Cấp lại vé</Link><Link className="adm-btn adm-btn--secondary" to="/internal/today">Mở sổ giao dịch <Icon name="arrow" /></Link></>} />
-    {stepError && <Alert tone="danger" title={stepError.step} onDismiss={() => setStepError(null)}>{stepError.message}{stepError.code && <div className="adm-small">Mã hỗ trợ: <code>{stepError.code}</code></div>}</Alert>}
+    {stepError && <Alert tone="danger" title={stepError.step} onDismiss={() => setStepError(null)}
+      action={stepError.code === 'VISIT_TOKEN_ALREADY_ISSUED' && activeSessionId ? <Link className="adm-btn adm-btn--secondary adm-btn--sm" to={`/internal/reissue?session=${encodeURIComponent(activeSessionId)}`}><Icon name="key" />Cấp lại vé cho phiên này</Link> : undefined}>{stepError.message}{stepError.code && <div className="adm-small">Mã hỗ trợ: <code>{stepError.code}</code></div>}</Alert>}
     {copiedNotice && <Alert tone="success" onDismiss={() => setCopiedNotice(null)}>{copiedNotice}</Alert>}
     <div className="adm-grid adm-grid--main-aside">
       <Card>
