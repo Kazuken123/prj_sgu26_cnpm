@@ -29,6 +29,7 @@ import { InternalAuditLogsPage } from './pages/InternalAuditLogsPage';
 import { InternalMonitoringPage } from './pages/InternalMonitoringPage';
 import { InternalKnowledgePage } from './pages/InternalKnowledgePage';
 import { InternalReissuePage } from './pages/InternalReissuePage';
+import { InternalNotFoundPage } from './pages/InternalNotFoundPage';
 
 export const App: React.FC = () => {
   const { t } = useVisitorLanguage();
@@ -190,6 +191,9 @@ export const App: React.FC = () => {
               </InternalProtectedRoute>
             }
           />
+
+          {/* Unknown internal paths stay inside the workspace */}
+          <Route path="/internal/*" element={<InternalProtectedRoute><InternalNotFoundPage /></InternalProtectedRoute>} />
 
           <Route path="*" element={<HomePage />} />
         </Routes>
