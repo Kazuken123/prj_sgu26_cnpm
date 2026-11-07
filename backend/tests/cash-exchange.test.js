@@ -102,11 +102,17 @@ it("wrong, expired, unknown and cross-session codes cannot mint a token or consu
 });
 it("PENDING, failed, online, revoked, expired and inconsistent visits never inspect or consume a code", async () => {
   for (const patch of [{ paymentStatus: "PENDING" }, { paymentStatus: "FAILED" }, { paymentMethod: "ONLINE" },
-    { sessionStatus: "REVOKED" }, { expiresAt: new Date(0) }, { paidAt: null }, { activatedAt: null }, { expiresAt: null }, { reissueCount: 1 }]) {
+    { sessionStatus: "REVOKED" }, { expiresAt: new Date(0) }, { paidAt: null }, { activatedAt: null }, { expiresAt: null },
+    { reissueCount: 1, tokenHash: "still-issued" }]) {
     const f = exchangeFixture(); Object.assign(f.state.row, patch);
     await assert.rejects(f.service.exchangeCashCode(f.id, input, ip), error => error.status === 409);
     assert.equal(f.redisState.reads, 0); assert.equal(f.redisState.codes.has(f.id), true); assert.equal(f.state.audits.length, 0);
   }
+});
+it("UC-12: a reissued session (token cleared, count > 0) never accepts a first-issue cash code", async () => {
+  const f = exchangeFixture(); f.state.row.reissueCount = 1;
+  await assert.rejects(f.service.exchangeCashCode(f.id, input, ip), { status: 401, code: "CASH_CODE_INVALID_OR_EXPIRED" });
+  assert.equal(f.state.row.tokenHash, null); assert.equal(f.redisState.codes.has(f.id), true); assert.equal(f.state.audits.length, 0);
 });
 it("rate budgets apply to wrong and malformed codes, reset at the boundary and include random session IDs", async () => {
   const f = exchangeFixture();
