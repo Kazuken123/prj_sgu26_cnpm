@@ -145,3 +145,25 @@ frontend/
 ├── tsconfig.json              Cấu hình trình biên dịch TypeScript
 └── vite.config.ts             Cấu hình máy chủ phát triển Vite
 ```
+
+## Phân hệ quản trị (ADMIN / STAFF)
+
+Toàn bộ giao diện `/internal/*` dùng hệ thống thiết kế riêng, tách khỏi giao diện khách — xem [`../docs/ADMIN_UI_DESIGN_SYSTEM.md`](../docs/ADMIN_UI_DESIGN_SYSTEM.md).
+
+| Thành phần | Vị trí |
+|---|---|
+| Sidebar, topbar, breadcrumb, tiêu đề tab | `src/components/InternalNavigation.tsx` |
+| Chặn quyền ADMIN / chuyển về đăng nhập | `src/components/InternalProtectedRoute.tsx` |
+| Thành phần dùng chung (Card, Badge, Field, Pagination, ConfirmDialog…) | `src/components/admin/AdminUI.tsx` |
+| Token màu, bố cục, responsive | `src/internal.css` (mọi quy tắc dưới `.internal-workspace` hoặc tiền tố admin) |
+| Cảnh báo rời trang khi còn thay đổi chưa lưu | `src/hooks/useUnsavedChangesGuard.ts` |
+| Cấp lại vé cho khách (UC-12) | `src/pages/InternalReissuePage.tsx`, `src/api/reissue.ts` |
+| Trang 404 nội bộ | `src/pages/InternalNotFoundPage.tsx` |
+
+Quy tắc khi sửa:
+
+- Không sửa trang/thành phần của khách để phục vụ admin; class dùng chung chỉ được re-skin dưới `.internal-workspace`.
+- Giữ nguyên route, API contract, nhãn và `id` mà test đang kiểm tra (ví dụ `business-day`, `payment-search`, class `ops-revenue`).
+- Thao tác không hoàn tác dùng `ConfirmDialog`; lỗi máy chủ hiển thị thông điệp và mã hỗ trợ, không thay số liệu lỗi bằng 0.
+
+Test riêng của phân hệ quản trị nằm trong `test/admin-*.test.js`, `test/reissue-*.test.js`, `test/internal-*.test.js`, `test/audit-quick-filter.test.js`, `test/cash-reissue-shortcut.test.js`, `test/login-caps-lock.test.js` và `test/unsaved-changes-guard.test.js`; chạy chung bằng `npm test`.
