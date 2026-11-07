@@ -1,6 +1,6 @@
 # Admin workspace: visitor activity, daily work and collections
 
-Open `/internal/today` after signing in. The first section is visitor analytics; the second is daily collections and staff work. This document covers the new local admin changes after frontend commit `93cea93`. The earlier [frontend-only backend handoff](./BACKEND_HANDOFF_FRONTEND_ONLY.md) does not include these analytics/reporting changes.
+Open `/internal/today` (sidebar **Tổng quan → Bảng điều khiển**) after signing in. Since the admin redesign (see [ADMIN_UI_DESIGN_SYSTEM.md](./ADMIN_UI_DESIGN_SYSTEM.md)) the page starts with the business-day toolbar and KPI cards (collected cash, paid, pending, unclaimed — each card filters the transaction ledger), followed by hourly activity, items to handle, the transaction ledger, staff totals and content checks. Visitor analytics is the last section. This document covers the new local admin changes after frontend commit `93cea93`. The earlier [frontend-only backend handoff](./BACKEND_HANDOFF_FRONTEND_ONLY.md) does not include these analytics/reporting changes.
 
 ## Visitor analytics
 
@@ -38,6 +38,7 @@ Only token hashes, presence intervals and POI visit records are stored. Raw coor
 - The transaction search and filters affect only the table; they do not change the day's totals. CSV export is a day summary, including staff and hourly totals where authorized.
 - Staff open a transaction directly, review the receipt, explicitly confirm receipt of cash, and issue the six-digit customer code. The URL keeps the current session so refreshing reopens the same transaction. An uncertain create response retains its Idempotency-Key across reloads.
 - Expired codes disappear from the display. An unsuccessful request never silently marks a payment paid or starts another sale.
+- A visitor who already activated their ticket but lost it on the device is handled on **Quầy vé → Cấp lại vé** (`/internal/reissue`, UC-12): reconcile session, payment reference and payment time, confirm, then hand over a one-time six-digit pickup code. When issuing a cash code reports `VISIT_TOKEN_ALREADY_ISSUED`, the cash desk links straight to that page. See [BACKEND_TOKEN_REISSUE_UC12.md](./BACKEND_TOKEN_REISSUE_UC12.md).
 - Activity logs default to today, use Vietnam dates and readable action labels. Technical health remains under Management. The old rolling revenue panel links to the daily collection report to avoid conflicting totals.
 
 These figures are collections for narration access. They are not zoo entrance-ticket revenue, profit, staff attendance or a counted cash-drawer reconciliation.
