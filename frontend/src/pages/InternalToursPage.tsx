@@ -4,6 +4,8 @@ import { getTours, TourDto } from '../api/tour';
 import { getPois, PoiDto } from '../api/poi';
 import { executeAuthenticatedInternalRequest } from '../api/auth';
 import { getApiBaseUrl } from '../api/client';
+import { Icon } from '../components/Icon';
+import { AdminPage, PageHeader, Card, Alert, EmptyState, LoadingState, Pagination } from '../components/admin/AdminUI';
 
 export const InternalToursPage: React.FC = () => {
   const baseUrl = getApiBaseUrl();
@@ -38,124 +40,42 @@ export const InternalToursPage: React.FC = () => {
     loadData(1);
   }, []);
 
+  const totalPages = Math.max(1, Math.ceil(total / 10));
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto', padding: '24px 16px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h1 style={{ fontSize: '1.6rem', color: '#132a13', margin: 0, fontWeight: 700 }}>
-            Quản Lý Lộ Trình Tham Quan (Tours)
-          </h1>
-          <p style={{ color: '#4b5563', fontSize: '0.86rem', margin: '4px 0 0' }}>
-            Thiết lập các lộ trình mẫu với thứ tự POI ghé thăm để du khách lựa chọn khi tham quan
-          </p>
-        </div>
+    <AdminPage>
+      <PageHeader eyebrow="Nội dung thuyết minh" title="Quản lý lộ trình tham quan (Tours)"
+        description="Thiết lập các lộ trình mẫu với thứ tự POI ghé thăm để du khách lựa chọn khi tham quan."
+        actions={<Link to="/internal/tours/new" className="adm-btn adm-btn--primary"><Icon name="plus" />Tạo lộ trình mẫu mới</Link>} />
 
-        <Link
-          to="/internal/tours/new"
-          className="btn-primary"
-          style={{ padding: '8px 18px', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-        >
-          <span>➕</span>
-          <span>Tạo lộ trình mẫu mới</span>
-        </Link>
-      </div>
-
-      {error && (
-        <div className="banner-notice" style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', marginBottom: '16px' }}>
-          <div>{error}</div>
-        </div>
-      )}
+      {error && <Alert tone="danger" action={<button type="button" className="adm-btn adm-btn--secondary adm-btn--sm" onClick={() => loadData(page)}>Thử lại</button>}>{error}</Alert>}
 
       {loading ? (
-        <div className="tcv-card" style={{ textAlign: 'center', padding: '40px' }}>
-          Đang tải danh sách lộ trình...
-        </div>
+        <Card><LoadingState label="Đang tải danh sách lộ trình..." /></Card>
       ) : tours.length === 0 ? (
-        <div className="tcv-card" style={{ textAlign: 'center', padding: '40px', color: '#6b7280' }}>
-          Chưa có lộ trình mẫu nào được tạo. Nhấn "Tạo lộ trình mẫu mới" để bắt đầu.
-        </div>
+        <Card><EmptyState icon="map" title="Chưa có lộ trình mẫu nào được tạo." action={<Link to="/internal/tours/new" className="adm-btn adm-btn--primary adm-btn--sm"><Icon name="plus" />Tạo lộ trình mẫu mới</Link>}>Nhấn "Tạo lộ trình mẫu mới" để bắt đầu.</EmptyState></Card>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <div className="adm-grid adm-grid--2" style={{ alignItems: 'start' }}>
           {tours.map((tour) => {
             const sortedItems = [...tour.items].sort((a, b) => a.sequenceNo - b.sequenceNo);
             return (
-              <div key={tour.tourId} className="tcv-card" style={{ padding: '20px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '10px' }}>
-                  <div>
-                    <h3 style={{ margin: '0 0 6px', fontSize: '1.2rem', color: '#14532d' }}>
-                      {tour.name}
-                    </h3>
-                    <p style={{ margin: 0, color: '#4b5563', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                      {tour.description || 'Chưa có mô tả'}
-                    </p>
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <Link
-                      to={`/internal/tours/${tour.tourId}/edit`}
-                      className="btn-secondary btn-sm"
-                      style={{ textDecoration: 'none', padding: '6px 14px' }}
-                    >
-                      ✏️ Chỉnh sửa
-                    </Link>
-                  </div>
-                </div>
-
-                <div style={{ marginTop: '16px', paddingTop: '14px', borderTop: '1px solid #e5e7eb' }}>
-                  <div style={{ fontWeight: 600, fontSize: '0.84rem', color: '#374151', marginBottom: '8px' }}>
-                    Các trạm dừng trong lộ trình ({sortedItems.length} trạm):
-                  </div>
-
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                    {sortedItems.map((item) => {
-                      const poi = pois.find((p) => p.poiId === item.poiId);
-                      const poiName = item.poiName || (poi ? poi.name : `POI #${item.poiId}`);
-                      return (
-                        <div
-                          key={`${tour.tourId}-${item.poiId}`}
-                          style={{
-                            background: '#f0fdf4',
-                            border: '1px solid #bbf7d0',
-                            borderRadius: '20px',
-                            padding: '4px 12px',
-                            fontSize: '0.82rem',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            gap: '6px',
-                            color: '#166534'
-                          }}
-                        >
-                          <span style={{
-                            background: '#15803d',
-                            color: '#fff',
-                            borderRadius: '50%',
-                            width: '18px',
-                            height: '18px',
-                            display: 'inline-flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            fontSize: '0.72rem',
-                            fontWeight: 700
-                          }}>
-                            {item.sequenceNo}
-                          </span>
-                          <span>{poiName}</span>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+              <Card key={tour.tourId} title={tour.name} description={tour.description || 'Chưa có mô tả'}
+                actions={<Link to={`/internal/tours/${tour.tourId}/edit`} className="adm-btn adm-btn--secondary adm-btn--sm"><Icon name="edit" />Chỉnh sửa</Link>}>
+                <p className="adm-label" style={{ margin: '0 0 10px' }}>Các trạm dừng trong lộ trình ({sortedItems.length} trạm)</p>
+                <ol className="adm-tour-stops">
+                  {sortedItems.map((item) => {
+                    const poi = pois.find((p) => p.poiId === item.poiId);
+                    const poiName = item.poiName || (poi ? poi.name : `POI #${item.poiId}`);
+                    return <li key={`${tour.tourId}-${item.poiId}`}><span>{item.sequenceNo}</span>{poiName}</li>;
+                  })}
+                </ol>
+              </Card>
             );
           })}
         </div>
       )}
 
-      {total > 0 && (
-        <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.84rem', color: '#6b7280' }}>
-          <div>Tổng cộng: <strong>{total}</strong> lộ trình (Trang {page})</div>
-        </div>
-      )}
-    </div>
+      {total > 0 && <Card flush><Pagination page={page} totalPages={totalPages} disabled={loading}
+        summary={<>Tổng cộng: <strong>{total}</strong> lộ trình</>} onChange={next => loadData(next)} /></Card>}
+    </AdminPage>
   );
 };

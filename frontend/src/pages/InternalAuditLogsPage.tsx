@@ -3,8 +3,10 @@ import { getAuditLogs, AuditLogDto } from '../api/audit';
 import { executeAuthenticatedInternalRequest } from '../api/auth';
 import { businessDate } from '../api/operations';
 import { getApiBaseUrl } from '../api/client';
+import { Icon } from '../components/Icon';
+import { AdminPage, PageHeader, Card, Alert, Badge, Field, EmptyState, LoadingState, Pagination } from '../components/admin/AdminUI';
 
-const actionLabels: Record<string,string> = {"CONFIRM_CASH_PAYMENT":"Xác nhận thu tiền","CREATE_PENDING_PAYMENT":"Tạo yêu cầu thu tiền","ISSUE_CASH_CODE":"Cấp mã nghe","ISSUE_VISITOR_TOKEN":"Khách đổi mã nghe","CREATE_STAFF":"Thêm nhân viên","CREATE_POI":"Thêm điểm tham quan","UPDATE_POI":"Sửa điểm tham quan","DEACTIVATE_POI":"Ngừng mở điểm tham quan","CREATE_TOUR":"Tạo lộ trình","UPDATE_TOUR":"Sửa lộ trình","RETRY_CONTENT_JOB":"Thử lại xử lý nội dung","CLAIM_CONTENT_JOB":"Bắt đầu xử lý nội dung","FAIL_CONTENT_JOB":"Xử lý nội dung thất bại","RECOVER_CONTENT_JOB":"Khôi phục tác vụ","PREPARE_TRANSLATION":"Chuẩn bị bản dịch","IMPORT_REVIEWED_TRANSLATION":"Nhập bản dịch đã duyệt","COMPLETE_CONTENT_JOB":"Hoàn tất nội dung","CREATE_KNOWLEDGE_DOCUMENT":"Thêm tài liệu tra cứu","UPDATE_KNOWLEDGE_DOCUMENT":"Sửa tài liệu tra cứu","DEACTIVATE_KNOWLEDGE_DOCUMENT":"Ngừng tài liệu tra cứu","PUBLISH_KNOWLEDGE_DOCUMENT":"Xuất bản tài liệu","FAIL_KNOWLEDGE_PROCESSING":"Lỗi xử lý tài liệu"};
+const actionLabels: Record<string,string> = {"CONFIRM_CASH_PAYMENT":"Xác nhận thu tiền","CREATE_PENDING_PAYMENT":"Tạo yêu cầu thu tiền","ISSUE_CASH_CODE":"Cấp mã nghe","ISSUE_VISITOR_TOKEN":"Khách đổi mã nghe","CREATE_STAFF":"Thêm nhân viên","CREATE_POI":"Thêm điểm tham quan","UPDATE_POI":"Sửa điểm tham quan","DEACTIVATE_POI":"Ngừng mở điểm tham quan","CREATE_TOUR":"Tạo lộ trình","UPDATE_TOUR":"Sửa lộ trình","RETRY_CONTENT_JOB":"Thử lại xử lý nội dung","CLAIM_CONTENT_JOB":"Bắt đầu xử lý nội dung","FAIL_CONTENT_JOB":"Xử lý nội dung thất bại","RECOVER_CONTENT_JOB":"Khôi phục tác vụ","PREPARE_TRANSLATION":"Chuẩn bị bản dịch","IMPORT_REVIEWED_TRANSLATION":"Nhập bản dịch đã duyệt","COMPLETE_CONTENT_JOB":"Hoàn tất nội dung","CREATE_KNOWLEDGE_DOCUMENT":"Thêm tài liệu tra cứu","UPDATE_KNOWLEDGE_DOCUMENT":"Sửa tài liệu tra cứu","DEACTIVATE_KNOWLEDGE_DOCUMENT":"Ngừng tài liệu tra cứu","PUBLISH_KNOWLEDGE_DOCUMENT":"Xuất bản tài liệu","FAIL_KNOWLEDGE_PROCESSING":"Lỗi xử lý tài liệu","REISSUE_VISITOR_TOKEN":"Cấp lại vé cho khách","PREPARE_ONLINE_CHECKOUT":"Chuẩn bị thanh toán online","ONLINE_CHECKOUT_READY":"Phát hành thanh toán online","CONFIRM_ONLINE_PAYMENT":"Xác nhận thanh toán online","FAIL_ONLINE_PAYMENT":"Thanh toán online thất bại","SEED_APPROVED_DEMO":"Nạp dữ liệu demo","PUBLISH_DEMO_AUDIO":"Xuất bản audio demo","ROLLBACK_DEMO_AUDIO":"Hoàn tác audio demo"};
 
 export const InternalAuditLogsPage: React.FC = () => {
   const baseUrl = getApiBaseUrl();
@@ -66,166 +68,71 @@ export const InternalAuditLogsPage: React.FC = () => {
   };
 
   const totalPages = Math.ceil(total / limit) || 1;
+  // Details are already projected to an allow-list by the backend (UC-17);
+  // render as plain text only.
+  const detailText = (details: AuditLogDto['details']) => details && typeof details === 'object'
+    ? Object.entries(details).filter(([, value]) => value !== null && value !== undefined && typeof value !== 'object')
+      .map(([key, value]) => `${key}: ${String(value)}`) : [];
+  const toneFor = (action: string) => action.startsWith('FAIL') ? 'danger' : action.startsWith('REISSUE') ? 'warning' : action.startsWith('DEACTIVATE') ? 'neutral' : action.includes('PAYMENT') || action.includes('CASH') ? 'success' : 'info';
 
   return (
-    <div style={{ maxWidth: '1200px', margin: '0 auto', padding: '24px 16px' }}>
-      <div style={{ marginBottom: '20px' }}>
-        <h1 style={{ fontSize: '1.6rem', color: '#132a13', margin: 0, fontWeight: 700 }}>
-          Lịch sử thao tác
-        </h1>
-        <p style={{ color: '#4b5563', fontSize: '0.86rem', margin: '4px 0 0' }}>
-          Xem ai đã thu tiền, cấp mã hoặc sửa nội dung. Bộ lọc tính trọn ngày theo giờ Việt Nam.
-        </p>
-      </div>
+    <AdminPage>
+      <PageHeader eyebrow="Quản trị hệ thống" title="Lịch sử thao tác"
+        description="Xem ai đã thu tiền, cấp mã, cấp lại vé hoặc sửa nội dung. Bộ lọc tính trọn ngày theo giờ Việt Nam. Nhật ký chỉ được xem, không sửa hoặc xóa." />
 
-      {/* Bo loc nhat ky */}
-      <div className="tcv-card" style={{ marginBottom: '20px', padding: '16px' }}>
-        <form onSubmit={handleFilter} style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'flex-end' }}>
-          <div>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>
-              Loại hành động
-            </label>
-            <select
-              value={selectedAction}
-              onChange={(e) => setSelectedAction(e.target.value)}
-              style={{ padding: '8px 12px', borderRadius: '4px', border: '1px solid #d1d5db', fontSize: '0.86rem' }}
-            >
+      {error && <Alert tone="danger">{error}{logs.length > 0 && " Đang hiển thị lần tải thành công trước."}</Alert>}
+
+      <Card flush>
+        {/* Bo loc nhat ky */}
+        <form onSubmit={handleFilter} className="adm-toolbar">
+          <Field label="Loại hành động" htmlFor="audit-action">
+            <select id="audit-action" value={selectedAction} onChange={(e) => setSelectedAction(e.target.value)}>
               <option value="">-- Tất cả hành động --</option>
-              {availableActions.map((act) => (
-                <option key={act} value={act}>{actionLabels[act] || act}</option>
-              ))}
+              {availableActions.map((act) => <option key={act} value={act}>{actionLabels[act] || act}</option>)}
             </select>
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>
-              Từ ngày
-            </label>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              style={{ padding: '7px 12px', borderRadius: '4px', border: '1px solid #d1d5db', fontSize: '0.86rem' }}
-            />
-          </div>
-
-          <div>
-            <label style={{ display: 'block', fontSize: '0.78rem', fontWeight: 600, color: '#374151', marginBottom: '4px' }}>
-              Đến ngày
-            </label>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              style={{ padding: '7px 12px', borderRadius: '4px', border: '1px solid #d1d5db', fontSize: '0.86rem' }}
-            />
-          </div>
-
-          <button type="submit" className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.86rem' }}>
-            Lọc nhật ký
-          </button>
+          </Field>
+          <Field label="Từ ngày" htmlFor="audit-from"><input id="audit-from" type="date" value={fromDate} onChange={(e) => setFromDate(e.target.value)} /></Field>
+          <Field label="Đến ngày" htmlFor="audit-to"><input id="audit-to" type="date" value={toDate} onChange={(e) => setToDate(e.target.value)} /></Field>
+          <button type="submit" className="adm-btn adm-btn--primary"><Icon name="search" />Lọc nhật ký</button>
+          <span className="adm-toolbar__spacer" />
+          <Badge>{total} bản ghi</Badge>
         </form>
-      </div>
 
-      {error && (
-        <div className="banner-notice" style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#991b1b', marginBottom: '16px' }}>
-          <div>{error}{logs.length > 0 && " Đang hiển thị lần tải thành công trước."}</div>
+        <div className="adm-table-wrap">
+          <table className="adm-table">
+            <caption className="sr-only">Nhật ký thao tác</caption>
+            <thead>
+              <tr><th>Mã #</th><th>Thời điểm (giờ Việt Nam)</th><th>Hành động</th><th>Tài nguyên</th><th>Người thực hiện</th><th>Chi tiết</th><th>IP</th></tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr className="adm-state-row"><td colSpan={7}><LoadingState label="Đang tải dữ liệu nhật ký..." /></td></tr>
+              ) : logs.length === 0 ? (
+                <tr className="adm-state-row"><td colSpan={7}><EmptyState icon="search" title="Không tìm thấy bản ghi nhật ký nào phù hợp.">Thử mở rộng khoảng ngày hoặc chọn “Tất cả hành động”.</EmptyState></td></tr>
+              ) : (
+                logs.map((log) => {
+                  const formattedDate = new Date(log.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
+                  const lines = detailText(log.details);
+                  return (
+                    <tr key={log.logId}>
+                      <td className="adm-mono adm-muted">#{log.logId}</td>
+                      <td style={{ whiteSpace: 'nowrap' }}>{formattedDate}</td>
+                      <td><Badge tone={toneFor(log.action)}>{actionLabels[log.action] || log.action}</Badge><small className="adm-mono">{log.action}</small></td>
+                      <td>{log.resourceType ? <><span>{log.resourceType}</span><small className="adm-mono" style={{ maxWidth: 220, overflowWrap: 'anywhere' }}>{log.resourceId || 'N/A'}</small></> : '—'}</td>
+                      <td className="adm-cell-title">{log.actorName || log.userEmail || (log.userId ? `User #${log.userId}` : 'Hệ thống')}</td>
+                      <td style={{ maxWidth: 320 }}>{lines.length ? <details><summary className="adm-link" style={{ cursor: 'pointer' }}>{lines.length} trường</summary><ul style={{ margin: '6px 0 0', paddingLeft: 16, fontSize: 12, overflowWrap: 'anywhere' }}>{lines.map(line => <li key={line}>{line}</li>)}</ul></details> : <span className="adm-muted">—</span>}</td>
+                      <td className="adm-mono adm-muted" style={{ fontSize: 12 }}>{log.ipAddress || '—'}</td>
+                    </tr>
+                  );
+                })
+              )}
+            </tbody>
+          </table>
         </div>
-      )}
 
-      {/* Bang nhat ky */}
-      <div className="tcv-card" style={{ padding: '0', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.86rem' }}>
-          <thead>
-            <tr style={{ background: '#f3f4f6', borderBottom: '2px solid #e5e7eb', color: '#374151' }}>
-              <th style={{ padding: '12px 14px' }}>Mã #</th>
-              <th style={{ padding: '12px 14px' }}>Thời điểm (giờ Việt Nam)</th>
-              <th style={{ padding: '12px 14px' }}>Hành động</th>
-              <th style={{ padding: '12px 14px' }}>Tài nguyên</th>
-              <th style={{ padding: '12px 14px' }}>Người thực hiện</th>
-              <th style={{ padding: '12px 14px' }}>IP</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '30px', color: '#6b7280' }}>
-                  Đang tải dữ liệu nhật ký...
-                </td>
-              </tr>
-            ) : logs.length === 0 ? (
-              <tr>
-                <td colSpan={6} style={{ textAlign: 'center', padding: '30px', color: '#6b7280' }}>
-                  Không tìm thấy bản ghi nhật ký nào phù hợp.
-                </td>
-              </tr>
-            ) : (
-              logs.map((log) => {
-                const formattedDate = new Date(log.createdAt).toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' });
-                return (
-                  <tr key={log.logId} style={{ borderBottom: '1px solid #f3f4f6' }}>
-                    <td style={{ padding: '10px 14px', fontFamily: 'monospace', color: '#6b7280' }}>
-                      #{log.logId}
-                    </td>
-                    <td style={{ padding: '10px 14px', color: '#374151', whiteSpace: 'nowrap' }}>
-                      {formattedDate}
-                    </td>
-                    <td style={{ padding: '10px 14px' }}>
-                      <span style={{
-                        background: '#e0f2fe',
-                        color: '#0369a1',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontWeight: 600,
-                        fontSize: '0.8rem'
-                      }}>
-                        {actionLabels[log.action] || log.action}
-                      </span>
-                    </td>
-                    <td style={{ padding: '10px 14px', color: '#4b5563' }}>
-                      {log.resourceType ? `${log.resourceType} (${log.resourceId || 'N/A'})` : '—'}
-                    </td>
-                    <td style={{ padding: '10px 14px', color: '#1f2937' }}>
-                      {log.actorName || log.userEmail || (log.userId ? `User #${log.userId}` : 'Hệ thống')}
-                    </td>
-                    <td style={{ padding: '10px 14px', fontFamily: 'monospace', fontSize: '0.78rem', color: '#6b7280' }}>
-                      {log.ipAddress || '—'}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-
-        {/* Phan trang */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 16px', background: '#f9fafb', borderTop: '1px solid #e5e7eb' }}>
-          <div style={{ fontSize: '0.82rem', color: '#6b7280' }}>
-            Hiển thị trang <strong>{page}</strong> / <strong>{totalPages}</strong> (Tổng cộng <strong>{total}</strong> bản ghi)
-          </div>
-
-          <div style={{ display: 'flex', gap: '6px' }}>
-            <button
-              type="button"
-              onClick={() => fetchLogs(page - 1)}
-              disabled={page <= 1 || loading}
-              className="btn-secondary btn-sm"
-              style={{ padding: '4px 12px' }}
-            >
-              ← Trang trước
-            </button>
-            <button
-              type="button"
-              onClick={() => fetchLogs(page + 1)}
-              disabled={page >= totalPages || loading}
-              className="btn-secondary btn-sm"
-              style={{ padding: '4px 12px' }}
-            >
-              Trang sau →
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
+        <Pagination page={page} totalPages={totalPages} disabled={loading}
+          summary={<>Tổng cộng <strong>{total}</strong> bản ghi</>} onChange={next => fetchLogs(next)} />
+      </Card>
+    </AdminPage>
   );
 };

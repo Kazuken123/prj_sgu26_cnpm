@@ -6,6 +6,8 @@ import { clearInternalSession } from '../api/authStorage.ts';
 import type { InternalUser } from '../api/authStorage.ts';
 import { getContentJobs, retryContentJob } from '../api/contentJob.ts';
 import type { ContentJobDto, JobStatus } from '../api/contentJob.ts';
+import { Icon } from '../components/Icon';
+import { AdminPage, PageHeader, Card, Alert, Badge, StatusBadge, Field, EmptyState, LoadingState, Pagination } from '../components/admin/AdminUI';
 
 export const InternalJobsPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -173,287 +175,105 @@ export const InternalJobsPage: React.FC = () => {
   };
 
   if (isVerifying) {
-    return (
-      <div className="container" style={{ padding: '60px 16px', textAlign: 'center' }}>
-        <p>Đang kiểm tra quyền hạn tài khoản nội bộ...</p>
-      </div>
-    );
+    return <AdminPage><LoadingState label="Đang kiểm tra quyền hạn tài khoản nội bộ..." /></AdminPage>;
   }
 
   const totalPages = Math.ceil(total / limit) || 1;
+  const hasFilters = Boolean(poiIdFilter || statusFilter || languageFilter || currentOnlyFilter);
 
   return (
-    <div className="container" style={{ padding: '32px 16px', maxWidth: '1150px' }}>
-      <div className="page-header" style={{ marginBottom: '24px' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
-          <div>
-            <h1 className="page-title" style={{ margin: 0 }}>Theo dõi tác vụ nội dung (Content Jobs)</h1>
-            <p className="page-subtitle" style={{ margin: '6px 0 0 0' }}>
-              Kiểm tra tiến trình dịch thuật và tổng hợp âm thanh đa ngôn ngữ, yêu cầu thử lại các tác vụ thất bại
-            </p>
-          </div>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Link to="/internal/pois" className="btn-secondary">
-              Quản lý POI
-            </Link>
-            <Link to="/internal/account" className="btn-secondary">
-              Tài khoản
-            </Link>
-          </div>
-        </div>
-      </div>
+    <AdminPage>
+      <PageHeader eyebrow="Nội dung thuyết minh" title="Theo dõi tác vụ nội dung (Content Jobs)"
+        description="Kiểm tra tiến trình dịch thuật và tổng hợp âm thanh đa ngôn ngữ, yêu cầu thử lại các tác vụ thất bại."
+        actions={<Link to="/internal/pois" className="adm-btn adm-btn--secondary"><Icon name="pin" />Quản lý POI</Link>} />
 
-      {actionNotice && (
-        <div className="panel" style={{ marginBottom: '20px', borderLeft: '4px solid #10b981', backgroundColor: '#f0fdf4', padding: '12px 16px' }}>
-          <div style={{ color: '#166534', fontWeight: 600 }}>{actionNotice}</div>
-        </div>
-      )}
+      {actionNotice && <Alert tone="success" onDismiss={() => setActionNotice(null)}>{actionNotice}</Alert>}
+      {errorMessage && <Alert tone="danger" onDismiss={() => setErrorMessage(null)}>{errorMessage}</Alert>}
 
-      {errorMessage && (
-        <div className="panel" style={{ marginBottom: '20px', borderLeft: '4px solid #dc2626', backgroundColor: '#fef2f2', padding: '12px 16px' }}>
-          <div style={{ color: '#991b1b', fontWeight: 600 }}>{errorMessage}</div>
-        </div>
-      )}
-
-      {/* BO LOC VA TIM KIEM TAC VU */}
-      <div className="panel" style={{ marginBottom: '20px', padding: '16px 20px', backgroundColor: '#f8fafc' }}>
-        <form onSubmit={handleApplyFilter} style={{ display: 'flex', gap: '14px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <label htmlFor="filter-poi" style={{ fontSize: '0.88rem', fontWeight: 600 }}>
-              Mã POI:
-            </label>
-            <input
-              id="filter-poi"
-              type="number"
-              min="1"
-              value={poiIdFilter}
-              onChange={(e) => setPoiIdFilter(e.target.value)}
-              placeholder="VD: 1, 2..."
-              style={{ width: '90px', padding: '6px 8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.88rem', fontFamily: 'monospace' }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <label htmlFor="filter-status" style={{ fontSize: '0.88rem', fontWeight: 600 }}>
-              Trạng thái:
-            </label>
-            <select
-              id="filter-status"
-              value={statusFilter}
-              onChange={(e) => {
-                setStatusFilter(e.target.value as JobStatus | '');
-                setPage(1);
-              }}
-              style={{ padding: '6px 10px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.88rem' }}
-            >
+      <Card flush>
+        {/* BO LOC VA TIM KIEM TAC VU */}
+        <form onSubmit={handleApplyFilter} className="adm-toolbar">
+          <Field label="Mã POI" htmlFor="filter-poi">
+            <input id="filter-poi" type="number" min="1" value={poiIdFilter} onChange={(e) => setPoiIdFilter(e.target.value)} placeholder="VD: 1, 2..." className="adm-mono" style={{ width: 120 }} />
+          </Field>
+          <Field label="Trạng thái" htmlFor="filter-status">
+            <select id="filter-status" value={statusFilter} onChange={(e) => { setStatusFilter(e.target.value as JobStatus | ''); setPage(1); }}>
               <option value="">Tất cả trạng thái</option>
               <option value="PENDING">PENDING (Đang chờ)</option>
               <option value="PROCESSING">PROCESSING (Đang xử lý)</option>
               <option value="COMPLETED">COMPLETED (Hoàn tất)</option>
               <option value="FAILED">FAILED (Thất bại)</option>
             </select>
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <label htmlFor="filter-lang" style={{ fontSize: '0.88rem', fontWeight: 600 }}>
-              Ngôn ngữ:
-            </label>
-            <input
-              id="filter-lang"
-              type="text"
-              value={languageFilter}
-              onChange={(e) => setLanguageFilter(e.target.value)}
-              placeholder="VD: en, vi..."
-              style={{ width: '80px', padding: '6px 8px', border: '1px solid #cbd5e1', borderRadius: '4px', fontSize: '0.88rem' }}
-            />
-          </div>
-
-          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <input
-              id="filter-current"
-              type="checkbox"
-              checked={currentOnlyFilter}
-              onChange={(e) => {
-                setCurrentOnlyFilter(e.target.checked);
-                setPage(1);
-              }}
-              style={{ cursor: 'pointer' }}
-            />
-            <label htmlFor="filter-current" style={{ fontSize: '0.88rem', cursor: 'pointer' }}>
-              Chỉ phiên bản hiện hành
-            </label>
-          </div>
-
-          <div style={{ display: 'flex', gap: '8px', marginLeft: 'auto' }}>
-            <button
-              type="submit"
-              className="btn-primary"
-              style={{ padding: '6px 14px', fontSize: '0.88rem' }}
-            >
-              Lọc
-            </button>
-            <button
-              type="button"
-              onClick={handleClearFilters}
-              className="btn-secondary"
-              style={{ padding: '6px 12px', fontSize: '0.88rem' }}
-            >
-              Xóa bộ lọc
-            </button>
-            <button
-              type="button"
-              onClick={fetchJobs}
-              disabled={isLoading}
-              className="btn-secondary"
-              style={{ padding: '6px 12px', fontSize: '0.88rem' }}
-            >
-              {isLoading ? 'Đang tải...' : 'Làm mới'}
-            </button>
-          </div>
+          </Field>
+          <Field label="Ngôn ngữ" htmlFor="filter-lang">
+            <input id="filter-lang" type="text" value={languageFilter} onChange={(e) => setLanguageFilter(e.target.value)} placeholder="VD: en, vi..." style={{ width: 120 }} />
+          </Field>
+          <label className="adm-check" htmlFor="filter-current" style={{ minHeight: 40 }}>
+            <input id="filter-current" type="checkbox" checked={currentOnlyFilter} onChange={(e) => { setCurrentOnlyFilter(e.target.checked); setPage(1); }} />
+            Chỉ phiên bản hiện hành
+          </label>
+          <span className="adm-toolbar__spacer" />
+          <button type="submit" className="adm-btn adm-btn--primary">Lọc</button>
+          {hasFilters && <button type="button" onClick={handleClearFilters} className="adm-btn adm-btn--ghost">Xóa bộ lọc</button>}
+          <button type="button" onClick={fetchJobs} disabled={isLoading} className="adm-btn adm-btn--secondary"><Icon name="refresh" />{isLoading ? 'Đang tải...' : 'Làm mới'}</button>
         </form>
-      </div>
 
-      {/* BANG DANH SACH JOB */}
-      <div className="panel" style={{ padding: '0', overflowX: 'auto' }}>
-        <table className="status-detail-table" style={{ width: '100%', margin: 0, borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '2px solid #cbd5e1' }}>
-              <th style={{ padding: '10px 14px', textAlign: 'left', width: '70px' }}>Job ID</th>
-              <th style={{ padding: '10px 14px', textAlign: 'left', width: '90px' }}>POI ID</th>
-              <th style={{ padding: '10px 14px', textAlign: 'center', width: '80px' }}>Ngôn ngữ</th>
-              <th style={{ padding: '10px 14px', textAlign: 'center', width: '120px' }}>Phiên bản</th>
-              <th style={{ padding: '10px 14px', textAlign: 'center', width: '120px' }}>Trạng thái</th>
-              <th style={{ padding: '10px 14px', textAlign: 'left', width: '140px' }}>Dịch thuật</th>
-              <th style={{ padding: '10px 14px', textAlign: 'left', width: '140px' }}>Âm thanh</th>
-              <th style={{ padding: '10px 14px', textAlign: 'right', width: '110px' }}>Thao tác</th>
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading ? (
+        {/* BANG DANH SACH JOB */}
+        <div className="adm-table-wrap">
+          <table className="adm-table">
+            <caption className="sr-only">Danh sách tác vụ nội dung</caption>
+            <thead>
               <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
-                  Đang tải danh sách tác vụ nội dung...
-                </td>
+                <th>Job ID</th><th>POI</th><th className="adm-center">Ngôn ngữ</th><th className="adm-center">Phiên bản</th>
+                <th>Trạng thái</th><th>Dịch thuật</th><th>Âm thanh</th><th className="adm-actions-cell">Thao tác</th>
               </tr>
-            ) : jobs.length === 0 ? (
-              <tr>
-                <td colSpan={8} style={{ textAlign: 'center', padding: '30px', color: '#64748b' }}>
-                  Không tìm thấy tác vụ nào phù hợp với bộ lọc.
-                </td>
-              </tr>
-            ) : (
-              jobs.map((job) => (
-                <tr key={job.jobId} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                  <td style={{ padding: '10px 14px', fontFamily: 'monospace' }}>#{job.jobId}</td>
-                  <td style={{ padding: '10px 14px' }}>
-                    <Link
-                      to={`/internal/pois/${job.poiId}`}
-                      style={{ color: '#0369a1', textDecoration: 'none', fontWeight: 600, fontFamily: 'monospace' }}
-                    >
-                      POI #{job.poiId}
-                    </Link>
-                  </td>
-                  <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                    <strong style={{ textTransform: 'uppercase' }}>{job.languageCode}</strong>
-                  </td>
-                  <td style={{ padding: '10px 14px', textAlign: 'center', fontSize: '0.82rem' }}>
-                    <div style={{ fontFamily: 'monospace' }}>v{job.sourceVersion} / v{job.currentVersion}</div>
-                    <span
-                      style={{
-                        fontSize: '0.72rem',
-                        color: job.isCurrent ? '#166534' : '#64748b',
-                        fontWeight: job.isCurrent ? 600 : 400
-                      }}
-                    >
-                      {job.isCurrent ? 'Hiện hành' : 'Lỗi thời'}
-                    </span>
-                  </td>
-                  <td style={{ padding: '10px 14px', textAlign: 'center' }}>
-                    <span
-                      style={{
-                        display: 'inline-block',
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontSize: '0.78rem',
-                        fontWeight: 600,
-                        backgroundColor:
-                          job.status === 'COMPLETED' ? '#dcfce7' : job.status === 'FAILED' ? '#fee2e2' : '#fef3c7',
-                        color:
-                          job.status === 'COMPLETED' ? '#166534' : job.status === 'FAILED' ? '#991b1b' : '#92400e'
-                      }}
-                    >
-                      {job.status}
-                    </span>
-                    {job.error && (
-                      <div style={{ fontSize: '0.72rem', color: '#b91c1c', marginTop: '4px', maxWidth: '140px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={job.error.message}>
-                        {job.error.code}
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ padding: '10px 14px', fontSize: '0.82rem' }}>
-                    <div>Trạng thái: <strong>{job.translation.status || 'Chưa có'}</strong></div>
-                    {job.translation.sourceVersion && (
-                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                        Nguồn: v{job.translation.sourceVersion} {job.translation.isCurrent ? '(Khớp)' : '(Lệch)'}
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ padding: '10px 14px', fontSize: '0.82rem' }}>
-                    <div>Trạng thái: <strong>{job.audio.status || 'Chưa có'}</strong></div>
-                    {job.audio.sourceVersion && (
-                      <div style={{ fontSize: '0.75rem', color: '#64748b' }}>
-                        Nguồn: v{job.audio.sourceVersion} {job.audio.isCurrent ? '(Khớp)' : '(Lệch)'}
-                      </div>
-                    )}
-                  </td>
-                  <td style={{ padding: '10px 14px', textAlign: 'right' }}>
-                    {job.canRetry ? (
-                      <button
-                        type="button"
-                        onClick={() => handleRetry(job.jobId)}
-                        disabled={retryingJobId === job.jobId}
-                        style={{ padding: '4px 10px', fontSize: '0.82rem', cursor: 'pointer', backgroundColor: '#fef3c7', border: '1px solid #fde68a', borderRadius: '4px', color: '#92400e', fontWeight: 600 }}
-                      >
-                        {retryingJobId === job.jobId ? 'Đang gửi...' : 'Thử lại'}
-                      </button>
-                    ) : (
-                      <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>-</span>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Phan trang */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', flexWrap: 'wrap', gap: '10px' }}>
-        <div style={{ fontSize: '0.88rem', color: '#64748b' }}>
-          Tổng cộng: <strong>{total}</strong> tác vụ • Trang <strong>{page}</strong> / <strong>{totalPages}</strong>
+            </thead>
+            <tbody>
+              {isLoading ? (
+                <tr className="adm-state-row"><td colSpan={8}><LoadingState label="Đang tải danh sách tác vụ nội dung..." /></td></tr>
+              ) : jobs.length === 0 ? (
+                <tr className="adm-state-row"><td colSpan={8}><EmptyState icon="headphones" title="Không tìm thấy tác vụ nào phù hợp với bộ lọc."
+                  action={hasFilters ? <button type="button" className="adm-btn adm-btn--secondary adm-btn--sm" onClick={handleClearFilters}>Xóa bộ lọc</button> : undefined} /></td></tr>
+              ) : (
+                jobs.map((job) => (
+                  <tr key={job.jobId}>
+                    <td className="adm-mono adm-muted">#{job.jobId}</td>
+                    <td><Link to={`/internal/pois/${job.poiId}`} className="adm-link adm-mono">POI #{job.poiId}</Link></td>
+                    <td className="adm-center"><Badge>{job.languageCode.toUpperCase()}</Badge></td>
+                    <td className="adm-center">
+                      <span className="adm-mono">v{job.sourceVersion} / v{job.currentVersion}</span>
+                      <small style={{ color: job.isCurrent ? 'var(--adm-success)' : undefined, fontWeight: job.isCurrent ? 600 : 400 }}>{job.isCurrent ? 'Hiện hành' : 'Lỗi thời'}</small>
+                    </td>
+                    <td>
+                      <StatusBadge status={job.status} />
+                      {job.error && <small style={{ color: 'var(--adm-danger)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={job.error.message}>{job.error.code}</small>}
+                    </td>
+                    <td>
+                      <StatusBadge status={job.translation.status} label={job.translation.status || 'Chưa có'} />
+                      {job.translation.sourceVersion && <small>Nguồn: v{job.translation.sourceVersion} {job.translation.isCurrent ? '(Khớp)' : '(Lệch)'}</small>}
+                    </td>
+                    <td>
+                      <StatusBadge status={job.audio.status} label={job.audio.status || 'Chưa có'} />
+                      {job.audio.sourceVersion && <small>Nguồn: v{job.audio.sourceVersion} {job.audio.isCurrent ? '(Khớp)' : '(Lệch)'}</small>}
+                    </td>
+                    <td className="adm-actions-cell">
+                      {job.canRetry ? (
+                        <button type="button" onClick={() => handleRetry(job.jobId)} disabled={retryingJobId === job.jobId} className="adm-btn adm-btn--secondary adm-btn--sm">
+                          <Icon name="refresh" />{retryingJobId === job.jobId ? 'Đang gửi...' : 'Thử lại'}
+                        </button>
+                      ) : <span className="adm-muted">—</span>}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            type="button"
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page <= 1 || isLoading}
-            className="btn-secondary"
-            style={{ padding: '6px 12px', fontSize: '0.85rem' }}
-          >
-            ← Trang trước
-          </button>
-          <button
-            type="button"
-            onClick={() => setPage((p) => (p < totalPages ? p + 1 : p))}
-            disabled={page >= totalPages || isLoading}
-            className="btn-secondary"
-            style={{ padding: '6px 12px', fontSize: '0.85rem' }}
-          >
-            Trang sau →
-          </button>
-        </div>
-      </div>
-    </div>
+        <Pagination page={page} totalPages={totalPages} disabled={isLoading}
+          summary={<>Tổng cộng: <strong>{total}</strong> tác vụ</>}
+          onChange={next => setPage(Math.min(Math.max(1, next), totalPages))} />
+      </Card>
+    </AdminPage>
   );
 };

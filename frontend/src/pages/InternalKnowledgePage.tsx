@@ -2,7 +2,9 @@ import { FormEvent, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ApiError, getApiBaseUrl } from '../api/client';
 import { executeAuthenticatedInternalRequest } from '../api/auth';
+import { Icon } from '../components/Icon';
 import { deactivateKnowledge, getKnowledge, KnowledgeDocument, KnowledgeList, KnowledgeResult, listKnowledge, reprocessKnowledge, saveKnowledge } from '../api/rag';
+import { AdminPage, PageHeader, Alert, Badge, StatusBadge, Field, EmptyState, LoadingState, Pagination, ConfirmDialog } from '../components/admin/AdminUI';
 
 const stateLabels = { READY: 'Sẵn sàng sử dụng', PENDING: 'Chưa hoàn tất xử lý', FAILED: 'Xử lý chưa thành công', DEACTIVATED: 'Đã ngừng sử dụng' };
 type Draft = { id: number | null; version?: number; title: string; content: string; source: string };
@@ -84,43 +86,62 @@ export function InternalKnowledgePage() {
     } catch (e) { if (mounted.current) setError(e instanceof ApiError ? e.message : 'Chưa thực hiện được thao tác.'); }
     finally { mutation.current = false; if (mounted.current) setBusy(false); }
   };
-  return <div className="ops-page knowledge-page">
-    <div className="ops-section-title"><div><h1>Kho tri thức</h1><p>Chuẩn bị tài liệu có nguồn để phần hỏi đáp có thông tin đối chiếu.</p></div>
-      <button className="ops-primary" type="button" disabled={busy} onClick={() => {
+  return <AdminPage>
+    <PageHeader eyebrow="Nội dung thuyết minh" title="Kho tri thức" description="Chuẩn bị tài liệu có nguồn để phần hỏi đáp có thông tin đối chiếu."
+      actions={<button className="adm-btn adm-btn--primary" type="button" disabled={busy} onClick={() => {
         if (dirty) { setError('Lưu hoặc đóng bản nháp hiện tại trước khi thêm tài liệu.'); return; }
         setDraft({ id: null, title: '', content: '', source: '' }); setDirty(false); setConflict(false); setError(''); setNotice('');
-      }}>Thêm tài liệu</button></div>
-    {error && <p className="ops-alert" role="alert">{error}</p>}
-    {notice && <p className="ops-alert" role="status">{notice}</p>}
-    {confirm && <div className="ops-alert" role="alert"><p>Ngừng sử dụng “{confirm.title}”? Bạn có thể sửa và xử lý lại để sử dụng tài liệu về sau.</p><button className="ops-primary" type="button" onClick={() => void action(confirm, true)}>Xác nhận ngừng sử dụng</button><button className="ops-secondary" type="button" onClick={() => setConfirm(null)}>Hủy</button></div>}
+      }}><Icon name="plus" />Thêm tài liệu</button>} />
+    {error && <Alert tone="danger" onDismiss={() => setError('')}>{error}</Alert>}
+    {notice && <Alert tone="success" onDismiss={() => setNotice('')}>{notice}</Alert>}
     <div className="knowledge-workspace">
-      <section className="ops-panel" aria-label="Danh sách tài liệu">
-        <div className="knowledge-filters"><label>Trạng thái<select aria-label="Trạng thái tài liệu" disabled={busy} value={status} onChange={e => { setStatus(e.target.value); setPage(1); setError(''); }}><option value="">Tất cả</option><option value="ACTIVE">Đang sử dụng</option><option value="INACTIVE">Chưa sử dụng</option></select></label>
-          <button className="ops-secondary" type="button" disabled={loading || busy} onClick={() => { setError(''); setReload(n => n + 1); }}>Tải lại danh sách</button></div>
-        {loading ? <p role="status">Đang tải tài liệu…</p> : data && <>
-          <p>{data.total} tài liệu</p><div className="knowledge-items">{data.items.map(document => <article key={document.documentId} className="knowledge-item">
-            <h2>{document.title}</h2><p>{stateLabels[document.processingStatus]} · Phiên bản {document.contentVersion}</p>
+      <section className="adm-card adm-card--flush" aria-label="Danh sách tài liệu">
+        <div className="adm-toolbar">
+          <div className="adm-field"><label htmlFor="knowledge-status">Trạng thái</label>
+            <select id="knowledge-status" aria-label="Trạng thái tài liệu" disabled={busy} value={status} onChange={e => { setStatus(e.target.value); setPage(1); setError(''); }}><option value="">Tất cả</option><option value="ACTIVE">Đang sử dụng</option><option value="INACTIVE">Chưa sử dụng</option></select></div>
+          <span className="adm-toolbar__spacer" />
+          {data && <Badge>{data.total} tài liệu</Badge>}
+          <button className="adm-btn adm-btn--secondary" type="button" disabled={loading || busy} onClick={() => { setError(''); setReload(n => n + 1); }}><Icon name="refresh" />Tải lại danh sách</button>
+        </div>
+        {loading ? <LoadingState label="Đang tải tài liệu…" /> : data && <>
+          <div className="adm-card__body">{data.items.map(document => <article key={document.documentId} className="knowledge-item">
+            <div className="adm-row adm-row--between" style={{ alignItems: 'flex-start' }}>
+              <h3>{document.title}</h3>
+              <StatusBadge status={document.processingStatus} label={stateLabels[document.processingStatus]} />
+            </div>
+            <p className="adm-small adm-muted" style={{ marginTop: 0 }}>Phiên bản {document.contentVersion} · {document.chunkCount} đoạn kiến thức</p>
             {document.source && <p className="knowledge-source">Nguồn: {document.source}</p>}
-            <details><summary>Chi tiết xử lý</summary><p>{document.chunkCount} đoạn kiến thức · Mô hình: {document.embeddingModel || 'Chưa tạo chỉ mục'}</p>{document.lastError && <p>Mã lỗi: {document.lastError}</p>}</details>
-            <div className="knowledge-actions"><button className="ops-secondary" type="button" disabled={busy} onClick={() => void edit(document.documentId)}>Mở tài liệu</button>
-              <button className="ops-secondary" type="button" disabled={busy || document.processingStatus === 'DEACTIVATED'} onClick={() => void action(document, false)}>Xử lý lại</button>
-              <button className="ops-secondary" type="button" disabled={busy || document.processingStatus === 'DEACTIVATED'} onClick={() => { if (dirty) setError('Lưu hoặc đóng bản nháp trước khi thao tác với tài liệu.'); else setConfirm(document); }}>Ngừng sử dụng</button></div>
-          </article>)}</div>
-          {!data.items.length && <p>Chưa có tài liệu trong danh sách này.</p>}
-          <div className="knowledge-actions"><button className="ops-secondary" type="button" disabled={page <= 1 || busy} onClick={() => setPage(n => n - 1)}>Trang trước</button><span>Trang {page}</span><button className="ops-secondary" type="button" disabled={page * data.limit >= data.total || busy} onClick={() => setPage(n => n + 1)}>Trang sau</button></div>
+            <details><summary className="adm-link" style={{ cursor: 'pointer' }}>Chi tiết xử lý</summary><p>{document.chunkCount} đoạn kiến thức · Mô hình: {document.embeddingModel || 'Chưa tạo chỉ mục'}</p>{document.lastError && <p>Mã lỗi: <code>{document.lastError}</code></p>}</details>
+            <div className="knowledge-actions">
+              <button className="adm-btn adm-btn--secondary adm-btn--sm" type="button" disabled={busy} onClick={() => void edit(document.documentId)}><Icon name="edit" />Mở tài liệu</button>
+              <button className="adm-btn adm-btn--ghost adm-btn--sm" type="button" disabled={busy || document.processingStatus === 'DEACTIVATED'} onClick={() => void action(document, false)}><Icon name="refresh" />Xử lý lại</button>
+              <button className="adm-btn adm-btn--danger-soft adm-btn--sm" type="button" disabled={busy || document.processingStatus === 'DEACTIVATED'} onClick={() => { if (dirty) setError('Lưu hoặc đóng bản nháp trước khi thao tác với tài liệu.'); else setConfirm(document); }}>Ngừng sử dụng</button>
+            </div>
+          </article>)}
+          {!data.items.length && <EmptyState icon="book" title="Chưa có tài liệu trong danh sách này." />}</div>
+          <Pagination page={page} totalPages={Math.max(1, Math.ceil(data.total / data.limit))} disabled={busy} summary={<>{data.total} tài liệu</>}
+            prevLabel="Trang trước" nextLabel="Trang sau" onChange={next => setPage(next)} />
         </>}
       </section>
-      {draft && <section className="ops-panel" aria-label="Biên tập tài liệu"><h2>{draft.id === null ? 'Thêm tài liệu mới' : 'Chỉnh sửa tài liệu'}</h2>
-        <p>Chỉ nhập nội dung đã được nhóm duyệt. Không đưa mật khẩu, token hoặc thông tin riêng của khách vào tài liệu.</p>
-        <form onSubmit={save} className="knowledge-form">
-          <label>Tiêu đề<input aria-label="Tiêu đề tài liệu" required maxLength={255} disabled={busy} value={draft.title} onChange={e => { setDraft({ ...draft, title: e.target.value }); setDirty(true); }} /></label>
-          <label>Nguồn tham khảo<input aria-label="Nguồn tài liệu" maxLength={1000} disabled={busy} value={draft.source} onChange={e => { setDraft({ ...draft, source: e.target.value }); setDirty(true); }} placeholder="Đường dẫn hoặc tên tài liệu tham khảo" /></label>
-          <label>Nội dung<textarea aria-label="Nội dung tài liệu" required rows={13} maxLength={20000} disabled={busy} value={draft.content} onChange={e => { setDraft({ ...draft, content: e.target.value }); setDirty(true); }} /></label>
-          <small>{draft.content.length}/20000 ký tự · Toàn bộ yêu cầu tối đa 32 KB.</small>
-          <div className="knowledge-actions"><button className="ops-primary" type="submit" disabled={busy}>{busy ? 'Đang xử lý…' : 'Lưu và xử lý tài liệu'}</button><button className="ops-secondary" type="button" disabled={busy} onClick={() => { setDraft(null); setDirty(false); setConflict(false); }}>Đóng bản nháp</button></div>
+      {draft && <section className="adm-card" aria-label="Biên tập tài liệu">
+        <div className="adm-card__head"><div><h2 className="adm-card__title">{draft.id === null ? 'Thêm tài liệu mới' : 'Chỉnh sửa tài liệu'}</h2>
+          <p className="adm-card__desc">Chỉ nhập nội dung đã được nhóm duyệt. Không đưa mật khẩu, token hoặc thông tin riêng của khách vào tài liệu.</p></div>
+          {dirty && <Badge tone="warning" dot>Chưa lưu</Badge>}</div>
+        <form onSubmit={save} className="adm-form">
+          <Field label="Tiêu đề" htmlFor="knowledge-title" required><input id="knowledge-title" aria-label="Tiêu đề tài liệu" required maxLength={255} disabled={busy} value={draft.title} onChange={e => { setDraft({ ...draft, title: e.target.value }); setDirty(true); }} /></Field>
+          <Field label="Nguồn tham khảo" htmlFor="knowledge-source" hint="Khuyến nghị nhập để chatbot trích dẫn được nguồn."><input id="knowledge-source" aria-label="Nguồn tài liệu" maxLength={1000} disabled={busy} value={draft.source} onChange={e => { setDraft({ ...draft, source: e.target.value }); setDirty(true); }} placeholder="Đường dẫn hoặc tên tài liệu tham khảo" /></Field>
+          <Field label="Nội dung" htmlFor="knowledge-content" required hint={`${draft.content.length}/20000 ký tự · Toàn bộ yêu cầu tối đa 32 KB.`}><textarea id="knowledge-content" aria-label="Nội dung tài liệu" required rows={13} maxLength={20000} disabled={busy} value={draft.content} onChange={e => { setDraft({ ...draft, content: e.target.value }); setDirty(true); }} /></Field>
+          <div className="adm-form-actions">
+            <button className="adm-btn adm-btn--secondary" type="button" disabled={busy} onClick={() => { setDraft(null); setDirty(false); setConflict(false); }}>Đóng bản nháp</button>
+            <button className="adm-btn adm-btn--primary" type="submit" disabled={busy}>{busy ? 'Đang xử lý…' : 'Lưu và xử lý tài liệu'}</button>
+          </div>
         </form>
-        {conflict && draft.id !== null && <button className="ops-secondary" type="button" disabled={busy} onClick={() => void edit(draft.id!, true)}>Tải bản mới — thay bản nháp đang mở</button>}
+        {conflict && draft.id !== null && <Alert tone="warning" action={<button className="adm-btn adm-btn--secondary adm-btn--sm" type="button" disabled={busy} onClick={() => void edit(draft.id!, true)}>Tải bản mới — thay bản nháp đang mở</button>}>Bản nháp của bạn chưa ghi đè lên bản mới.</Alert>}
       </section>}
     </div>
-  </div>;
+    <ConfirmDialog open={!!confirm} tone="danger" title="Ngừng sử dụng tài liệu?" confirmLabel="Xác nhận ngừng sử dụng" busy={busy}
+      onCancel={() => setConfirm(null)} onConfirm={() => { if (confirm) void action(confirm, true); }}>
+      {confirm && <p>Ngừng sử dụng “{confirm.title}”? Bạn có thể sửa và xử lý lại để sử dụng tài liệu về sau.</p>}
+    </ConfirmDialog>
+  </AdminPage>;
 }
