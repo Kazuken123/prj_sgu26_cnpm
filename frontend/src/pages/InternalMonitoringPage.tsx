@@ -55,7 +55,8 @@ export const InternalMonitoringPage: React.FC = () => {
   useEffect(() => {
     fetchMonitoring();
     // Polling moi 30 giay
-    const interval = setInterval(fetchMonitoring, 30000);
+    // Skip background polls while the tab is hidden (same rule as the dashboard).
+    const interval = setInterval(() => { if (typeof document === 'undefined' || document.visibilityState !== 'hidden') fetchMonitoring(); }, 30000);
     return () => { clearInterval(interval); requestSeq.current += 1; };
   }, [windowOption, baseUrl]);
 
