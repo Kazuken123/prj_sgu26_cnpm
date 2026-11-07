@@ -5,6 +5,7 @@ import { getPois, PoiDto } from '../api/poi';
 import { executeAuthenticatedInternalRequest } from '../api/auth';
 import { getApiBaseUrl } from '../api/client';
 import { Icon } from '../components/Icon';
+import { useUnsavedChangesGuard } from '../hooks/useUnsavedChangesGuard';
 import { AdminPage, PageHeader, Card, Alert, Badge, Field, EmptyState, LoadingState } from '../components/admin/AdminUI';
 
 export const InternalTourEditPage: React.FC = () => {
@@ -26,6 +27,9 @@ export const InternalTourEditPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   // Client-side filter for the POI picker (no extra API call).
   const [poiFilter, setPoiFilter] = useState('');
+  // Unsaved edits (name, description or stop list) are protected on tab close.
+  const [dirty, setDirty] = useState(false);
+  useUnsavedChangesGuard(dirty && !submitting);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -56,6 +60,7 @@ export const InternalTourEditPage: React.FC = () => {
   }, [id, tourId, isEditMode]);
 
   const handleTogglePoi = (poiId: number) => {
+    setDirty(true);
     if (selectedPoiIds.includes(poiId)) {
       setSelectedPoiIds(selectedPoiIds.filter((p) => p !== poiId));
     } else {
@@ -65,6 +70,7 @@ export const InternalTourEditPage: React.FC = () => {
 
   const handleMoveUp = (index: number) => {
     if (index <= 0) return;
+    setDirty(true);
     const next = [...selectedPoiIds];
     const temp = next[index - 1];
     next[index - 1] = next[index];
@@ -74,6 +80,7 @@ export const InternalTourEditPage: React.FC = () => {
 
   const handleMoveDown = (index: number) => {
     if (index >= selectedPoiIds.length - 1) return;
+    setDirty(true);
     const next = [...selectedPoiIds];
     const temp = next[index + 1];
     next[index + 1] = next[index];
@@ -129,6 +136,7 @@ export const InternalTourEditPage: React.FC = () => {
         ));
       }
 
+      setDirty(false);
       navigate('/internal/tours');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Có lỗi khi lưu lộ trình');
@@ -148,7 +156,8 @@ export const InternalTourEditPage: React.FC = () => {
     <AdminPage width="narrow">
       <Link to="/internal/tours" className="adm-link">← Quay lại danh sách lộ trình</Link>
       <PageHeader eyebrow="Nội dung thuyết minh" title={isEditMode ? 'Chỉnh sửa lộ trình mẫu' : 'Tạo lộ trình mẫu mới'}
-        description="Chọn các điểm tham quan và sắp xếp thứ tự ghé thăm. Điểm ngừng hoạt động sẽ không hiển thị cho khách." />
+        description="Chọn các điểm tham quan và sắp xếp thứ tự ghé thăm. Điểm ngừng hoạt động sẽ không hiển thị cho khách."
+        actions={dirty ? <Badge tone="warning" dot>Có thay đổi chưa lưu</Badge> : undefined} />
 
       {error && <Alert tone="danger" onDismiss={() => setError(null)}>{error}</Alert>}
 
@@ -156,10 +165,10 @@ export const InternalTourEditPage: React.FC = () => {
         <Card title="Thông tin lộ trình">
           <div className="adm-form">
             <Field label="Tên lộ trình tham quan" htmlFor="tour-name" required>
-              <input id="tour-name" type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ví dụ: Tour Động vật hoang dã & Cây cổ thụ di sản" required />
+              <input id="tour-name" type="text" value={name} onChange={(e) => { setName(e.target.value); setDirty(true); }} placeholder="Ví dụ: Tour Động vật hoang dã & Cây cổ thụ di sản" required />
             </Field>
             <Field label="Mô tả tóm tắt lộ trình" htmlFor="tour-description" hint="Tùy chọn">
-              <textarea id="tour-description" value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Mô tả các điểm nhấn, thời lượng dự kiến và lộ trình di chuyển..." rows={3} />
+              <textarea id="tour-description" value={description} onChange={(e) => { setDescription(e.target.value); setDirty(true); }} placeholder="Mô tả các điểm nhấn, thời lượng dự kiến và lộ trình di chuyển..." rows={3} />
             </Field>
           </div>
         </Card>
