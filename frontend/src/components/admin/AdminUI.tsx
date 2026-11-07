@@ -118,7 +118,16 @@ export const ConfirmDialog: React.FC<{ open: boolean; title: React.ReactNode; ch
   }, [open, busy, onCancel]);
   if (!open) return null;
   return <div className="adm-dialog-backdrop" onMouseDown={event => { if (event.target === event.currentTarget && !busy) onCancel(); }}>
-    <div className={cx('adm-dialog', tone === 'danger' && 'adm-dialog--danger')} role="dialog" aria-modal="true" aria-labelledby={titleId} ref={panelRef}>
+    <div className={cx('adm-dialog', tone === 'danger' && 'adm-dialog--danger')} role="dialog" aria-modal="true" aria-labelledby={titleId} ref={panelRef}
+      onKeyDown={event => {
+        // Keep keyboard focus inside the modal: Tab / Shift+Tab wrap around.
+        if (event.key !== 'Tab' || !panelRef.current) return;
+        const focusable = Array.from(panelRef.current.querySelectorAll<HTMLElement>('button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'));
+        if (!focusable.length) return;
+        const first = focusable[0], last = focusable[focusable.length - 1], active = document.activeElement;
+        if (event.shiftKey && active === first) { event.preventDefault(); last.focus(); }
+        else if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
+      }}>
       <div className="adm-dialog__head">
         <span className="adm-dialog__icon"><Icon name={tone === 'danger' ? 'info' : 'check'} /></span>
         <h2 id={titleId}>{title}</h2>

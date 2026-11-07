@@ -56,3 +56,21 @@ test('danger tone uses the destructive button style and can be disabled independ
   const confirm = buttons(view)[1];
   assert.match(confirm.props.className, /adm-btn--danger/); assert.equal(confirm.props.disabled, true);
 });
+test('Tab and Shift+Tab wrap focus between the first and last dialog controls', async t => {
+  const b = browser(t);
+  const focusLog = [];
+  const first = { name: 'first', focus() { focusLog.push('first'); } }, last = { name: 'last', focus() { focusLog.push('last'); } };
+  const panel = { querySelectorAll: () => [first, last], querySelector: () => null };
+  const previousDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
+  Object.defineProperty(globalThis, 'document', { configurable: true, writable: true, value: { activeElement: null } });
+  let view;
+  await act(async () => { view = create(React.createElement(ConfirmDialog, { open: true, title: 'T', confirmLabel: 'OK', onConfirm() {}, onCancel() {} }),
+    { createNodeMock: element => element.props.role === 'dialog' ? panel : { focus() {}, querySelector: () => null } }); });
+  const onKeyDown = view.root.findByProps({ role: 'dialog' }).props.onKeyDown;
+  const press = (shiftKey, active) => { globalThis.document.activeElement = active; const e = { key: 'Tab', shiftKey, prevented: false, preventDefault() { this.prevented = true; } }; onKeyDown(e); return e.prevented; };
+  assert.equal(press(false, last), true); assert.equal(press(true, first), true);
+  assert.equal(press(false, first), false, 'moving forward inside the dialog is left to the browser');
+  assert.deepEqual(focusLog, ['first', 'last']);
+  await act(async () => view.unmount()); b.restore();
+  if (previousDocument) Object.defineProperty(globalThis, 'document', previousDocument); else delete globalThis.document;
+});
