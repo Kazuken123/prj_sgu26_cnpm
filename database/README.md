@@ -4,7 +4,7 @@
 
 `init_db.sql` là schema 16 bảng theo thiết kế Chương 4, dành cho MySQL 8.0.16 trở lên. Chọn một database trống trước khi import. Script không tạo database, không xóa bảng và không tự sửa cấu trúc bảng đã tồn tại. Không nạp đè lên database có dữ liệu cần giữ.
 
-Mọi kết nối ứng dụng cần sử dụng utf8mb4 và UTC. Dữ liệu khởi tạo chỉ gồm ngôn ngữ vi/en; chưa có tài khoản mặc định hoặc bộ dữ liệu nghiệm thu đa ngôn ngữ. Bán kính 30 mét là mặc định đề xuất theo Word 8, cấu hình được theo POI. `reissue_count` chỉ phục vụ chức năng cấp lại token thuộc Could Have; giới hạn nghiệp vụ được kiểm tra tại Service.
+Mọi kết nối ứng dụng cần sử dụng utf8mb4 và UTC. Dữ liệu khởi tạo chỉ gồm ngôn ngữ vi/en; chưa có tài khoản mặc định hoặc bộ dữ liệu nghiệm thu đa ngôn ngữ. Bán kính 30 mét là mặc định đề xuất theo Word 8, cấu hình được theo POI. `reissue_count` phục vụ chức năng cấp lại token (UC-12, Could Have) đã triển khai mà không cần migration: khi cấp lại, `token_hash` được đặt NULL và `reissue_count` tăng trong cùng giao dịch, `expires_at` giữ nguyên; giới hạn (mặc định 2 lần) được kiểm tra tại Service. Xem [`../docs/BACKEND_TOKEN_REISSUE_UC12.md`](../docs/BACKEND_TOKEN_REISSUE_UC12.md).
 
 ERD chỉnh sửa được nằm tại [`../docs/diagram/erd_diagram.drawio`](../docs/diagram/erd_diagram.drawio), gồm tổng thể và ba trang phân hệ.
 
