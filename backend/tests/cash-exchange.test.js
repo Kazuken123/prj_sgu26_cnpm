@@ -176,6 +176,12 @@ it("lost commit response never reissues a token or charges again on retry", asyn
   assert.deepEqual({ ...f.state.row, tokenHash: null }, before);
 });
 it("guest exchange HTTP is public, no-store, never returns hashes and visitor token cannot access staff APIs", async t => {
+  // The staff router verifies JWTs; without a configured secret the check would
+  // fail as a 500 instead of rejecting the visitor token. CI sets one; local runs
+  // get a disposable test-only value that is restored afterwards.
+  const previousSecret = process.env.JWT_SECRET;
+  if (!previousSecret) process.env.JWT_SECRET = "local-test-only-secret-at-least-32-bytes";
+  t.after(() => { if (previousSecret === undefined) delete process.env.JWT_SECRET; else process.env.JWT_SECRET = previousSecret; });
   const f = exchangeFixture();
   const { createApp } = require("../server");
   const server = http.createServer(createApp({ paymentService: f.service }));
