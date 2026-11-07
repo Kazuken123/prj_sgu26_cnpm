@@ -25,6 +25,19 @@ const paths = {
   clock: 'M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0ZM12 7v5l3 2',
   chat: 'M21 11a8 8 0 0 1-8 8H8l-5 3V11a9 9 0 0 1 18 0ZM7 10h10M7 14h6',
   book: 'M12 5C9 3 5 3 2 4v16c3-1 7-1 10 1m0-16c3-2 7-2 10-1v16c-3-1-7-1-10 1V5Z',
+  // Admin workspace icons (additive; existing visitor icons unchanged).
+  menu: 'M4 6h16M4 12h16M4 18h16',
+  logout: 'M15 4h4v16h-4M10 8l-4 4 4 4M6 12h11',
+  user: 'M20 21a8 8 0 0 0-16 0M16 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Z',
+  users: 'M17 21a6 6 0 0 0-12 0M15 7a4 4 0 1 1-8 0 4 4 0 0 1 8 0Zm2 4a3 3 0 1 0 0-6m5 16a5 5 0 0 0-4-5',
+  key: 'M15 7a4 4 0 1 1-3.5 6L5 19.5V22H2v-3l6.5-6.5A4 4 0 0 1 15 7Zm1-1v.1',
+  chart: 'M4 20V10m6 10V4m6 16v-7m4 7H2',
+  activity: 'M3 12h4l3-8 4 16 3-8h4',
+  plus: 'M12 5v14M5 12h14',
+  refresh: 'M20 11a8 8 0 1 0-2 6M20 5v6h-6',
+  external: 'M14 4h6v6M20 4l-9 9M18 14v6H4V6h6',
+  shield: 'M12 3 4 6v6c0 5 4 8 8 9 4-1 8-4 8-9V6l-8-3Z',
+  edit: 'M4 20h4L19 9l-4-4L4 16v4ZM14 6l4 4',
 };
 
 export const iconPaths = paths;
