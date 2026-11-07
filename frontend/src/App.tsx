@@ -28,6 +28,7 @@ import { InternalTourEditPage } from './pages/InternalTourEditPage';
 import { InternalAuditLogsPage } from './pages/InternalAuditLogsPage';
 import { InternalMonitoringPage } from './pages/InternalMonitoringPage';
 import { InternalKnowledgePage } from './pages/InternalKnowledgePage';
+import { InternalReissuePage } from './pages/InternalReissuePage';
 
 export const App: React.FC = () => {
   const { t } = useVisitorLanguage();
@@ -77,6 +78,9 @@ export const App: React.FC = () => {
               </InternalProtectedRoute>
             }
           />
+
+          {/* UC-12: Cap lai token khach (STAFF/ADMIN) */}
+          <Route path="/internal/reissue" element={<InternalProtectedRoute><InternalReissuePage /></InternalProtectedRoute>} />
 
           <Route
             path="/internal/pois"
