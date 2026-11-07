@@ -4,6 +4,8 @@ import { getApiBaseUrl, ApiError } from '../api/client.ts';
 import { getAuthMe, logoutStoredInternalSession, executeAuthenticatedInternalRequest } from '../api/auth.ts';
 import type { InternalUser } from '../api/authStorage.ts';
 import { clearInternalSession } from '../api/authStorage.ts';
+import { Icon } from '../components/Icon';
+import { AdminPage, PageHeader, Card, Alert, Badge, StatusBadge, DescriptionList, LoadingState } from '../components/admin/AdminUI';
 
 export const AccountPage: React.FC = () => {
   const navigate = useNavigate();
@@ -77,114 +79,53 @@ export const AccountPage: React.FC = () => {
   };
 
   if (isLoading) {
-    return (
-      <div className="account-page-container">
-        <div className="tcv-card" style={{ maxWidth: '640px', margin: '0 auto', textAlign: 'center', padding: '40px 20px' }}>
-          <div style={{ fontSize: '1rem', color: 'var(--tcv-green-800)', fontWeight: 600 }}>
-            Đang xác minh thông tin tài khoản nội bộ từ máy chủ...
-          </div>
-        </div>
-      </div>
-    );
+    return <AdminPage width="narrow"><LoadingState label="Đang xác minh thông tin tài khoản nội bộ từ máy chủ..." /></AdminPage>;
   }
 
+  const isAdmin = user?.role === 'ADMIN';
+  const initials = (user?.fullName || user?.email || '?').trim().split(/\s+/).slice(-2).map(part => part[0]).join('').toUpperCase();
   return (
-    <div className="account-page-container">
-      <div className="tcv-card" style={{ maxWidth: '680px', margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--tcv-slate-200)', paddingBottom: '16px', marginBottom: '20px' }}>
-          <div>
-            <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--tcv-green-700)', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              Không gian quản trị nội bộ
-            </span>
-            <h1 className="hero-title" style={{ fontSize: '1.7rem', margin: '4px 0 0' }}>
-              Hồ sơ Tài khoản Công vụ
-            </h1>
-          </div>
+    <AdminPage width="narrow">
+      <PageHeader eyebrow="Không gian quản trị nội bộ" title="Hồ sơ tài khoản công vụ" />
 
-          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <span className={`status-pill ${user?.role === 'ADMIN' ? 'ready' : 'idle'}`}>
-              Vai trò: {user?.role || 'N/A'}
-            </span>
-            <span className="status-pill ready">
-              Trạng thái: {user?.status || 'ACTIVE'}
-            </span>
+      {errorMessage && <Alert tone="danger">{errorMessage}</Alert>}
+
+      {user && <Card>
+        <div className="adm-row" style={{ gap: 16, marginBottom: 20 }}>
+          <span className="adm-avatar" style={{ width: 56, height: 56, fontSize: 20 }} aria-hidden="true">{initials}</span>
+          <div style={{ minWidth: 0, flex: 1 }}>
+            <h2 className="adm-card__title" style={{ fontSize: 18 }}>{user.fullName || 'Chưa cập nhật họ tên'}</h2>
+            <p className="adm-card__desc">{user.email}</p>
+          </div>
+          <div className="adm-row" style={{ gap: 6 }}>
+            <Badge tone={isAdmin ? 'brand' : 'info'}>Vai trò: {user.role || 'N/A'}</Badge>
+            <StatusBadge status={user.status || 'ACTIVE'} label={`Trạng thái: ${user.status || 'ACTIVE'}`} />
           </div>
         </div>
+        <DescriptionList columns={1} items={[
+          { label: 'Mã định danh (User ID)', value: `#${user.id}`, mono: true },
+          { label: 'Họ và tên', value: user.fullName || 'Chưa cập nhật họ tên' },
+          { label: 'Email công vụ', value: user.email },
+          { label: 'Vai trò phân quyền', value: isAdmin ? 'Quản trị viên (ADMIN)' : 'Nhân viên soát vé (STAFF)' },
+          { label: 'Trạng thái tài khoản', value: user.status },
+        ]} />
+      </Card>}
 
-        {errorMessage && (
-          <div className="banner-notice" style={{ background: 'var(--tcv-status-err-bg)', border: '1px solid #fecaca', color: '#991b1b', marginBottom: '20px' }}>
-            <div style={{ fontSize: '1.2rem' }}>⚠️</div>
-            <div className="banner-desc">{errorMessage}</div>
-          </div>
-        )}
-
-        {user && (
-          <table className="status-detail-table" style={{ marginBottom: '24px' }}>
-            <tbody>
-              <tr>
-                <th>Mã định danh (User ID)</th>
-                <td>#{user.id}</td>
-              </tr>
-              <tr>
-                <th>Họ và tên</th>
-                <td style={{ fontFamily: 'var(--font-sans)', fontWeight: 600 }}>
-                  {user.fullName || 'Chưa cập nhật họ tên'}
-                </td>
-              </tr>
-              <tr>
-                <th>Email công vụ</th>
-                <td>{user.email}</td>
-              </tr>
-              <tr>
-                <th>Vai trò phân quyền</th>
-                <td>
-                  <strong style={{ color: user.role === 'ADMIN' ? 'var(--tcv-green-800)' : 'var(--tcv-slate-700)' }}>
-                    {user.role === 'ADMIN' ? 'Quản trị viên (ADMIN)' : 'Nhân viên soát vé (STAFF)'}
-                  </strong>
-                </td>
-              </tr>
-              <tr>
-                <th>Trạng thái tài khoản</th>
-                <td>{user.status}</td>
-              </tr>
-            </tbody>
-          </table>
-        )}
-
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', paddingTop: '16px', borderTop: '1px solid var(--tcv-slate-200)' }}>
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
-            <Link to="/internal/pois" className="btn-primary" style={{ backgroundColor: '#0284c7' }}>
-              Quản lý POI
-            </Link>
-            <Link to="/internal/jobs" className="btn-secondary">
-              Tác vụ nội dung
-            </Link>
-            <Link to="/internal/cash" className="btn-secondary" style={{ color: '#059669', borderColor: '#a7f3d0' }}>
-              Quầy tiền mặt
-            </Link>
-            {user?.role === 'ADMIN' && (
-              <Link to="/internal/staff/new" className="btn-secondary">
-                + Tạo Nhân viên
-              </Link>
-            )}
-          </div>
-
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-            <button
-              type="button"
-              onClick={handleLogout}
-              disabled={isLoggingOut}
-              className="btn-secondary"
-            >
-              {isLoggingOut ? 'Đang thu hồi phiên...' : 'Đăng xuất khỏi hệ thống'}
-            </button>
-          </div>
+      <Card title="Lối tắt công việc">
+        <div className="adm-grid adm-grid--2" style={{ gap: 8 }}>
+          <Link to="/internal/cash" className="ops-task"><Icon name="ticket" /><span><strong>Quầy tiền mặt</strong><small>Tạo phiên, xác nhận thu tiền, cấp mã</small></span><Icon name="arrow" /></Link>
+          <Link to="/internal/reissue" className="ops-task" style={{ marginTop: 0 }}><Icon name="key" /><span><strong>Cấp lại vé</strong><small>Hỗ trợ khách mất vé trên thiết bị</small></span><Icon name="arrow" /></Link>
+          <Link to="/internal/pois" className="ops-task" style={{ marginTop: 0 }}><Icon name="pin" /><span><strong>Quản lý POI</strong><small>Điểm tham quan và nội dung nguồn</small></span><Icon name="arrow" /></Link>
+          <Link to="/internal/jobs" className="ops-task" style={{ marginTop: 0 }}><Icon name="headphones" /><span><strong>Tác vụ nội dung</strong><small>Bản dịch và âm thanh</small></span><Icon name="arrow" /></Link>
+          {isAdmin && <Link to="/internal/staff/new" className="ops-task" style={{ marginTop: 0 }}><Icon name="users" /><span><strong>+ Tạo Nhân viên</strong><small>Cấp tài khoản STAFF mới</small></span><Icon name="arrow" /></Link>}
         </div>
+      </Card>
 
-        <div style={{ marginTop: '20px', fontSize: '0.78rem', color: 'var(--tcv-slate-500)' }}>
-          * Lưu ý: Thao tác đăng xuất nội bộ thu hồi token tại máy chủ và chỉ xóa phiên nội bộ trên trình duyệt, không ảnh hưởng đến phiên tham quan của khách (nếu có).
+      <Card title="Phiên đăng nhập" description="Thao tác đăng xuất nội bộ thu hồi token tại máy chủ và chỉ xóa phiên nội bộ trên trình duyệt, không ảnh hưởng đến phiên tham quan của khách (nếu có).">
+        <div className="adm-row adm-row--end">
+          <button type="button" onClick={handleLogout} disabled={isLoggingOut} className="adm-btn adm-btn--danger-soft"><Icon name="logout" />{isLoggingOut ? 'Đang thu hồi phiên...' : 'Đăng xuất khỏi hệ thống'}</button>
         </div>
-      </div>
-    </div>
+      </Card>
+    </AdminPage>
   );
 };
