@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { ApiError, getApiBaseUrl } from '../api/client';
 import { executeAuthenticatedInternalRequest } from '../api/auth';
 import { Icon } from '../components/Icon';
+import { useUnsavedChangesGuard } from '../hooks/useUnsavedChangesGuard';
 import { deactivateKnowledge, getKnowledge, KnowledgeDocument, KnowledgeList, KnowledgeResult, listKnowledge, reprocessKnowledge, saveKnowledge } from '../api/rag';
 import { AdminPage, PageHeader, Alert, Badge, StatusBadge, Field, EmptyState, LoadingState, Pagination, ConfirmDialog } from '../components/admin/AdminUI';
 
@@ -17,6 +18,7 @@ export function InternalKnowledgePage() {
   const [draft, setDraft] = useState<Draft | null>(null), [dirty, setDirty] = useState(false), [conflict, setConflict] = useState(false);
   const [confirm, setConfirm] = useState<KnowledgeDocument | null>(null);
   const mounted = useRef(true), sequence = useRef(0), mutation = useRef(false);
+  useUnsavedChangesGuard(dirty);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; sequence.current++; }; }, []);
   const authenticated = <T,>(work: (token: string) => Promise<T>) => executeAuthenticatedInternalRequest(baseUrl, work, () => { if (mounted.current) navigate('/internal/login', { replace: true }); });
   useEffect(() => {
