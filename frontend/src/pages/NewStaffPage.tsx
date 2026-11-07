@@ -17,6 +17,8 @@ export const NewStaffPage: React.FC = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [phoneNumber, setPhoneNumber] = useState<string>('');
+  // Lets the admin verify the initial password before handing it over.
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -123,6 +125,7 @@ export const NewStaffPage: React.FC = () => {
       setFullName('');
       setEmail('');
       setPassword('');
+      setShowPassword(false);
       setPhoneNumber('');
     } catch (err: unknown) {
       setIsSubmitting(false);
@@ -191,7 +194,7 @@ export const NewStaffPage: React.FC = () => {
               <input id="staff-email-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nhanvien.moi@thaocamvien.vn" required disabled={isSubmitting} autoComplete="off" aria-invalid={invalidField === 'email'} />
             </Field>
             <Field label="Mật khẩu ban đầu" htmlFor="staff-password-input" required error={fieldError('password')} hint="Ít nhất 8 ký tự, tối đa 72 bytes. Nhân viên dùng mật khẩu này để đăng nhập cổng nội bộ.">
-              <input id="staff-password-input" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Ít nhất 8 ký tự, tối đa 72 bytes" required disabled={isSubmitting} autoComplete="new-password" aria-invalid={invalidField === 'password'} />
+              <div className="adm-input-group"><input id="staff-password-input" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Ít nhất 8 ký tự, tối đa 72 bytes" required disabled={isSubmitting} autoComplete="new-password" aria-invalid={invalidField === 'password'} /><button type="button" className="adm-btn adm-btn--secondary" onClick={() => setShowPassword(v => !v)} aria-pressed={showPassword} aria-controls="staff-password-input" disabled={isSubmitting}>{showPassword ? 'Ẩn' : 'Hiện'}</button></div>
             </Field>
             <Field label="Số điện thoại" htmlFor="staff-phone-input" error={fieldError('phoneNumber')} hint="Tùy chọn · từ 8 đến 15 chữ số.">
               <input id="staff-phone-input" type="tel" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} placeholder="0912345678" disabled={isSubmitting} autoComplete="off" aria-invalid={invalidField === 'phoneNumber'} />
