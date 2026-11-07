@@ -16,6 +16,9 @@ export const LoginPage: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorCode, setErrorCode] = useState<string | null>(null);
+  // Five wrong passwords lock the account for 15 minutes, so warn about Caps Lock.
+  const [capsLock, setCapsLock] = useState<boolean>(false);
+  const detectCapsLock = (e: React.KeyboardEvent<HTMLInputElement>) => setCapsLock(Boolean(e.getModifierState?.('CapsLock')));
 
   // Neu da co phien noi bo hop le thi chuyen huong sang /internal/account
   useEffect(() => {
@@ -110,9 +113,9 @@ export const LoginPage: React.FC = () => {
           <Field label="Email công vụ" htmlFor="email-input" required>
             <input id="email-input" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nhanvien@thaocamvien.vn" required disabled={isSubmitting} autoComplete="username" autoFocus />
           </Field>
-          <Field label="Mật khẩu" htmlFor="password-input" required hint="Tối thiểu 8 ký tự, tối đa 72 bytes.">
+          <Field label="Mật khẩu" htmlFor="password-input" required hint={capsLock ? <strong style={{ color: 'var(--adm-warning)' }} role="status">Caps Lock đang bật — mật khẩu phân biệt chữ hoa/thường.</strong> : 'Tối thiểu 8 ký tự, tối đa 72 bytes.'}>
             <div className="adm-input-group">
-              <input id="password-input" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required disabled={isSubmitting} autoComplete="current-password" />
+              <input id="password-input" type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required disabled={isSubmitting} autoComplete="current-password" onKeyUp={detectCapsLock} onKeyDown={detectCapsLock} onBlur={() => setCapsLock(false)} />
               <button type="button" onClick={() => setShowPassword((prev) => !prev)} className="adm-btn adm-btn--secondary" disabled={isSubmitting} aria-pressed={showPassword} aria-controls="password-input">{showPassword ? 'Ẩn' : 'Hiện'}</button>
             </div>
           </Field>
