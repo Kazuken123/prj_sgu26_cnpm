@@ -132,13 +132,20 @@ describe("Cash exchange SQL / " + (realRedis ? "real Redis" : "Redis replacement
       const before = await snapshot(item.id); await assert.rejects(exchange(item), error => error.status === 409);
       assert.deepEqual(await snapshot(item.id), before);
     }
-    for (const change of ["status = 'REVOKED'", "expires_at = '2020-01-01 00:00:00'", "paid_at = NULL", "token_hash = 'already-issued'", "reissue_count = 1"]) {
+    for (const change of ["status = 'REVOKED'", "expires_at = '2020-01-01 00:00:00'", "paid_at = NULL", "token_hash = 'already-issued'", "token_hash = 'already-issued', reissue_count = 1"]) {
       const item = await create();
       if (change.startsWith("paid_at")) await db.query("UPDATE PAYMENTS SET paid_at = NULL WHERE session_id = ?", [item.id]);
       else await db.query("UPDATE VISIT_SESSIONS SET " + change + " WHERE session_id = ?", [item.id]);
       const before = await snapshot(item.id); await assert.rejects(exchange(item), error => error.status === 409);
       assert.deepEqual(await snapshot(item.id), before);
     }
+    // UC-12: token cleared + reissue_count > 0 is a pending reissue pickup. A first-issue
+    // cash code is rejected as invalid (401) and nothing changes; only the REISSUE code works.
+    const reissued = await create();
+    await db.query("UPDATE VISIT_SESSIONS SET reissue_count = 1 WHERE session_id = ?", [reissued.id]);
+    const beforeReissued = await snapshot(reissued.id);
+    await assert.rejects(exchange(reissued), { status: 401, code: "CASH_CODE_INVALID_OR_EXPIRED" });
+    assert.deepEqual(await snapshot(reissued.id), beforeReissued);
     const failed = await create(false); await db.query("UPDATE PAYMENTS SET status = 'FAILED' WHERE session_id = ?", [failed.id]);
     await assert.rejects(exchange(failed), { code: "CASH_PAYMENT_NOT_PAID" });
   });
