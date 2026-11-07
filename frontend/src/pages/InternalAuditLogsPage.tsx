@@ -25,7 +25,8 @@ export const InternalAuditLogsPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const requestSeq = useRef(0);
-  const fetchLogs = async (currentPage = 1) => {
+  // actionOverride lets quick filters query immediately instead of waiting for state.
+  const fetchLogs = async (currentPage = 1, actionOverride?: string) => {
     const seq = ++requestSeq.current;
     setLoading(true);
     setError(null);
@@ -34,7 +35,7 @@ export const InternalAuditLogsPage: React.FC = () => {
         {
           page: currentPage,
           limit,
-          action: selectedAction || undefined,
+          action: (actionOverride ?? selectedAction) || undefined,
           from: fromDate ? new Date(fromDate + 'T00:00:00+07:00').toISOString().replace(/\.\d{3}Z$/, 'Z') : undefined,
           to: toDate ? new Date(toDate + 'T23:59:59+07:00').toISOString().replace(/\.\d{3}Z$/, 'Z') : undefined
         },
@@ -97,6 +98,11 @@ export const InternalAuditLogsPage: React.FC = () => {
           <span className="adm-toolbar__spacer" />
           <Badge>{total} bản ghi</Badge>
         </form>
+        <div className="adm-toolbar" style={{ paddingTop: 0 }} role="group" aria-label="Lọc nhanh theo hành động">
+          <span className="adm-label">Lọc nhanh:</span>
+          <div className="adm-segmented">{['', 'REISSUE_VISITOR_TOKEN', 'CONFIRM_CASH_PAYMENT', 'ISSUE_CASH_CODE', 'UPDATE_POI'].filter(act => !act || availableActions.includes(act)).map(act =>
+            <button type="button" key={act || 'all'} aria-pressed={selectedAction === act} disabled={loading} onClick={() => { setSelectedAction(act); void fetchLogs(1, act); }}>{act ? actionLabels[act] || act : 'Tất cả'}</button>)}</div>
+        </div>
 
         <div className="adm-table-wrap">
           <table className="adm-table">
