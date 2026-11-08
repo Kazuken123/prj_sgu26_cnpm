@@ -1,5 +1,7 @@
 .git
 **/node_modules
+.local-data
+data/demo/additional-media
 **/.env
 **/.env.*
 **/*.local.env
