@@ -27,4 +27,4 @@ async function verify(media, input) {
   }
   return data;
 }
-module.exports = { DIGEST, parse, load, verify };
+module.exports = { DIGEST, SOURCE, parse, load, verify };

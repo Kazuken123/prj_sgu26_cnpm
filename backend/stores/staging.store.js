@@ -3,6 +3,29 @@ const pool = require("../config/database"), SchemaStore = require("./schema.stor
 const { columns } = require("../config/staging-dataset");
 class StagingStore {
   constructor(db = pool, target = process.env.DB_NAME) { this.db = db; this.target = target; }
+  async inspectRuntime(work) {
+    if (this.target !== "tcv_demo_review_20261020" && !(process.env.NODE_ENV === "test" && /^tcv_staging_test_[a-f0-9]{32}$/.test(this.target || ""))) throw new Error("WRONG_STAGING_DATABASE");
+    const db = await this.db.getConnection(); let transaction = false;
+    try {
+      const [identity] = await db.query("SELECT DATABASE() AS name");
+      if (identity[0].name !== this.target) throw new Error("WRONG_STAGING_DATABASE");
+      const [tables] = await db.query("SHOW TABLES");
+      if (!tables.length) throw new Error("STAGING_SCHEMA_INITIALIZATION_REQUIRED");
+      const expected = ["LANGUAGES", "USERS", "REFRESH_TOKENS", "AUDIT_LOGS", "VISIT_SESSIONS", "PAYMENTS", "POIS", "POI_TRANSLATIONS", "AUDIOS", "CONTENT_JOBS", "TOURS", "TOUR_POIS", "KNOWLEDGE_DOCUMENTS", "KNOWLEDGE_CHUNKS", "CHAT_LOGS", "BUNDLE_ACCESS_LOGS"].sort();
+      if (JSON.stringify(tables.map(row => Object.values(row)[0]).sort()) !== JSON.stringify(expected)) throw new Error("STAGING_PARTIAL_SCHEMA_STOP");
+      await db.query("START TRANSACTION READ ONLY"); transaction = true;
+      const result = await work({ snapshot: async () => {
+        const snapshot = {};
+        for (const table of ["LANGUAGES", "POIS", "POI_TRANSLATIONS", "AUDIOS"]) {
+          const [rows] = await db.query(`SELECT ${columns[table].join(",")} FROM ${table}`);
+          snapshot[table] = rows;
+        }
+        return snapshot;
+      } });
+      await db.commit(); transaction = false; return result;
+    } catch (error) { if (transaction) await db.rollback().catch(() => {}); throw error; }
+    finally { db.release(); }
+  }
   async locked(work, { initializeEmpty = false } = {}) {
     if (this.target !== "tcv_demo_review_20261020" && !(process.env.NODE_ENV === "test" && /^tcv_staging_test_[a-f0-9]{32}$/.test(this.target || ""))) throw new Error("WRONG_STAGING_DATABASE");
     const db = await this.db.getConnection(); let locked = false, transaction = false;

@@ -5,9 +5,27 @@ function canonical(rows, cols) {
   return JSON.stringify(rows.map(row => cols.map(c => row[c])).sort((a, b) => JSON.stringify(a).localeCompare(JSON.stringify(b))));
 }
 function matches(actual, expected) { return Object.entries(columns).every(([t, cols]) => canonical(actual[t], cols) === canonical(expected[t], cols)); }
+function verifyPackagedRecords(snapshot, packaged) {
+  for (const file of packaged.files) {
+    const parent = snapshot.POIS.find(row => Number(row.poi_id) === file.poiId);
+    const language = snapshot.LANGUAGES.find(row => row.code === file.languageCode);
+    const texts = snapshot.POI_TRANSLATIONS.filter(row => Number(row.poi_id) === file.poiId && row.language_code === file.languageCode);
+    const text = texts[0];
+    const audios = text && snapshot.AUDIOS.filter(row => Number(row.translation_id) === Number(text.translation_id));
+    const audio = audios?.[0];
+    if (!parent || !["ACTIVE", "INACTIVE"].includes(parent.status) || Number(parent.content_version) !== file.sourceVersion ||
+        !language || Number(language.is_active) !== 1 || texts.length !== 1 || text.status !== "READY" ||
+        Number(text.source_version) !== file.sourceVersion || typeof text.audio_script !== "string" ||
+        createHash("sha256").update(text.audio_script).digest("hex") !== file.scriptSha256 ||
+        audios?.length !== 1 || audio.status !== "AVAILABLE" || Number(audio.source_version) !== file.sourceVersion ||
+        audio.file_url !== "/api/media/audio/" + file.key || Number(audio.duration) !== file.duration ||
+        Number(audio.file_size) !== file.fileSize) throw new Error("STAGING_PACKAGED_DATABASE_MISMATCH");
+  }
+}
 class StagingService {
   constructor(store = new StagingStore(), media = new LocalMedia()) { this.store = store; this.media = media; }
   async verifyMedia() {
+    if (process.env.STAGING_DEMO_ADDITIONAL_POIS === "true") return require("../config/packaged-assets").verify(this.media);
     const data = await load();
     for (const file of data.files) {
       const bytes = await this.media.get(file.key), wav = inspectWav(bytes);
@@ -16,12 +34,20 @@ class StagingService {
     return data;
   }
   async prepareRuntime() {
-    await this.verifyMedia();
+    const packaged = await this.verifyMedia();
+    if (process.env.STAGING_DEMO_ADDITIONAL_POIS === "true") {
+      if (packaged.files.length !== 270) throw new Error("STAGING_PACKAGED_AUDIO_COUNT_MISMATCH");
+      return this.store.inspectRuntime(async state => {
+        verifyPackagedRecords(await state.snapshot(), packaged);
+        return { outcome: "RUNTIME_READY", pois: 18, languages: 15, packagedAudio: 270 };
+      });
+    }
     const extra = process.env.STAGING_DEMO_EXTRA_LANGUAGES === "true"
       ? (await require("../config/demo15-assets").verify(this.media)).files.length : 0;
     return this.store.locked(async () => ({ outcome: "RUNTIME_READY", packagedAudio: 70 + extra }));
   }
   async ensure() {
+    if (process.env.STAGING_DEMO_ADDITIONAL_POIS === "true") throw new Error("STAGING_ADDITIONAL_OPERATOR_SEED_REQUIRED");
     const data = await this.verifyMedia();
     return this.store.locked(async state => {
       const before = await state.snapshot();
@@ -35,4 +61,4 @@ class StagingService {
     }, { initializeEmpty: process.env.STAGING_INITIALIZE_EMPTY === "true" });
   }
 }
-module.exports = { StagingService, matches };
+module.exports = { StagingService, matches, verifyPackagedRecords };

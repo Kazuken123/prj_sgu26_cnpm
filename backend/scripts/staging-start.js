@@ -2,6 +2,9 @@
 async function main() {
   if (process.env.STAGING_DEMO_MODE !== "frozen-20261023" || process.env.DB_NAME !== "tcv_demo_review_20261020" ||
       !process.env.DB_HOST?.endsWith(".aivencloud.com") || process.env.DB_SSL_MODE !== "verify_identity") throw new Error("STAGING_CONFIGURATION_REQUIRED");
+  if (process.env.STAGING_DEMO_EXTRA_LANGUAGES !== "true" || process.env.STAGING_DEMO_ADDITIONAL_POIS !== "true") {
+    throw new Error("STAGING_270_AUDIO_PACKAGE_REQUIRED");
+  }
   const external = new URL(process.env.RENDER_EXTERNAL_URL);
   if (external.protocol !== "https:" || external.username || external.password || external.pathname !== "/" || external.search || external.hash) throw new Error("STAGING_PUBLIC_URL_REQUIRED");
   if (!process.env.MOCK_PAYMENT_BASE_URL) process.env.MOCK_PAYMENT_BASE_URL = external.origin;
