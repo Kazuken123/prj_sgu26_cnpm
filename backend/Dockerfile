@@ -12,6 +12,7 @@ COPY backend/package*.json ./
 RUN npm ci --omit=dev
 COPY backend/ ./
 COPY data/demo/locations/positions-v1.json /data/demo/locations/positions-v1.json
+COPY data/demo/locations/positions-v2.json /data/demo/locations/positions-v2.json
 COPY --from=frontend-build /frontend/dist/ /frontend/dist/
 COPY database/migrations/ /database/migrations/
 

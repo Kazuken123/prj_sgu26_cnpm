@@ -6,6 +6,10 @@ import { VisitorPoiPhoto, resolveVisitorPhoto } from '../src/components/VisitorP
 import { POI_PHOTOS } from '../src/data/poiPhotos.ts';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
+import { createHash } from 'node:crypto';
+
+const baseNames = ['Hươu cao cổ','Voi châu Á','Hà mã','Tê giác trắng','Trầm hương','Ngọc lan','Trám trắng','Cát anh','Bảo tàng Động–Thực vật','Quán Nhan Hương'];
+const additionalNames = ['Hổ Bengal','Gấu ngựa','Báo hoa mai','Chim hồng hạc','Cá sấu hoa cà','Vượn má vàng','Đền thờ Vua Hùng','Cây đa cổ thụ di sản'];
 
 const props = { originalName: 'Hươu cao cổ', name: 'Giraffe', avatarUrl: null, category: 'ANIMAL' };
 async function mount(t, overrides = {}) {
@@ -61,8 +65,8 @@ test('failed detail image reports the failure without removing the surrounding P
   assert.equal(view.root.findByType('p').props.role, 'status');
 });
 
-test('all ten approved original names have separate thumbnail/detail assets and stable translated names', async t => {
-  const expected = ['Hươu cao cổ','Voi châu Á','Hà mã','Tê giác trắng','Trầm hương','Ngọc lan','Trám trắng','Cát anh','Bảo tàng Động–Thực vật','Quán Nhan Hương'];
+test('all eighteen approved original names have separate thumbnail/detail assets and stable translated names', async t => {
+  const expected = [...baseNames, ...additionalNames];
   assert.deepEqual(Object.keys(POI_PHOTOS), expected);
   for (const originalName of expected) {
     const photo = resolveVisitorPhoto(originalName, null);
@@ -72,6 +76,21 @@ test('all ten approved original names have separate thumbnail/detail assets and 
     assert.equal(view.root.findByType('img').props.src, photo.thumbnail);
     assert.match(view.root.findByType('img').props.alt,/Translated POI title/);
   }
+});
+
+test('the eight additional photos retain reviewed species/place labels and source attribution', () => {
+  const sources = JSON.parse(readFileSync(new URL('../../data/demo/photos/additional-sources.json', import.meta.url), 'utf8'));
+  assert.equal(sources.datasetId, 'TCV_ADDITIONAL_POI_PHOTOS_V1');
+  assert.deepEqual(sources.photos.map(photo => photo.poiName), additionalNames);
+  assert.deepEqual(sources.photos.map(photo => photo.poiId), [11,12,13,14,15,16,17,18]);
+  for (const source of sources.photos) {
+    const photo = resolveVisitorPhoto(source.poiName, null);
+    assert.ok(photo, source.poiName);
+    assert.equal(photo.label, source.label);
+    assert.deepEqual(photo.credit, { author: source.author, source: source.source, license: source.license, licenseUrl: source.licenseUrl });
+  }
+  assert.equal(resolveVisitorPhoto('Cây đa cổ thụ di sản', null).label, 'Ảnh minh họa loài');
+  assert.equal(resolveVisitorPhoto('Đền thờ Vua Hùng', null).label, 'Ảnh tư liệu địa điểm');
 });
 
 for (const originalName of ['Bảo tàng Động–Thực vật','Quán Nhan Hương']) {
@@ -88,8 +107,13 @@ for (const originalName of ['Bảo tàng Động–Thực vật','Quán Nhan Hư
 test('all packaged photos are real WebP, within the size budget, with credits and source records', () => {
   const base = new URL('../public',import.meta.url);
   const manifest = JSON.parse(readFileSync(new URL('../public/images/pois/manifest.json',import.meta.url),'utf8'));
-  assert.equal(manifest.photos.length,10);
-  let total=0;
+  assert.equal(manifest.photos.length,18);
+  assert.deepEqual(manifest.photos.map(photo => photo.poiName), [...baseNames, ...additionalNames]);
+  assert.equal(manifest.additionalDatasetId, 'TCV_ADDITIONAL_POI_PHOTOS_V1');
+  const sources = JSON.parse(readFileSync(new URL('../../data/demo/photos/additional-sources.json',import.meta.url),'utf8'));
+  assert.equal(manifest.additionalCheckedOn, sources.checkedOn);
+  let baseTotal=0, additionalTotal=0;
+  const assetPaths=new Set();
   for (const [name,photo] of Object.entries(POI_PHOTOS)) {
     const record=manifest.photos.find(item=>item.poiName===name);
     assert.ok(record?.source?.startsWith('https://'));
@@ -99,9 +123,20 @@ test('all packaged photos are real WebP, within the size budget, with credits an
       assert.equal(bytes.toString('ascii',0,4),'RIFF');
       assert.equal(bytes.toString('ascii',8,12),'WEBP');
       assert.equal(bytes.length,asset.bytes);
+      assert.equal(createHash('sha256').update(bytes).digest('hex'), asset.sha256);
+      assert.deepEqual(record.assets[size], asset);
+      assert.ok(!assetPaths.has(asset.src));
+      assetPaths.add(asset.src);
       assert.ok(bytes.length<350000);
-      total+=bytes.length;
+      assert.ok(Number.isInteger(asset.width) && asset.width>0);
+      assert.ok(Number.isInteger(asset.height) && asset.height>0);
+      if (size==='thumbnail') assert.equal(asset.width,128);
+      else { assert.ok(Math.max(asset.width,asset.height)<=960); assert.ok(Math.min(asset.width,asset.height)<=640); }
+      if (baseNames.includes(name)) baseTotal+=bytes.length;
+      else additionalTotal+=bytes.length;
     }
   }
-  assert.ok(total<1500000);
+  assert.equal(assetPaths.size,36);
+  assert.ok(baseTotal<1500000, 'the original ten retain their existing total size budget');
+  assert.ok(additionalTotal<1500000, 'the eight additional photos have their own size budget');
 });

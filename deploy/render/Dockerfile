@@ -14,6 +14,7 @@ COPY --from=frontend-build /frontend/dist/ /frontend/dist/
 COPY database/ /database/
 COPY data/staging/dataset.json /data/staging/dataset.json
 COPY data/demo/locations/positions-v1.json /data/demo/locations/positions-v1.json
+COPY data/demo/locations/positions-v2.json /data/demo/locations/positions-v2.json
 COPY data/staging/media.tar.gz /tmp/tcv-media.tar.gz
 COPY data/demo/fifteen/audio-manifest.json /data/demo/fifteen/audio-manifest.json
 COPY data/demo/fifteen/extension.json /data/demo/fifteen/extension.json

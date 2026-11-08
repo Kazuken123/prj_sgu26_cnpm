@@ -2,6 +2,7 @@ const { LANGUAGE_CODES, loadInput } = require("../config/additional-pois-input")
 const AdditionalPoisSeedStore = require("../stores/additional-pois-seed.store");
 const LocalMedia = require("../adapters/local-media");
 const assets = require("../config/additional-assets");
+const { normalizeAdditionalPosition } = require("../config/poi-locations");
 
 function equal(actual, expected, code) { if (actual !== expected) throw new Error(code); }
 function unique(rows, key, code) {
@@ -21,7 +22,8 @@ function validateSnapshot(state, input, manifest, complete = false) {
   const files = new Map(manifest.files.map(file => [file.poiId + ":" + file.languageCode, file]));
   const counts = { pois: 0, translations: 0, audios: 0, jobs: 0 };
   for (const p of input.pois) {
-    const row = pois.get(p.poiId);
+    const stored = pois.get(p.poiId);
+    const row = stored && normalizeAdditionalPosition(stored, p);
     if (state.pois.some(item => item.name === p.name && Number(item.poi_id) !== p.poiId)) throw new Error("ADDITIONAL_POI_IDENTITY_CONFLICT");
     if (row) {
       for (const [field, expected] of Object.entries({ name: p.name, category: p.category, conservation_status: p.conservationStatus, activity_hours: p.activityHours,

@@ -1,4 +1,4 @@
-# Nguồn ảnh 10 POI
+# Nguồn ảnh 18 POI
 
 Ngày kiểm tra nguồn: 25/10/2026.
 
@@ -125,3 +125,109 @@ Giao diện giữ tác giả/giấy phép của các ảnh Creative Commons và 
 - Quyền/giấy phép: Public source; no open redistribution license verified
 - thumbnail: `nhanhuong-thumb.webp` — 128×82, 4266 byte; SHA-256 `bde4ba72b083d786230e5c2a20244e0d56eac8f7f5dfed974a41f82d3419829b`.
 - detail: `nhanhuong-detail.webp` — 960×614, 168796 byte; SHA-256 `58fef433885576509345655e83be57d58c5272bc6d21df5e598375f3d6cfd93d`.
+
+<!-- additional-poi-photos:start -->
+## 8 POI bổ sung
+
+Nguồn ảnh bổ sung được kiểm tra ngày 2026-11-08.
+
+Ảnh động vật và cây đa là ảnh minh họa loài. Ảnh Đền thờ Vua Hùng là ảnh tư liệu của đúng địa điểm tại Thảo Cầm Viên, không xác nhận hiện trạng ngày nay.
+
+Bản xuất giữ toàn khung, chỉnh hướng EXIF, thu nhỏ và chuyển WebP; không xóa chữ hoặc watermark. Metadata được bỏ khỏi bản xuất. Các bản dẫn xuất giữ giấy phép tương ứng.
+
+### Hổ Bengal
+
+- Tác phẩm: File:Bengal tiger (Panthera tigris tigris) female 2.jpg
+- Tác giả: Charles J. Sharp
+- Trang nguồn: https://commons.wikimedia.org/wiki/File:Bengal_tiger_(Panthera_tigris_tigris)_female_2.jpg
+- Tệp gốc: https://upload.wikimedia.org/wikipedia/commons/9/9a/Bengal_tiger_%28Panthera_tigris_tigris%29_female_2.jpg
+- Tệp tải để chuẩn bị: https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Bengal_tiger_%28Panthera_tigris_tigris%29_female_2.jpg/960px-Bengal_tiger_%28Panthera_tigris_tigris%29_female_2.jpg
+- Giấy phép: CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/
+- SHA-256 tệp đầu vào: `1ba589348913ff70c3bd727346d9ec2aeec8728da4252a6642535b022497ec4a`.
+- thumbnail: `bengal-tiger-thumb.webp` — 128×128, 5402 byte; SHA-256 `1bc0698af3d1cb5747273551c7fb2d3db35af2d1b134d37746967de92cfc8c51`.
+- detail: `bengal-tiger-detail.webp` — 640×640, 108408 byte; SHA-256 `1219b298cbe99c1cb4906b7030d62d9f3ec9756c6b9034dfb119b93d3f8af138`.
+
+### Gấu ngựa
+
+- Tác phẩm: File:Ursus thibetanus 01.JPG
+- Tác giả: H. Zell
+- Trang nguồn: https://commons.wikimedia.org/wiki/File:Ursus_thibetanus_01.JPG
+- Tệp gốc: https://upload.wikimedia.org/wikipedia/commons/d/df/Ursus_thibetanus_01.JPG
+- Tệp tải để chuẩn bị: https://thumb.wikimedia.org/wikipedia/commons/thumb/d/df/Ursus_thibetanus_01.JPG/960px-Ursus_thibetanus_01.JPG
+- Giấy phép: CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0/
+- SHA-256 tệp đầu vào: `583051ea0dc5e85252a452ee2829635ec354ae7b66d63c0a096d8a2e69a37b46`.
+- thumbnail: `asian-black-bear-thumb.webp` — 128×96, 3912 byte; SHA-256 `02a74795c1898d21c1924e4e086963c2f1d6742192a1b13534fdd8efc215833f`.
+- detail: `asian-black-bear-detail.webp` — 853×640, 191744 byte; SHA-256 `ebb22c3e7e4d33011284211aa1ddb411c87569a107c1a8b64b943bc7e810e865`.
+
+### Báo hoa mai
+
+- Tác phẩm: File:Sri Lankan leopard (Panthera pardus kotiya) female 3.jpg
+- Tác giả: Charles J. Sharp
+- Trang nguồn: https://commons.wikimedia.org/wiki/File:Sri_Lankan_leopard_(Panthera_pardus_kotiya)_female_3.jpg
+- Tệp gốc: https://upload.wikimedia.org/wikipedia/commons/8/8d/Sri_Lankan_leopard_%28Panthera_pardus_kotiya%29_female_3.jpg
+- Tệp tải để chuẩn bị: https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8d/Sri_Lankan_leopard_%28Panthera_pardus_kotiya%29_female_3.jpg/960px-Sri_Lankan_leopard_%28Panthera_pardus_kotiya%29_female_3.jpg
+- Giấy phép: CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/
+- SHA-256 tệp đầu vào: `5a62a259c774c4cca21471757d5d73e2a25560c7adf7c22e74f6d846382fa70e`.
+- thumbnail: `leopard-thumb.webp` — 128×166, 9024 byte; SHA-256 `6495f3e7c5119a8da7d18bd90c6ae598c2123bc398c82009a7cc57156df85708`.
+- detail: `leopard-detail.webp` — 640×828, 188290 byte; SHA-256 `be988701447bbe3d1f5ebac064d5b86dc35371ecba493a9a3404f80e564da80a`.
+
+### Chim hồng hạc
+
+- Tác phẩm: File:Greater flamingo 001.JPG
+- Tác giả: لا روسا
+- Trang nguồn: https://commons.wikimedia.org/wiki/File:Greater_flamingo_001.JPG
+- Tệp gốc: https://upload.wikimedia.org/wikipedia/commons/f/f3/Greater_flamingo_001.JPG
+- Tệp tải để chuẩn bị: https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f3/Greater_flamingo_001.JPG/960px-Greater_flamingo_001.JPG
+- Giấy phép: CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/
+- SHA-256 tệp đầu vào: `1565ecc666bc34fc93db95f88b5623ce7d12e53d9e77d8e0f92f24a4d5d01ee7`.
+- thumbnail: `flamingo-thumb.webp` — 128×96, 4088 byte; SHA-256 `7f69d162b10fb36999d834d710c92e290dc01b9ddfedb30363b73e3e2df11ee4`.
+- detail: `flamingo-detail.webp` — 853×640, 134228 byte; SHA-256 `e8cbcf38037ddf41094f68dbea5f02d5d5d8b1df9b5dc3d7892a5418cacd28fa`.
+
+### Cá sấu hoa cà
+
+- Tác phẩm: File:Crocodylus porosus - Wilhelma.jpg
+- Tác giả: H. Zell
+- Trang nguồn: https://commons.wikimedia.org/wiki/File:Crocodylus_porosus_-_Wilhelma.jpg
+- Tệp gốc: https://upload.wikimedia.org/wikipedia/commons/f/f7/Crocodylus_porosus_-_Wilhelma.jpg
+- Tệp tải để chuẩn bị: https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Crocodylus_porosus_-_Wilhelma.jpg/960px-Crocodylus_porosus_-_Wilhelma.jpg
+- Giấy phép: CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0/
+- SHA-256 tệp đầu vào: `efb036081acbb7c028f37336e19061669d176c904d5f75c9f44985bd3f9058da`.
+- thumbnail: `saltwater-crocodile-thumb.webp` — 128×59, 2052 byte; SHA-256 `dd0364286ec2e7d2ccba490d968a58069fdc5eb799181e1dcf41bab2a9004eed`.
+- detail: `saltwater-crocodile-detail.webp` — 960×446, 120404 byte; SHA-256 `30c804279845679fc15c4b0f5258c7bc2384ceaad1beeacae4034685d3b15716`.
+
+### Vượn má vàng
+
+- Tác phẩm: File:Nomascus-gabriellae.jpg
+- Tác giả: Sancassania
+- Trang nguồn: https://commons.wikimedia.org/wiki/File:Nomascus-gabriellae.jpg
+- Tệp gốc: https://upload.wikimedia.org/wikipedia/commons/f/f1/Nomascus-gabriellae.jpg
+- Tệp tải để chuẩn bị: https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f1/Nomascus-gabriellae.jpg/960px-Nomascus-gabriellae.jpg
+- Giấy phép: CC BY-SA 3.0 — https://creativecommons.org/licenses/by-sa/3.0/
+- SHA-256 tệp đầu vào: `36aaea9f6ab42192c0405ed5991bf5c1bf3fb6bdf7925b5b559ffb78d4c55624`.
+- thumbnail: `yellow-cheeked-gibbon-thumb.webp` — 128×85, 2508 byte; SHA-256 `1da64caef062257c0be37d236393333d66ea73dc483865a9d9b3babd6741d12b`.
+- detail: `yellow-cheeked-gibbon-detail.webp` — 960×638, 129016 byte; SHA-256 `d9c19d890886daa3e543b65dc9b86f1ea22763fbc5dd60543c1bc3f3f4f54ced`.
+
+### Đền thờ Vua Hùng
+
+- Tác phẩm: File:Hùng Kings Temple, Ho Chi Minh City, Vietnam - DSC06242.JPG
+- Tác giả: Daderot
+- Trang nguồn: https://commons.wikimedia.org/wiki/File:H%C3%B9ng_Kings_Temple,_Ho_Chi_Minh_City,_Vietnam_-_DSC06242.JPG
+- Tệp gốc: https://upload.wikimedia.org/wikipedia/commons/e/e1/H%C3%B9ng_Kings_Temple%2C_Ho_Chi_Minh_City%2C_Vietnam_-_DSC06242.JPG
+- Tệp tải để chuẩn bị: https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/H%C3%B9ng_Kings_Temple%2C_Ho_Chi_Minh_City%2C_Vietnam_-_DSC06242.JPG/960px-H%C3%B9ng_Kings_Temple%2C_Ho_Chi_Minh_City%2C_Vietnam_-_DSC06242.JPG
+- Giấy phép: CC0 — https://creativecommons.org/publicdomain/zero/1.0/deed.en
+- SHA-256 tệp đầu vào: `6f4146412862641fe83e464f044919934d1f56dc5da69b4ab4ac3ca18166923f`.
+- thumbnail: `hung-kings-temple-thumb.webp` — 128×85, 3446 byte; SHA-256 `e66c81e72353ee05144a91ffeb5cfb6d4914f19280e44847c5aadcf6691a02f7`.
+- detail: `hung-kings-temple-detail.webp` — 960×640, 218176 byte; SHA-256 `b68ab035e974747502a46c5edd3cc5f32ee809290707c78262601f28fa89f95e`.
+
+### Cây đa cổ thụ di sản
+
+- Tác phẩm: File:Ficus benghalensis 1zz.jpg
+- Tác giả: David J. Stang
+- Trang nguồn: https://commons.wikimedia.org/wiki/File:Ficus_benghalensis_1zz.jpg
+- Tệp gốc: https://upload.wikimedia.org/wikipedia/commons/c/c7/Ficus_benghalensis_1zz.jpg
+- Tệp tải để chuẩn bị: https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Ficus_benghalensis_1zz.jpg/960px-Ficus_benghalensis_1zz.jpg
+- Giấy phép: CC BY-SA 4.0 — https://creativecommons.org/licenses/by-sa/4.0/
+- SHA-256 tệp đầu vào: `f8c77b4d14b8a8b2f7213da4afbd6d2518e9904d05f7ae8e5e0e7ee1c0cfebc5`.
+- thumbnail: `heritage-banyan-thumb.webp` — 128×85, 4442 byte; SHA-256 `82e75565bf477236232f437a519d00c4f150c6100a8755f3889b77c79c99b1ec`.
+- detail: `heritage-banyan-detail.webp` — 960×640, 237580 byte; SHA-256 `7ab5e004366b253349f05fe0d7fc5c9aa19b056e0cf1e668c52e5e2f8b8a9eee`.
+<!-- additional-poi-photos:end -->

@@ -1,0 +1,330 @@
+{
+  "version": "TCV_BROWSER_DEMO_POSITIONS_V2",
+  "scope": "18 POIs; first ten retain V1 references/simulations, two secondary map references, five accepted schematic demo-area estimates, heritage banyan pending source confirmation",
+  "approvedScope": "Owner accepted five schematic demo-area placements on 2026-11-08. These are rounded regional estimates, not georeferenced coordinates, surveyed GPS, entrances or walking-route acceptance. The pending banyan point must not overwrite current database coordinates.",
+  "officialMapUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+  "points": [
+    {
+      "poiId": 1,
+      "name": "Hươu cao cổ",
+      "latitude": 10.7880953,
+      "longitude": 106.7078014,
+      "kind": "OSM_REFERENCE",
+      "sourceUrl": "https://www.openstreetmap.org/node/6045633938",
+      "evidence": {
+        "origin": "BACKEND_HANDOFF_FRONTEND_ONLY.md",
+        "reportedRetrievalDate": "2026-10-24",
+        "osmVersion": 5,
+        "osmTimestamp": "2026-03-12T22:40:47Z",
+        "method": "OSM_NODE",
+        "reverifiedAtImport": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 2,
+      "name": "Voi châu Á",
+      "latitude": 10.7886498,
+      "longitude": 106.7071674,
+      "kind": "OSM_REFERENCE",
+      "sourceUrl": "https://www.openstreetmap.org/node/6045634869",
+      "evidence": {
+        "origin": "BACKEND_HANDOFF_FRONTEND_ONLY.md",
+        "reportedRetrievalDate": "2026-10-24",
+        "osmVersion": 3,
+        "osmTimestamp": "2026-03-12T22:40:47Z",
+        "method": "OSM_NODE",
+        "reverifiedAtImport": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 3,
+      "name": "Hà mã",
+      "latitude": 10.7868,
+      "longitude": 106.708,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "APPROXIMATE_AREA_FROM_PERSPECTIVE_SCHEMATIC_NOT_GEOREFERENCED"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 4,
+      "name": "Tê giác trắng",
+      "latitude": 10.7875,
+      "longitude": 106.7053,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "APPROXIMATE_AREA_FROM_PERSPECTIVE_SCHEMATIC_NOT_GEOREFERENCED"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 5,
+      "name": "Trầm hương",
+      "latitude": 10.78685,
+      "longitude": 106.70705,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "ILLUSTRATIVE_GREEN_AREA_NOT_IDENTIFIED_TREE"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 6,
+      "name": "Ngọc lan",
+      "latitude": 10.78645,
+      "longitude": 106.70685,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "ILLUSTRATIVE_GREEN_AREA_NOT_IDENTIFIED_TREE"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 7,
+      "name": "Trám trắng",
+      "latitude": 10.78705,
+      "longitude": 106.7066,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "ILLUSTRATIVE_GREEN_AREA_NOT_IDENTIFIED_TREE"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 8,
+      "name": "Cát anh",
+      "latitude": 10.7861,
+      "longitude": 106.70725,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "ILLUSTRATIVE_GREEN_AREA_NOT_IDENTIFIED_TREE"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 9,
+      "name": "Bảo tàng Động–Thực vật",
+      "latitude": 10.78635,
+      "longitude": 106.7077,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "official schematic image, reviewed 2026-10-24",
+        "method": "APPROXIMATE_AREA_FROM_PERSPECTIVE_SCHEMATIC_NOT_GEOREFERENCED"
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 10,
+      "name": "Quán Nhan Hương",
+      "latitude": 10.7855494,
+      "longitude": 106.707677,
+      "kind": "OSM_REFERENCE",
+      "sourceUrl": "https://www.openstreetmap.org/way/77183579",
+      "evidence": {
+        "origin": "BACKEND_HANDOFF_FRONTEND_ONLY.md",
+        "reportedRetrievalDate": "2026-10-24",
+        "osmVersion": 5,
+        "osmTimestamp": "2024-04-25T08:04:19Z",
+        "method": "OSM_BOUNDING_BOX_CENTER_NOT_ENTRANCE",
+        "reverifiedAtImport": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 11,
+      "name": "Hổ Bengal",
+      "latitude": 10.7858,
+      "longitude": 106.708,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "Official Saigon Zoo perspective schematic, cached and inspected",
+        "method": "APPROXIMATE_AREA_ESTIMATE_FROM_PERSPECTIVE_SCHEMATIC_NOT_GEOREFERENCED",
+        "sourceImageUrl": "https://saigonzoo.vn/uploads/tin-tuc/tcv/ban-do-tcv.jpg",
+        "sourceImageSha256": "91349b51c63391490ce20898bc35f96f310086daf276c8f2644eb79323219e37",
+        "sourceImageWidth": 17000,
+        "sourceImageHeight": 10744,
+        "previewWidth": 2125,
+        "previewHeight": 1343,
+        "selectedIllustrationCentre": {
+          "x": 1732,
+          "y": 1070
+        },
+        "reviewedForSource": "2026-11-08",
+        "ownerAcceptedDemoPlacement": "2026-11-08",
+        "locationVerified": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 12,
+      "name": "Gấu ngựa",
+      "latitude": 10.7862,
+      "longitude": 106.7077,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "Official Saigon Zoo perspective schematic, cached and inspected",
+        "method": "APPROXIMATE_AREA_ESTIMATE_FROM_PERSPECTIVE_SCHEMATIC_NOT_GEOREFERENCED",
+        "sourceImageUrl": "https://saigonzoo.vn/uploads/tin-tuc/tcv/ban-do-tcv.jpg",
+        "sourceImageSha256": "91349b51c63391490ce20898bc35f96f310086daf276c8f2644eb79323219e37",
+        "sourceImageWidth": 17000,
+        "sourceImageHeight": 10744,
+        "previewWidth": 2125,
+        "previewHeight": 1343,
+        "selectedIllustrationCentre": {
+          "x": 1650,
+          "y": 1009
+        },
+        "reviewedForSource": "2026-11-08",
+        "ownerAcceptedDemoPlacement": "2026-11-08",
+        "locationVerified": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 13,
+      "name": "Báo hoa mai",
+      "latitude": 10.7885,
+      "longitude": 106.7058,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "Official Saigon Zoo perspective schematic, cached and inspected",
+        "method": "APPROXIMATE_AREA_ESTIMATE_FROM_PERSPECTIVE_SCHEMATIC_NOT_GEOREFERENCED",
+        "sourceImageUrl": "https://saigonzoo.vn/uploads/tin-tuc/tcv/ban-do-tcv.jpg",
+        "sourceImageSha256": "91349b51c63391490ce20898bc35f96f310086daf276c8f2644eb79323219e37",
+        "sourceImageWidth": 17000,
+        "sourceImageHeight": 10744,
+        "previewWidth": 2125,
+        "previewHeight": 1343,
+        "selectedIllustrationCentre": {
+          "x": 448,
+          "y": 542
+        },
+        "reviewedForSource": "2026-11-08",
+        "ownerAcceptedDemoPlacement": "2026-11-08",
+        "locationVerified": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 14,
+      "name": "Chim hồng hạc",
+      "latitude": 10.78805,
+      "longitude": 106.70624,
+      "kind": "MAP_REFERENCE_SECONDARY",
+      "sourceUrl": "https://mapcarta.com/W1275969816",
+      "evidence": {
+        "origin": "Mapcarta page reporting an OpenStreetMap feature",
+        "retrievedDate": "2026-11-08",
+        "method": "OSM_FEATURE_CENTER_REPORTED_BY_SECONDARY_SOURCE_NOT_ENTRANCE",
+        "primarySourceUrl": "https://www.openstreetmap.org/way/1275969816",
+        "primarySourceReverified": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 15,
+      "name": "Cá sấu hoa cà",
+      "latitude": 10.7865,
+      "longitude": 106.7081,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "Official Saigon Zoo perspective schematic, cached and inspected",
+        "method": "APPROXIMATE_AREA_ESTIMATE_FROM_PERSPECTIVE_SCHEMATIC_NOT_GEOREFERENCED",
+        "sourceImageUrl": "https://saigonzoo.vn/uploads/tin-tuc/tcv/ban-do-tcv.jpg",
+        "sourceImageSha256": "91349b51c63391490ce20898bc35f96f310086daf276c8f2644eb79323219e37",
+        "sourceImageWidth": 17000,
+        "sourceImageHeight": 10744,
+        "previewWidth": 2125,
+        "previewHeight": 1343,
+        "selectedIllustrationCentre": {
+          "x": 1904,
+          "y": 951
+        },
+        "reviewedForSource": "2026-11-08",
+        "ownerAcceptedDemoPlacement": "2026-11-08",
+        "locationVerified": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 16,
+      "name": "Vượn má vàng",
+      "latitude": 10.7863,
+      "longitude": 106.7079,
+      "kind": "SCHEMATIC_SIMULATION",
+      "sourceUrl": "https://saigonzoo.vn/p/ban-do-duong-di-hp13.html",
+      "evidence": {
+        "origin": "Official Saigon Zoo perspective schematic, cached and inspected",
+        "method": "APPROXIMATE_AREA_ESTIMATE_FROM_PERSPECTIVE_SCHEMATIC_NOT_GEOREFERENCED",
+        "sourceImageUrl": "https://saigonzoo.vn/uploads/tin-tuc/tcv/ban-do-tcv.jpg",
+        "sourceImageSha256": "91349b51c63391490ce20898bc35f96f310086daf276c8f2644eb79323219e37",
+        "sourceImageWidth": 17000,
+        "sourceImageHeight": 10744,
+        "previewWidth": 2125,
+        "previewHeight": 1343,
+        "selectedIllustrationCentre": {
+          "x": 1750,
+          "y": 981
+        },
+        "reviewedForSource": "2026-11-08",
+        "ownerAcceptedDemoPlacement": "2026-11-08",
+        "locationVerified": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 17,
+      "name": "Đền thờ Vua Hùng",
+      "latitude": 10.78724,
+      "longitude": 106.70571,
+      "kind": "MAP_REFERENCE_SECONDARY",
+      "sourceUrl": "https://mapcarta.com/W263505858",
+      "evidence": {
+        "origin": "Mapcarta page reporting an OpenStreetMap feature",
+        "retrievedDate": "2026-11-08",
+        "method": "OSM_FEATURE_CENTER_REPORTED_BY_SECONDARY_SOURCE_NOT_ENTRANCE",
+        "primarySourceUrl": "https://www.openstreetmap.org/way/263505858",
+        "primarySourceReverified": false
+      },
+      "surveyed": false
+    },
+    {
+      "poiId": 18,
+      "name": "Cây đa cổ thụ di sản",
+      "latitude": 10.7869,
+      "longitude": 106.7062,
+      "kind": "SEED_APPROXIMATION",
+      "sourceUrl": "database/seeds/001_additional_pois.sql",
+      "evidence": {
+        "origin": "database/seeds/001_additional_pois.sql",
+        "method": "UNVERIFIED_SEED_COORDINATE_PRESERVED_PENDING_SOURCE_REVIEW",
+        "reviewedForSource": "2026-11-08",
+        "locationVerified": false
+      },
+      "identityVerified": false,
+      "identityEvidenceUrl": "https://saigonzoo.vn/cay-di-san-tai-thao-cam-vien-sai-gon-36.html",
+      "identityNote": "The official heritage-tree list does not identify a heritage banyan; the exact tree has not been verified.",
+      "surveyed": false
+    }
+  ]
+}

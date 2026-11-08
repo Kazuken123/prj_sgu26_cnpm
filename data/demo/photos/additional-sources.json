@@ -1,0 +1,111 @@
+{
+  "datasetId": "TCV_ADDITIONAL_POI_PHOTOS_V1",
+  "checkedOn": "2026-11-08",
+  "officialMapUrl": "https://saigonzoo.vn/uploads/tin-tuc/tcv/ban-do-tcv.jpg",
+  "photos": [
+    {
+      "poiId": 11,
+      "poiName": "Hổ Bengal",
+      "key": "bengal-tiger",
+      "title": "File:Bengal tiger (Panthera tigris tigris) female 2.jpg",
+      "author": "Charles J. Sharp",
+      "source": "https://commons.wikimedia.org/wiki/File:Bengal_tiger_(Panthera_tigris_tigris)_female_2.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/9/9a/Bengal_tiger_%28Panthera_tigris_tigris%29_female_2.jpg",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/9a/Bengal_tiger_%28Panthera_tigris_tigris%29_female_2.jpg/960px-Bengal_tiger_%28Panthera_tigris_tigris%29_female_2.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "label": "Ảnh minh họa loài"
+    },
+    {
+      "poiId": 12,
+      "poiName": "Gấu ngựa",
+      "key": "asian-black-bear",
+      "title": "File:Ursus thibetanus 01.JPG",
+      "author": "H. Zell",
+      "source": "https://commons.wikimedia.org/wiki/File:Ursus_thibetanus_01.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/d/df/Ursus_thibetanus_01.JPG",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/df/Ursus_thibetanus_01.JPG/960px-Ursus_thibetanus_01.JPG",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "label": "Ảnh minh họa loài"
+    },
+    {
+      "poiId": 13,
+      "poiName": "Báo hoa mai",
+      "key": "leopard",
+      "title": "File:Sri Lankan leopard (Panthera pardus kotiya) female 3.jpg",
+      "author": "Charles J. Sharp",
+      "source": "https://commons.wikimedia.org/wiki/File:Sri_Lankan_leopard_(Panthera_pardus_kotiya)_female_3.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/8/8d/Sri_Lankan_leopard_%28Panthera_pardus_kotiya%29_female_3.jpg",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/8d/Sri_Lankan_leopard_%28Panthera_pardus_kotiya%29_female_3.jpg/960px-Sri_Lankan_leopard_%28Panthera_pardus_kotiya%29_female_3.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "label": "Ảnh minh họa loài"
+    },
+    {
+      "poiId": 14,
+      "poiName": "Chim hồng hạc",
+      "key": "flamingo",
+      "title": "File:Greater flamingo 001.JPG",
+      "author": "لا روسا",
+      "source": "https://commons.wikimedia.org/wiki/File:Greater_flamingo_001.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f3/Greater_flamingo_001.JPG",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f3/Greater_flamingo_001.JPG/960px-Greater_flamingo_001.JPG",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "label": "Ảnh minh họa loài"
+    },
+    {
+      "poiId": 15,
+      "poiName": "Cá sấu hoa cà",
+      "key": "saltwater-crocodile",
+      "title": "File:Crocodylus porosus - Wilhelma.jpg",
+      "author": "H. Zell",
+      "source": "https://commons.wikimedia.org/wiki/File:Crocodylus_porosus_-_Wilhelma.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f7/Crocodylus_porosus_-_Wilhelma.jpg",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f7/Crocodylus_porosus_-_Wilhelma.jpg/960px-Crocodylus_porosus_-_Wilhelma.jpg",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "label": "Ảnh minh họa loài"
+    },
+    {
+      "poiId": 16,
+      "poiName": "Vượn má vàng",
+      "key": "yellow-cheeked-gibbon",
+      "title": "File:Nomascus-gabriellae.jpg",
+      "author": "Sancassania",
+      "source": "https://commons.wikimedia.org/wiki/File:Nomascus-gabriellae.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/f/f1/Nomascus-gabriellae.jpg",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f1/Nomascus-gabriellae.jpg/960px-Nomascus-gabriellae.jpg",
+      "license": "CC BY-SA 3.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "label": "Ảnh minh họa loài"
+    },
+    {
+      "poiId": 17,
+      "poiName": "Đền thờ Vua Hùng",
+      "key": "hung-kings-temple",
+      "title": "File:Hùng Kings Temple, Ho Chi Minh City, Vietnam - DSC06242.JPG",
+      "author": "Daderot",
+      "source": "https://commons.wikimedia.org/wiki/File:H%C3%B9ng_Kings_Temple,_Ho_Chi_Minh_City,_Vietnam_-_DSC06242.JPG",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/e/e1/H%C3%B9ng_Kings_Temple%2C_Ho_Chi_Minh_City%2C_Vietnam_-_DSC06242.JPG",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/e/e1/H%C3%B9ng_Kings_Temple%2C_Ho_Chi_Minh_City%2C_Vietnam_-_DSC06242.JPG/960px-H%C3%B9ng_Kings_Temple%2C_Ho_Chi_Minh_City%2C_Vietnam_-_DSC06242.JPG",
+      "license": "CC0",
+      "licenseUrl": "https://creativecommons.org/publicdomain/zero/1.0/deed.en",
+      "label": "Ảnh tư liệu địa điểm"
+    },
+    {
+      "poiId": 18,
+      "poiName": "Cây đa cổ thụ di sản",
+      "key": "heritage-banyan",
+      "title": "File:Ficus benghalensis 1zz.jpg",
+      "author": "David J. Stang",
+      "source": "https://commons.wikimedia.org/wiki/File:Ficus_benghalensis_1zz.jpg",
+      "originalUrl": "https://upload.wikimedia.org/wikipedia/commons/c/c7/Ficus_benghalensis_1zz.jpg",
+      "downloadUrl": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c7/Ficus_benghalensis_1zz.jpg/960px-Ficus_benghalensis_1zz.jpg",
+      "license": "CC BY-SA 4.0",
+      "licenseUrl": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "label": "Ảnh minh họa loài"
+    }
+  ]
+}

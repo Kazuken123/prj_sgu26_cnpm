@@ -4,6 +4,10 @@ const manifest = JSON.parse(bytes.toString("utf8"));
 const same = (row, point) => row.poi_id === point.poiId && row.name === point.name &&
   Number(row.latitude) === point.latitude && Number(row.longitude) === point.longitude;
 function locationNote(poi) {
+  if (Number(poi.poiId) >= 11 && Number(poi.poiId) <= 18) {
+    const expanded = require("./poi-locations").locationNote(poi);
+    if (expanded) return expanded;
+  }
   const point = manifest.points.find(p => same({ poi_id: poi.poiId, name: poi.originalName, latitude: poi.latitude, longitude: poi.longitude }, p));
   return point ? { kind: point.kind, label: point.kind === "OSM_REFERENCE"
     ? "Vị trí tham khảo OSM theo bản ghi nguồn đã lưu; chưa tái xác minh, chưa khảo sát thực địa."

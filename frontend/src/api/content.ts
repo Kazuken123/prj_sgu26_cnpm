@@ -34,7 +34,7 @@ export interface PoiDto {
   triggerRadius: number;
   avatarUrl: string | null;
   displayOrder: number;
-  locationNote?: { kind: 'OSM_REFERENCE' | 'SCHEMATIC_SIMULATION'; label: string } | null;
+  locationNote?: { kind: 'OSM_REFERENCE' | 'SCHEMATIC_SIMULATION' | 'MAP_REFERENCE_SECONDARY' | 'SEED_APPROXIMATION'; label: string } | null;
   text: PoiTextDto;
   audio: PoiAudioDto;
 }
