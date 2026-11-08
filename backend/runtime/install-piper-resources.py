@@ -1,23 +1,50 @@
 """Build-time preparation only, with pinned hashes and bounded safe extraction."""
 import hashlib
+import http.client
 import json
 import pathlib
 import shutil
+import ssl
 import sys
 import tarfile
+import time
+import urllib.error
 import urllib.request
 
+
+def download_with_retry(url, output, transfer):
+    for attempt in range(1, 6):
+        created = False
+        try:
+            with urllib.request.urlopen(url, timeout=60) as response, output.open('xb') as handle:
+                created = True
+                return transfer(response, handle)
+        except Exception as error:
+            if created:
+                output.unlink()
+            if isinstance(error, urllib.error.HTTPError):
+                retryable = error.code in (408, 429) or 500 <= error.code < 600
+            else:
+                retryable = isinstance(error, (urllib.error.URLError, ssl.SSLError,
+                                              TimeoutError, ConnectionError, http.client.IncompleteRead))
+            if not retryable or attempt == 5:
+                raise
+            delay = 2 ** attempt
+            print(f'DOWNLOAD_RETRY attempt={attempt + 1}/5 delay={delay}s', file=sys.stderr)
+            time.sleep(delay)
+
 def download(spec, output):
-    digest, size = hashlib.sha256(), 0
-    with urllib.request.urlopen(spec['url'], timeout=60) as response, output.open('xb') as handle:
+    def transfer(response, handle):
+        digest, size = hashlib.sha256(), 0
         while chunk := response.read(1024 * 1024):
             size += len(chunk)
             if size > spec['size']:
                 raise ValueError('RESOURCE_TOO_LARGE')
             digest.update(chunk)
             handle.write(chunk)
-    if size != spec['size'] or digest.hexdigest() != spec['sha256']:
-        raise ValueError('RESOURCE_CHECKSUM_MISMATCH')
+        if size != spec['size'] or digest.hexdigest() != spec['sha256']:
+            raise ValueError('RESOURCE_CHECKSUM_MISMATCH')
+    return download_with_retry(spec['url'], output, transfer)
 
 def extract(archive, target):
     total = 0
