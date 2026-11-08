@@ -70,7 +70,10 @@ it("CLI exits nonzero at the shutdown deadline even when a poll/socket is stuck"
   let startTimer;
   try { await Promise.race([started, new Promise((resolve, reject) => { startTimer = setTimeout(() => reject(new Error("CLI start timeout")), 4000); })]); }
   finally { clearTimeout(startTimer); }
-  const before = Date.now(); child.kill("SIGTERM"); const result = await exited;
+  const before = Date.now();
+  if (process.platform === "win32") child.send("TEST_SIGTERM");
+  else child.kill("SIGTERM");
+  const result = await exited;
   assert.deepEqual(result, { code: 1, signal: null }); assert.ok(Date.now() - before < 5000);
   assert.match(output, /"stopping"/); assert.match(errors, /"stop_timeout"/); assert.match(errors, /CONTENT_WORKER_INTERRUPTED/);
 });
