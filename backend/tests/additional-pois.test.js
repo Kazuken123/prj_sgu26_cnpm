@@ -1,6 +1,8 @@
 const { describe, it, before, after } = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
+const path = require("node:path"), os = require("node:os");
+const { execFileSync } = require("node:child_process");
 const { createHash, randomUUID } = require("node:crypto");
 const { ADDITIONAL_POI_NAMES, SQL_FILE_PATH, parseArgs, loadSqlStatements, runSeed } = require("../scripts/seed-additional-pois");
 const { loadInput, parseInput, splitStatements, LANGUAGE_CODES } = require("../config/additional-pois-input");
@@ -173,7 +175,7 @@ describe("Additional POIs offline input and atomic seed", () => {
 });
 
 describe("Additional POIs seed with real local MySQL and generated speech assets", { skip: process.env.RUN_DB_TESTS !== "1", timeout: 120000 }, () => {
-  let admin, mysql, input, baseline, manifest, media, config;
+  let admin, mysql, input, baseline, manifest, media, config, mediaRoot;
   const databases = [];
   before(async () => {
     const host = process.env.DB_HOST || "127.0.0.1";
@@ -181,7 +183,9 @@ describe("Additional POIs seed with real local MySQL and generated speech assets
     // Use the real generated manifest and files; missing assets fail an opted-in
     // run before creating a database. This suite never contacts Aiven.
     input = await loadInput();
-    media = new (require("../adapters/local-media"))({ root: process.env.MEDIA_ROOT || require("node:path").resolve(__dirname, "../../data/demo/additional-media") });
+    mediaRoot = await fs.mkdtemp(path.join(os.tmpdir(), "tcv-additional-media-test-"));
+    execFileSync("tar", ["-xzf", path.resolve(__dirname, "../../data/demo/additional/media.tar.gz"), "-C", mediaRoot], { windowsHide: true });
+    media = new (require("../adapters/local-media"))({ root: mediaRoot });
     manifest = await require("../config/additional-assets").verify(media, input);
     baseline = await require("../config/staging-dataset").load();
     mysql = require("mysql2/promise");
@@ -189,13 +193,22 @@ describe("Additional POIs seed with real local MySQL and generated speech assets
     admin = await mysql.createConnection(config);
   });
   after(async () => {
-    for (const { db, name } of databases) {
-      await db.end();
-      assert.match(name, /^tcv_additional_test_[a-f0-9]{32}$/);
-      assert.notEqual(name, process.env.DB_NAME);
-      if (admin) await admin.query("DROP DATABASE IF EXISTS `" + name + "`");
+    try {
+      for (const { db, name } of databases) {
+        await db.end();
+        assert.match(name, /^tcv_additional_test_[a-f0-9]{32}$/);
+        assert.notEqual(name, process.env.DB_NAME);
+        if (admin) await admin.query("DROP DATABASE IF EXISTS `" + name + "`");
+      }
+      if (admin) await admin.end();
+    } finally {
+      if (mediaRoot) {
+        const root = path.resolve(mediaRoot);
+        assert.equal(path.dirname(root), path.resolve(os.tmpdir()));
+        assert.match(path.basename(root), /^tcv-additional-media-test-[a-zA-Z0-9]+$/);
+        await fs.rm(root, { recursive: true, force: true });
+      }
     }
-    if (admin) await admin.end();
   });
   async function fixtureDatabase() {
     const path = require("node:path");
