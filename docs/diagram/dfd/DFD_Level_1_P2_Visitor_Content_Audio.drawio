@@ -1,0 +1,53 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" agent="Antigravity" version="24.7.17">
+  <diagram id="dfd_level_1_p2" name="DFD Mức 1 Tiến trình 2.0">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1060" pageHeight="620" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontStyle=1;fillColor=none;strokeColor=none;fontColor=#111827;" value="SƠ ĐỒ DFD MỨC 1 — TIẾN TRÌNH 2.0 CUNG CẤP NỘI DUNG BẢN ĐỒ, LỘ TRÌNH VÀ THUYẾT MINH" vertex="1">
+  <mxGeometry x="30" y="20" width="1000" height="40" as="geometry" />
+</mxCell>
+        <mxCell id="P2" parent="1" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=13;fontColor=#111827;align=center;" value="&lt;b&gt;2.0&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Cung cấp nội dung bản đồ,&lt;br/&gt;lộ trình và thuyết minh" vertex="1">
+  <mxGeometry x="410" y="95" width="250" height="470" as="geometry" />
+</mxCell>
+        <mxCell id="E1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#111827;align=center;" value="Khách tham quan" vertex="1">
+  <mxGeometry x="30" y="200" width="170" height="220" as="geometry" />
+</mxCell>
+        <mxCell id="D2" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=12;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D2&lt;/b&gt; | Phiên &amp;amp; Thanh toán" vertex="1">
+  <mxGeometry x="870" y="105" width="160" height="75" as="geometry" />
+</mxCell>
+        <mxCell id="D3" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=12;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D3&lt;/b&gt; | Điểm tham quan &amp;amp; Media" vertex="1">
+  <mxGeometry x="870" y="220" width="160" height="75" as="geometry" />
+</mxCell>
+        <mxCell id="D4" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=12;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D4&lt;/b&gt; | Lộ trình tham quan" vertex="1">
+  <mxGeometry x="870" y="335" width="160" height="75" as="geometry" />
+</mxCell>
+        <mxCell id="D6" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=12;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D6&lt;/b&gt; | Nhật ký &amp;amp; Thống kê" vertex="1">
+  <mxGeometry x="870" y="450" width="160" height="75" as="geometry" />
+</mxCell>
+        <mxCell id="f_e1_p2_1" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.1591;entryX=0.0;entryY=0.2979;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Token phiên, ngôn ngữ&lt;br/&gt;và yêu cầu tải gói" edge="1" source="E1" target="P2">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_p2_e1" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.4574;entryX=1.0;entryY=0.5;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Gói bản đồ, điểm dừng,&lt;br/&gt;lộ trình và tệp âm thanh" edge="1" source="P2" target="E1">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_e1_p2_2" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.8409;entryX=0.0;entryY=0.617;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Tọa độ GPS hiện tại&lt;br/&gt;và tín hiệu hiện diện" edge="1" source="E1" target="P2">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_d2_p2" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.4933;entryX=1.0;entryY=0.1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Đọc trạng thái hiệu lực&lt;br/&gt;của token phiên" edge="1" source="D2" target="P2">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_d3_p2" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.4933;entryX=1.0;entryY=0.3447;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Đọc điểm tham quan,&lt;br/&gt;bản dịch và tệp WAV" edge="1" source="D3" target="P2">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_d4_p2" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.4933;entryX=1.0;entryY=0.5894;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Đọc danh sách lộ trình&lt;br/&gt;và thứ tự điểm dừng" edge="1" source="D4" target="P2">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_p2_d6" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.834;entryX=0.0;entryY=0.4933;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Ghi nhật ký tải gói,&lt;br/&gt;hiện diện và điểm ghé" edge="1" source="P2" target="D6">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

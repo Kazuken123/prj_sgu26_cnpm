@@ -76,7 +76,7 @@ def build_section_elements(doc, md_path):
         md_text = f.read()
 
     lines = md_text.split('\n')
-    elements = [] # list of ('heading2', text), ('heading3', text), ('p', text), ('fig_caption', text), ('tbl_caption', text), ('table', rows)
+    elements = [] # list of ('heading2', text), ('heading3', text), ('heading4', text), ('p', text), ('fig_caption', text), ('tbl_caption', text), ('table', rows)
     
     i = 0
     while i < len(lines):
@@ -85,23 +85,29 @@ def build_section_elements(doc, md_path):
             i += 1
             continue
         
-        if line.startswith('### '):
-            text = line[4:].strip()
+        # Clean any ##### if ever present
+        line = line.replace('##### ', '').replace('#####', '').strip()
+        
+        if line.startswith('### 3.4'):
+            text = line.lstrip('#').strip()
             elements.append(('heading2', text))
             i += 1
         elif line.startswith('#### '):
-            text = line[5:].strip()
+            text = line.lstrip('#').strip()
             elements.append(('heading3', text))
             i += 1
-        elif line.startswith('![') and '](file://' in line:
+        elif re.match(r'^[a-e]\.\s+', line):
+            elements.append(('heading4', line))
+            i += 1
+        elif line.startswith('![') and ']' in line and '(' in line:
             # Markdown image line -> skip because caption follows
             i += 1
         elif line.startswith('*Hình ') and line.endswith('*'):
-            text = line.strip('*')
+            text = line.strip('*').strip()
             elements.append(('fig_caption', text))
             i += 1
         elif line.startswith('*Bảng ') and line.endswith('*'):
-            text = line.strip('*')
+            text = line.strip('*').strip()
             elements.append(('tbl_caption', text))
             i += 1
         elif line.startswith('|'):
@@ -112,6 +118,10 @@ def build_section_elements(doc, md_path):
                 i += 1
             rows = parse_markdown_table(table_lines)
             elements.append(('table', rows))
+        elif re.match(r'^Bảng 3\.\d+\s+(liệt kê|mô tả)', line):
+            # Skip redundant intro sentence before table
+            i += 1
+            continue
         else:
             elements.append(('p', line))
             i += 1
@@ -138,8 +148,7 @@ def main():
         
     print(f"Found CHƯƠNG 4 at paragraph index {target_idx}")
     
-    # We want to insert before paragraph 456 (which has the page break before CHƯƠNG 4)
-    # Let's inspect paragraphs 450 to target_idx
+    # We want to insert before paragraph that has the page break before CHƯƠNG 4
     insert_before_p = None
     for idx in range(target_idx - 5, target_idx):
         p = doc.paragraphs[idx]
@@ -156,8 +165,6 @@ def main():
     print(f"Parsed {len(elements)} items from {MD_PATH}")
 
     # Insert elements sequentially before insert_before_p
-    # Note: to preserve order when using insert_paragraph_before on the anchor,
-    # if we insert each item before insert_before_p, they will be placed in correct order!
     for item_type, data in elements:
         if item_type == 'heading2':
             p = insert_before_p.insert_paragraph_before(data, style='Heading 2')
@@ -175,6 +182,15 @@ def main():
             for r in p.runs:
                 r.font.name = "Times New Roman"
                 r.font.size = Pt(12)
+                r.font.bold = True
+                r.font.color.rgb = RGBColor(0, 0, 0)
+        elif item_type == 'heading4':
+            p = insert_before_p.insert_paragraph_before(data)
+            p.paragraph_format.space_before = Pt(8)
+            p.paragraph_format.space_after = Pt(3)
+            for r in p.runs:
+                r.font.name = "Times New Roman"
+                r.font.size = Pt(11.5)
                 r.font.bold = True
                 r.font.color.rgb = RGBColor(0, 0, 0)
         elif item_type == 'fig_caption':
@@ -227,58 +243,60 @@ def main():
             sp.paragraph_format.space_before = Pt(2)
             sp.paragraph_format.space_after = Pt(6)
 
-    # Now also add the 8 POIs documentation in Section 4.4.4 g)
+    # Now also add the 8 POIs documentation in Section 4.4.4 g) if not already present
     poi_anchor = None
-    for i, p in enumerate(doc.paragraphs):
-        if p.text.strip().startswith('h) Bảng POI_TRANSLATIONS'):
-            poi_anchor = p
-            break
+    has_poi_table = any('4.29' in p.text for p in doc.paragraphs)
+    if not has_poi_table:
+        for i, p in enumerate(doc.paragraphs):
+            if p.text.strip().startswith('h) Bảng POI_TRANSLATIONS'):
+                poi_anchor = p
+                break
+                
+        if poi_anchor:
+            print(f"Found POI_TRANSLATIONS anchor at paragraph for 8 POIs table")
+            p_intro = poi_anchor.insert_paragraph_before(
+                "Để phục vụ dữ liệu thực nghiệm phong phú cho hệ thống thuyết minh tại Thảo Cầm Viên Sài Gòn, "
+                "hệ thống đã bổ sung thêm 8 điểm tham quan thực tế bao gồm động vật, thực vật và di tích lịch sử văn hóa. "
+                "Dữ liệu được nạp thông qua tệp kịch bản nạp độc lập database/seeds/001_additional_pois.sql, "
+                "tuân thủ toàn vẹn khóa ngoại và hỗ trợ đầy đủ hai ngôn ngữ tiếng Việt và tiếng Anh."
+            )
+            p_intro.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
+            p_intro.paragraph_format.line_spacing = 1.2
+            p_intro.paragraph_format.space_after = Pt(6)
+            for r in p_intro.runs:
+                r.font.name = "Times New Roman"
+                r.font.size = Pt(11)
+                
+            p_tbl_cap = poi_anchor.insert_paragraph_before(
+                "Bảng 4.29: Danh mục 8 điểm tham quan thực tế bổ sung cho Thảo Cầm Viên Sài Gòn"
+            )
+            p_tbl_cap.paragraph_format.space_before = Pt(6)
+            p_tbl_cap.paragraph_format.space_after = Pt(4)
+            for r in p_tbl_cap.runs:
+                r.font.name = "Times New Roman"
+                r.font.size = Pt(11)
+                r.font.italic = True
+                
+            poi_rows = [
+                ["STT", "Tên điểm tham quan", "Phân loại", "Tình trạng bảo tồn", "Tọa độ GPS", "Bán kính kích hoạt"],
+                ["1", "Hổ Bengal", "ANIMAL", "Nguy cấp IUCN", "10.787250, 106.705800", "30 mét"],
+                ["2", "Gấu ngựa", "ANIMAL", "Sắp nguy cấp IUCN", "10.787800, 106.705100", "30 mét"],
+                ["3", "Báo hoa mai", "ANIMAL", "Sắp nguy cấp IUCN", "10.788200, 106.704700", "30 mét"],
+                ["4", "Chim hồng hạc", "ANIMAL", "Ít quan tâm IUCN", "10.788700, 106.704200", "30 mét"],
+                ["5", "Cá sấu hoa cà", "ANIMAL", "Ít quan tâm IUCN", "10.789100, 106.703800", "30 mét"],
+                ["6", "Vượn má vàng", "ANIMAL", "Nguy cấp IUCN", "10.786900, 106.706200", "30 mét"],
+                ["7", "Đền thờ Vua Hùng", "HERITAGE", "Di tích văn hóa", "10.786500, 106.706800", "35 mét"],
+                ["8", "Cây đa cổ thụ di sản", "PLANT", "Cây cổ thụ di sản", "10.787500, 106.705500", "35 mét"]
+            ]
+            poi_table = doc.add_table(rows=len(poi_rows), cols=len(poi_rows[0]))
+            for r_idx, row in enumerate(poi_rows):
+                for c_idx, val in enumerate(row):
+                    poi_table.cell(r_idx, c_idx).text = val
+            format_table(poi_table)
+            poi_anchor._p.addprevious(poi_table._tbl)
             
-    if poi_anchor:
-        print(f"Found POI_TRANSLATIONS anchor at paragraph for 8 POIs table")
-        p_intro = poi_anchor.insert_paragraph_before(
-            "Để phục vụ dữ liệu thực nghiệm phong phú cho hệ thống thuyết minh tại Thảo Cầm Viên Sài Gòn, "
-            "hệ thống đã bổ sung thêm 8 điểm tham quan thực tế bao gồm động vật, thực vật và di tích lịch sử văn hóa. "
-            "Dữ liệu được nạp thông qua tệp kịch bản nạp độc lập database/seeds/001_additional_pois.sql, "
-            "tuân thủ toàn vẹn khóa ngoại và hỗ trợ đầy đủ hai ngôn ngữ tiếng Việt và tiếng Anh."
-        )
-        p_intro.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
-        p_intro.paragraph_format.line_spacing = 1.2
-        p_intro.paragraph_format.space_after = Pt(6)
-        for r in p_intro.runs:
-            r.font.name = "Times New Roman"
-            r.font.size = Pt(11)
-            
-        p_tbl_cap = poi_anchor.insert_paragraph_before(
-            "Bảng 4.29: Danh mục 8 điểm tham quan thực tế bổ sung cho Thảo Cầm Viên Sài Gòn"
-        )
-        p_tbl_cap.paragraph_format.space_before = Pt(6)
-        p_tbl_cap.paragraph_format.space_after = Pt(4)
-        for r in p_tbl_cap.runs:
-            r.font.name = "Times New Roman"
-            r.font.size = Pt(11)
-            r.font.italic = True
-            
-        poi_rows = [
-            ["STT", "Tên điểm tham quan", "Phân loại", "Tình trạng bảo tồn", "Tọa độ GPS", "Bán kính kích hoạt"],
-            ["1", "Hổ Bengal", "ANIMAL", "Nguy cấp IUCN", "10.787250, 106.705800", "30 mét"],
-            ["2", "Gấu ngựa", "ANIMAL", "Sắp nguy cấp IUCN", "10.787800, 106.705100", "30 mét"],
-            ["3", "Báo hoa mai", "ANIMAL", "Sắp nguy cấp IUCN", "10.788200, 106.704700", "30 mét"],
-            ["4", "Chim hồng hạc", "ANIMAL", "Ít quan tâm IUCN", "10.788700, 106.704200", "30 mét"],
-            ["5", "Cá sấu hoa cà", "ANIMAL", "Ít quan tâm IUCN", "10.789100, 106.703800", "30 mét"],
-            ["6", "Vượn má vàng", "ANIMAL", "Nguy cấp IUCN", "10.786900, 106.706200", "30 mét"],
-            ["7", "Đền thờ Vua Hùng", "HERITAGE", "Di tích văn hóa", "10.786500, 106.706800", "35 mét"],
-            ["8", "Cây đa cổ thụ di sản", "PLANT", "Cây cổ thụ di sản", "10.787500, 106.705500", "35 mét"]
-        ]
-        poi_table = doc.add_table(rows=len(poi_rows), cols=len(poi_rows[0]))
-        for r_idx, row in enumerate(poi_rows):
-            for c_idx, val in enumerate(row):
-                poi_table.cell(r_idx, c_idx).text = val
-        format_table(poi_table)
-        poi_anchor._p.addprevious(poi_table._tbl)
-        
-        sp = poi_anchor.insert_paragraph_before("")
-        sp.paragraph_format.space_after = Pt(6)
+            sp = poi_anchor.insert_paragraph_before("")
+            sp.paragraph_format.space_after = Pt(6)
 
     # Save to original path
     doc.save(DOCX_PATH)

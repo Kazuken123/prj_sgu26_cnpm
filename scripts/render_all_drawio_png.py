@@ -15,7 +15,11 @@ EDGE_BIN = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
 
 DIAGRAMS = [
     ("DFD_Level_0_Context", "docs/diagram/dfd/DFD_Level_0_Context.drawio", "docs/diagram/export/DFD_Level_0_Context.png"),
-    ("DFD_Level_1_System", "docs/diagram/dfd/DFD_Level_1_System.drawio", "docs/diagram/export/DFD_Level_1_System.png"),
+    ("DFD_Level_1_P1_Payment_Session", "docs/diagram/dfd/DFD_Level_1_P1_Payment_Session.drawio", "docs/diagram/export/DFD_Level_1_P1_Payment_Session.png"),
+    ("DFD_Level_1_P2_Visitor_Content_Audio", "docs/diagram/dfd/DFD_Level_1_P2_Visitor_Content_Audio.drawio", "docs/diagram/export/DFD_Level_1_P2_Visitor_Content_Audio.png"),
+    ("DFD_Level_1_P3_Chatbot_RAG", "docs/diagram/dfd/DFD_Level_1_P3_Chatbot_RAG.drawio", "docs/diagram/export/DFD_Level_1_P3_Chatbot_RAG.png"),
+    ("DFD_Level_1_P4_Content_Knowledge_Admin", "docs/diagram/dfd/DFD_Level_1_P4_Content_Knowledge_Admin.drawio", "docs/diagram/export/DFD_Level_1_P4_Content_Knowledge_Admin.png"),
+    ("DFD_Level_1_P5_Auth_Admin_Monitoring", "docs/diagram/dfd/DFD_Level_1_P5_Auth_Admin_Monitoring.drawio", "docs/diagram/export/DFD_Level_1_P5_Auth_Admin_Monitoring.png"),
     ("DFD_Level_2_P1_Payment_Session", "docs/diagram/dfd/DFD_Level_2_P1_Payment_Session.drawio", "docs/diagram/export/DFD_Level_2_P1_Payment_Session.png"),
     ("DFD_Level_2_P2_Visitor_Content_Audio", "docs/diagram/dfd/DFD_Level_2_P2_Visitor_Content_Audio.drawio", "docs/diagram/export/DFD_Level_2_P2_Visitor_Content_Audio.png"),
     ("DFD_Level_2_P3_Chatbot_RAG", "docs/diagram/dfd/DFD_Level_2_P3_Chatbot_RAG.drawio", "docs/diagram/export/DFD_Level_2_P3_Chatbot_RAG.png"),

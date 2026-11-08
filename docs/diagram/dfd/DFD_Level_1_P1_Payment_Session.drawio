@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='utf-8'?>
+<mxfile host="app.diagrams.net" agent="Antigravity" version="24.7.17">
+  <diagram id="dfd_level_1_p1" name="DFD Mức 1 Tiến trình 1.0">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1060" pageHeight="590" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontStyle=1;fillColor=none;strokeColor=none;fontColor=#111827;" value="SƠ ĐỒ DFD MỨC 1 — TIẾN TRÌNH 1.0 QUẢN LÝ THANH TOÁN VÀ PHIÊN THAM QUAN" vertex="1">
+  <mxGeometry x="30" y="20" width="1000" height="40" as="geometry" />
+</mxCell>
+        <mxCell id="P1" parent="1" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=13;fontColor=#111827;align=center;" value="&lt;b&gt;1.0&lt;/b&gt;&lt;br/&gt;&lt;br/&gt;Quản lý thanh toán&lt;br/&gt;và phiên tham quan" vertex="1">
+  <mxGeometry x="410" y="95" width="250" height="440" as="geometry" />
+</mxCell>
+        <mxCell id="E1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#111827;align=center;" value="Khách tham quan" vertex="1">
+  <mxGeometry x="30" y="110" width="170" height="110" as="geometry" />
+</mxCell>
+        <mxCell id="E2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#111827;align=center;" value="Nhân viên" vertex="1">
+  <mxGeometry x="30" y="360" width="170" height="110" as="geometry" />
+</mxCell>
+        <mxCell id="E4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#111827;align=center;" value="Cổng thanh toán" vertex="1">
+  <mxGeometry x="870" y="105" width="160" height="90" as="geometry" />
+</mxCell>
+        <mxCell id="D2" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=12;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D2&lt;/b&gt; | Phiên &amp;amp; Thanh toán" vertex="1">
+  <mxGeometry x="870" y="245" width="160" height="90" as="geometry" />
+</mxCell>
+        <mxCell id="D6" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=12;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D6&lt;/b&gt; | Nhật ký &amp;amp; Thống kê" vertex="1">
+  <mxGeometry x="870" y="395" width="160" height="75" as="geometry" />
+</mxCell>
+        <mxCell id="f_e1_p1" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.2727;entryX=0.0;entryY=0.1023;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Yêu cầu tạo phiên&lt;br/&gt;và mã đổi token" edge="1" source="E1" target="P1">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_p1_e1" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.2273;entryX=1.0;entryY=0.7727;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Thông tin giao dịch&lt;br/&gt;và token phiên" edge="1" source="P1" target="E1">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_e2_p1" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.2727;entryX=0.0;entryY=0.6705;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Xác nhận thu tiền mặt&lt;br/&gt;và tra cứu phiên" edge="1" source="E2" target="P1">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_p1_e2" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.7955;entryX=1.0;entryY=0.7727;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Mã ngắn 6 chữ số&lt;br/&gt;và token cấp lại" edge="1" source="P1" target="E2">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_p1_e4" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.0795;entryX=0.0;entryY=0.2778;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Yêu cầu khởi tạo giao dịch&lt;br/&gt;thanh toán trực tuyến" edge="1" source="P1" target="E4">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_e4_p1" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.7778;entryX=1.0;entryY=0.1818;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Webhook thông báo kết quả&lt;br/&gt;kèm chữ ký số" edge="1" source="E4" target="P1">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_p1_d2" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.3977;entryX=0.0;entryY=0.2778;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Ghi phiên, thanh toán&lt;br/&gt;và mã tạm thời" edge="1" source="P1" target="D2">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_d2_p1" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.7778;entryX=1.0;entryY=0.5;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Đọc thông tin phiên&lt;br/&gt;và mã xác thực" edge="1" source="D2" target="P1">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+        <mxCell id="f_p1_d6" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.7659;entryX=0.0;entryY=0.4933;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Ghi nhật ký thu tiền&lt;br/&gt;và cấp lại token" edge="1" source="P1" target="D6">
+  <mxGeometry relative="1" as="geometry" />
+</mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
