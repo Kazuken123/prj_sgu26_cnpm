@@ -94,6 +94,7 @@ def render_diagram(name, drawio_path, out_png_path):
     cmd = [
         EDGE_BIN,
         "--headless=new",
+        "--force-device-scale-factor=2",
         f"--user-data-dir={user_data}",
         "--no-first-run",
         "--no-default-browser-check",
@@ -133,7 +134,7 @@ def render_diagram(name, drawio_path, out_png_path):
         )
         cropped = im.crop(padded_bbox)
     else:
-        cropped = im
+        raise RuntimeError(f"Blank rendering for {name}")
 
     os.makedirs(os.path.dirname(out_png_path), exist_ok=True)
     cropped.save(out_png_path, "PNG")
@@ -147,6 +148,8 @@ def main():
         if ok:
             success_count += 1
     print(f"\nCompleted: {success_count}/{len(DIAGRAMS)} diagrams rendered.")
+    if success_count != len(DIAGRAMS):
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()

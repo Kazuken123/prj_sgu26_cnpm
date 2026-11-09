@@ -4,7 +4,7 @@ import re
 import docx
 from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.oxml import parse_xml
+from docx.oxml import parse_xml, OxmlElement
 from docx.oxml.ns import nsdecls
 
 sys.stdout.reconfigure(encoding='utf-8')
@@ -25,6 +25,13 @@ IMAGE_MAP = {
 }
 
 def format_table(table):
+    table.autofit = False
+    widths = ([0.45, 1.15, 1.75, 1.35, 1.5] if len(table.columns) == 5
+              else [0.5, 1.5, 1.9, 2.3])
+    for column, width in zip(table.columns, widths):
+        column.width = Inches(width)
+    header = OxmlElement('w:tblHeader')
+    table.rows[0]._tr.get_or_add_trPr().append(header)
     tblPr = table._tbl.tblPr
     tblBorders = parse_xml(r"""
         <w:tblBorders %s>
@@ -39,7 +46,8 @@ def format_table(table):
     tblPr.append(tblBorders)
     
     for row_idx, row in enumerate(table.rows):
-        for cell in row.cells:
+        for cell, width in zip(row.cells, widths):
+            cell.width = Inches(width)
             for p in cell.paragraphs:
                 p.paragraph_format.line_spacing = 1.15
                 p.paragraph_format.space_after = Pt(2)
@@ -223,6 +231,7 @@ def main():
             p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
             p_img.paragraph_format.space_before = Pt(8)
             p_img.paragraph_format.space_after = Pt(4)
+            p_img.paragraph_format.keep_with_next = True
             run = p_img.add_run()
             run.add_picture(img_path, width=Inches(6.2))
             
@@ -241,6 +250,7 @@ def main():
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
             p.paragraph_format.space_before = Pt(8)
             p.paragraph_format.space_after = Pt(4)
+            p.paragraph_format.keep_with_next = True
             for r in p.runs:
                 r.font.name = "Times New Roman"
                 r.font.size = Pt(10.5)
