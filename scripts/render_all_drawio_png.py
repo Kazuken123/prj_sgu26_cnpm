@@ -3,6 +3,7 @@ import sys
 import json
 import html
 import time
+import urllib.request
 import subprocess
 import xml.etree.ElementTree as ET
 from PIL import Image, ImageChops
@@ -10,8 +11,18 @@ from PIL import Image, ImageChops
 sys.stdout.reconfigure(encoding='utf-8')
 
 TEMP_DIR = os.environ['TEMP']
-USER_DATA = os.path.join(TEMP_DIR, 'edge_user_profile')
 EDGE_BIN = r"C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+
+# Pre-cache viewer-static.min.js locally so it loads instantly without network lag
+LOCAL_VIEWER_JS = os.path.join(TEMP_DIR, "viewer-static.min.js")
+if not os.path.exists(LOCAL_VIEWER_JS) or os.path.getsize(LOCAL_VIEWER_JS) < 1000:
+    try:
+        print("Downloading viewer-static.min.js for local offline rendering...")
+        urllib.request.urlretrieve("https://viewer.diagrams.net/js/viewer-static.min.js", LOCAL_VIEWER_JS)
+        print("Downloaded viewer-static.min.js successfully.")
+    except Exception as e:
+        print(f"Warning: could not cache locally ({e}), will use CDN URL.")
+        LOCAL_VIEWER_JS = None
 
 DIAGRAMS = [
     ("DFD_Level_0_Context", "docs/diagram/dfd/DFD_Level_0_Context.drawio", "docs/diagram/export/DFD_Level_0_Context.png"),
@@ -48,6 +59,11 @@ def render_diagram(name, drawio_path, out_png_path):
         'xml': xml_content
     }
 
+    if LOCAL_VIEWER_JS and os.path.exists(LOCAL_VIEWER_JS):
+        js_src = f"file:///{LOCAL_VIEWER_JS.replace('\\', '/')}"
+    else:
+        js_src = "https://viewer.diagrams.net/js/viewer-static.min.js"
+
     html_content = f"""<!DOCTYPE html>
 <html>
 <head>
@@ -60,7 +76,7 @@ def render_diagram(name, drawio_path, out_png_path):
 </head>
 <body>
     <div class="mxgraph" style="max-width:100%;border:none;" data-mxgraph="{html.escape(json.dumps(config))}"></div>
-    <script type="text/javascript" src="https://viewer.diagrams.net/js/viewer-static.min.js"></script>
+    <script type="text/javascript" src="{js_src}"></script>
 </body>
 </html>"""
 
@@ -69,12 +85,16 @@ def render_diagram(name, drawio_path, out_png_path):
         f.write(html_content)
 
     temp_png = os.path.join(TEMP_DIR, f"{name}_raw.png")
+    if os.path.exists(temp_png):
+        os.remove(temp_png)
+
     file_url = f"file:///{html_file.replace('\\', '/')}"
+    user_data = os.path.join(TEMP_DIR, f"edge_user_profile_{name}")
 
     cmd = [
         EDGE_BIN,
         "--headless=new",
-        f"--user-data-dir={USER_DATA}",
+        f"--user-data-dir={user_data}",
         "--no-first-run",
         "--no-default-browser-check",
         "--disable-fre",
@@ -87,8 +107,12 @@ def render_diagram(name, drawio_path, out_png_path):
         file_url
     ]
 
-    subprocess.run(cmd, capture_output=True, text=True, timeout=30)
-    time.sleep(1)
+    try:
+        subprocess.run(cmd, capture_output=True, text=True, timeout=45)
+    except Exception as e:
+        print(f"Error running Edge: {e}")
+
+    time.sleep(0.5)
 
     if not os.path.exists(temp_png):
         print(f"Error: {temp_png} was not generated!")
