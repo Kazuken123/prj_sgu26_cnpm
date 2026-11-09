@@ -6,7 +6,7 @@ Phần này mô tả chi tiết các luồng dữ liệu di chuyển qua các ti
 
 Sơ đồ mức 0 biểu diễn ranh giới ngoài cùng của toàn bộ hệ thống qua một tiến trình trung tâm duy nhất, xác định các luồng thông tin trao đổi trực tiếp với sáu tác nhân bên ngoài ranh giới ứng dụng.
 
-![Hình 3.38: Sơ đồ DFD mức 0 ngữ cảnh hệ thống](file:///docs/diagram/dfd/DFD_Level_0_Context.drawio)
+![Hình 3.38: Sơ đồ DFD mức 0 ngữ cảnh hệ thống](file:///docs/diagram/export/DFD_Level_0_Context.png)
 
 *Hình 3.38: Sơ đồ DFD mức 0 ngữ cảnh hệ thống*
 
@@ -31,37 +31,11 @@ Sơ đồ mức 0 biểu diễn ranh giới ngoài cùng của toàn bộ hệ t
 
 #### 3.4.2. Sơ đồ DFD mức 1
 
-Sơ đồ mức 1 phân rã tiến trình trung tâm 0 thành năm tiến trình chức năng chính từ 1.0 đến 5.0, kết nối với các tác nhân ngoài và sáu kho dữ liệu logic từ D1 đến D6. Mỗi tiến trình chính được trình bày trên một sơ đồ riêng biệt để làm rõ các luồng dữ liệu vào ra.
+Sơ đồ mức 1 phân rã toàn bộ hệ thống thành năm tiến trình chức năng chính từ 1.0 đến 5.0, kết nối đầy đủ và cân bằng với sáu tác nhân ngoài cùng sáu kho dữ liệu logic từ D1 đến D6.
 
-a. Tiến trình 1.0 Quản lý thanh toán và phiên tham quan
+![Hình 3.39: Sơ đồ DFD mức 1 phân rã toàn hệ thống](file:///docs/diagram/export/DFD_Level_1_System.png)
 
-![Hình 3.39: Sơ đồ DFD mức 1 tiến trình 1.0 Quản lý thanh toán và phiên tham quan](file:///docs/diagram/dfd/DFD_Level_1_P1_Payment_Session.drawio)
-
-*Hình 3.39: Sơ đồ DFD mức 1 tiến trình 1.0 Quản lý thanh toán và phiên tham quan*
-
-b. Tiến trình 2.0 Cung cấp nội dung bản đồ, lộ trình và thuyết minh
-
-![Hình 3.40: Sơ đồ DFD mức 1 tiến trình 2.0 Cung cấp nội dung bản đồ, lộ trình và thuyết minh](file:///docs/diagram/dfd/DFD_Level_1_P2_Visitor_Content_Audio.drawio)
-
-*Hình 3.40: Sơ đồ DFD mức 1 tiến trình 2.0 Cung cấp nội dung bản đồ, lộ trình và thuyết minh*
-
-c. Tiến trình 3.0 Xử lý hỏi đáp thông minh RAG
-
-![Hình 3.41: Sơ đồ DFD mức 1 tiến trình 3.0 Xử lý hỏi đáp thông minh RAG](file:///docs/diagram/dfd/DFD_Level_1_P3_Chatbot_RAG.drawio)
-
-*Hình 3.41: Sơ đồ DFD mức 1 tiến trình 3.0 Xử lý hỏi đáp thông minh RAG*
-
-d. Tiến trình 4.0 Quản trị nội dung, lộ trình và kho kiến thức
-
-![Hình 3.42: Sơ đồ DFD mức 1 tiến trình 4.0 Quản trị nội dung, lộ trình và kho kiến thức](file:///docs/diagram/dfd/DFD_Level_1_P4_Content_Knowledge_Admin.drawio)
-
-*Hình 3.42: Sơ đồ DFD mức 1 tiến trình 4.0 Quản trị nội dung, lộ trình và kho kiến thức*
-
-e. Tiến trình 5.0 Quản trị tài khoản nội bộ và giám sát hệ thống
-
-![Hình 3.43: Sơ đồ DFD mức 1 tiến trình 5.0 Quản trị tài khoản nội bộ và giám sát hệ thống](file:///docs/diagram/dfd/DFD_Level_1_P5_Auth_Admin_Monitoring.drawio)
-
-*Hình 3.43: Sơ đồ DFD mức 1 tiến trình 5.0 Quản trị tài khoản nội bộ và giám sát hệ thống*
+*Hình 3.39: Sơ đồ DFD mức 1 phân rã toàn hệ thống*
 
 *Bảng 3.20: Ánh xạ kho dữ liệu logic với cấu trúc lưu trữ vật lý*
 
@@ -94,9 +68,9 @@ a. Phân rã tiến trình 1.0 Quản lý thanh toán và phiên tham quan
 
 Tiến trình 1.0 được phân rã thành năm tiến trình con từ 1.1 đến 1.5, xử lý các nghiệp vụ thanh toán trực tuyến, thanh toán tiền mặt tại quầy, đổi mã xác thực lấy token phiên và tra cứu cấp lại token khi khách gặp sự cố.
 
-![Hình 3.44: Sơ đồ DFD mức 2 tiến trình 1.0 Quản lý thanh toán và phiên tham quan](file:///docs/diagram/dfd/DFD_Level_2_P1_Payment_Session.drawio)
+![Hình 3.40: Sơ đồ DFD mức 2 tiến trình 1.0 Quản lý thanh toán và phiên tham quan](file:///docs/diagram/export/DFD_Level_2_P1_Payment_Session.png)
 
-*Hình 3.44: Sơ đồ DFD mức 2 tiến trình 1.0 Quản lý thanh toán và phiên tham quan*
+*Hình 3.40: Sơ đồ DFD mức 2 tiến trình 1.0 Quản lý thanh toán và phiên tham quan*
 
 *Bảng 3.22: Bảng mô tả các tiến trình con trong DFD mức 2 của tiến trình 1.0*
 
@@ -112,9 +86,9 @@ b. Phân rã tiến trình 2.0 Cung cấp nội dung bản đồ, lộ trình v�
 
 Tiến trình 2.0 được phân rã thành bốn tiến trình con từ 2.1 đến 2.4, phụ trách kiểm tra quyền truy cập phiên tham quan, đóng gói nội dung bản đồ theo ngôn ngữ, truyền tải tệp âm thanh và theo dõi vị trí hiện diện của khách.
 
-![Hình 3.45: Sơ đồ DFD mức 2 tiến trình 2.0 Cung cấp nội dung bản đồ, lộ trình và thuyết minh](file:///docs/diagram/dfd/DFD_Level_2_P2_Visitor_Content_Audio.drawio)
+![Hình 3.41: Sơ đồ DFD mức 2 tiến trình 2.0 Cung cấp nội dung bản đồ, lộ trình và thuyết minh](file:///docs/diagram/export/DFD_Level_2_P2_Visitor_Content_Audio.png)
 
-*Hình 3.45: Sơ đồ DFD mức 2 tiến trình 2.0 Cung cấp nội dung bản đồ, lộ trình và thuyết minh*
+*Hình 3.41: Sơ đồ DFD mức 2 tiến trình 2.0 Cung cấp nội dung bản đồ, lộ trình và thuyết minh*
 
 *Bảng 3.23: Bảng mô tả các tiến trình con trong DFD mức 2 của tiến trình 2.0*
 
@@ -129,9 +103,9 @@ c. Phân rã tiến trình 3.0 Xử lý hỏi đáp thông minh RAG
 
 Tiến trình 3.0 được phân rã thành bốn tiến trình con từ 3.1 đến 3.4, thực hiện chu trình kiểm tra phiên, tạo vector câu hỏi, tìm kiếm đoạn kiến thức tương đồng và tổng hợp câu trả lời có trích dẫn nguồn rõ ràng.
 
-![Hình 3.46: Sơ đồ DFD mức 2 tiến trình 3.0 Xử lý hỏi đáp thông minh RAG](file:///docs/diagram/dfd/DFD_Level_2_P3_Chatbot_RAG.drawio)
+![Hình 3.42: Sơ đồ DFD mức 2 tiến trình 3.0 Xử lý hỏi đáp thông minh RAG](file:///docs/diagram/export/DFD_Level_2_P3_Chatbot_RAG.png)
 
-*Hình 3.46: Sơ đồ DFD mức 2 tiến trình 3.0 Xử lý hỏi đáp thông minh RAG*
+*Hình 3.42: Sơ đồ DFD mức 2 tiến trình 3.0 Xử lý hỏi đáp thông minh RAG*
 
 *Bảng 3.24: Bảng mô tả các tiến trình con trong DFD mức 2 của tiến trình 3.0*
 
@@ -146,9 +120,9 @@ d. Phân rã tiến trình 4.0 Quản trị nội dung, lộ trình và kho ki�
 
 Tiến trình 4.0 được phân rã thành bốn tiến trình con từ 4.1 đến 4.4, phục vụ các thao tác cập nhật dữ liệu của nhân viên, điều phối dây chuyền dịch và tạo giọng đọc tự động, quản lý tour mẫu và lập chỉ mục kho kiến thức hỏi đáp.
 
-![Hình 3.47: Sơ đồ DFD mức 2 tiến trình 4.0 Quản trị nội dung, lộ trình và kho kiến thức](file:///docs/diagram/dfd/DFD_Level_2_P4_Content_Knowledge_Admin.drawio)
+![Hình 3.43: Sơ đồ DFD mức 2 tiến trình 4.0 Quản trị nội dung, lộ trình và kho kiến thức](file:///docs/diagram/export/DFD_Level_2_P4_Content_Knowledge_Admin.png)
 
-*Hình 3.47: Sơ đồ DFD mức 2 tiến trình 4.0 Quản trị nội dung, lộ trình và kho kiến thức*
+*Hình 3.43: Sơ đồ DFD mức 2 tiến trình 4.0 Quản trị nội dung, lộ trình và kho kiến thức*
 
 *Bảng 3.25: Bảng mô tả các tiến trình con trong DFD mức 2 của tiến trình 4.0*
 
@@ -163,9 +137,9 @@ e. Phân rã tiến trình 5.0 Quản trị tài khoản nội bộ và giám s�
 
 Tiến trình 5.0 được phân rã thành bốn tiến trình con từ 5.1 đến 5.4, đảm nhiệm xác thực nhân sự nội bộ, quản lý người dùng vai trò nhân viên, tra cứu nhật ký kiểm toán và tổng hợp bảng điều khiển giám sát sức khỏe vận hành.
 
-![Hình 3.48: Sơ đồ DFD mức 2 tiến trình 5.0 Quản trị tài khoản nội bộ và giám sát hệ thống](file:///docs/diagram/dfd/DFD_Level_2_P5_Auth_Admin_Monitoring.drawio)
+![Hình 3.44: Sơ đồ DFD mức 2 tiến trình 5.0 Quản trị tài khoản nội bộ và giám sát hệ thống](file:///docs/diagram/export/DFD_Level_2_P5_Auth_Admin_Monitoring.png)
 
-*Hình 3.48: Sơ đồ DFD mức 2 tiến trình 5.0 Quản trị tài khoản nội bộ và giám sát hệ thống*
+*Hình 3.44: Sơ đồ DFD mức 2 tiến trình 5.0 Quản trị tài khoản nội bộ và giám sát hệ thống*
 
 *Bảng 3.26: Bảng mô tả các tiến trình con trong DFD mức 2 của tiến trình 5.0*
 
@@ -186,9 +160,9 @@ a. Phân rã tiến trình 4.2 Xử lý nền dịch văn bản và tổng hợp
 
 Tiến trình 4.2 phân rã thành bốn tiến trình con từ 4.2.1 đến 4.2.4 mô tả chính xác chu trình xử lý của worker nền trong mã nguồn, bao gồm cơ chế tranh chấp khóa tác vụ, dịch văn bản tự động, tổng hợp tệp âm thanh và lưu kho tệp truyền thông.
 
-![Hình 3.49: Sơ đồ DFD mức 3 tiến trình 4.2 Xử lý nền dịch văn bản và tổng hợp âm thanh](file:///docs/diagram/dfd/DFD_Level_3_P4_2_Pipeline_Translation_TTS.drawio)
+![Hình 3.45: Sơ đồ DFD mức 3 tiến trình 4.2 Xử lý nền dịch văn bản và tổng hợp âm thanh](file:///docs/diagram/export/DFD_Level_3_P4_2_Pipeline_Translation_TTS.png)
 
-*Hình 3.49: Sơ đồ DFD mức 3 tiến trình 4.2 Xử lý nền dịch văn bản và tổng hợp âm thanh*
+*Hình 3.45: Sơ đồ DFD mức 3 tiến trình 4.2 Xử lý nền dịch văn bản và tổng hợp âm thanh*
 
 *Bảng 3.27: Bảng mô tả các tiến trình con trong DFD mức 3 của tiến trình 4.2*
 
@@ -203,9 +177,9 @@ b. Phân rã tiến trình 3.4 Tổng hợp câu trả lời có trích dẫn v�
 
 Tiến trình 3.4 phân rã thành bốn tiến trình con từ 3.4.1 đến 3.4.4 mô tả cơ chế ghép nối lời nhắc, truy vấn mô hình trí tuệ nhân tạo, kiểm duyệt căn cứ tài liệu và ghi nhận dữ liệu phục vụ đối soát chất lượng.
 
-![Hình 3.50: Sơ đồ DFD mức 3 tiến trình 3.4 Tổng hợp câu trả lời có trích dẫn và ghi nhật ký](file:///docs/diagram/dfd/DFD_Level_3_P3_4_RAG_Answer_Generation.drawio)
+![Hình 3.46: Sơ đồ DFD mức 3 tiến trình 3.4 Tổng hợp câu trả lời có trích dẫn và ghi nhật ký](file:///docs/diagram/export/DFD_Level_3_P3_4_RAG_Answer_Generation.png)
 
-*Hình 3.50: Sơ đồ DFD mức 3 tiến trình 3.4 Tổng hợp câu trả lời có trích dẫn và ghi nhật ký*
+*Hình 3.46: Sơ đồ DFD mức 3 tiến trình 3.4 Tổng hợp câu trả lời có trích dẫn và ghi nhật ký*
 
 *Bảng 3.28: Bảng mô tả các tiến trình con trong DFD mức 3 của tiến trình 3.4*
 

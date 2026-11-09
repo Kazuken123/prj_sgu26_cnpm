@@ -1,82 +1,76 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <mxfile host="app.diagrams.net" agent="Antigravity" version="24.7.17">
-  <diagram id="dfd_level_2_p3" name="DFD Mức 2 Tiến trình 3.0">
-    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1060" pageHeight="710" math="0" shadow="0">
+  <diagram id="dfd_2_p3" name="DFD Mức 2 Tiến trình 3.0">
+    <mxGraphModel dx="1180" dy="760" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1180" pageHeight="760" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontStyle=1;fillColor=none;strokeColor=none;fontColor=#111827;" value="SƠ ĐỒ DFD MỨC 2 — TIẾN TRÌNH 3.0 XỬ LÝ HỎI ĐÁP THÔNG MINH RAG" vertex="1">
-  <mxGeometry x="30" y="20" width="1000" height="40" as="geometry" />
-</mxCell>
-        <mxCell id="P3_1" parent="1" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=13;fontColor=#111827;align=center;" value="&lt;b&gt;3.1&lt;/b&gt;&lt;br/&gt;Kiểm tra phiên khách và&lt;br/&gt;giới hạn tần suất hỏi" vertex="1">
-  <mxGeometry x="410" y="85" width="250" height="80" as="geometry" />
-</mxCell>
-        <mxCell id="P3_2" parent="1" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=13;fontColor=#111827;align=center;" value="&lt;b&gt;3.2&lt;/b&gt;&lt;br/&gt;Kiểm tra phạm vi câu hỏi&lt;br/&gt;và tạo vector truy vấn" vertex="1">
-  <mxGeometry x="410" y="230" width="250" height="85" as="geometry" />
-</mxCell>
-        <mxCell id="P3_3" parent="1" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=13;fontColor=#111827;align=center;" value="&lt;b&gt;3.3&lt;/b&gt;&lt;br/&gt;Truy hồi đoạn kiến thức&lt;br/&gt;tương đồng" vertex="1">
-  <mxGeometry x="410" y="380" width="250" height="80" as="geometry" />
-</mxCell>
-        <mxCell id="P3_4" parent="1" style="rounded=1;arcSize=14;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=13;fontColor=#111827;align=center;" value="&lt;b&gt;3.4&lt;/b&gt;&lt;br/&gt;Tổng hợp câu trả lời&lt;br/&gt;có trích dẫn và ghi nhật ký" vertex="1">
-  <mxGeometry x="410" y="525" width="250" height="120" as="geometry" />
-</mxCell>
-        <mxCell id="f_p31_p32" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Câu hỏi hợp lệ&lt;br/&gt;chưa vượt hạn mức" edge="1" source="P3_1" target="P3_2">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-        <mxCell id="f_p32_p33" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Vector câu hỏi&lt;br/&gt;kèm câu hỏi gốc" edge="1" source="P3_2" target="P3_3">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-        <mxCell id="f_p33_p34" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Tập các đoạn kiến thức&lt;br/&gt;tương đồng cao nhất" edge="1" source="P3_3" target="P3_4">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-        <mxCell id="E1_R1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#111827;align=center;" value="Khách tham quan" vertex="1">
-  <mxGeometry x="30" y="85" width="170" height="80" as="geometry" />
-</mxCell>
-        <mxCell id="D2_R1" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=12;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D2&lt;/b&gt; | Phiên &amp;amp; Thanh toán" vertex="1">
-  <mxGeometry x="870" y="85" width="160" height="80" as="geometry" />
-</mxCell>
-        <mxCell id="f_e1_p31" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.5;entryX=0.0;entryY=0.5;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Câu hỏi của khách&lt;br/&gt;kèm token phiên và ngôn ngữ" edge="1" source="E1_R1" target="P3_1">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-        <mxCell id="f_d2_p31" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.5;entryX=1.0;entryY=0.5;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Kiểm tra hiệu lực token&lt;br/&gt;và tăng bộ đếm tần suất" edge="1" source="D2_R1" target="P3_1">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-        <mxCell id="E6_R2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#111827;align=center;" value="Dịch vụ embedding và LLM" vertex="1">
-  <mxGeometry x="870" y="230" width="160" height="85" as="geometry" />
-</mxCell>
-        <mxCell id="f_p32_e6" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.2588;entryX=0.0;entryY=0.2588;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Văn bản câu hỏi&lt;br/&gt;cần tạo vector nhúng" edge="1" source="P3_2" target="E6_R2">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-        <mxCell id="f_e6_p32" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.7294;entryX=1.0;entryY=0.7294;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Vector biểu diễn ngữ nghĩa&lt;br/&gt;của câu hỏi" edge="1" source="E6_R2" target="P3_2">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-        <mxCell id="D5_R3" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=12;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D5&lt;/b&gt; | Kho kiến thức" vertex="1">
-  <mxGeometry x="870" y="380" width="160" height="80" as="geometry" />
-</mxCell>
-        <mxCell id="f_d5_p33" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.5;entryX=1.0;entryY=0.5;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Các đoạn kiến thức đã công bố&lt;br/&gt;và vector nhúng tương đồng" edge="1" source="D5_R3" target="P3_3">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-        <mxCell id="E1_R4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#111827;align=center;" value="Khách tham quan" vertex="1">
-  <mxGeometry x="30" y="525" width="170" height="120" as="geometry" />
-</mxCell>
-        <mxCell id="E6_R4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#111827;align=center;" value="Dịch vụ embedding và LLM" vertex="1">
-  <mxGeometry x="870" y="520" width="160" height="65" as="geometry" />
-</mxCell>
-        <mxCell id="D6_R4" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#374151;strokeWidth=1.8;fontFamily=Arial;fontSize=12;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D6&lt;/b&gt; | Nhật ký &amp;amp; Thống kê" vertex="1">
-  <mxGeometry x="870" y="605" width="160" height="45" as="geometry" />
-</mxCell>
-        <mxCell id="f_p34_e1" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.5;entryX=1.0;entryY=0.5;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Câu trả lời hoàn chỉnh&lt;br/&gt;kèm danh sách trích dẫn" edge="1" source="P3_4" target="E1_R4">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-        <mxCell id="f_p34_e6" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.1083;entryX=0.0;entryY=0.2769;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Lời nhắc kèm ngữ cảnh&lt;br/&gt;đoạn kiến thức và câu hỏi" edge="1" source="P3_4" target="E6_R4">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-        <mxCell id="f_e6_p34" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=0.0;exitY=0.8154;entryX=1.0;entryY=0.4;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Câu trả lời mô hình&lt;br/&gt;kèm mã đoạn trích dẫn" edge="1" source="E6_R4" target="P3_4">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
-        <mxCell id="f_p34_d6" parent="1" style="edgeStyle=none;rounded=0;html=1;exitX=1.0;exitY=0.85;entryX=0.0;entryY=0.4889;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=12;fontColor=#111827;labelBackgroundColor=#FFFFFF;" value="Nhật ký câu hỏi, câu trả lời,&lt;br/&gt;thời gian và trích dẫn" edge="1" source="P3_4" target="D6_R4">
-  <mxGeometry relative="1" as="geometry" />
-</mxCell>
+        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Arial;fontSize=16;fontStyle=1;fillColor=none;strokeColor=none;fontColor=#111827;" value="SƠ ĐỒ DFD MỨC 2 — TIẾN TRÌNH 3.0 XỬ LÝ HỎI ĐÁP THÔNG MINH RAG" vertex="1">
+          <mxGeometry x="30" y="10" width="1120" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="E1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#111827;align=center;" value="Khách tham quan" vertex="1">
+          <mxGeometry x="30" y="80" width="150" height="560" as="geometry" />
+        </mxCell>
+        <mxCell id="P3_1" parent="1" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#111827;align=center;" value="&lt;b&gt;3.1&lt;/b&gt;&lt;br/&gt;Kiểm tra phiên khách và&lt;br/&gt;giới hạn tần suất hỏi" vertex="1">
+          <mxGeometry x="380" y="80" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="P3_2" parent="1" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#111827;align=center;" value="&lt;b&gt;3.2&lt;/b&gt;&lt;br/&gt;Kiểm tra phạm vi câu hỏi&lt;br/&gt;và tạo vector truy vấn" vertex="1">
+          <mxGeometry x="380" y="230" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="P3_3" parent="1" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#111827;align=center;" value="&lt;b&gt;3.3&lt;/b&gt;&lt;br/&gt;Truy hồi đoạn kiến thức&lt;br/&gt;tương đồng ngữ nghĩa" vertex="1">
+          <mxGeometry x="380" y="380" width="240" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="P3_4" parent="1" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#111827;align=center;" value="&lt;b&gt;3.4&lt;/b&gt;&lt;br/&gt;Tổng hợp câu trả lời&lt;br/&gt;có trích dẫn và ghi nhật ký" vertex="1">
+          <mxGeometry x="380" y="540" width="240" height="100" as="geometry" />
+        </mxCell>
+        <mxCell id="D2" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D2&lt;/b&gt; | Phiên &amp; Thanh toán" vertex="1">
+          <mxGeometry x="900" y="80" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="D5" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D5&lt;/b&gt; | Kho kiến thức RAG" vertex="1">
+          <mxGeometry x="900" y="380" width="180" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="E6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#111827;align=center;" value="Dịch vụ embedding và LLM" vertex="1">
+          <mxGeometry x="900" y="190" width="180" height="150" as="geometry" />
+        </mxCell>
+        <mxCell id="D6" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#111827;align=left;spacingLeft=10;" value="&lt;b&gt;D6&lt;/b&gt; | Nhật ký &amp; Thống kê" vertex="1">
+          <mxGeometry x="900" y="545" width="180" height="90" as="geometry" />
+        </mxCell>
+        <mxCell id="f_e1_p31" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=1;exitY=0.06;exitDx=0;exitDy=0;entryX=0;entryY=0.4;entryDx=0;entryDy=0;edgeStyle=none;" value="Câu hỏi tra cứu, token &amp; ngôn ngữ" edge="1" source="E1" target="P3_1">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="f_p34_e1" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=0;exitY=0.45;exitDx=0;exitDy=0;entryX=1;entryY=0.9;entryDx=0;entryDy=0;edgeStyle=none;" value="Câu trả lời kèm trích dẫn nguồn" edge="1" source="P3_4" target="E1">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="f_p32_e6" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=1;exitY=0.25;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;edgeStyle=none;" value="Câu hỏi cần tạo vector nhúng" edge="1" source="P3_2" target="E6">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="f_e6_p32" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=0;exitY=0.65;exitDx=0;exitDy=0;entryX=1;entryY=0.65;entryDx=0;entryDy=0;edgeStyle=none;" value="Vector biểu diễn ngữ nghĩa" edge="1" source="E6" target="P3_2">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="f_p34_e6" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=1;exitY=0.2;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;" value="Lời nhắc kèm ngữ cảnh trích dẫn" edge="1" source="P3_4" target="E6">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="620" y="560" /><mxPoint x="840" y="560" /><mxPoint x="840" y="310" /></Array><mxPoint x="-70" y="0" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="f_e6_p34" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=0;exitY=0.95;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=orthogonalEdgeStyle;orthogonalLoop=1;jettySize=auto;" value="Câu trả lời mô hình &amp; mã trích dẫn" edge="1" source="E6" target="P3_4">
+          <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="900" y="335" /><mxPoint x="800" y="335" /><mxPoint x="800" y="590" /></Array><mxPoint x="60" y="0" as="offset" /></mxGeometry>
+        </mxCell>
+        <mxCell id="int_31_32" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;edgeStyle=none;" value="Câu hỏi hợp lệ chưa vượt hạn mức" edge="1" source="P3_1" target="P3_2">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="int_32_33" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;edgeStyle=none;" value="Vector câu hỏi kèm câu hỏi gốc" edge="1" source="P3_2" target="P3_3">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="int_33_34" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;edgeStyle=none;" value="Tập đoạn kiến thức tương đồng cao nhất" edge="1" source="P3_3" target="P3_4">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="st_d2_p31" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=none;" value="Kiểm tra hiệu lực phiên &amp; rate limit" edge="1" source="D2" target="P3_1">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="st_d5_p33" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=none;" value="Đọc các đoạn tài liệu &amp; vector nhúng" edge="1" source="D5" target="P3_3">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
+        <mxCell id="st_p34_d6" parent="1" style="rounded=0;html=1;strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;exitX=1;exitY=0.8;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;edgeStyle=none;" value="Ghi lịch sử hỏi đáp, câu hỏi &amp; trích dẫn" edge="1" source="P3_4" target="D6">
+          <mxGeometry relative="1" as="geometry"></mxGeometry>
+        </mxCell>
       </root>
     </mxGraphModel>
   </diagram>
