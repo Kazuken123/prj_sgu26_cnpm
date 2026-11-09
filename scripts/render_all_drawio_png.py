@@ -25,17 +25,8 @@ if not os.path.exists(LOCAL_VIEWER_JS) or os.path.getsize(LOCAL_VIEWER_JS) < 100
         print(f"Warning: could not cache locally ({e}), will use CDN URL.")
         LOCAL_VIEWER_JS = None
 
-DIAGRAMS = [
-    ("DFD_Level_0_Context", "docs/diagram/dfd/DFD_Level_0_Context.drawio", "docs/diagram/export/DFD_Level_0_Context.png"),
-    ("DFD_Level_1_System", "docs/diagram/dfd/DFD_Level_1_System.drawio", "docs/diagram/export/DFD_Level_1_System.png"),
-    ("DFD_Level_2_P1_Payment_Session", "docs/diagram/dfd/DFD_Level_2_P1_Payment_Session.drawio", "docs/diagram/export/DFD_Level_2_P1_Payment_Session.png"),
-    ("DFD_Level_2_P2_Visitor_Content_Audio", "docs/diagram/dfd/DFD_Level_2_P2_Visitor_Content_Audio.drawio", "docs/diagram/export/DFD_Level_2_P2_Visitor_Content_Audio.png"),
-    ("DFD_Level_2_P3_Chatbot_RAG", "docs/diagram/dfd/DFD_Level_2_P3_Chatbot_RAG.drawio", "docs/diagram/export/DFD_Level_2_P3_Chatbot_RAG.png"),
-    ("DFD_Level_2_P4_Content_Knowledge_Admin", "docs/diagram/dfd/DFD_Level_2_P4_Content_Knowledge_Admin.drawio", "docs/diagram/export/DFD_Level_2_P4_Content_Knowledge_Admin.png"),
-    ("DFD_Level_2_P5_Auth_Admin_Monitoring", "docs/diagram/dfd/DFD_Level_2_P5_Auth_Admin_Monitoring.drawio", "docs/diagram/export/DFD_Level_2_P5_Auth_Admin_Monitoring.png"),
-    ("DFD_Level_3_P4_2_Pipeline_Translation_TTS", "docs/diagram/dfd/DFD_Level_3_P4_2_Pipeline_Translation_TTS.drawio", "docs/diagram/export/DFD_Level_3_P4_2_Pipeline_Translation_TTS.png"),
-    ("DFD_Level_3_P3_4_RAG_Answer_Generation", "docs/diagram/dfd/DFD_Level_3_P3_4_RAG_Answer_Generation.drawio", "docs/diagram/export/DFD_Level_3_P3_4_RAG_Answer_Generation.png"),
-]
+from generate_balanced_dfd_drawio import NAMES
+DIAGRAMS = [(name, f'docs/diagram/dfd/{name}.drawio', f'docs/diagram/export/{name}.png') for name in NAMES]
 
 def render_diagram(name, drawio_path, out_png_path):
     print(f"--- Rendering {name} ---")

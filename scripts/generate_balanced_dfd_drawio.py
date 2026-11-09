@@ -1,150 +1,156 @@
-"""Generate DFDs after validating the approved report/use-case baseline."""
+"""Generate intact high-contrast DFD images from 18 report use cases."""
 from collections import defaultdict
 from pathlib import Path
-import argparse
-import html
-import json
-import re
-import textwrap
-import xml.etree.ElementTree as ET
-from dfd_business_model import ACTORS, STORES, PARENTS, PROCESSES, FAMILIES, EDGES, parent, level_three
+import argparse,html,json,xml.etree.ElementTree as ET
+from PIL import ImageFont
+from dfd_business_model import ACTORS,STORES,PARENTS,PROCESSES,DECOMPOSED,FAMILIES,EDGES,parent,level_three
 ROOT=Path(__file__).resolve().parents[1]
 OUT=ROOT/'docs/diagram/dfd'
-NAMES=['DFD_Level_0_Context','DFD_Level_1_System','DFD_Level_2_P1_Payment_Session','DFD_Level_2_P2_Visitor_Content_Audio','DFD_Level_2_P3_Chatbot_RAG','DFD_Level_2_P4_Content_Knowledge_Admin','DFD_Level_2_P5_Auth_Admin_Monitoring','DFD_Level_3_P4_2_Pipeline_Translation_TTS','DFD_Level_3_P3_4_RAG_Answer_Generation']
-def number(pid): return pid[1:].replace('_','.')+('.0' if '_' not in pid and pid!='P0' else '')
+NAMES=['DFD_Level_0_Context','DFD_Level_1_System','DFD_Level_2_P1_Online_Payment','DFD_Level_2_P3_Map_POI','DFD_Level_2_P8_Chatbot_RAG','DFD_Level_2_P13_Content_Pipeline','DFD_Level_2_P18_Monitoring','DFD_Level_3_P13_2_Pipeline_Translation_TTS','DFD_Level_3_P8_4_RAG_Answer_Generation']
+STORE_DATA={'D1':'Tài khoản và quyền','D2':'Phiên nội bộ','D3':'Phiên và hạn vé','D4':'Dữ liệu thanh toán','D5':'Danh mục ngôn ngữ','D6':'POI và văn bản','D7':'Thông tin audio','D8':'Tác vụ và trạng thái','D9':'Tour và thứ tự POI','D10':'Tài liệu và vector','D11':'Nhật ký thao tác','D12':'Nhật ký hỏi đáp','D13':'Lượt cấp bundle','R1':'Mã tạm và hạn mức','M1':'Dữ liệu âm thanh WAV'}
+FONT=ImageFont.truetype('C:/Windows/Fonts/arialbd.ttf',28)
+
+def number(pid):return pid[1:].replace('_','.')+('.0' if '_' not in pid and pid!='P0' else '')
+def wrap(text,width):
+    lines=[]
+    for paragraph in text.split('\n'):
+        line=''
+        for word in paragraph.split():
+            trial=(line+' '+word).strip()
+            if line and FONT.getlength(trial)>width:lines.append(line);line=word
+            else:line=trial
+        lines.append(line)
+    return lines
+
 def aggregate(edges,level):
- groups=defaultdict(list)
- for e in edges:
-  src,dst=e['source'],e['target']
-  if level==0:
-   if not e['family']:continue
-   src=src if src in ACTORS else 'P0';dst=dst if dst in ACTORS else 'P0'
-   key=(src,dst,e['family'])
-  else:
-   src,dst=parent(src),parent(dst)
-   if src==dst:continue
-   key=(src,dst,e['family'] or 'store')
-  groups[key].append(e)
- result=[]
- for (src,dst,family),items in groups.items():
-  if family in FAMILIES: label=FAMILIES[family]
-  else:
-   sid=src if src in STORES else dst
-   label=('Tra cứu ' if src==sid else 'Ghi/cập nhật ')+STORES[sid][0].lower()
-  result.append({'id':f'G{level}_{len(result)+1:03}','source':src,'target':dst,'label':label,
-   'family':family if family in FAMILIES else None,'ucs':sorted({u for e in items for u in e['ucs']}),
-   'components':[e['id'] for e in items], 'source_section':'; '.join(sorted({e['source_section'] for e in items}))})
- return result
+    groups=defaultdict(list)
+    for e in edges:
+        src,dst=e['source'],e['target']
+        if level==0:
+            if not e['family']:continue
+            src=src if src in ACTORS else 'P0';dst=dst if dst in ACTORS else 'P0'
+        else:
+            src,dst=parent(src),parent(dst)
+            if src==dst:continue
+        groups[(src,dst,e['family'])].append(e)
+    result=[]
+    for (src,dst,family),items in groups.items():
+        if level==0:label=FAMILIES[family]
+        elif src in STORES or dst in STORES:label=STORE_DATA[src if src in STORES else dst]
+        else:label='; '.join(dict.fromkeys(e['label'] for e in items))
+        result.append({'id':f'G{level}_{len(result)+1:03}','source':src,'target':dst,'label':label,'family':family,
+                       'ucs':sorted({u for e in items for u in e['ucs']}),'components':[e['id'] for e in items],
+                       'source_section':'; '.join(sorted({e['source_section'] for e in items}))})
+    return result
 
 def definitions(index):
- if index==0:return {'P0':'Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn'},aggregate(EDGES,0),'MỨC 0 — NGỮ CẢNH HỆ THỐNG',list(range(1,19))
- if index==1:return PARENTS,aggregate(EDGES,1),'MỨC 1 — CÁC NHÓM CHỨC NĂNG',list(range(1,19))
- if index<7:
-  pid=f'P{index-1}'
-  nodes={k:v[0] for k,v in PROCESSES.items() if parent(k)==pid}
-  edges=[e for e in EDGES if parent(e['source'])==pid or parent(e['target'])==pid]
-  ucs=sorted({int(u[3:]) for e in edges for u in e['ucs']})
-  return nodes,edges,f'MỨC 2 — {number(pid)} {PARENTS[pid].upper()}',ucs
- pid='P4_2' if index==7 else 'P3_4'
- nodes,edges=level_three(pid)
- return nodes,edges,f'MỨC 3 — {number(pid)} {PROCESSES[pid][0].upper()}',[13 if index==7 else 8]
+    if index==0:return {'P0':'Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn'},aggregate(EDGES,0),'MỨC 0 — NGỮ CẢNH HỆ THỐNG',list(range(1,19))
+    if index==1:return PARENTS,aggregate(EDGES,1),'MỨC 1 — 18 CHỨC NĂNG TƯƠNG ỨNG UC-01–UC-18',list(range(1,19))
+    if index<7:
+        pid=DECOMPOSED[index-2]
+        nodes={k:v[0] for k,v in PROCESSES.items() if k.startswith(pid+'_')}
+        edges=[e for e in EDGES if e['source'] in nodes or e['target'] in nodes]
+        return nodes,edges,f'MỨC 2 — {number(pid)} {PARENTS[pid].upper()}',[int(pid[1:])]
+    pid='P13_2' if index==7 else 'P8_4'
+    nodes,edges=level_three(pid)
+    return nodes,edges,f'MỨC 3 — {number(pid)} {PROCESSES[pid][0].upper()}',[13 if index==7 else 8]
 
 class Diagram:
- def __init__(self,name,title):
-  self.name=name;self.root=ET.Element('root');ET.SubElement(self.root,'mxCell',id='0');ET.SubElement(self.root,'mxCell',id='1',parent='0');self.boxes={};self.width=1940;self.height=900
-  self.box('title',title,20,10,1900,35,'title','title')
- def box(self,cid,label,x,y,w,h,kind,logical):
-  style='whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#17202A;strokeWidth=1.7;fontFamily=Arial;fontSize=13;align=center;verticalAlign=middle;'
-  if kind=='process':style+='rounded=1;arcSize=12;fontStyle=1;'
-  elif kind=='store':style+='shape=partialRectangle;left=1;right=0;top=1;bottom=1;fillColor=#F5F6F7;'
-  elif kind=='title':style+='strokeColor=none;fontSize=17;fontStyle=1;'
-  else:style+='rounded=0;fontStyle=1;'
-  c=ET.SubElement(self.root,'mxCell',id=cid,parent='1',vertex='1',style=style,value=label,logicalId=logical)
-  ET.SubElement(c,'mxGeometry',x=str(x),y=str(y),width=str(w),height=str(h),attrib={'as':'geometry'})
-  self.boxes[cid]=(x,y,w,h)
- def arrow(self,e,src,dst,points,labelpoint):
-  def port(cid,p):
-   x,y,w,h=self.boxes[cid];return ((p[0]-x)/w,(p[1]-y)/h)
-  a,b=port(src,points[0]),port(dst,points[-1])
-  style=f'edgeStyle=none;rounded=0;html=1;strokeColor=#34495E;strokeWidth=1.3;endArrow=block;endFill=1;exitX={a[0]:.12f};exitY={a[1]:.12f};entryX={b[0]:.12f};entryY={b[1]:.12f};exitPerimeter=0;entryPerimeter=0;'
-  c=ET.SubElement(self.root,'mxCell',id=e['id'],parent='1',edge='1',source=src,target=dst,style=style,value='',flowLabel=e['label'],flowFamily=e.get('family') or '',components=','.join(e.get('components',[e['id']])),useCases=','.join(e['ucs']),basis=e['source_section'])
-  g=ET.SubElement(c,'mxGeometry',relative='1',attrib={'as':'geometry'})
-  arr=ET.SubElement(g,'Array',attrib={'as':'points'})
-  for x,y in points[1:-1]:ET.SubElement(arr,'mxPoint',x=str(x),y=str(y))
-  prefix=(e['family']+': ') if e.get('family') else ''
-  lines=textwrap.wrap(prefix+e['label'],width=43,break_long_words=False)
-  lab=ET.SubElement(self.root,'mxCell',id='label_'+e['id'],parent='1',vertex='1',style='text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontFamily=Arial;fontSize=12;align=center;verticalAlign=middle;spacing=1;',value='<br/>'.join(html.escape(line) for line in lines),labelFor=e['id'])
-  h=max(21,len(lines)*16)
-  width=min(380,max(60,max(len(line) for line in lines)*6.6+12))
-  ET.SubElement(lab,'mxGeometry',x=str(labelpoint[0]-width/2),y=str(labelpoint[1]-h/2),width=str(width),height=str(h),attrib={'as':'geometry'})
- def save(self):
-  mx=ET.Element('mxfile',host='app.diagrams.net',version='24.7.17')
-  d=ET.SubElement(mx,'diagram',id=self.name,name=self.name)
-  m=ET.SubElement(d,'mxGraphModel',page='1',pageWidth=str(self.width),pageHeight=str(self.height),grid='1',gridSize='10',math='0',shadow='0')
-  m.append(self.root);ET.indent(mx,space='  ')
-  OUT.mkdir(parents=True,exist_ok=True)
-  ET.ElementTree(mx).write(OUT/(self.name+'.drawio'),encoding='utf-8',xml_declaration=True)
-  print(f'Generated {self.name}: {len([e for e in self.root if e.get("edge")=="1"])} flows, {self.width}x{self.height}')
+    def __init__(self,name):
+        self.name=name;self.root=ET.Element('root');ET.SubElement(self.root,'mxCell',id='0');ET.SubElement(self.root,'mxCell',id='1',parent='0');self.boxes={}
+    def box(self,cid,label,x,y,w,h,kind,logical):
+        style='whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3.5;fontFamily=Arial;fontSize=28;fontStyle=1;align=center;verticalAlign=middle;spacing=8;'
+        if kind=='process':style+='rounded=1;arcSize=10;'
+        elif kind=='store':style+='shape=partialRectangle;left=1;right=0;top=1;bottom=1;'
+        elif kind=='connector':style+='shape=ellipse;'
+        elif kind=='title':style+='strokeColor=none;fontSize=36;spacing=0;'
+        elif kind=='text':style+='strokeColor=none;spacing=0;'
+        c=ET.SubElement(self.root,'mxCell',id=cid,parent='1',vertex='1',style=style,
+                        value='<br/>'.join(html.escape(s) for s in wrap(label,w-18)),logicalId=logical,kind=kind)
+        if kind=='process':c.set('primaryProcess','1')
+        ET.SubElement(c,'mxGeometry',x=str(x),y=str(y),width=str(w),height=str(h),attrib={'as':'geometry'})
+        self.boxes[cid]=(x,y,w,h)
+    def arrow(self,e,src,dst,yy,label_x,label_w):
+        sx,sy,sw,sh=self.boxes[src];tx,ty,tw,th=self.boxes[dst]
+        ax=sx+sw if sx<tx else sx;bx=tx if sx<tx else tx+tw
+        a=((ax-sx)/sw,(yy-sy)/sh);b=((bx-tx)/tw,(yy-ty)/th)
+        style=f'edgeStyle=none;rounded=0;strokeColor=#000000;strokeWidth=3.5;endArrow=block;endSize=14;endFill=1;exitX={a[0]};exitY={a[1]};entryX={b[0]};entryY={b[1]};exitPerimeter=0;entryPerimeter=0;'
+        c=ET.SubElement(self.root,'mxCell',id=e['id'],parent='1',edge='1',source=src,target=dst,style=style,value='',flowLabel=e['label'],flowFamily=e.get('family') or '',components=','.join(e.get('components',[e['id']])),useCases=','.join(e['ucs']),basis=e['source_section'])
+        ET.SubElement(c,'mxGeometry',relative='1',attrib={'as':'geometry'})
+        shown=(e['family']+': ' if e.get('family') else '')+e['label']
+        lines=wrap(shown,label_w-18);h=len(lines)*36+8
+        self.box('label_'+e['id'],'\n'.join(lines),label_x,yy-h-12,label_w,h,'text','label')
+        self.root[-1].set('labelFor',e['id'])
+    def save(self,width,height):
+        mx=ET.Element('mxfile',host='app.diagrams.net',version='24.7.17');d=ET.SubElement(mx,'diagram',id=self.name,name=self.name)
+        m=ET.SubElement(d,'mxGraphModel',page='1',pageWidth=str(width),pageHeight=str(height),grid='1',gridSize='10');m.append(self.root)
+        ET.indent(mx,space='  ');OUT.mkdir(parents=True,exist_ok=True);ET.ElementTree(mx).write(OUT/(self.name+'.drawio'),encoding='utf-8',xml_declaration=True)
+        print(f'{self.name}: one image, {width}x{height}, {sum(e.get("edge")=="1" for e in self.root)} flows')
 
 def render(index):
- # Source evidence is verified BEFORE laying out this diagram, not after all files.
- from verify_lvl1_lvl2_balance import validate_business_sources
- validate_business_sources()
- nodes,edges,title,ucs=definitions(index)
- d=Diagram(NAMES[index],'DFD '+title)
- d.box('note','UC: '+', '.join(f'{n:02}' for n in ucs)+' | Kho cùng mã là cùng một kho; * = Could Have',20,47,1900,32,'title','note')
- # Duplicate only external entities, stores, and outside-scope peer processes.
- # Real subprocesses have one vertex each; their internal edges are routed below.
- top=105;layouts={}
- for pid,label in nodes.items():
-  incident=[e for e in edges if pid in (e['source'],e['target'])]
-  neighbors=defaultdict(list)
-  for e in incident:
-   other=e['target'] if e['source']==pid else e['source']
-   if other not in nodes:neighbors[other].append(e)
-  left=[(n,es) for n,es in neighbors.items() if n not in STORES]
-  right=[(n,es) for n,es in neighbors.items() if n in STORES]
-  if index==0:
-   left=[(n,es) for n,es in neighbors.items() if n in ('E1','E2','E3')]
-   right=[(n,es) for n,es in neighbors.items() if n not in ('E1','E2','E3')]
-  size=lambda pairs:sum(max(72,len(es)*44+20)+18 for n,es in pairs)
-  height=max(125,size(left)-18,size(right)-18)
-  d.box(pid,number(pid)+'\n\n'+label,800,top,300,height,'process',pid)
-  layouts[pid]=(top,height)
-  for side,pairs in [('left',left),('right',right)]:
-   y=top
-   for other,es in pairs:
-    h=max(72,len(es)*44+20);alias=other+'__'+pid
-    if other in ACTORS:kind='actor';name=ACTORS[other]
-    elif other in STORES:kind='store';name=other+' | '+STORES[other][0]
-    else:kind='process';name=number(other)+' | '+PROCESSES[other][0]+'\n(tham chiếu mức cha)'
-    x=30 if side=='left' else 1580
-    d.box(alias,name,x,y,300,h,kind,other)
-    for k,e in enumerate(es):
-     yy=y+20+(k+.5)*(h-40)/len(es)
-     if side=='left': a=(330,yy);b=(800,yy);lp=(565,yy)
-     else:a=(1100,yy);b=(1580,yy);lp=(1340,yy)
-     src,dst=(alias,pid) if e['source']==other else (pid,alias)
-     pts=[a,b] if src==alias and side=='left' or src==pid and side=='right' else [b,a]
-     d.arrow(e,src,dst,pts,lp)
-    y+=h+18
-  top+=height+125
- # Internal data flows, independent of persistence/shared neighbors.
- interior=[e for e in edges if e['source'] in nodes and e['target'] in nodes]
- for i,e in enumerate(interior):
-  src,dst=e['source'],e['target'];sy,sh=layouts[src];ty,th=layouts[dst]
-  if list(nodes).index(dst)==list(nodes).index(src)+1:
-   x=945+(i%2)*35;pts=[(x,sy+sh),(x,ty)];lp=(x,sy+sh+(ty-sy-sh)/2)
-  else:
-   gutter=735+(i%5)*10;yy=sy+sh+30+(i%2)*28;end=ty+th-20
-   pts=[(850,sy+sh),(850,yy),(gutter,yy),(gutter,end),(800,end)];lp=(740,yy)
-  d.arrow(e,src,dst,pts,lp)
- d.height=top-60
- d.save()
- return nodes,edges
+    from verify_lvl1_lvl2_balance import validate_business_sources
+    validate_business_sources() # Re-read report/UC/schema BEFORE each drawing.
+    nodes,edges,title,ucs=definitions(index)
+    owned=defaultdict(list)
+    for e in edges:
+        owner=e['source'] if e['source'] in nodes else e['target'];owned[owner].append(e)
+    layouts=[]
+    for pid,label in nodes.items():
+        groups={'left':defaultdict(list),'right':defaultdict(list)}
+        for e in owned[pid]:
+            other=e['target'] if e['source']==pid else e['source']
+            side=('left' if other in ('E1','E2','E3') else 'right') if index==0 else ('right' if other in STORES else 'left')
+            groups[side][other].append(e)
+        cols={}
+        for side,neighbors in groups.items():
+            rows=[]
+            for other,es in neighbors.items():
+                for e in es:
+                    shown=(e['family']+': ' if e.get('family') else '')+e['label']
+                    h=max(136 if other.startswith('P') else 110,len(wrap(shown,252 if side=='left' else 272))*36+(84 if other.startswith('P') else 48))
+                    rows.append((other,e,h))
+            for other in dict.fromkeys(r[0] for r in rows):
+                if other.startswith('P'):continue
+                positions=[j for j,r in enumerate(rows) if r[0]==other]
+                label2=other+'\n'+(ACTORS[other] if other in ACTORS else STORES[other][0])
+                needed=len(wrap(label2,172))*36+24
+                actual=sum(rows[j][2]+16 for j in positions)-16
+                if needed>actual:
+                    j=positions[-1];rows[j]=(other,rows[j][1],rows[j][2]+needed-actual)
+            cols[side]=rows
+        height=max(300,len(wrap(number(pid)+'\n'+label,242))*36+36,max(sum(r[2]+16 for r in col)-16 for col in cols.values()))
+        layouts.append((pid,label,cols,height))
+    count=1 if index==0 else 4 if index==1 else 2
+    width=count*1280+40;d=Diagram(NAMES[index]);d.box('title','DFD '+title,20,12,width-40,62,'title','title')
+    note='UC: '+', '.join(f'{u:02}' for u in ucs)+' | * = Could Have'
+    d.box('note',note,20,82,width-40,48,'text','note')
+    y=160
+    for offset in range(0,len(layouts),count):
+        row=layouts[offset:offset+count];row_height=max(v[3] for v in row)
+        for col,(pid,label,columns,height) in enumerate(row):
+            x=col*1280
+            d.box(pid,number(pid)+'\n\n'+label,x+490,y,260,height,'process',pid)
+            if index==1:d.root[-1].set('useCase',f'UC-{int(pid[1:]):02}')
+            for side,items in columns.items():
+                cy=y;aliases={}
+                for n,(other,e,h) in enumerate(items):
+                    is_peer=other.startswith('P')
+                    if is_peer:
+                        alias=f'{other}__{pid}_{n}';d.box(alias,number(other),x+110,cy+h-100,100,100,'connector',other)
+                    elif other not in aliases:
+                        alias=f'{other}__{pid}';total=sum(r[2]+16 for r in items[n:] if r[0]==other)-16
+                        label2=(other+'\n'+ACTORS[other]) if other in ACTORS else other+'\n'+STORES[other][0]
+                        d.box(alias,label2,x+(20 if side=='left' else 1050),cy,190,total,'actor' if other in ACTORS else 'store',other);aliases[other]=alias
+                    else:alias=aliases[other]
+                    src,dst=(alias,pid) if e['source']==other else (pid,alias)
+                    d.arrow(e,src,dst,cy+h-(50 if is_peer else 16),x+(218 if side=='left' else 758),272 if side=='left' else 292)
+                    cy+=h+16
+        y+=row_height+120
+    footer='Vòng tròn đánh số là đầu nối đến tiến trình cùng mã. Tác nhân và kho cùng mã là cùng một phần tử.'
+    d.box('legend',footer,20,y-40,width-40,110,'text','legend');d.save(width,y+90)
 
 def main():
- parser=argparse.ArgumentParser();parser.add_argument('--only',type=int,choices=range(9));args=parser.parse_args()
- for index in ([args.only] if args.only is not None else range(9)):render(index)
- (OUT/'dfd_data_dictionary.json').write_text(json.dumps({'actors':ACTORS,'stores':STORES,'processes':PROCESSES,'families':FAMILIES,'flows':EDGES},ensure_ascii=False,indent=2),encoding='utf-8')
+    p=argparse.ArgumentParser();p.add_argument('--only',type=int,choices=range(9));args=p.parse_args()
+    for i in ([args.only] if args.only is not None else range(9)):render(i)
+    (OUT/'dfd_data_dictionary.json').write_text(json.dumps({'actors':ACTORS,'stores':STORES,'functions':PARENTS,'decomposed':DECOMPOSED,'processes':PROCESSES,'families':FAMILIES,'flows':EDGES},ensure_ascii=False,indent=2),encoding='utf-8')
 if __name__=='__main__':main()

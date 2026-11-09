@@ -1,7 +1,7 @@
 import os
 import sys
 import re
-import json
+from copy import deepcopy
 import docx
 from PIL import Image
 from docx.shared import Pt, Inches, RGBColor
@@ -13,19 +13,42 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 DOCX_PATH = "docs/CNPM_BAOCAO.docx"
 MD_PATH = "docs/DFD_Report_Section_3_4.md"
-REPORT_PAGES_PATH = "docs/diagram/dfd/report/dfd_report_pages.json"
+sys.path.insert(0, str(__import__('pathlib').Path(__file__).resolve().parent))
+from generate_balanced_dfd_drawio import NAMES
 
-IMAGE_MAP = {
-    'Hình 3.38': 'docs/diagram/export/DFD_Level_0_Context.png',
-    'Hình 3.39': 'docs/diagram/export/DFD_Level_1_System.png',
-    'Hình 3.40': 'docs/diagram/export/DFD_Level_2_P1_Payment_Session.png',
-    'Hình 3.41': 'docs/diagram/export/DFD_Level_2_P2_Visitor_Content_Audio.png',
-    'Hình 3.42': 'docs/diagram/export/DFD_Level_2_P3_Chatbot_RAG.png',
-    'Hình 3.43': 'docs/diagram/export/DFD_Level_2_P4_Content_Knowledge_Admin.png',
-    'Hình 3.44': 'docs/diagram/export/DFD_Level_2_P5_Auth_Admin_Monitoring.png',
-    'Hình 3.45': 'docs/diagram/export/DFD_Level_3_P4_2_Pipeline_Translation_TTS.png',
-    'Hình 3.46': 'docs/diagram/export/DFD_Level_3_P3_4_RAG_Answer_Generation.png',
-}
+IMAGE_MAP = {f'Hình 3.{38+i}': f'docs/diagram/export/{name}.png' for i,name in enumerate(NAMES)}
+
+def close_section(anchor, properties, width=None, height=None):
+    """End the preceding section, preserving normal report pages around figures."""
+    from docx.oxml.ns import qn
+    p = anchor.insert_paragraph_before()
+    p.paragraph_format.space_before = Pt(0)
+    p.paragraph_format.space_after = Pt(0)
+    p.paragraph_format.line_spacing = Pt(1)
+    p.add_run().font.size = Pt(1)
+    props = deepcopy(properties)
+    typ = props.find(qn('w:type'))
+    if typ is None:
+        typ = OxmlElement('w:type'); props.insert(0, typ)
+    typ.set(qn('w:val'), 'nextPage')
+    if width is not None:
+        size = props.find(qn('w:pgSz'))
+        size.set(qn('w:w'), str(round(width*20)))
+        size.set(qn('w:h'), str(round(height*20)))
+        size.attrib.pop(qn('w:orient'), None)
+        margin = props.find(qn('w:pgMar'))
+        for key in ('top','bottom','left','right'):
+            margin.set(qn('w:'+key), '720')
+    p._p.get_or_add_pPr().append(props)
+
+def figure_size(path):
+    from pathlib import Path
+    import xml.etree.ElementTree as ET
+    model=ET.parse(Path('docs/diagram/dfd')/(Path(path).stem+'.drawio')).find('.//mxGraphModel')
+    with Image.open(path) as im: ratio=im.height/im.width
+    width=min(19*72,19.5*72/ratio,float(model.get('pageWidth'))*9/28)
+    height=width*ratio
+    return width,height,max(8.5*72,width+72),max(11*72,height+144)
 
 def format_table(table):
     table.autofit = False
@@ -140,10 +163,7 @@ def main():
         
     doc = docx.Document(DOCX_PATH)
     body = doc._body._element
-    report_pages = {}
-    if os.path.exists(REPORT_PAGES_PATH):
-        with open(REPORT_PAGES_PATH, encoding='utf-8') as f:
-            report_pages = {item['figure']: item['pages'] for item in json.load(f)}
+    normal_section = deepcopy(doc.sections[-1]._sectPr)
     
     # Verify all images exist
     for fig_id, path in IMAGE_MAP.items():
@@ -233,22 +253,16 @@ def main():
                 r.font.color.rgb = RGBColor(0, 0, 0)
         elif item_type == 'figure':
             caption_text, img_path = data
-            fig_id = re.match(r'^(Hình 3\.\d+)', caption_text).group(1)
-            pages = report_pages.get(fig_id, [{'image': img_path}])
-            for page_index, page in enumerate(pages):
-                p_img = anchor_p.insert_paragraph_before()
-                p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
-                p_img.paragraph_format.space_before = Pt(6)
-                p_img.paragraph_format.space_after = Pt(6)
-                p_img.paragraph_format.keep_together = True
-                p_img.paragraph_format.keep_with_next = page_index == len(pages)-1
-                p_img.paragraph_format.line_spacing = 1
-                with Image.open(page['image']) as image:
-                    ratio = image.height / image.width
-                width = min(6.2, 7.0 / ratio)
-                if 'min_font_pt' in page:
-                    assert page['min_font_pt'] >= 10, page
-                p_img.add_run().add_picture(page['image'], width=Inches(width))
+            width,height,page_width,page_height=figure_size(img_path)
+            close_section(anchor_p,normal_section)
+            p_img = anchor_p.insert_paragraph_before()
+            p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+            p_img.paragraph_format.space_before = Pt(0)
+            p_img.paragraph_format.space_after = Pt(4)
+            p_img.paragraph_format.keep_together = True
+            p_img.paragraph_format.keep_with_next = True
+            p_img.paragraph_format.line_spacing = 1
+            p_img.add_run().add_picture(img_path,width=Pt(width),height=Pt(height))
             
             # 2. Insert figure caption paragraph
             p_cap = anchor_p.insert_paragraph_before(caption_text)
@@ -260,6 +274,7 @@ def main():
                 r.font.size = Pt(10.5)
                 r.font.bold = True
                 r.font.color.rgb = RGBColor(0, 0, 0)
+            close_section(anchor_p,normal_section,page_width,page_height)
         elif item_type == 'tbl_caption':
             p = anchor_p.insert_paragraph_before(data)
             p.alignment = WD_ALIGN_PARAGRAPH.LEFT
@@ -300,7 +315,7 @@ def main():
             sp.paragraph_format.space_after = Pt(6)
             
     doc.save(DOCX_PATH)
-    print(f"Rebuilt Section 3.4 in {DOCX_PATH} with readable parts for all 9 DFD figures.")
+    print(f"Rebuilt Section 3.4 in {DOCX_PATH}: 9 intact enlarged figures; no split images.")
 
 if __name__ == "__main__":
     main()

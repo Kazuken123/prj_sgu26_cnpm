@@ -7,10 +7,10 @@ import json
 import sys
 import xml.etree.ElementTree as ET
 from zipfile import ZipFile
-from dfd_business_model import ACTORS, STORES, PROCESSES, EDGES, parent, level_three
+from dfd_business_model import ACTORS, STORES, PARENTS, DECOMPOSED, PROCESSES, EDGES, parent, level_three
 ROOT=Path(__file__).resolve().parents[1]
 DFD=ROOT/'docs/diagram/dfd'
-NAMES=['DFD_Level_0_Context','DFD_Level_1_System','DFD_Level_2_P1_Payment_Session','DFD_Level_2_P2_Visitor_Content_Audio','DFD_Level_2_P3_Chatbot_RAG','DFD_Level_2_P4_Content_Knowledge_Admin','DFD_Level_2_P5_Auth_Admin_Monitoring','DFD_Level_3_P4_2_Pipeline_Translation_TTS','DFD_Level_3_P3_4_RAG_Answer_Generation']
+NAMES=['DFD_Level_0_Context','DFD_Level_1_System','DFD_Level_2_P1_Online_Payment','DFD_Level_2_P3_Map_POI','DFD_Level_2_P8_Chatbot_RAG','DFD_Level_2_P13_Content_Pipeline','DFD_Level_2_P18_Monitoring','DFD_Level_3_P13_2_Pipeline_Translation_TTS','DFD_Level_3_P8_4_RAG_Answer_Generation']
 
 def source_snapshot():
  ns={'w':'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
@@ -42,6 +42,19 @@ def validate_business_sources():
  with ZipFile(ROOT/'docs/CNPM_BAOCAO.docx') as z:body=ET.fromstring(z.read('word/document.xml'))
  ns={'w':'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
  active=' '.join(t.text or '' for t in body.findall('.//w:t',ns))
+ uc_names={}
+ for tb in body.findall('.//w:tbl',ns):
+  rows=tb.findall('w:tr',ns)
+  if not rows:continue
+  cells=rows[0].findall('w:tc',ns)
+  values=[''.join(t.text or '' for t in c.findall('.//w:t',ns)).strip() for c in cells]
+  if not values or not values[0].startswith('Mã Use Case'):continue
+  code=values[1]
+  for row in rows:
+   cs=row.findall('w:tc',ns)
+   if cs and 'Use Case Name' in ''.join(t.text or '' for t in cs[0].findall('.//w:t',ns)):
+    uc_names['P'+str(int(code[3:]))]=''.join(t.text or '' for t in cs[1].findall('.//w:t',ns)).strip()
+ assert len(PARENTS)==18 and PARENTS==uc_names,'Level 1 must match all 18 source use cases one-to-one'
  assert not re.search(r'\bMP3\b',active,re.I),'Report audio format has not been unified'
  for c in (ROOT/'docs/diagram/use case').glob('*.draw*'):
   assert 'CHÙA LINH ỨNG' not in c.read_text(encoding='utf-8'),c.name
@@ -49,14 +62,14 @@ def validate_business_sources():
  assert codes=={f'UC-{i:02}' for i in range(1,19)},'Missing UC traceability'
  # Independent business contracts, deliberately not generated from the model.
  triples={(e['source'],e['target'],e['family']) for e in EDGES}
- for required in [('P3_2','E6','F25'),('E6','P3_2','F26'),('P3_2','P3_3',None),('P3_3','P3_4',None),('P3_4','E6','F27'),('E6','P3_4','F28'),('E2','P5_1','F11'),('E2','P5_2','F11'),('E3','P5_3','F19'),('E3','P5_4','F19'),('E3','P5_5','F19'),('E2','P4_3','F09'),('E2','P4_4','F09')]:
+ for required in [('P8_2','E6','F25'),('E6','P8_2','F26'),('P8_2','P8_3',None),('P8_3','P8_4',None),('P8_4','E6','F27'),('E6','P8_4','F28'),('E2','P9','F11'),('E2','P10','F11'),('E3','P16','F19'),('E3','P17','F19'),('E3','P18_1','F19'),('E2','P14','F09'),('E2','P15','F09')]:
   assert required in triples,f'Missing required UC flow {required}'
- stats={e['source'] for e in EDGES if e['target']=='P5_5'}
+ stats={e['source'] for e in EDGES if e['target']=='P18_2'}
  assert {'D3','D4','D7','D8','D12','D13'}<=stats,'Monitoring must read its real business sources'
- assert not any(e['source']=='P2_5' and e['target'] in STORES for e in EDGES),'UC-07 cannot persist a visitor-specific tour'
- assert not any(e['source'].startswith('P2') and e['target']=='D11' for e in EDGES),'Bundle access is D13, not audit'
- assert not any(e['source']=='P5_4' and e['target'] in STORES for e in EDGES),'UC-17 is read-only'
- assert not any(e['source']=='P5_5' and e['target'] in STORES for e in EDGES),'UC-18 is read-only'
+ assert not any(e['source']=='P7' and e['target'] in STORES for e in EDGES),'UC-07 cannot persist a visitor-specific tour'
+ assert not any(parent(e['source']) in ('P3','P4') and e['target']=='D11' for e in EDGES),'Bundle access is D13, not audit'
+ assert not any(e['source']=='P17' and e['target'] in STORES for e in EDGES),'UC-17 is read-only'
+ assert not any(parent(e['source'])=='P18' and e['target'] in STORES for e in EDGES),'UC-18 is read-only'
  for e in EDGES:
   assert e['source'] in ACTORS or e['source'] in STORES or e['source'] in PROCESSES,e
   assert e['target'] in ACTORS or e['target'] in STORES or e['target'] in PROCESSES,e
@@ -107,12 +120,20 @@ def geometry(cells):
 def main():
  validate_business_sources();print('PASS approved report, 18 UC, 16 SQL tables and business contracts')
  docs=[parse(n) for n in NAMES]
- assert external(docs[0])==external(docs[1])==sum((external(d) for d in docs[2:7]),Counter()),'External component conservation failed'
- print('PASS Level 0 / 1 / combined Level 2: data-family components, actors and directions')
- for i in range(1,6):
-  assert stores(docs[1],f'P{i}')==stores(docs[i+1],f'P{i}'),f'P{i} store read/write mismatch'
- print('PASS all 5 parent store read/write sets')
- for pid,pi,ci in [('P4_2',5,7),('P3_4',4,8)]:
+ assert external(docs[0])==external(docs[1]),'Level 0/1 external component conservation failed'
+ primary=[c for c in docs[1].values() if c.get('primaryProcess')=='1']
+ assert {c.get('logicalId') for c in primary}==set(PARENTS) and len(primary)==18
+ print('PASS Level 1: exactly 18 primary functions, one per UC; context data conserved')
+ for i,pid in enumerate(DECOMPOSED,2):
+  a=boundary(docs[1],lambda p:p==pid)
+  b=boundary(docs[i],lambda p:p.startswith(pid+'_'))
+  # Peer children at level 2 are compared by their level-1 parent.
+  normalized=Counter()
+  for (token,other,direction),count in b.items():normalized[(token,parent(other),direction)]+=count
+  assert a==normalized,(pid,a-normalized,normalized-a)
+  assert stores(docs[1],pid)==stores(docs[i],pid),pid+' store mismatch'
+ print('PASS boundaries and store directions for all 5 decomposed functions; other 13 are level-1 leaves')
+ for pid,pi,ci in [('P13_2',5,7),('P8_4',4,8)]:
   a=boundary(docs[pi],lambda p:p==pid);b=boundary(docs[ci],lambda p:p.startswith(pid+'_'))
   assert a==b,(pid,a-b,b-a)
  print('PASS both Level 3 boundary component multisets')

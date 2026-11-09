@@ -1,18 +1,35 @@
 # Căn cứ nghiệp vụ của bộ DFD
 
-Bộ DFD bám Chương 2, QT-01–QT-14, mục 3.1–3.3 và 16 bảng Chương 4 của báo cáo Thảo Cầm Viên Sài Gòn. Các điểm nguồn đã được xác nhận trong đợt sửa ngày 09/11/2026: tên hệ thống thống nhất; UC-06 dùng 30 m mặc định và có bước phát audio; audio WAV; UC-12 nhận mã 6 số, vẫn là Could Have. Không đưa GPS tracking, tour cá nhân lưu server hoặc các bảng ANALYTICS_* vào phạm vi.
+Bộ DFD bám Chương 2, QT-01–QT-14, mục 3.1–3.3 và 16 bảng Chương 4 của báo cáo Thảo Cầm Viên Sài Gòn. Tên hệ thống đã thống nhất; UC-06 dùng 30 m mặc định và có bước phát audio; định dạng audio WAV; UC-12 dùng mã nhận vé 6 số và giữ mức Could Have. Không thêm GPS tracking, tour cá nhân lưu server hoặc các bảng ANALYTICS_*.
 
-## Ranh giới và truy vết
+## Mức 1 tương ứng 18 Use Case
 
-Ranh giới gồm cả web và backend. GPS, trình phát và sắp tour khách nằm tại client. MySQL, Redis, media, worker và adapter là thành phần bên trong; tác nhân ngoài là khách, STAFF, ADMIN, cổng thanh toán, dịch/TTS và embedding/LLM. ADMIN kế thừa quyền STAFF.
+Theo yêu cầu đã xác nhận, mỗi Use Case là một chức năng riêng ở mức 1. Số hiệu n.0 tương ứng UC-nn; không gộp thành năm nhóm chức năng.
 
-| Nhóm DFD | Use case | Điều kiện phải giữ |
+| Tiến trình | Use Case | Chức năng |
 | :--- | :--- | :--- |
-| 1.0 Thanh toán/quyền khách | UC-01,02,11,12 | Một phiên/payment; webhook độc lập redirect; xác nhận hợp lệ rồi mới đổi mã một lần; cấp lại giữ hạn vé. |
-| 2.0 Khai thác nội dung | UC-03–07 | Bundle chứa URL, không chứa byte audio; GPS và tour tùy chỉnh tại client; không ghi GPS/tour cá nhân vào SQL. |
-| 3.0 RAG | UC-08 | Hạn mức Redis; embedding câu hỏi → truy hồi ACTIVE đúng phiên bản → prompt/LLM → kiểm tra nguồn → CHAT_LOGS. |
-| 4.0 Quản trị nội dung | UC-13–15 | Yêu cầu POI, tour, tài liệu đi vào đúng chức năng; dữ liệu nguồn, tác vụ, tệp và metadata tách biệt; chống kết quả cũ ghi đè. |
-| 5.0 Tài khoản/giám sát | UC-09,10,16–18 | STAFF/ADMIN có đăng nhập/đăng xuất riêng; tạo STAFF/audit/monitoring không đi qua đăng nhập để điều phối; các chức năng đọc không sửa dữ liệu. |
+| 1.0 | UC-01 | Thanh toán trực tuyến |
+| 2.0 | UC-02 | Thanh toán tiền mặt |
+| 3.0 | UC-03 | Xem bản đồ và thông tin POI |
+| 4.0 | UC-04 | Lựa chọn ngôn ngữ |
+| 5.0 | UC-05 | Nghe thuyết minh thủ công |
+| 6.0 | UC-06 | Nghe thuyết minh tự động theo vị trí |
+| 7.0 | UC-07 | Lựa chọn và tùy chỉnh lộ trình |
+| 8.0 | UC-08 | Hỏi đáp bằng chatbot RAG |
+| 9.0 | UC-09 | Đăng nhập nội bộ |
+| 10.0 | UC-10 | Đăng xuất nội bộ |
+| 11.0 | UC-11 | Xác nhận thanh toán tiền mặt |
+| 12.0 | UC-12 | Cấp lại token khách |
+| 13.0 | UC-13 | Quản lý POI và nội dung đa ngôn ngữ |
+| 14.0 | UC-14 | Quản lý lộ trình mẫu |
+| 15.0 | UC-15 | Quản lý kho kiến thức |
+| 16.0 | UC-16 | Tạo tài khoản STAFF |
+| 17.0 | UC-17 | Xem nhật ký thao tác |
+| 18.0 | UC-18 | Giám sát sức khỏe và sử dụng |
+
+Mức 2 phân rã năm chức năng phức tạp 1.0, 3.0, 8.0, 13.0 và 18.0. Mười ba chức năng còn lại là các tiến trình lá ở mức 1. Mức 3 phân rã 13.2 dịch–TTS và 8.4 sinh câu trả lời RAG; không dùng lại số hiệu của mô hình năm nhóm cũ.
+
+Ranh giới gồm cả web và backend. GPS, phát audio và lộ trình tùy chỉnh chạy tại client. Tác nhân ngoài là khách, STAFF, ADMIN, cổng thanh toán, dịch/TTS và embedding/LLM. ADMIN kế thừa quyền STAFF. Đăng nhập không điều phối các yêu cầu quản trị khác; mỗi chức năng nhận dữ liệu và kiểm tra quyền của chính nó.
 
 ## Kho dữ liệu
 
@@ -34,19 +51,17 @@ Ranh giới gồm cả web và backend. GPS, trình phát và sắp tour khách 
 | R1 | Mã tạm và hạn mức Redis, có TTL |
 | M1 | Byte tệp media; metadata/đường dẫn ở SQL |
 
-Các ký hiệu kho/tác nhân có thể lặp để giảm đường giao nhau nhưng giữ cùng mã logic. Tiến trình thật chỉ xuất hiện một lần trong một sơ đồ; tiến trình ngoài phạm vi sơ đồ mức 3 được ghi là tham chiếu mức cha.
 
-## Nguồn và kiểm tra
+## Bố cục và kiểm tra
 
-- Nguồn Use Case: `docs/diagram/use case/`; đặc tả UC trong `docs/CNPM_BAOCAO.docx`, đồng bộ với Google Docs của báo cáo.
-- `scripts/dfd_business_model.py`: từ điển dữ liệu và ánh xạ UC của từng luồng; F01–F28 là họ dữ liệu, có các thành phần khi phân rã. Không cố định số mũi tên ở mức con bằng số mũi tên ở mức cha.
-- `docs/diagram/dfd/dfd_source_manifest.json`: dấu kiểm nội dung nguồn đã chốt; thay đổi UC/schema cần được rà soát trước khi cập nhật dấu kiểm.
-- `scripts/generate_balanced_dfd_drawio.py`: trước mỗi sơ đồ đọc/kiểm tra nguồn và hợp đồng nghiệp vụ, sau đó mới bố trí hình.
-- `scripts/verify_lvl1_lvl2_balance.py`: kiểm tra nguồn, 18 UC, 16 bảng, thứ tự embedding, quyền STAFF/ADMIN, nguồn monitoring, không ghi tour cá nhân/GPS; kiểm tra bảo toàn thành phần dữ liệu và chiều kho giữa các mức, hình học và nguồn UC của từng mũi tên.
-- Bảng báo cáo lấy từ từ điển nghiệp vụ được truy vết, không dùng chính sơ đồ để tự chứng minh yêu cầu đúng.
+Mỗi DFD là một ảnh PNG và một trang Draw.io nguyên vẹn; không chia ảnh thành các phần tiếp nối. Tiến trình thật chỉ xuất hiện một lần trong sơ đồ. Vòng tròn có mã tiến trình là đầu nối tới phần tử cùng mã; tác nhân/kho lặp giữ cùng mã logic. Chữ đậm, nét đen 3,5 đơn vị, nhãn nằm trên mũi tên. Word chèn ảnh trên trang khổ lớn riêng để phóng to xem; các trang văn bản/bảng giữ khổ báo cáo.
 
-Lệnh tái sinh: chạy kiểm tra nguồn, sinh Draw.io, xuất PNG, cập nhật bảng báo cáo, dựng mục 3.4 của Word. Chỉ đồng bộ Google Docs sau khi kiểm tra hình và tài liệu. Tệp `full_gdoc_sync.py` xuất manifest cho connector; không tự xóa hoặc nối nội dung vào cuối Google Docs.
+Trước mỗi lần vẽ, `validate_business_sources()` đọc lại dấu kiểm nguồn báo cáo, đủ 18 đặc tả Use Case, sơ đồ Use Case và schema. Tên 18 tiến trình phải khớp trực tiếp các bảng đặc tả trong Word. Đổi nguồn nghiệp vụ cần được rà soát trước khi cập nhật dấu kiểm; không tự mở rộng phạm vi để làm cân bằng luồng.
 
-Để đọc ở cỡ trang báo cáo, chạy `build_readable_dfd_pages.py --render` trước khi dựng Word hoặc xuất manifest Google Docs. Các tệp Draw.io nhiều trang trong `docs/diagram/dfd/report/` và PNG trong `docs/diagram/export/dfd-report/` là những phần tiếp nối của cùng 9 hình, giữ nguyên từng luồng của bản nguồn. Khối cùng mã là cùng một phần tử; khối tham chiếu tiến trình được vẽ nét đứt. `verify_dfd_readability.py` kiểm tra đủ luồng, đúng hướng, mũi tên nằm dưới nhãn, tỷ lệ ảnh và cỡ chữ tối thiểu 10 pt sau khi chèn. Không ép toàn bộ sơ đồ dài vào một ảnh vừa trang.
+- `dfd_business_model.py`: chức năng, dữ liệu và truy vết UC; 13 kho SQL tương ứng đúng 16 bảng.
+- `generate_balanced_dfd_drawio.py`: sinh 9 sơ đồ nguyên vẹn sau khi kiểm tra nguồn.
+- `verify_lvl1_lvl2_balance.py`: kiểm tra đủ 18 chức năng, luồng ngữ cảnh, biên từng tiến trình được phân rã, kho đọc/ghi và luồng biên mức 3.
+- `verify_dfd_readability.py`: kiểm tra một ảnh/trang cho mỗi sơ đồ, chữ đậm, nét dày, nhãn không che mũi tên và độ phân giải đủ để phóng to.
+- Bảng 3.19–3.28 lấy từ từ điển nghiệp vụ; `rebuild_docx_section_3_4.py` chèn 9 ảnh khổ lớn, `full_gdoc_sync.py` xuất manifest cho connector Google Docs.
 
-Schema được đối chiếu từ repository. Bộ DFD không khẳng định trạng thái migration của một database đang chạy và không thay đổi schema hoặc nghiệp vụ ứng dụng.
+Schema được đối chiếu từ repository. Bộ DFD không khẳng định trạng thái migration của database đang chạy và không thay đổi schema hoặc nghiệp vụ ứng dụng.

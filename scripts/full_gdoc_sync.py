@@ -9,16 +9,15 @@ import json
 from pathlib import Path
 import re
 import sys
+from PIL import Image
 sys.stdout.reconfigure(encoding='utf-8')
 ROOT=Path(__file__).resolve().parents[1]
 DOC_ID='18w13JYpDX6dCXFww2o7HBQEDcMAaNlEQsbBBl3cL4Dk'
 TAB_ID='t.0'
 MD_PATH=ROOT/'docs/DFD_Report_Section_3_4.md'
-REPORT_PAGES=ROOT/'docs/diagram/dfd/report/dfd_report_pages.json'
 def build_clean_gdoc_ops():
  lines=MD_PATH.read_text(encoding='utf-8').splitlines()
  ops=[]
- report={r['name']:r['pages'] for r in json.loads(REPORT_PAGES.read_text(encoding='utf-8'))} if REPORT_PAGES.exists() else {}
  i=0
  while i<len(lines):
   line=lines[i].strip()
@@ -35,12 +34,10 @@ def build_clean_gdoc_ops():
    match=re.search(r'\]\((.*?)\)',line)
    path=(ROOT/'docs'/match[1]).resolve()
    if not path.is_file(): raise FileNotFoundError(path)
-   pages=report.get(path.stem)
-   if pages:
-    for page in pages:
-     ops.append({'kind':'image','path':str(ROOT/page['image']),'figure_name':path.stem,
-                 'part':page['part'],'width_pt':page['width_pt'],'height_pt':page['height_pt']})
-   else:ops.append({'kind':'image','path':str(path)})
+   with Image.open(path) as im:ratio=im.height/im.width
+   # Reserve room for the paragraph, inline-image margins and figure caption.
+   width=min(468,576/ratio)
+   ops.append({'kind':'image','path':str(path),'width_pt':width,'height_pt':width*ratio})
   else:
    ops.append({'kind':'paragraph','text':line.lstrip('#').strip().strip('*')})
   i+=1
@@ -50,7 +47,7 @@ if __name__=='__main__':
  parser.add_argument('--manifest',type=Path,help='Write structured data for the Docs connector; omit to print JSON')
  args=parser.parse_args()
  data={'documentId':DOC_ID,'tabId':TAB_ID,'elements':build_clean_gdoc_ops()}
- assert len({x.get('figure_name',x['path']) for x in data['elements'] if x['kind']=='image'})==9
+ assert len([x for x in data['elements'] if x['kind']=='image'])==9
  assert len([x for x in data['elements'] if x['kind']=='table'])==10
  payload=json.dumps(data,ensure_ascii=False,indent=2)
  if args.manifest: args.manifest.write_text(payload,encoding='utf-8')
