@@ -4,7 +4,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="boundary" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=20;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=0;verticalAlign=top;spacingTop=22;fontStyle=1;fillColor=none;" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ CHÙA LINH ỨNG&lt;br&gt;UC-13 — Quản lý POI và nội dung đa ngôn ngữ" vertex="1">
+        <mxCell id="boundary" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=20;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=0;verticalAlign=top;spacingTop=22;fontStyle=1;fillColor=none;" value="HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ THẢO CẦM VIÊN SÀI GÒN&lt;br&gt;UC-13 — Quản lý POI và nội dung đa ngôn ngữ" vertex="1">
           <mxGeometry height="850" width="1130" x="300" y="30" as="geometry" />
         </mxCell>
         <mxCell id="staff" parent="1" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=19;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;" value="Nhân viên&lt;br&gt;(STAFF)" vertex="1">

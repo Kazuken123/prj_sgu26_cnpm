@@ -1,7 +1,7 @@
 """Prepare scoped Google Docs synchronization data for the connected Docs tool.
 
 This command never mutates a document itself. Consumers must read the current
-revision, resize Table 3.19 to 21 rows, then apply cell/paragraph edits in reverse
+revision, resize tables to the manifest row counts, then apply edits in reverse
 index order and insert each local image with the connector image_uris sidecar.
 """
 import argparse

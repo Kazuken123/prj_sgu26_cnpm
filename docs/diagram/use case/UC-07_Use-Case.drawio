@@ -5,7 +5,7 @@
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
-        <mxCell id="boundary" value="HỆ THỐNG THUYẾT MINH CHÙA LINH ỨNG&lt;br&gt;UC-07 — Lựa chọn và tùy chỉnh lộ trình" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=19;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=0;verticalAlign=top;spacingTop=22;fontStyle=1;fillColor=none;" vertex="1" parent="1">
+        <mxCell id="boundary" value="HỆ THỐNG THUYẾT MINH THẢO CẦM VIÊN SÀI GÒN&lt;br&gt;UC-07 — Lựa chọn và tùy chỉnh lộ trình" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=19;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;rounded=0;verticalAlign=top;spacingTop=22;fontStyle=1;fillColor=none;" vertex="1" parent="1">
           <mxGeometry x="280" y="30" width="1030" height="620" as="geometry" />
         </mxCell>
         <mxCell id="guest" value="Khách tham quan" style="html=1;whiteSpace=wrap;fontFamily=Arial;fontSize=19;fontColor=#111827;strokeColor=#374151;fillColor=#FFFFFF;strokeWidth=1.5;shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;" vertex="1" parent="1">

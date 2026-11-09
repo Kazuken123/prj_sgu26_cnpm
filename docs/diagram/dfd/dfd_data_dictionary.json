@@ -1,0 +1,2348 @@
+{
+  "actors": {
+    "E1": "Khách tham quan",
+    "E2": "Nhân viên (STAFF)",
+    "E3": "Quản trị viên (ADMIN)",
+    "E4": "Cổng thanh toán",
+    "E5": "Dịch vụ dịch và TTS",
+    "E6": "Dịch vụ embedding và LLM"
+  },
+  "stores": {
+    "D1": [
+      "Tài khoản nội bộ",
+      [
+        "USERS"
+      ]
+    ],
+    "D2": [
+      "Phiên đăng nhập nội bộ",
+      [
+        "REFRESH_TOKENS"
+      ]
+    ],
+    "D3": [
+      "Phiên tham quan",
+      [
+        "VISIT_SESSIONS"
+      ]
+    ],
+    "D4": [
+      "Thanh toán",
+      [
+        "PAYMENTS"
+      ]
+    ],
+    "D5": [
+      "Danh mục ngôn ngữ",
+      [
+        "LANGUAGES"
+      ]
+    ],
+    "D6": [
+      "POI và văn bản đa ngữ",
+      [
+        "POIS",
+        "POI_TRANSLATIONS"
+      ]
+    ],
+    "D7": [
+      "Thông tin audio",
+      [
+        "AUDIOS"
+      ]
+    ],
+    "D8": [
+      "Tác vụ nội dung",
+      [
+        "CONTENT_JOBS"
+      ]
+    ],
+    "D9": [
+      "Lộ trình mẫu",
+      [
+        "TOURS",
+        "TOUR_POIS"
+      ]
+    ],
+    "D10": [
+      "Tài liệu và chỉ mục kiến thức",
+      [
+        "KNOWLEDGE_DOCUMENTS",
+        "KNOWLEDGE_CHUNKS"
+      ]
+    ],
+    "D11": [
+      "Nhật ký thao tác",
+      [
+        "AUDIT_LOGS"
+      ]
+    ],
+    "D12": [
+      "Nhật ký hỏi đáp",
+      [
+        "CHAT_LOGS"
+      ]
+    ],
+    "D13": [
+      "Nhật ký cấp bundle",
+      [
+        "BUNDLE_ACCESS_LOGS"
+      ]
+    ],
+    "R1": [
+      "Mã tạm và hạn mức (Redis)",
+      []
+    ],
+    "M1": [
+      "Tệp media",
+      []
+    ]
+  },
+  "processes": {
+    "P1_1": [
+      "Khởi tạo yêu cầu và phiên chờ",
+      [
+        1,
+        2,
+        11
+      ]
+    ],
+    "P1_2": [
+      "Xác minh webhook và kích hoạt phiên",
+      [
+        1
+      ]
+    ],
+    "P1_3": [
+      "Đối chiếu, xác nhận tiền mặt và cấp mã",
+      [
+        11
+      ]
+    ],
+    "P1_4": [
+      "Đổi mã một lần thành token khách",
+      [
+        1,
+        2,
+        12
+      ]
+    ],
+    "P1_5": [
+      "Hỗ trợ cấp lại bằng mã 6 số (Could Have)",
+      [
+        12
+      ]
+    ],
+    "P2_1": [
+      "Kiểm tra phiên và ngôn ngữ",
+      [
+        3,
+        4
+      ]
+    ],
+    "P2_2": [
+      "Cấp bundle và ghi lượt cấp",
+      [
+        3,
+        4
+      ]
+    ],
+    "P2_3": [
+      "Hiển thị bản đồ, POI và GPS tại client",
+      [
+        3,
+        6
+      ]
+    ],
+    "P2_4": [
+      "Tải và phát audio tại client",
+      [
+        4,
+        5,
+        6
+      ]
+    ],
+    "P2_5": [
+      "Chọn và tùy chỉnh lộ trình tại client",
+      [
+        7
+      ]
+    ],
+    "P3_1": [
+      "Kiểm tra phiên, câu hỏi và hạn mức",
+      [
+        8
+      ]
+    ],
+    "P3_2": [
+      "Tạo embedding câu hỏi",
+      [
+        8
+      ]
+    ],
+    "P3_3": [
+      "Truy hồi đoạn ACTIVE đúng phiên bản",
+      [
+        8
+      ]
+    ],
+    "P3_4": [
+      "Tạo, kiểm tra câu trả lời và ghi log",
+      [
+        8
+      ]
+    ],
+    "P4_1": [
+      "Quản lý POI, nguồn và trạng thái tác vụ",
+      [
+        13
+      ]
+    ],
+    "P4_2": [
+      "Xử lý nền dịch văn bản và TTS",
+      [
+        13
+      ]
+    ],
+    "P4_3": [
+      "Tạo và cập nhật lộ trình mẫu",
+      [
+        14
+      ]
+    ],
+    "P4_4": [
+      "Quản lý tài liệu và chỉ mục kiến thức",
+      [
+        15
+      ]
+    ],
+    "P5_1": [
+      "Đăng nhập và duy trì phiên nội bộ",
+      [
+        9
+      ]
+    ],
+    "P5_2": [
+      "Đăng xuất phiên hiện tại",
+      [
+        10
+      ]
+    ],
+    "P5_3": [
+      "Tạo tài khoản STAFF",
+      [
+        16
+      ]
+    ],
+    "P5_4": [
+      "Đọc và lọc nhật ký thao tác",
+      [
+        17
+      ]
+    ],
+    "P5_5": [
+      "Giám sát sức khỏe và sử dụng",
+      [
+        18
+      ]
+    ]
+  },
+  "families": {
+    "F01": "Yêu cầu thanh toán và đổi mã",
+    "F02": "Thông tin thanh toán và quyền tham quan",
+    "F03": "Yêu cầu nội dung, ngôn ngữ, GPS, audio và tour",
+    "F04": "Nội dung, audio, lộ trình hoặc thông báo",
+    "F05": "Câu hỏi tra cứu",
+    "F06": "Câu trả lời có nguồn hoặc thông báo",
+    "F07": "Dữ liệu thanh toán tiền mặt và cấp lại quyền",
+    "F08": "Phiên, kết quả xác nhận và mã nhận vé",
+    "F09": "Dữ liệu POI, tour mẫu và tài liệu",
+    "F10": "Kết quả quản lý nội dung",
+    "F11": "Thông tin đăng nhập, refresh và đăng xuất",
+    "F12": "Kết quả xác thực và kết thúc phiên",
+    "F13": "Dữ liệu tiền mặt và cấp lại quyền của ADMIN",
+    "F14": "Phiên, kết quả tiền mặt và mã nhận vé",
+    "F15": "Dữ liệu quản lý nội dung của ADMIN",
+    "F16": "Kết quả quản lý nội dung cho ADMIN",
+    "F17": "Thông tin xác thực và đăng xuất ADMIN",
+    "F18": "Kết quả xác thực và kết thúc phiên ADMIN",
+    "F19": "Hồ sơ STAFF và bộ lọc audit, monitoring",
+    "F20": "Hồ sơ đã tạo, nhật ký và chỉ số",
+    "F21": "Yêu cầu khởi tạo giao dịch online",
+    "F22": "Thông tin giao dịch và kết quả thanh toán",
+    "F23": "Văn bản nguồn hoặc kịch bản cần dịch/TTS",
+    "F24": "Bản dịch hoặc dữ liệu âm thanh WAV",
+    "F25": "Câu hỏi hoặc đoạn tài liệu cần embedding",
+    "F26": "Vector embedding tương ứng",
+    "F27": "Câu hỏi kèm ngữ cảnh và mã nguồn",
+    "F28": "Phản hồi LLM theo ngữ cảnh"
+  },
+  "flows": [
+    {
+      "id": "F01_01",
+      "source": "E1",
+      "target": "P1_1",
+      "label": "Hình thức thanh toán và yêu cầu khởi tạo",
+      "ucs": [
+        "UC-01",
+        "UC-02"
+      ],
+      "family": "F01",
+      "source_section": "3.3 / UC-01, UC-02"
+    },
+    {
+      "id": "F02_01",
+      "source": "P1_1",
+      "target": "E1",
+      "label": "Giá, phiên chờ, mã và URL online",
+      "ucs": [
+        "UC-01",
+        "UC-02"
+      ],
+      "family": "F02",
+      "source_section": "3.3 / UC-01, UC-02"
+    },
+    {
+      "id": "F01_02",
+      "source": "E1",
+      "target": "P1_4",
+      "label": "Phiên và mã đổi quyền một lần",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-12"
+      ],
+      "family": "F01",
+      "source_section": "3.3 / UC-01, UC-02, UC-12"
+    },
+    {
+      "id": "F02_02",
+      "source": "P1_4",
+      "target": "E1",
+      "label": "Token khách, hạn vé hoặc trạng thái đổi mã",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-12"
+      ],
+      "family": "F02",
+      "source_section": "3.3 / UC-01, UC-02, UC-12"
+    },
+    {
+      "id": "F07_01",
+      "source": "E2",
+      "target": "P1_1",
+      "label": "Yêu cầu tạo phiên tiền mặt",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": "F07",
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "F08_01",
+      "source": "P1_1",
+      "target": "E2",
+      "label": "Thông tin phiên chờ",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": "F08",
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "F07_02",
+      "source": "E2",
+      "target": "P1_3",
+      "label": "Phiên cần tra cứu và xác nhận tiền mặt",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": "F07",
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "F08_02",
+      "source": "P1_3",
+      "target": "E2",
+      "label": "Kết quả đối chiếu, xác nhận và mã ngắn",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": "F08",
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "F07_03",
+      "source": "E2",
+      "target": "P1_5",
+      "label": "Thông tin đối chiếu, lý do và xác nhận cấp lại*",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": "F07",
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "F08_03",
+      "source": "P1_5",
+      "target": "E2",
+      "label": "Mã nhận vé 6 số, hạn vé và số lần còn lại*",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": "F08",
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "F13_01",
+      "source": "E3",
+      "target": "P1_1",
+      "label": "Yêu cầu tạo phiên tiền mặt",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": "F13",
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "F14_01",
+      "source": "P1_1",
+      "target": "E3",
+      "label": "Thông tin phiên chờ",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": "F14",
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "F13_02",
+      "source": "E3",
+      "target": "P1_3",
+      "label": "Phiên cần tra cứu và xác nhận tiền mặt",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": "F13",
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "F14_02",
+      "source": "P1_3",
+      "target": "E3",
+      "label": "Kết quả đối chiếu, xác nhận và mã ngắn",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": "F14",
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "F13_03",
+      "source": "E3",
+      "target": "P1_5",
+      "label": "Thông tin đối chiếu, lý do và xác nhận cấp lại*",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": "F13",
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "F14_03",
+      "source": "P1_5",
+      "target": "E3",
+      "label": "Mã nhận vé 6 số, hạn vé và số lần còn lại*",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": "F14",
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "F21_01",
+      "source": "P1_1",
+      "target": "E4",
+      "label": "Thông tin đơn và yêu cầu giao dịch",
+      "ucs": [
+        "UC-01"
+      ],
+      "family": "F21",
+      "source_section": "3.3 / UC-01"
+    },
+    {
+      "id": "F22_01",
+      "source": "E4",
+      "target": "P1_1",
+      "label": "Mã giao dịch và URL thanh toán",
+      "ucs": [
+        "UC-01"
+      ],
+      "family": "F22",
+      "source_section": "3.3 / UC-01"
+    },
+    {
+      "id": "F22_02",
+      "source": "E4",
+      "target": "P1_2",
+      "label": "Webhook: chữ ký, mã, số tiền và kết quả",
+      "ucs": [
+        "UC-01"
+      ],
+      "family": "F22",
+      "source_section": "3.3 / UC-01"
+    },
+    {
+      "id": "F03_01",
+      "source": "E1",
+      "target": "P2_1",
+      "label": "Token và mã ngôn ngữ cần tải",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": "F03",
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "F04_01",
+      "source": "P2_2",
+      "target": "E1",
+      "label": "Bundle tham quan và ngôn ngữ thực tế",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": "F04",
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "F03_02",
+      "source": "E1",
+      "target": "P2_3",
+      "label": "GPS/giả lập và POI được chọn",
+      "ucs": [
+        "UC-03",
+        "UC-06"
+      ],
+      "family": "F03",
+      "source_section": "3.3 / UC-03, UC-06"
+    },
+    {
+      "id": "F04_02",
+      "source": "P2_3",
+      "target": "E1",
+      "label": "Bản đồ, vị trí và chi tiết POI",
+      "ucs": [
+        "UC-03",
+        "UC-06"
+      ],
+      "family": "F04",
+      "source_section": "3.3 / UC-03, UC-06"
+    },
+    {
+      "id": "F03_03",
+      "source": "E1",
+      "target": "P2_4",
+      "label": "Yêu cầu phát, dừng hoặc tua audio",
+      "ucs": [
+        "UC-05",
+        "UC-06"
+      ],
+      "family": "F03",
+      "source_section": "3.3 / UC-05, UC-06"
+    },
+    {
+      "id": "F04_03",
+      "source": "P2_4",
+      "target": "E1",
+      "label": "Âm thanh WAV và trạng thái phát",
+      "ucs": [
+        "UC-05",
+        "UC-06"
+      ],
+      "family": "F04",
+      "source_section": "3.3 / UC-05, UC-06"
+    },
+    {
+      "id": "F03_04",
+      "source": "E1",
+      "target": "P2_5",
+      "label": "Tour, điểm ghé và điểm xuất phát",
+      "ucs": [
+        "UC-07"
+      ],
+      "family": "F03",
+      "source_section": "3.3 / UC-07"
+    },
+    {
+      "id": "F04_04",
+      "source": "P2_5",
+      "target": "E1",
+      "label": "Lộ trình và khoảng cách ước tính",
+      "ucs": [
+        "UC-07"
+      ],
+      "family": "F04",
+      "source_section": "3.3 / UC-07"
+    },
+    {
+      "id": "F05_01",
+      "source": "E1",
+      "target": "P3_1",
+      "label": "Câu hỏi và token phiên khách",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": "F05",
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "F06_01",
+      "source": "P3_1",
+      "target": "E1",
+      "label": "Thông báo phiên, đầu vào hoặc hạn mức không hợp lệ",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": "F06",
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "F06_02",
+      "source": "P3_4",
+      "target": "E1",
+      "label": "Câu trả lời, nguồn hoặc thông báo NO_CONTEXT/lỗi",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": "F06",
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "F25_01",
+      "source": "P3_2",
+      "target": "E6",
+      "label": "Câu hỏi cần tạo vector",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": "F25",
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "F26_01",
+      "source": "E6",
+      "target": "P3_2",
+      "label": "Vector câu hỏi và thông tin mô hình",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": "F26",
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "F27_01",
+      "source": "P3_4",
+      "target": "E6",
+      "label": "Câu hỏi, ngữ cảnh và mã trích dẫn",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": "F27",
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "F28_01",
+      "source": "E6",
+      "target": "P3_4",
+      "label": "Câu trả lời thô và mã nguồn được viện dẫn",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": "F28",
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "F09_01",
+      "source": "E2",
+      "target": "P4_1",
+      "label": "Dữ liệu POI/nguồn, yêu cầu trạng thái hoặc thử lại",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": "F09",
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "F10_01",
+      "source": "P4_1",
+      "target": "E2",
+      "label": "Kết quả lưu, trạng thái nội dung và lỗi",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": "F10",
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "F09_02",
+      "source": "E2",
+      "target": "P4_3",
+      "label": "Yêu cầu xem, tạo hoặc cập nhật tour mẫu",
+      "ucs": [
+        "UC-14"
+      ],
+      "family": "F09",
+      "source_section": "3.3 / UC-14"
+    },
+    {
+      "id": "F10_02",
+      "source": "P4_3",
+      "target": "E2",
+      "label": "Tour và kết quả lưu thứ tự POI",
+      "ucs": [
+        "UC-14"
+      ],
+      "family": "F10",
+      "source_section": "3.3 / UC-14"
+    },
+    {
+      "id": "F09_03",
+      "source": "E2",
+      "target": "P4_4",
+      "label": "Tài liệu, nguồn và yêu cầu quản lý chỉ mục",
+      "ucs": [
+        "UC-15"
+      ],
+      "family": "F09",
+      "source_section": "3.3 / UC-15"
+    },
+    {
+      "id": "F10_03",
+      "source": "P4_4",
+      "target": "E2",
+      "label": "Tài liệu, phiên bản và kết quả chỉ mục",
+      "ucs": [
+        "UC-15"
+      ],
+      "family": "F10",
+      "source_section": "3.3 / UC-15"
+    },
+    {
+      "id": "F15_01",
+      "source": "E3",
+      "target": "P4_1",
+      "label": "Dữ liệu POI/nguồn, yêu cầu trạng thái hoặc thử lại",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": "F15",
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "F16_01",
+      "source": "P4_1",
+      "target": "E3",
+      "label": "Kết quả lưu, trạng thái nội dung và lỗi",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": "F16",
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "F15_02",
+      "source": "E3",
+      "target": "P4_3",
+      "label": "Yêu cầu xem, tạo hoặc cập nhật tour mẫu",
+      "ucs": [
+        "UC-14"
+      ],
+      "family": "F15",
+      "source_section": "3.3 / UC-14"
+    },
+    {
+      "id": "F16_02",
+      "source": "P4_3",
+      "target": "E3",
+      "label": "Tour và kết quả lưu thứ tự POI",
+      "ucs": [
+        "UC-14"
+      ],
+      "family": "F16",
+      "source_section": "3.3 / UC-14"
+    },
+    {
+      "id": "F15_03",
+      "source": "E3",
+      "target": "P4_4",
+      "label": "Tài liệu, nguồn và yêu cầu quản lý chỉ mục",
+      "ucs": [
+        "UC-15"
+      ],
+      "family": "F15",
+      "source_section": "3.3 / UC-15"
+    },
+    {
+      "id": "F16_03",
+      "source": "P4_4",
+      "target": "E3",
+      "label": "Tài liệu, phiên bản và kết quả chỉ mục",
+      "ucs": [
+        "UC-15"
+      ],
+      "family": "F16",
+      "source_section": "3.3 / UC-15"
+    },
+    {
+      "id": "F23_01",
+      "source": "P4_2",
+      "target": "E5",
+      "label": "Nguồn tiếng Việt và ngôn ngữ cần dịch",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": "F23",
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "F24_01",
+      "source": "E5",
+      "target": "P4_2",
+      "label": "Tên, văn bản và kịch bản đã dịch",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": "F24",
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "F23_02",
+      "source": "P4_2",
+      "target": "E5",
+      "label": "Kịch bản đã chuẩn bị và yêu cầu TTS",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": "F23",
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "F24_02",
+      "source": "E5",
+      "target": "P4_2",
+      "label": "Dữ liệu âm thanh WAV",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": "F24",
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "F25_02",
+      "source": "P4_4",
+      "target": "E6",
+      "label": "Các đoạn tài liệu cần tạo vector",
+      "ucs": [
+        "UC-15"
+      ],
+      "family": "F25",
+      "source_section": "3.3 / UC-15"
+    },
+    {
+      "id": "F26_02",
+      "source": "E6",
+      "target": "P4_4",
+      "label": "Vector các đoạn và thông tin mô hình",
+      "ucs": [
+        "UC-15"
+      ],
+      "family": "F26",
+      "source_section": "3.3 / UC-15"
+    },
+    {
+      "id": "F11_01",
+      "source": "E2",
+      "target": "P5_1",
+      "label": "Email/mật khẩu hoặc dữ liệu refresh",
+      "ucs": [
+        "UC-09"
+      ],
+      "family": "F11",
+      "source_section": "3.3 / UC-09"
+    },
+    {
+      "id": "F12_01",
+      "source": "P5_1",
+      "target": "E2",
+      "label": "Tài khoản, vai trò và token nội bộ",
+      "ucs": [
+        "UC-09"
+      ],
+      "family": "F12",
+      "source_section": "3.3 / UC-09"
+    },
+    {
+      "id": "F11_02",
+      "source": "E2",
+      "target": "P5_2",
+      "label": "Thông tin phiên cần đăng xuất",
+      "ucs": [
+        "UC-10"
+      ],
+      "family": "F11",
+      "source_section": "3.3 / UC-10"
+    },
+    {
+      "id": "F12_02",
+      "source": "P5_2",
+      "target": "E2",
+      "label": "Kết quả kết thúc phiên hiện tại",
+      "ucs": [
+        "UC-10"
+      ],
+      "family": "F12",
+      "source_section": "3.3 / UC-10"
+    },
+    {
+      "id": "F17_01",
+      "source": "E3",
+      "target": "P5_1",
+      "label": "Email/mật khẩu hoặc dữ liệu refresh",
+      "ucs": [
+        "UC-09"
+      ],
+      "family": "F17",
+      "source_section": "3.3 / UC-09"
+    },
+    {
+      "id": "F18_01",
+      "source": "P5_1",
+      "target": "E3",
+      "label": "Tài khoản, vai trò và token nội bộ",
+      "ucs": [
+        "UC-09"
+      ],
+      "family": "F18",
+      "source_section": "3.3 / UC-09"
+    },
+    {
+      "id": "F17_02",
+      "source": "E3",
+      "target": "P5_2",
+      "label": "Thông tin phiên cần đăng xuất",
+      "ucs": [
+        "UC-10"
+      ],
+      "family": "F17",
+      "source_section": "3.3 / UC-10"
+    },
+    {
+      "id": "F18_02",
+      "source": "P5_2",
+      "target": "E3",
+      "label": "Kết quả kết thúc phiên hiện tại",
+      "ucs": [
+        "UC-10"
+      ],
+      "family": "F18",
+      "source_section": "3.3 / UC-10"
+    },
+    {
+      "id": "F19_01",
+      "source": "E3",
+      "target": "P5_3",
+      "label": "Hồ sơ nhân viên cần tạo",
+      "ucs": [
+        "UC-16"
+      ],
+      "family": "F19",
+      "source_section": "3.3 / UC-16"
+    },
+    {
+      "id": "F20_01",
+      "source": "P5_3",
+      "target": "E3",
+      "label": "Hồ sơ STAFF đã tạo",
+      "ucs": [
+        "UC-16"
+      ],
+      "family": "F20",
+      "source_section": "3.3 / UC-16"
+    },
+    {
+      "id": "F19_02",
+      "source": "E3",
+      "target": "P5_4",
+      "label": "Bộ lọc và trang nhật ký",
+      "ucs": [
+        "UC-17"
+      ],
+      "family": "F19",
+      "source_section": "3.3 / UC-17"
+    },
+    {
+      "id": "F20_02",
+      "source": "P5_4",
+      "target": "E3",
+      "label": "Nhật ký thao tác và phân trang",
+      "ucs": [
+        "UC-17"
+      ],
+      "family": "F20",
+      "source_section": "3.3 / UC-17"
+    },
+    {
+      "id": "F19_03",
+      "source": "E3",
+      "target": "P5_5",
+      "label": "Khoảng thời gian và yêu cầu giám sát",
+      "ucs": [
+        "UC-18"
+      ],
+      "family": "F19",
+      "source_section": "3.3 / UC-18"
+    },
+    {
+      "id": "F20_03",
+      "source": "P5_5",
+      "target": "E3",
+      "label": "Chỉ số, trạng thái nguồn và thời điểm cập nhật",
+      "ucs": [
+        "UC-18"
+      ],
+      "family": "F20",
+      "source_section": "3.3 / UC-18"
+    },
+    {
+      "id": "S_01",
+      "source": "D1",
+      "target": "P1_1",
+      "label": "Tài khoản và quyền STAFF/ADMIN",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "S_02",
+      "source": "D2",
+      "target": "P1_1",
+      "label": "Phiên nội bộ còn hiệu lực",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "S_03",
+      "source": "D3",
+      "target": "P1_1",
+      "label": "Phiên chờ và trạng thái hiện có",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-11"
+    },
+    {
+      "id": "S_04",
+      "source": "D4",
+      "target": "P1_1",
+      "label": "Yêu cầu giao dịch và giá đã ghi nhận",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-11"
+    },
+    {
+      "id": "S_05",
+      "source": "R1",
+      "target": "P1_1",
+      "label": "Mã online hiện có và TTL",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-11"
+    },
+    {
+      "id": "S_06",
+      "source": "P1_1",
+      "target": "D3",
+      "label": "Phiên tham quan PENDING",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-11"
+    },
+    {
+      "id": "S_07",
+      "source": "P1_1",
+      "target": "D4",
+      "label": "Payment PENDING và payment_ref",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-11"
+    },
+    {
+      "id": "S_08",
+      "source": "P1_1",
+      "target": "R1",
+      "label": "Mã đổi quyền online có TTL",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-11"
+    },
+    {
+      "id": "S_09",
+      "source": "D3",
+      "target": "P1_2",
+      "label": "Phiên khách và hạn vé",
+      "ucs": [
+        "UC-01"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01"
+    },
+    {
+      "id": "S_10",
+      "source": "D4",
+      "target": "P1_2",
+      "label": "Thanh toán PAID của phiên",
+      "ucs": [
+        "UC-01"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01"
+    },
+    {
+      "id": "S_11",
+      "source": "P1_2",
+      "target": "D4",
+      "label": "Trạng thái giao dịch sau xác minh hợp lệ",
+      "ucs": [
+        "UC-01"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01"
+    },
+    {
+      "id": "S_12",
+      "source": "P1_2",
+      "target": "D3",
+      "label": "ACTIVE, thời điểm kích hoạt và hạn vé",
+      "ucs": [
+        "UC-01"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01"
+    },
+    {
+      "id": "S_13",
+      "source": "D1",
+      "target": "P1_3",
+      "label": "Tài khoản và quyền STAFF/ADMIN",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "S_14",
+      "source": "D2",
+      "target": "P1_3",
+      "label": "Phiên nội bộ còn hiệu lực",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "S_15",
+      "source": "D3",
+      "target": "P1_3",
+      "label": "Phiên khách và hạn vé",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "S_16",
+      "source": "D4",
+      "target": "P1_3",
+      "label": "Thanh toán PAID của phiên",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "S_17",
+      "source": "R1",
+      "target": "P1_3",
+      "label": "Mã ngắn hiện có và TTL",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "S_18",
+      "source": "P1_3",
+      "target": "D4",
+      "label": "CASH/PAID và người xác nhận",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "S_19",
+      "source": "P1_3",
+      "target": "D3",
+      "label": "ACTIVE và hạn vé từ thời điểm xác nhận",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "S_20",
+      "source": "P1_3",
+      "target": "R1",
+      "label": "Mã ngắn gắn phiên có TTL",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "S_21",
+      "source": "P1_3",
+      "target": "D11",
+      "label": "Audit xác nhận tiền mặt/cấp mã",
+      "ucs": [
+        "UC-11"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-11"
+    },
+    {
+      "id": "S_22",
+      "source": "D3",
+      "target": "P1_4",
+      "label": "Phiên khách và hạn vé",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-12"
+    },
+    {
+      "id": "S_23",
+      "source": "D4",
+      "target": "P1_4",
+      "label": "Thanh toán PAID của phiên",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-12"
+    },
+    {
+      "id": "S_24",
+      "source": "R1",
+      "target": "P1_4",
+      "label": "Mã gắn phiên, TTL và hạn mức thử",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-12"
+    },
+    {
+      "id": "S_25",
+      "source": "P1_4",
+      "target": "D3",
+      "label": "Hash token khách của phiên",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-12"
+    },
+    {
+      "id": "S_26",
+      "source": "P1_4",
+      "target": "R1",
+      "label": "Hạn mức thử và thu hồi mã đã đổi",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-12"
+    },
+    {
+      "id": "S_27",
+      "source": "P1_4",
+      "target": "D11",
+      "label": "Audit cấp token không chứa token thô",
+      "ucs": [
+        "UC-01",
+        "UC-02",
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-01, UC-02, UC-12"
+    },
+    {
+      "id": "S_28",
+      "source": "D1",
+      "target": "P1_5",
+      "label": "Tài khoản và quyền STAFF/ADMIN",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "S_29",
+      "source": "D2",
+      "target": "P1_5",
+      "label": "Phiên nội bộ còn hiệu lực",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "S_30",
+      "source": "D3",
+      "target": "P1_5",
+      "label": "Phiên khách và hạn vé",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "S_31",
+      "source": "D4",
+      "target": "P1_5",
+      "label": "Thanh toán PAID của phiên",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "S_32",
+      "source": "R1",
+      "target": "P1_5",
+      "label": "Mã nhận vé cấp lại còn hiệu lực",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "S_33",
+      "source": "P1_5",
+      "target": "D3",
+      "label": "Thu hồi token, tăng bộ đếm; giữ hạn vé*",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "S_34",
+      "source": "P1_5",
+      "target": "R1",
+      "label": "Mã nhận vé REISSUE có TTL*",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "S_35",
+      "source": "P1_5",
+      "target": "D11",
+      "label": "Audit cấp lại quyền và lý do*",
+      "ucs": [
+        "UC-12"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-12"
+    },
+    {
+      "id": "S_36",
+      "source": "D3",
+      "target": "P2_1",
+      "label": "Phiên khách và hạn vé",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "S_37",
+      "source": "D4",
+      "target": "P2_1",
+      "label": "Thanh toán PAID của phiên",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "S_38",
+      "source": "D5",
+      "target": "P2_1",
+      "label": "Ngôn ngữ đang hoạt động",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "F04_05",
+      "source": "P2_1",
+      "target": "E1",
+      "label": "Thông báo phiên hoặc ngôn ngữ không hợp lệ",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": "F04",
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "I_01",
+      "source": "P2_1",
+      "target": "P2_2",
+      "label": "Phiên hợp lệ, hạn vé và ngôn ngữ",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "S_39",
+      "source": "D5",
+      "target": "P2_2",
+      "label": "Danh mục ngôn ngữ",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "S_40",
+      "source": "D6",
+      "target": "P2_2",
+      "label": "POI ACTIVE và văn bản đúng phiên bản",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "S_41",
+      "source": "D7",
+      "target": "P2_2",
+      "label": "Metadata và URL audio AVAILABLE",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "S_42",
+      "source": "D9",
+      "target": "P2_2",
+      "label": "Tour mẫu và thứ tự POI hợp lệ",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "S_43",
+      "source": "P2_2",
+      "target": "D13",
+      "label": "Lượt cấp bundle thành công theo phiên/ngôn ngữ",
+      "ucs": [
+        "UC-03",
+        "UC-04"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-03, UC-04"
+    },
+    {
+      "id": "I_02",
+      "source": "P2_2",
+      "target": "P2_3",
+      "label": "Bundle POI, tọa độ và bán kính",
+      "ucs": [
+        "UC-03",
+        "UC-06"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-03, UC-06"
+    },
+    {
+      "id": "I_03",
+      "source": "P2_2",
+      "target": "P2_4",
+      "label": "URL audio, ngôn ngữ thực tế và hạn vé",
+      "ucs": [
+        "UC-04",
+        "UC-05",
+        "UC-06"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-04, UC-05, UC-06"
+    },
+    {
+      "id": "I_04",
+      "source": "P2_2",
+      "target": "P2_5",
+      "label": "Tour mẫu và POI trong bundle",
+      "ucs": [
+        "UC-07"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-07"
+    },
+    {
+      "id": "I_05",
+      "source": "P2_3",
+      "target": "P2_4",
+      "label": "POI gần nhất hợp lệ hoặc POI được chọn",
+      "ucs": [
+        "UC-05",
+        "UC-06"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-05, UC-06"
+    },
+    {
+      "id": "I_06",
+      "source": "P2_5",
+      "target": "P2_3",
+      "label": "Thứ tự điểm và đường nối ước tính",
+      "ucs": [
+        "UC-07"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-07"
+    },
+    {
+      "id": "S_44",
+      "source": "D7",
+      "target": "P2_4",
+      "label": "URL và trạng thái audio hiện hành",
+      "ucs": [
+        "UC-05",
+        "UC-06"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-05, UC-06"
+    },
+    {
+      "id": "S_45",
+      "source": "D6",
+      "target": "P2_4",
+      "label": "Phiên bản nội dung và POI ACTIVE",
+      "ucs": [
+        "UC-05",
+        "UC-06"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-05, UC-06"
+    },
+    {
+      "id": "S_46",
+      "source": "M1",
+      "target": "P2_4",
+      "label": "Byte tệp âm thanh WAV",
+      "ucs": [
+        "UC-05",
+        "UC-06"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-05, UC-06"
+    },
+    {
+      "id": "S_47",
+      "source": "D3",
+      "target": "P3_1",
+      "label": "Phiên khách và hạn vé",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "S_48",
+      "source": "D4",
+      "target": "P3_1",
+      "label": "Thanh toán PAID của phiên",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "S_49",
+      "source": "R1",
+      "target": "P3_1",
+      "label": "Bộ đếm hỏi đáp theo phiên/IP",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "S_50",
+      "source": "P3_1",
+      "target": "R1",
+      "label": "Bộ đếm hạn mức và thời hạn cửa sổ",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "I_07",
+      "source": "P3_1",
+      "target": "P3_2",
+      "label": "Câu hỏi đúng phạm vi và trong hạn mức",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "I_08",
+      "source": "P3_1",
+      "target": "P3_4",
+      "label": "Từ chối phạm vi: NO_CONTEXT, không gọi AI",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "I_09",
+      "source": "P3_2",
+      "target": "P3_3",
+      "label": "Vector câu hỏi tương thích mô hình",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "I_10",
+      "source": "P3_2",
+      "target": "P3_4",
+      "label": "Câu hỏi và ngôn ngữ người hỏi",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "S_51",
+      "source": "D10",
+      "target": "P3_3",
+      "label": "Đoạn ACTIVE, vector và phiên bản hiện hành",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "I_11",
+      "source": "P3_3",
+      "target": "P3_4",
+      "label": "Tập đoạn liên quan và mã nguồn",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "S_52",
+      "source": "P3_4",
+      "target": "D12",
+      "label": "Question, answer, sources và trạng thái",
+      "ucs": [
+        "UC-08"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-08"
+    },
+    {
+      "id": "S_53",
+      "source": "D1",
+      "target": "P4_1",
+      "label": "Tài khoản và quyền STAFF/ADMIN",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_54",
+      "source": "D2",
+      "target": "P4_1",
+      "label": "Phiên nội bộ còn hiệu lực",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_55",
+      "source": "D1",
+      "target": "P4_3",
+      "label": "Tài khoản và quyền STAFF/ADMIN",
+      "ucs": [
+        "UC-14"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-14"
+    },
+    {
+      "id": "S_56",
+      "source": "D2",
+      "target": "P4_3",
+      "label": "Phiên nội bộ còn hiệu lực",
+      "ucs": [
+        "UC-14"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-14"
+    },
+    {
+      "id": "S_57",
+      "source": "D1",
+      "target": "P4_4",
+      "label": "Tài khoản và quyền STAFF/ADMIN",
+      "ucs": [
+        "UC-15"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-15"
+    },
+    {
+      "id": "S_58",
+      "source": "D2",
+      "target": "P4_4",
+      "label": "Phiên nội bộ còn hiệu lực",
+      "ucs": [
+        "UC-15"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-15"
+    },
+    {
+      "id": "S_59",
+      "source": "D5",
+      "target": "P4_1",
+      "label": "Ngôn ngữ được hỗ trợ",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_60",
+      "source": "D6",
+      "target": "P4_1",
+      "label": "POI và nguồn/bản dịch hiện có",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_61",
+      "source": "D7",
+      "target": "P4_1",
+      "label": "Trạng thái audio theo ngôn ngữ",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_62",
+      "source": "D8",
+      "target": "P4_1",
+      "label": "Tác vụ, trạng thái, lỗi và phiên bản",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_63",
+      "source": "P4_1",
+      "target": "D6",
+      "label": "POI, nguồn Việt, phiên bản và trạng thái",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_64",
+      "source": "P4_1",
+      "target": "D8",
+      "label": "Tác vụ PENDING mới hoặc FAILED được thử lại",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_65",
+      "source": "P4_1",
+      "target": "D11",
+      "label": "Audit lưu/ngừng POI và thử lại",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_66",
+      "source": "D8",
+      "target": "P4_2",
+      "label": "Tác vụ chờ, claim và phiên bản",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_67",
+      "source": "D5",
+      "target": "P4_2",
+      "label": "Ngôn ngữ đích của tác vụ",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_68",
+      "source": "D6",
+      "target": "P4_2",
+      "label": "Phiên bản nguồn hiện tại",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_69",
+      "source": "D6",
+      "target": "P4_2",
+      "label": "Nguồn Việt và bản dịch có thể tái sử dụng",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_70",
+      "source": "D7",
+      "target": "P4_2",
+      "label": "Metadata audio có thể tái sử dụng",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_71",
+      "source": "M1",
+      "target": "P4_2",
+      "label": "Tệp audio hiện có cần kiểm tra",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_72",
+      "source": "P4_2",
+      "target": "D8",
+      "label": "Claim, PROCESSING hoặc từ chối nguồn cũ",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_73",
+      "source": "P4_2",
+      "target": "D6",
+      "label": "Bản dịch READY đúng phiên bản",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_74",
+      "source": "P4_2",
+      "target": "M1",
+      "label": "Tệp WAV đã kiểm tra",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_75",
+      "source": "P4_2",
+      "target": "D7",
+      "label": "URL, thông số và trạng thái audio",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_76",
+      "source": "P4_2",
+      "target": "D8",
+      "label": "COMPLETED hoặc FAILED và dữ liệu lỗi",
+      "ucs": [
+        "UC-13"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-13"
+    },
+    {
+      "id": "S_77",
+      "source": "D6",
+      "target": "P4_3",
+      "label": "POI tồn tại và ACTIVE",
+      "ucs": [
+        "UC-14"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-14"
+    },
+    {
+      "id": "S_78",
+      "source": "D9",
+      "target": "P4_3",
+      "label": "Tour mẫu và thứ tự hiện có",
+      "ucs": [
+        "UC-14"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-14"
+    },
+    {
+      "id": "S_79",
+      "source": "P4_3",
+      "target": "D9",
+      "label": "Tour và thứ tự POI đã kiểm tra",
+      "ucs": [
+        "UC-14"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-14"
+    },
+    {
+      "id": "S_80",
+      "source": "P4_3",
+      "target": "D11",
+      "label": "Audit tạo/cập nhật tour mẫu",
+      "ucs": [
+        "UC-14"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-14"
+    },
+    {
+      "id": "S_81",
+      "source": "D10",
+      "target": "P4_4",
+      "label": "Tài liệu, trạng thái và phiên bản hiện tại",
+      "ucs": [
+        "UC-15"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-15"
+    },
+    {
+      "id": "S_82",
+      "source": "P4_4",
+      "target": "D10",
+      "label": "Nguồn/phiên bản; chunks và vector đúng phiên bản",
+      "ucs": [
+        "UC-15"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-15"
+    },
+    {
+      "id": "S_83",
+      "source": "P4_4",
+      "target": "D11",
+      "label": "Audit thêm/sửa/ngừng tài liệu",
+      "ucs": [
+        "UC-15"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-15"
+    },
+    {
+      "id": "S_84",
+      "source": "D1",
+      "target": "P5_1",
+      "label": "Tài khoản, mật khẩu băm và trạng thái khóa",
+      "ucs": [
+        "UC-09"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-09"
+    },
+    {
+      "id": "S_85",
+      "source": "P5_1",
+      "target": "D1",
+      "label": "Bộ đếm đăng nhập sai và khóa tạm",
+      "ucs": [
+        "UC-09"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-09"
+    },
+    {
+      "id": "S_86",
+      "source": "D2",
+      "target": "P5_1",
+      "label": "Phiên và refresh token hiện tại",
+      "ucs": [
+        "UC-09"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-09"
+    },
+    {
+      "id": "S_87",
+      "source": "P5_1",
+      "target": "D2",
+      "label": "Phiên mới hoặc refresh đã xoay vòng",
+      "ucs": [
+        "UC-09"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-09"
+    },
+    {
+      "id": "S_88",
+      "source": "D2",
+      "target": "P5_2",
+      "label": "Phiên hiện tại cần thu hồi",
+      "ucs": [
+        "UC-10"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-10"
+    },
+    {
+      "id": "S_89",
+      "source": "P5_2",
+      "target": "D2",
+      "label": "Thu hồi đúng session_id",
+      "ucs": [
+        "UC-10"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-10"
+    },
+    {
+      "id": "S_90",
+      "source": "D1",
+      "target": "P5_3",
+      "label": "Tài khoản và quyền STAFF/ADMIN",
+      "ucs": [
+        "UC-16"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-16"
+    },
+    {
+      "id": "S_91",
+      "source": "D2",
+      "target": "P5_3",
+      "label": "Phiên nội bộ còn hiệu lực",
+      "ucs": [
+        "UC-16"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-16"
+    },
+    {
+      "id": "S_92",
+      "source": "D1",
+      "target": "P5_4",
+      "label": "Tài khoản và quyền STAFF/ADMIN",
+      "ucs": [
+        "UC-17"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-17"
+    },
+    {
+      "id": "S_93",
+      "source": "D2",
+      "target": "P5_4",
+      "label": "Phiên nội bộ còn hiệu lực",
+      "ucs": [
+        "UC-17"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-17"
+    },
+    {
+      "id": "S_94",
+      "source": "D1",
+      "target": "P5_5",
+      "label": "Tài khoản và quyền STAFF/ADMIN",
+      "ucs": [
+        "UC-18"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-18"
+    },
+    {
+      "id": "S_95",
+      "source": "D2",
+      "target": "P5_5",
+      "label": "Phiên nội bộ còn hiệu lực",
+      "ucs": [
+        "UC-18"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-18"
+    },
+    {
+      "id": "S_96",
+      "source": "P5_3",
+      "target": "D1",
+      "label": "Tài khoản STAFF, mật khẩu băm và ACTIVE",
+      "ucs": [
+        "UC-16"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-16"
+    },
+    {
+      "id": "S_97",
+      "source": "P5_3",
+      "target": "D11",
+      "label": "Audit CREATE_STAFF",
+      "ucs": [
+        "UC-16"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-16"
+    },
+    {
+      "id": "S_98",
+      "source": "D11",
+      "target": "P5_4",
+      "label": "Audit theo bộ lọc và trang",
+      "ucs": [
+        "UC-17"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-17"
+    },
+    {
+      "id": "S_99",
+      "source": "D3",
+      "target": "P5_5",
+      "label": "Phiên trả phí ACTIVE còn hạn",
+      "ucs": [
+        "UC-18"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-18"
+    },
+    {
+      "id": "S_100",
+      "source": "D4",
+      "target": "P5_5",
+      "label": "Giao dịch PAID, tiền và khoảng thời gian",
+      "ucs": [
+        "UC-18"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-18"
+    },
+    {
+      "id": "S_101",
+      "source": "D7",
+      "target": "P5_5",
+      "label": "Audio theo trạng thái",
+      "ucs": [
+        "UC-18"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-18"
+    },
+    {
+      "id": "S_102",
+      "source": "D8",
+      "target": "P5_5",
+      "label": "Tác vụ theo trạng thái",
+      "ucs": [
+        "UC-18"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-18"
+    },
+    {
+      "id": "S_103",
+      "source": "D12",
+      "target": "P5_5",
+      "label": "Hỏi đáp theo trạng thái/thời gian",
+      "ucs": [
+        "UC-18"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-18"
+    },
+    {
+      "id": "S_104",
+      "source": "D13",
+      "target": "P5_5",
+      "label": "Lượt cấp bundle và ngôn ngữ",
+      "ucs": [
+        "UC-18"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-18"
+    },
+    {
+      "id": "S_105",
+      "source": "R1",
+      "target": "P5_5",
+      "label": "Kết quả kiểm tra sẵn sàng Redis",
+      "ucs": [
+        "UC-18"
+      ],
+      "family": null,
+      "source_section": "3.3 / UC-18"
+    }
+  ]
+}

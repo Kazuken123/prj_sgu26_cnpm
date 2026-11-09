@@ -2,6 +2,7 @@ import os
 import sys
 import re
 import docx
+from PIL import Image
 from docx.shared import Pt, Inches, RGBColor
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml import parse_xml, OxmlElement
@@ -233,7 +234,10 @@ def main():
             p_img.paragraph_format.space_after = Pt(4)
             p_img.paragraph_format.keep_with_next = True
             run = p_img.add_run()
-            run.add_picture(img_path, width=Inches(6.2))
+            with Image.open(img_path) as image:
+                ratio = image.height / image.width
+            width = min(6.2, 7.0 / ratio)
+            run.add_picture(img_path, width=Inches(width))
             
             # 2. Insert figure caption paragraph
             p_cap = anchor_p.insert_paragraph_before(caption_text)

@@ -1,763 +1,150 @@
-import os
-import sys
+"""Generate DFDs after validating the approved report/use-case baseline."""
+from collections import defaultdict
+from pathlib import Path
+import argparse
 import html
+import json
+import re
+import textwrap
 import xml.etree.ElementTree as ET
-
-sys.stdout.reconfigure(encoding='utf-8')
-
-OUT_DIR = "docs/diagram/dfd"
-os.makedirs(OUT_DIR, exist_ok=True)
-
-def xml_escape(text: str) -> str:
-    if not text:
-        return ""
-    unescaped = html.unescape(text)
-    return (unescaped
-            .replace("&", "&amp;")
-            .replace("<", "&lt;")
-            .replace(">", "&gt;")
-            .replace('"', "&quot;")
-            .replace("'", "&apos;"))
-
-class Box:
-    def __init__(self, cell_id, text, x, y, w, h, box_type="process"):
-        self.cell_id = cell_id
-        self.text = text
-        self.x = x
-        self.y = y
-        self.w = w
-        self.h = h
-        self.box_type = box_type
-
-    @property
-    def right(self):
-        return self.x + self.w
-
-    @property
-    def bottom(self):
-        return self.y + self.h
-
-    @property
-    def center_x(self):
-        return self.x + self.w / 2.0
-
-    @property
-    def center_y(self):
-        return self.y + self.h / 2.0
-
-
-class StraightDrawioDiagram:
-    def __init__(self, diagram_id, name, width=1200, height=800):
-        self.diagram_id = diagram_id
-        self.name = name
-        self.width = width
-        self.height = height
-        self.elements = []
-        self.boxes = {}
-
-    def add_title(self, text):
-        elem = f'''        <mxCell id="title" parent="1" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Arial;fontSize=15;fontStyle=1;fillColor=none;strokeColor=none;fontColor=#111827;" value="{xml_escape(text)}" vertex="1">
-          <mxGeometry x="20" y="10" width="{self.width - 40}" height="30" as="geometry" />
-        </mxCell>'''
-        self.elements.append(elem)
-
-    def add_process(self, cell_id, text, x, y, w, h):
-        b = Box(cell_id, text, x, y, w, h, "process")
-        self.boxes[cell_id] = b
-        elem = f'''        <mxCell id="{cell_id}" parent="1" style="rounded=1;arcSize=16;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#111827;align=center;" value="{xml_escape(text)}" vertex="1">
-          <mxGeometry x="{x}" y="{y}" width="{w}" height="{h}" as="geometry" />
-        </mxCell>'''
-        self.elements.append(elem)
-        return b
-
-    def add_actor(self, cell_id, text, x, y, w, h):
-        b = Box(cell_id, text, x, y, w, h, "actor")
-        self.boxes[cell_id] = b
-        elem = f'''        <mxCell id="{cell_id}" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#111827;align=center;" value="{xml_escape(text)}" vertex="1">
-          <mxGeometry x="{x}" y="{y}" width="{w}" height="{h}" as="geometry" />
-        </mxCell>'''
-        self.elements.append(elem)
-        return b
-
-    def add_store(self, cell_id, text, x, y, w, h):
-        b = Box(cell_id, text, x, y, w, h, "store")
-        self.boxes[cell_id] = b
-        elem = f'''        <mxCell id="{cell_id}" parent="1" style="shape=partialRectangle;whiteSpace=wrap;html=1;left=1;right=0;top=1;bottom=1;fillColor=#F9FAFB;strokeColor=#111827;strokeWidth=2;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#111827;align=left;spacingLeft=10;" value="{xml_escape(text)}" vertex="1">
-          <mxGeometry x="{x}" y="{y}" width="{w}" height="{h}" as="geometry" />
-        </mxCell>'''
-        self.elements.append(elem)
-        return b
-
-    def add_straight_h_arrow(self, cell_id, src_id, tgt_id, label, y_level, label_offset=None):
-        src = self.boxes[src_id]
-        tgt = self.boxes[tgt_id]
-
-        if not (src.y <= y_level <= src.bottom and tgt.y <= y_level <= tgt.bottom):
-            # Keep connectors attached to the actual box, even for disjoint rows.
-            sx = src.right if src.x < tgt.x else src.x
-            tx = tgt.x if src.x < tgt.x else tgt.right
-            sy = min(max(y_level, src.y + 15), src.bottom - 15)
-            ty = min(max(y_level, tgt.y + 15), tgt.bottom - 15)
-            mid = (sx + tx) / 2
-            return self.add_orthogonal_stepped_arrow(
-                cell_id, src_id, tgt_id, label,
-                [(sx, sy), (mid, sy), (mid, ty), (tx, ty)],
-                (1 if sx == src.right else 0, (sy-src.y)/src.h),
-                (0 if tx == tgt.x else 1, (ty-tgt.y)/tgt.h), label_offset)
-        exit_y = (y_level - src.y) / float(src.h)
-        entry_y = (y_level - tgt.y) / float(tgt.h)
-
-        if src.x < tgt.x:
-            exit_x = 1.0
-            entry_x = 0.0
-        else:
-            exit_x = 0.0
-            entry_x = 1.0
-
-        style = (f"edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;"
-                 f"strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;"
-                 f"fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;"
-                 f"exitX={exit_x:.12f};exitY={exit_y:.12f};exitDx=0;exitDy=0;"
-                 f"entryX={entry_x:.12f};entryY={entry_y:.12f};entryDx=0;entryDy=0;")
-
-        offset_xml = ""
-        if label_offset:
-            offset_xml = f'<mxPoint x="{label_offset[0]}" y="{label_offset[1]}" as="offset" />'
-
-        elem = f'''        <mxCell id="{cell_id}" parent="1" style="{style}" value="{xml_escape(label)}" edge="1" source="{src_id}" target="{tgt_id}">
-          <mxGeometry relative="1" as="geometry">{offset_xml}</mxGeometry>
-        </mxCell>'''
-        self.elements.append(elem)
-
-    def add_straight_v_arrow(self, cell_id, src_id, tgt_id, label, x_level, label_offset=None):
-        src = self.boxes[src_id]
-        tgt = self.boxes[tgt_id]
-
-        exit_x = (x_level - src.x) / float(src.w)
-        entry_x = (x_level - tgt.x) / float(tgt.w)
-
-        if src.y < tgt.y:
-            exit_y = 1.0
-            entry_y = 0.0
-        else:
-            exit_y = 0.0
-            entry_y = 1.0
-
-        style = (f"edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;"
-                 f"strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;"
-                 f"fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;"
-                 f"exitX={exit_x:.12f};exitY={exit_y:.12f};exitDx=0;exitDy=0;"
-                 f"entryX={entry_x:.12f};entryY={entry_y:.12f};entryDx=0;entryDy=0;")
-
-        offset_xml = ""
-        if label_offset:
-            offset_xml = f'<mxPoint x="{label_offset[0]}" y="{label_offset[1]}" as="offset" />'
-
-        elem = f'''        <mxCell id="{cell_id}" parent="1" style="{style}" value="{xml_escape(label)}" edge="1" source="{src_id}" target="{tgt_id}">
-          <mxGeometry relative="1" as="geometry">{offset_xml}</mxGeometry>
-        </mxCell>'''
-        self.elements.append(elem)
-
-    def add_orthogonal_stepped_arrow(self, cell_id, src_id, tgt_id, label, waypoints, exit_xy=None, entry_xy=None, label_offset=None):
-        style = ("edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;"
-                 "strokeColor=#374151;strokeWidth=1.5;endArrow=block;endFill=1;"
-                 "fontFamily=Arial;fontSize=10;fontColor=#111827;labelBackgroundColor=#FFFFFF;spacing=2;")
-        if exit_xy:
-            style += f"exitX={exit_xy[0]:.12f};exitY={exit_xy[1]:.12f};exitDx=0;exitDy=0;"
-        if entry_xy:
-            style += f"entryX={entry_xy[0]:.12f};entryY={entry_xy[1]:.12f};entryDx=0;entryDy=0;"
-
-        pts = "".join([f'<mxPoint x="{int(pt[0])}" y="{int(pt[1])}" />' for pt in waypoints])
-        pts_xml = f'<Array as="points">{pts}</Array>'
-
-        offset_xml = ""
-        if label_offset:
-            offset_xml = f'<mxPoint x="{label_offset[0]}" y="{label_offset[1]}" as="offset" />'
-
-        elem = f'''        <mxCell id="{cell_id}" parent="1" style="{style}" value="{xml_escape(label)}" edge="1" source="{src_id}" target="{tgt_id}">
-          <mxGeometry relative="1" as="geometry">{pts_xml}{offset_xml}</mxGeometry>
-        </mxCell>'''
-        self.elements.append(elem)
-
-    def save(self, filepath):
-        # Canonical IDs are visible in every diagram, not just XML attributes.
-        # Snap rounded ports to explicit endpoints so all segments stay axial.
-        for i, element in enumerate(self.elements):
-            cell = ET.fromstring(element.strip())
-            if cell.get("edge") != "1":
-                continue
-            cid = cell.get("id", "")
-            if cid.startswith("f") and cid[1:].isdigit():
-                cell.set("value", cid.upper() + ": " + cell.get("value", ""))
-            style = dict(p.split("=", 1) for p in cell.get("style", "").split(";") if "=" in p)
-            points = cell.findall("./mxGeometry/Array/mxPoint")
-            if points:
-                for prefix, box_id, point in (("exit", cell.get("source"), points[0]), ("entry", cell.get("target"), points[-1])):
-                    box = self.boxes[box_id]
-                    style[prefix+"X"] = f'{(float(point.get("x"))-box.x)/box.w:.12f}'
-                    style[prefix+"Y"] = f'{(float(point.get("y"))-box.y)/box.h:.12f}'
-            style["exitPerimeter"] = style["entryPerimeter"] = "0"
-            cell.set("style", ";".join(k+"="+v for k,v in style.items())+";")
-            self.elements[i] = ET.tostring(cell, encoding="unicode")
-        content = f'''<?xml version="1.0" encoding="utf-8"?>
-<mxfile host="app.diagrams.net" agent="Antigravity" version="24.7.17">
-  <diagram id="{self.diagram_id}" name="{self.name}">
-    <mxGraphModel dx="{self.width}" dy="{self.height}" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="{self.width}" pageHeight="{self.height}" math="0" shadow="0">
-      <root>
-        <mxCell id="0" />
-        <mxCell id="1" parent="0" />
-{chr(10).join(self.elements)}
-      </root>
-    </mxGraphModel>
-  </diagram>
-</mxfile>'''
-        with open(filepath, 'w', encoding='utf-8') as f:
-            f.write(content)
-        print(f"Generated: {filepath} ({self.width}x{self.height})")
-
-
-# ==================================================================================
-# 1. DFD MỨC 0 — NGỮ CẢNH HỆ THỐNG (20 LUỒNG: 10 VÀO, 10 RA)
-# ==================================================================================
-def build_level_0():
-    d = StraightDrawioDiagram("dfd_0", "DFD Mức 0", width=1200, height=760)
-    d.add_title("SƠ ĐỒ DFD MỨC 0 — NGỮ CẢNH HỆ THỐNG THUYẾT MINH ĐA NGÔN NGỮ")
-
-    # Center Process
-    d.add_process("P0", "<b>0</b><br/><br/>Hệ thống thuyết minh<br/>đa ngôn ngữ<br/>Thảo Cầm Viên Sài Gòn", 450, 70, 260, 650)
-
-    # Left Actors
-    d.add_actor("E1", "Khách tham quan", 40, 70, 180, 270)
-    d.add_actor("E2", "Nhân viên", 40, 370, 180, 190)
-    d.add_actor("E3", "Quản trị viên", 40, 590, 180, 130)
-
-    # Right Actors
-    d.add_actor("E4", "Cổng thanh toán", 940, 70, 190, 110)
-    d.add_actor("E5", "Dịch vụ dịch và TTS", 940, 230, 190, 110)
-    d.add_actor("E6", "Dịch vụ embedding và LLM", 940, 390, 190, 330)
-
-    # Left - Khách tham quan (3 vào, 3 ra)
-    d.add_straight_h_arrow("f01", "E1", "P0", "Yêu cầu thanh toán &amp; mã đổi phiên", 95)
-    d.add_straight_h_arrow("f02", "P0", "E1", "Thông tin thanh toán &amp; token phiên", 135)
-    d.add_straight_h_arrow("f03", "E1", "P0", "Yêu cầu nội dung, GPS &amp; hiện diện", 185)
-    d.add_straight_h_arrow("f04", "P0", "E1", "Gói bản đồ, lộ trình &amp; tệp âm thanh", 225)
-    d.add_straight_h_arrow("f05", "E1", "P0", "Câu hỏi tra cứu thông tin", 275)
-    d.add_straight_h_arrow("f06", "P0", "E1", "Câu trả lời có trích dẫn nguồn", 315)
-
-    # Left - Nhân viên (2 vào, 2 ra)
-    d.add_straight_h_arrow("f07", "E2", "P0", "Xác nhận tiền mặt &amp; tra cứu phiên", 405)
-    d.add_straight_h_arrow("f08", "P0", "E2", "Mã ngắn 6 chữ số &amp; token cấp lại", 445)
-    d.add_straight_h_arrow("f09", "E2", "P0", "Dữ liệu điểm tham quan, tour &amp; tài liệu", 495)
-    d.add_straight_h_arrow("f10", "P0", "E2", "Kết quả cập nhật &amp; tiến độ tác vụ", 535)
-
-    # Left - Quản trị viên (1 vào, 1 ra)
-    d.add_straight_h_arrow("f11", "E3", "P0", "Hồ sơ nhân viên mới &amp; bộ lọc giám sát", 625)
-    d.add_straight_h_arrow("f12", "P0", "E3", "Hồ sơ đã tạo, nhật ký &amp; báo cáo", 685)
-
-    # Right - Cổng thanh toán (1 vào, 1 ra)
-    d.add_straight_h_arrow("f13", "P0", "E4", "Yêu cầu giao dịch thanh toán", 95)
-    d.add_straight_h_arrow("f14", "E4", "P0", "Webhook kết quả thanh toán chữ ký số", 145)
-
-    # Right - Dịch vụ dịch và TTS (1 vào, 1 ra)
-    d.add_straight_h_arrow("f15", "P0", "E5", "Văn bản gốc &amp; yêu cầu tạo giọng đọc", 255)
-    d.add_straight_h_arrow("f16", "E5", "P0", "Bản dịch đa ngôn ngữ &amp; tệp âm thanh WAV", 305)
-
-    # Right - Dịch vụ embedding và LLM (2 vào, 2 ra)
-    d.add_straight_h_arrow("f17", "P0", "E6", "Câu hỏi truy vấn &amp; ngữ cảnh trích dẫn", 430)
-    d.add_straight_h_arrow("f18", "E6", "P0", "Kết quả đối chiếu &amp; câu trả lời mô hình", 485)
-    d.add_straight_h_arrow("f19", "P0", "E6", "Đoạn tài liệu kiến thức cần tạo vector", 575)
-    d.add_straight_h_arrow("f20", "E6", "P0", "Mảng vector nhúng của đoạn tài liệu", 655)
-
-    d.save(os.path.join(OUT_DIR, "DFD_Level_0_Context.drawio"))
-
-
-# ==================================================================================
-# 2. DFD MỨC 1 — PHÂN RÃ TOÀN HỆ THỐNG (20 NGOẠI BIÊN: 10 VÀO, 10 RA + 15 KHO)
-# ==================================================================================
-def build_level_1():
-    # Repeated stores denote the same logical D1-D6, keeping connectors readable.
-    d = StraightDrawioDiagram("dfd_1", "DFD Mức 1 Toàn hệ thống", width=1520, height=1760)
-    d.add_title("SƠ ĐỒ DFD MỨC 1 — PHÂN RÃ TOÀN HỆ THỐNG (CÁC KHO CÙNG MÃ LÀ MỘT KHO LOGIC)")
-    context = ET.parse(os.path.join(OUT_DIR, "DFD_Level_0_Context.drawio"))
-    labels = {c.get("id"): c.get("value").split(": ", 1)[-1] for c in context.findall(".//mxCell") if c.get("edge")=="1"}
-    names = {"D1":"Tài khoản &amp; Phiên nội bộ", "D2":"Phiên &amp; Thanh toán", "D3":"Điểm tham quan &amp; Media", "D4":"Lộ trình tham quan", "D5":"Kho kiến thức RAG", "D6":"Nhật ký &amp; Thống kê", "E4":"Cổng thanh toán", "E5":"Dịch vụ dịch và TTS", "E6":"Dịch vụ embedding và LLM"}
-    titles = ["Quản lý thanh toán và phiên tham quan", "Cung cấp nội dung bản đồ, lộ trình và thuyết minh", "Xử lý hỏi đáp thông minh RAG", "Quản trị nội dung, lộ trình và kho kiến thức", "Quản trị tài khoản nội bộ và giám sát hệ thống"]
-    # (neighbor, (flow id, direction relative to process, label)).
-    rows = [
-      [("E4",[("f13","out",""),("f14","in","")]),("D2",[("p1_d2","out","Lưu phiên, thanh toán & mã tạm"),("d2_p1","in","Đọc phiên, thanh toán & mã đổi phiên")]),("D6",[("p1_d6","out","Ghi log thanh toán")])],
-      [("D2",[("d2_p2","in","Kiểm tra token phiên 24h")]),("D3",[("d3_p2","in","Đọc điểm tham quan, bản dịch, WAV")]),("D4",[("d4_p2","in","Đọc danh sách lộ trình")]),("D6",[("p2_d6","out","Ghi log hiện diện, tải gói")])],
-      [("E6",[("f17","out",""),("f18","in","")]),("D2",[("d2_p3","in","Kiểm tra phiên & rate limit")]),("D5",[("d5_p3","in","Truy hồi đoạn kiến thức tương đồng")]),("D6",[("p3_d6","out","Ghi log hỏi đáp RAG")])],
-      [("E5",[("f15","out",""),("f16","in","")]),("E6",[("f19","out",""),("f20","in","")]),("D3",[("p4_d3","out","Ghi điểm tham quan, bản dịch, WAV"),("d3_p4","in","Đọc tác vụ chờ & văn bản gốc")]),("D4",[("p4_d4","out","Lưu danh mục tour & thứ tự điểm")]),("D5",[("p4_d5","out","Lưu tài liệu, đoạn & vector")]),("D6",[("p4_d6","out","Ghi log cập nhật nội dung")])],
-      [("D1",[("d1_p5","in","Đọc tài khoản & phiên nội bộ"),("p5_d1","out","Quản lý tài khoản & phiên nội bộ")]),("D6",[("d6_p5","in","Đọc toàn bộ nhật ký & thống kê"),("p5_d6","out","Ghi log tạo tài khoản")])]
-    ]
-    top=70
-    for number, neighbors in enumerate(rows,1):
-        pid=f"P{number}"
-        height=max(len(neighbors)*70-10,160)
-        d.add_process(pid, f"<b>{number}.0</b><br/><br/>"+titles[number-1], 550,top,280,height)
-        if number==1:
-            actors=[("E1", "Khách tham quan", "f01","f02",0), ("E2", "Nhân viên", "f07","f08",110)]
-        else:
-            actors=[("E1" if number<4 else "E2" if number==4 else "E3", "Khách tham quan" if number<4 else "Nhân viên" if number==4 else "Quản trị viên", f"f{number*2-1:02}" if number<4 else "f09" if number==4 else "f11", f"f{number*2:02}" if number<4 else "f10" if number==4 else "f12",0)]
-        for actor,name,fin,fout,offset in actors:
-            aid=actor+"_"+pid
-            d.add_actor(aid,name,30,top+offset,200,80)
-            d.add_straight_h_arrow(fin,aid,pid,labels[fin],top+offset+20)
-            d.add_straight_h_arrow(fout,pid,aid,labels[fout],top+offset+60)
-        for j,(neighbor,flows) in enumerate(neighbors):
-            nid=neighbor+"_"+pid
-            y=top+j*70
-            add=d.add_store if neighbor.startswith("D") else d.add_actor
-            add(nid,(neighbor+" | " if neighbor.startswith("D") else "")+names[neighbor],1190,y,270,60)
-            for k,(fid,direction,label) in enumerate(flows):
-                src,dst=(pid,nid) if direction=="out" else (nid,pid)
-                d.add_straight_h_arrow(fid,src,dst,labels.get(fid,label),y+(18+24*k if len(flows)>1 else 30))
-        top+=height+55
-    d.height=top+10
-    d.save(os.path.join(OUT_DIR,"DFD_Level_1_System.drawio"))
-
-
-# ==================================================================================
-# 3. DFD MỨC 2 — TIẾN TRÌNH 1.0 (QUẢN LÝ THANH TOÁN VÀ PHIÊN THAM QUAN)
-#    STRICT BALANCING: EXACTLY 3 EXTERNAL IN, 3 EXTERNAL OUT (MATCHES LEVEL 1 P1)
-# ==================================================================================
-def build_level_2_p1():
-    d = StraightDrawioDiagram("dfd_2_p1", "DFD Mức 2 Tiến trình 1.0", width=1220, height=840)
-    d.add_title("SƠ ĐỒ DFD MỨC 2 — TIẾN TRÌNH 1.0 QUẢN LÝ THANH TOÁN VÀ PHIÊN THAM QUAN")
-
-    # Actors Left
-    d.add_actor("E1", "Khách tham quan", 30, 70, 160, 490)
-    d.add_actor("E2", "Nhân viên", 30, 600, 160, 190)
-
-    # Sub-processes Center (x=410, w=250)
-    d.add_process("P1_1", "<b>1.1</b><br/>Khởi tạo phiên và<br/>yêu cầu thanh toán online", 410, 70, 250, 85)
-    d.add_process("P1_2", "<b>1.2</b><br/>Xác minh webhook và<br/>kích hoạt mã đổi phiên", 410, 205, 250, 85)
-    d.add_process("P1_3", "<b>1.3</b><br/>Xác nhận tiền mặt và<br/>cấp mã ngắn 6 chữ số", 410, 345, 250, 85)
-    d.add_process("P1_4", "<b>1.4</b><br/>Đổi mã xác thực và<br/>cấp token phiên khách", 410, 485, 250, 85)
-    d.add_process("P1_5", "<b>1.5</b><br/>Tra cứu phiên và<br/>cấp lại token khách", 410, 630, 250, 85)
-
-    # Right Side: External Actor & Data Stores
-    d.add_actor("E4", "Cổng thanh toán", 940, 70, 180, 85)
-    d.add_store("D2", "<b>D2</b> | Phiên &amp; Thanh toán", 940, 205, 180, 365)
-    d.add_store("D6", "<b>D6</b> | Nhật ký &amp; Thống kê", 940, 630, 180, 120)
-
-    # --- 1. EXTERNAL FLOWS (EXACTLY 3 IN, 3 OUT - 100% BALANCED WITH LEVEL 1) ---
-    # With E1 (Khách tham quan): 1 IN, 1 OUT
-    d.add_straight_h_arrow("f01", "E1", "P1_1", "Yêu cầu thanh toán &amp; mã đổi phiên", 95)
-    d.add_straight_h_arrow("f02", "P1_4", "E1", "Thông tin thanh toán &amp; token phiên", 525)
-
-    # With E4 (Cổng thanh toán): 1 OUT, 1 IN
-    d.add_straight_h_arrow("f13", "P1_1", "E4", "Yêu cầu giao dịch thanh toán", 95)
-    d.add_orthogonal_stepped_arrow("f14", "E4", "P1_2", "Webhook kết quả thanh toán chữ ký số",
-                                  waypoints=[(940, 135), (830, 135), (830, 230), (660, 230)],
-                                  exit_xy=(0.0, 0.7647), entry_xy=(1.0, 0.2941))
-
-    # With E2 (Nhân viên): 1 IN, 1 OUT
-    d.add_orthogonal_stepped_arrow("f07", "E2", "P1_3", "Xác nhận tiền mặt &amp; tra cứu phiên",
-        [(190, 650), (240, 650), (240, 365), (410, 365)], (1,50/190), (0,20/85), label_offset=(-35,-35))
-    d.add_orthogonal_stepped_arrow("f08", "P1_3", "E2", "Mã ngắn 6 chữ số &amp; token cấp lại",
-        [(410, 405), (270, 405), (270, 720), (190, 720)], (0,60/85), (1,120/190), label_offset=(75,65))
-
-    # --- 2. INTERNAL BUSINESS FLOWS BETWEEN SUB-PROCESSES ---
-    d.add_straight_v_arrow("int_11_12", "P1_1", "P1_2", "Mã giao dịch chờ đối soát", 535)
-    d.add_straight_v_arrow("int_13_14", "P1_3", "P1_4", "Mã ngắn 6 số kích hoạt", 535)
-    d.add_orthogonal_stepped_arrow("int_12_14", "P1_2", "P1_4", "Mã một lần kích hoạt",
-                                  waypoints=[(410, 260), (380, 260), (380, 500), (410, 500)],
-                                  exit_xy=(0.0, 0.6471), entry_xy=(0.0, 0.1765))
-    # Internal link from 1.3 to 1.5 for lookup request, and back
-    d.add_orthogonal_stepped_arrow("int_13_15", "P1_3", "P1_5", "Yêu cầu tra cứu sự cố phiên",
-                                  waypoints=[(410, 390), (360, 390), (360, 650), (410, 650)],
-                                  exit_xy=(0.0, 0.5294), entry_xy=(0.0, 0.2353))
-    d.add_orthogonal_stepped_arrow("int_15_13", "P1_5", "P1_3", "Token phiên tìm thấy cấp lại",
-                                  waypoints=[(660, 670), (700, 670), (700, 390), (660, 390)],
-                                  exit_xy=(1.0, 0.4706), entry_xy=(1.0, 0.5294))
-    # Internal link from 1.1 to 1.4 for transaction info handover
-    d.add_orthogonal_stepped_arrow("int_11_14", "P1_1", "P1_4", "Thông tin thanh toán tạo mới",
-                                  waypoints=[(410, 130), (350, 130), (350, 530), (410, 530)],
-                                  exit_xy=(0.0, 0.7059), entry_xy=(0.0, 0.5294))
-
-    # --- 3. DATA STORE INTERACTIONS (D2 & D6) ---
-    d.add_orthogonal_stepped_arrow("st_p11_d2", "P1_1", "D2", "Tạo bản ghi phiên chờ",
-                                  waypoints=[(660, 135), (860, 135), (860, 230), (940, 230)],
-                                  exit_xy=(1.0, 0.7647), entry_xy=(0.0, 0.0685))
-
-    d.add_straight_h_arrow("st_p12_d2", "P1_2", "D2", "Cập nhật thanh toán &amp; sinh mã", 260)
-    d.add_straight_h_arrow("st_p13_d2", "P1_3", "D2", "Lưu phiên tiền mặt &amp; mã ngắn", 365)
-    d.add_straight_h_arrow("st_p14_d2", "P1_4", "D2", "Thu hồi mã &amp; cấp token 24h", 505)
-
-    d.add_orthogonal_stepped_arrow("st_p15_d2", "P1_5", "D2", "Lưu token cấp lại",
-                                  waypoints=[(660, 650), (860, 650), (860, 545), (940, 545)],
-                                  exit_xy=(1.0, 0.2353), entry_xy=(0.0, 0.9315))
-
-    d.add_orthogonal_stepped_arrow("st_p13_d6", "P1_3", "D6", "Ghi log tiền mặt",
-                                  waypoints=[(660, 410), (880, 410), (880, 660), (940, 660)],
-                                  exit_xy=(1.0, 0.7647), entry_xy=(0.0, 0.2500))
-    d.add_straight_h_arrow("st_p15_d6", "P1_5", "D6", "Ghi log cấp lại token", 700)
-
-    d.add_straight_h_arrow("st_d2_p12", "D2", "P1_2", "Đọc giao dịch chờ đối soát", 280)
-    d.add_straight_h_arrow("st_d2_p14", "D2", "P1_4", "Đọc mã đổi phiên & hạn sử dụng", 550)
-    d.add_orthogonal_stepped_arrow("st_d2_p15", "D2", "P1_5", "Đọc phiên & lịch sử thanh toán",
-        [(940, 565), (820, 565), (820, 685), (660, 685)], (0, 360/365), (1, 55/85))
-    d.save(os.path.join(OUT_DIR, "DFD_Level_2_P1_Payment_Session.drawio"))
-
-
-# ==================================================================================
-# 4. DFD MỨC 2 — TIẾN TRÌNH 2.0 (CUNG CẤP NỘI DUNG, LỘ TRÌNH VÀ THUYẾT MINH)
-#    STRICT BALANCING: EXACTLY 1 EXTERNAL IN, 1 EXTERNAL OUT (MATCHES LEVEL 1 P2)
-# ==================================================================================
-def build_level_2_p2():
-    d = StraightDrawioDiagram("dfd_2_p2", "DFD Mức 2 Tiến trình 2.0", width=1220, height=780)
-    d.add_title("SƠ ĐỒ DFD MỨC 2 — TIẾN TRÌNH 2.0 CUNG CẤP NỘI DUNG BẢN ĐỒ, LỘ TRÌNH VÀ THUYẾT MINH")
-
-    # Actors Left
-    d.add_actor("E1", "Khách tham quan", 30, 70, 160, 600)
-
-    # Sub-processes
-    d.add_process("P2_1", "<b>2.1</b><br/>Kiểm tra hiệu lực phiên<br/>tham quan và ngôn ngữ", 400, 70, 250, 90)
-    d.add_process("P2_2", "<b>2.2</b><br/>Tổng hợp gói nội dung<br/>điểm tham quan và lộ trình", 400, 230, 250, 95)
-    d.add_process("P2_3", "<b>2.3</b><br/>Cung cấp tệp âm thanh<br/>thuyết minh đa ngôn ngữ", 400, 390, 250, 95)
-    d.add_process("P2_4", "<b>2.4</b><br/>Ghi nhận hiện diện trực tuyến<br/>và thống kê điểm ghé", 400, 550, 250, 90)
-
-    # Right Data Stores
-    d.add_store("D2", "<b>D2</b> | Phiên &amp; Thanh toán", 940, 70, 190, 90)
-    d.add_store("D3", "<b>D3</b> | Điểm tham quan &amp; Media", 940, 215, 190, 150)
-    d.add_store("D4", "<b>D4</b> | Lộ trình tham quan", 940, 400, 190, 75)
-    d.add_store("D6", "<b>D6</b> | Nhật ký &amp; Thống kê", 940, 535, 190, 135)
-
-    # --- 1. EXTERNAL FLOWS (EXACTLY 1 IN, 1 OUT - 100% BALANCED WITH LEVEL 1) ---
-    d.add_straight_h_arrow("f03", "E1", "P2_1", "Yêu cầu nội dung, GPS &amp; hiện diện", 115)
-    d.add_straight_h_arrow("f04", "P2_2", "E1", "Gói bản đồ, lộ trình &amp; tệp âm thanh", 275)
-
-    # --- 2. INTERNAL BUSINESS FLOWS BETWEEN SUB-PROCESSES ---
-    d.add_straight_v_arrow("int_21_22", "P2_1", "P2_2", "Phiên hợp lệ tải nội dung", 525)
-    d.add_straight_v_arrow("int_22_23", "P2_2", "P2_3", "Yêu cầu tải tệp âm thanh", 525)
-    # 2.3 returns audio stream to 2.2 for consolidated packaging
-    d.add_orthogonal_stepped_arrow("int_23_22", "P2_3", "P2_2", "Luồng âm thanh ghép gói",
-                                  waypoints=[(400, 420), (350, 420), (350, 310), (400, 310)],
-                                  exit_xy=(0.0, 0.3158), entry_xy=(0.0, 0.8421), label_offset=(-95, 100))
-    # 2.1 passes GPS coordinates to 2.4
-    d.add_orthogonal_stepped_arrow("int_21_24", "P2_1", "P2_4", "Tọa độ GPS &amp; tín hiệu hiện diện",
-                                  waypoints=[(400, 140), (320, 140), (320, 580), (400, 580)],
-                                  exit_xy=(0.0, 0.7778), entry_xy=(0.0, 0.3333), label_offset=(0, -50))
-
-    # --- 3. DATA STORE INTERACTIONS ---
-    d.add_straight_h_arrow("st_d2_p21", "D2", "P2_1", "Đối chiếu hiệu lực token phiên", 115)
-    d.add_straight_h_arrow("st_d3_p22", "D3", "P2_2", "Đọc tọa độ, bán kính &amp; bản dịch", 260)
-    d.add_orthogonal_stepped_arrow("st_d3_p23", "D3", "P2_3", "Đọc luồng tệp âm thanh WAV",
-                                  waypoints=[(940, 335), (780, 335), (780, 420), (650, 420)],
-                                  exit_xy=(0.0, 0.8000), entry_xy=(1.0, 0.3158))
-
-    d.add_orthogonal_stepped_arrow("st_d4_p22", "D4", "P2_2", "Đọc danh sách lộ trình &amp; điểm dừng",
-                                  waypoints=[(940, 435), (820, 435), (820, 305), (650, 305)],
-                                  exit_xy=(0.0, 0.4667), entry_xy=(1.0, 0.7895))
-
-    d.add_orthogonal_stepped_arrow("st_p22_d6", "P2_2", "D6", "Ghi log tải gói nội dung",
-                                  waypoints=[(650, 320), (860, 320), (860, 560), (940, 560)],
-                                  exit_xy=(1.0, 0.9474), entry_xy=(0.0, 0.1852))
-
-    d.add_straight_h_arrow("st_p24_d6", "P2_4", "D6", "Cập nhật hiện diện &amp; lượt ghé", 615)
-
-    d.save(os.path.join(OUT_DIR, "DFD_Level_2_P2_Visitor_Content_Audio.drawio"))
-
-
-# ==================================================================================
-# 5. DFD MỨC 2 — TIẾN TRÌNH 3.0 (XỬ LÝ HỎI ĐÁP THÔNG MINH TRỢ LÝ ẢO RAG)
-#    STRICT BALANCING: EXACTLY 2 EXTERNAL IN, 2 EXTERNAL OUT (MATCHES LEVEL 1 P3)
-# ==================================================================================
-def build_level_2_p3():
-    d = StraightDrawioDiagram("dfd_2_p3", "DFD Mức 2 Tiến trình 3.0", width=1220, height=780)
-    d.add_title("SƠ ĐỒ DFD MỨC 2 — TIẾN TRÌNH 3.0 XỬ LÝ HỎI ĐÁP THÔNG MINH RAG")
-
-    # Actors Left
-    d.add_actor("E1", "Khách tham quan", 30, 70, 160, 590)
-
-    # Sub-processes Center
-    d.add_process("P3_1", "<b>3.1</b><br/>Kiểm tra phiên khách và<br/>giới hạn tần suất hỏi", 400, 70, 250, 90)
-    d.add_process("P3_2", "<b>3.2</b><br/>Kiểm tra phạm vi câu hỏi<br/>và chuẩn hóa truy vấn", 400, 225, 250, 90)
-    d.add_process("P3_3", "<b>3.3</b><br/>Truy hồi đoạn kiến thức<br/>tương đồng ngữ nghĩa", 400, 380, 250, 90)
-    d.add_process("P3_4", "<b>3.4</b><br/>Tổng hợp câu trả lời<br/>có trích dẫn và ghi nhật ký", 400, 540, 250, 95)
-
-    # Right Column
-    d.add_store("D2", "<b>D2</b> | Phiên &amp; Thanh toán", 940, 70, 190, 90)
-    d.add_actor("E6", "Dịch vụ embedding và LLM", 940, 650, 190, 85)
-    d.add_store("D5", "<b>D5</b> | Kho kiến thức RAG", 940, 380, 190, 90)
-    d.add_store("D6", "<b>D6</b> | Nhật ký &amp; Thống kê", 940, 540, 190, 95)
-
-    # --- 1. EXTERNAL FLOWS (EXACTLY 2 IN, 2 OUT - 100% BALANCED WITH LEVEL 1) ---
-    # With E1: 1 IN, 1 OUT
-    d.add_straight_h_arrow("f05", "E1", "P3_1", "Câu hỏi tra cứu thông tin", 115)
-    d.add_straight_h_arrow("f06", "P3_4", "E1", "Câu trả lời có trích dẫn nguồn", 585)
-
-    # With E6: 1 OUT, 1 IN (Matches Level 1 f17, f18)
-    d.add_orthogonal_stepped_arrow("f17", "P3_4", "E6", "Câu hỏi truy vấn &amp; ngữ cảnh trích dẫn",
-        [(650, 610), (800, 610), (800, 675), (940, 675)], (1, 70/95), (0, 25/85))
-    d.add_orthogonal_stepped_arrow("f18", "E6", "P3_4", "Kết quả đối chiếu &amp; câu trả lời mô hình",
-        [(940, 710), (750, 710), (750, 630), (650, 630)], (0, 60/85), (1, 90/95))
-
-    # --- 2. INTERNAL BUSINESS FLOWS BETWEEN SUB-PROCESSES ---
-    d.add_straight_v_arrow("int_31_32", "P3_1", "P3_2", "Câu hỏi hợp lệ chưa vượt hạn mức", 525)
-    d.add_straight_v_arrow("int_32_33", "P3_2", "P3_3", "Truy vấn đã chuẩn hóa", 525)
-    d.add_straight_v_arrow("int_33_34", "P3_3", "P3_4", "Tập đoạn kiến thức tương đồng cao nhất", 525)
-    # Pass the validated question and language to answer generation
-    d.add_orthogonal_stepped_arrow("int_32_34", "P3_2", "P3_4", "Câu hỏi hợp lệ &amp; ngôn ngữ",
-                                  waypoints=[(400, 280), (340, 280), (340, 560), (400, 560)],
-                                  exit_xy=(0.0, 0.6111), entry_xy=(0.0, 0.2105))
-
-    # --- 3. DATA STORE INTERACTIONS ---
-    d.add_straight_h_arrow("st_d2_p31", "D2", "P3_1", "Kiểm tra hiệu lực phiên &amp; rate limit", 115)
-    d.add_straight_h_arrow("st_d5_p33", "D5", "P3_3", "Đọc các đoạn tài liệu &amp; vector nhúng", 425)
-    d.add_straight_h_arrow("st_p34_d6", "P3_4", "D6", "Ghi lịch sử hỏi đáp, câu hỏi &amp; trích dẫn", 585)
-
-    d.save(os.path.join(OUT_DIR, "DFD_Level_2_P3_Chatbot_RAG.drawio"))
-
-
-# ==================================================================================
-# 6. DFD MỨC 2 — TIẾN TRÌNH 4.0 (QUẢN TRỊ NỘI DUNG, LỘ TRÌNH VÀ KHO KIẾN THỨC)
-#    STRICT BALANCING: EXACTLY 3 EXTERNAL IN, 3 EXTERNAL OUT (MATCHES LEVEL 1 P4)
-# ==================================================================================
-def build_level_2_p4():
-    d = StraightDrawioDiagram("dfd_2_p4", "DFD Mức 2 Tiến trình 4.0", width=1280, height=920)
-    d.add_title("SƠ ĐỒ DFD MỨC 2 — TIẾN TRÌNH 4.0 QUẢN TRỊ NỘI DUNG, LỘ TRÌNH VÀ KHO KIẾN THỨC")
-
-    # Actor Left: Nhân viên
-    d.add_actor("E2", "Nhân viên", 40, 70, 160, 760)
-
-    # Sub-processes Center: Process Column (x=380, w=250)
-    d.add_process("P4_1", "<b>4.1</b><br/>Cập nhật điểm tham quan<br/>và khởi tạo tác vụ nội dung", 380, 70, 250, 90)
-    d.add_process("P4_2", "<b>4.2</b><br/>Xử lý nền dịch văn bản<br/>và tổng hợp âm thanh", 380, 230, 250, 90)
-    d.add_process("P4_3", "<b>4.3</b><br/>Quản lý lộ trình<br/>tham quan mẫu", 380, 410, 250, 90)
-    d.add_process("P4_4", "<b>4.4</b><br/>Phân đoạn tài liệu và<br/>tạo vector kho kiến thức", 380, 590, 250, 100)
-
-    # Right Column: Data Stores & External Services (x=930, w=190)
-    d.add_store("D3", "<b>D3</b> | Điểm tham quan &amp; Media", 930, 70, 190, 90)
-    d.add_actor("E5", "Dịch vụ dịch và TTS", 930, 230, 190, 90)
-    d.add_store("D4", "<b>D4</b> | Lộ trình tham quan", 930, 410, 190, 90)
-    d.add_store("D5", "<b>D5</b> | Kho kiến thức RAG", 930, 560, 190, 65)
-    d.add_actor("E6", "Dịch vụ embedding và LLM", 930, 645, 190, 95)
-    d.add_store("D6", "<b>D6</b> | Nhật ký &amp; Thống kê", 930, 770, 190, 80)
-
-    # --- 1. EXTERNAL FLOWS (EXACTLY 3 IN, 3 OUT - 100% BALANCED WITH LEVEL 1) ---
-    # With E2 (Nhân viên): 1 IN, 1 OUT
-    d.add_straight_h_arrow("f09", "E2", "P4_1", "Dữ liệu điểm tham quan, tour &amp; tài liệu", 95)
-    d.add_straight_h_arrow("f10", "P4_1", "E2", "Kết quả cập nhật &amp; tiến độ tác vụ", 135)
-
-    # With E5 (Dịch vụ dịch và TTS): 1 OUT, 1 IN
-    d.add_straight_h_arrow("f15", "P4_2", "E5", "Văn bản gốc &amp; yêu cầu tạo giọng đọc", 250, label_offset=(-30, 0))
-    d.add_straight_h_arrow("f16", "E5", "P4_2", "Bản dịch đa ngôn ngữ &amp; tệp âm thanh WAV", 290, label_offset=(-30, 0))
-
-    # With E6 (Dịch vụ embedding và LLM): 1 OUT, 1 IN
-    d.add_straight_h_arrow("f19", "P4_4", "E6", "Đoạn tài liệu kiến thức cần tạo vector", 660, label_offset=(-30, 0))
-    d.add_straight_h_arrow("f20", "E6", "P4_4", "Mảng vector nhúng của đoạn tài liệu", 705, label_offset=(-30, 0))
-
-    # --- 2. INTERNAL BUSINESS FLOWS BETWEEN SUB-PROCESSES ---
-    # 4.1 notifies 4.2 of pending tasks
-    d.add_straight_v_arrow("int_41_42", "P4_1", "P4_2", "Thông báo tác vụ dịch &amp; TTS mới tạo", 505)
-    # 4.1 distributes tour data to 4.3
-    d.add_orthogonal_stepped_arrow("int_41_43", "P4_1", "P4_3", "Dữ liệu tour &amp; lộ trình tham quan",
-                                  waypoints=[(380, 140), (320, 140), (320, 435), (380, 435)],
-                                  exit_xy=(0.0, 0.7778), entry_xy=(0.0, 0.2778))
-    # 4.1 distributes document data to 4.4
-    d.add_orthogonal_stepped_arrow("int_41_44", "P4_1", "P4_4", "Dữ liệu tài liệu kho kiến thức mới",
-                                  waypoints=[(380, 150), (280, 150), (280, 615), (380, 615)],
-                                  exit_xy=(0.0, 0.8889), entry_xy=(0.0, 0.2500))
-    # 4.3 returns result to 4.1
-    d.add_orthogonal_stepped_arrow("int_43_41", "P4_3", "P4_1", "Xác nhận lưu lộ trình",
-                                  waypoints=[(630, 435), (690, 435), (690, 115), (630, 115)],
-                                  exit_xy=(1.0, 0.2778), entry_xy=(1.0, 0.5000))
-    # 4.4 returns result to 4.1
-    d.add_orthogonal_stepped_arrow("int_44_41", "P4_4", "P4_1", "Xác nhận tạo vector kiến thức",
-                                  waypoints=[(630, 615), (710, 615), (710, 135), (630, 135)],
-                                  exit_xy=(1.0, 0.2500), entry_xy=(1.0, 0.7222))
-
-    # --- 3. DATA STORE INTERACTIONS ---
-    d.add_straight_h_arrow("st_p41_d3", "P4_1", "D3", "Lưu điểm tham quan &amp; tạo tác vụ chờ", 95)
-    d.add_straight_h_arrow("st_p43_d4", "P4_3", "D4", "Lưu bản ghi lộ trình &amp; điểm dừng", 455, label_offset=(-30, 0))
-    d.add_straight_h_arrow("st_p44_d5", "P4_4", "D5", "Lưu tài liệu, các đoạn &amp; vector", 595, label_offset=(-30, 0))
-
-    # 4.2 <-> D3 in clear gap y=160..230
-    d.add_orthogonal_stepped_arrow("st_d3_p42", "D3", "P4_2", "Đọc tác vụ chờ &amp; văn bản gốc",
-                                  waypoints=[(960, 160), (960, 185), (570, 185), (570, 230)],
-                                  exit_xy=(0.1579, 1.0), entry_xy=(0.7600, 0.0), label_offset=(0, -10))
-    d.add_orthogonal_stepped_arrow("st_p42_d3", "P4_2", "D3", "Lưu bản dịch, WAV &amp; hoàn tất",
-                                  waypoints=[(610, 230), (610, 205), (1020, 205), (1020, 160)],
-                                  exit_xy=(0.9200, 0.0), entry_xy=(0.4737, 1.0), label_offset=(0, 10))
-
-    # Logging to D6
-    d.add_orthogonal_stepped_arrow("st_p41_d6", "P4_1", "D6", "Ghi log điểm tham quan",
-                                  waypoints=[(630, 145), (880, 145), (880, 790), (930, 790)],
-                                  exit_xy=(1.0, 0.8333), entry_xy=(0.0, 0.2500), label_offset=(-60, 0))
-
-    d.add_orthogonal_stepped_arrow("st_p43_d6", "P4_3", "D6", "Ghi log lộ trình",
-                                  waypoints=[(630, 485), (860, 485), (860, 815), (930, 815)],
-                                  exit_xy=(1.0, 0.8333), entry_xy=(0.0, 0.5625), label_offset=(-60, 0))
-
-    d.add_orthogonal_stepped_arrow("st_p44_d6", "P4_4", "D6", "Ghi log kho kiến thức",
-                                  waypoints=[(550, 690), (550, 840), (930, 840)],
-                                  exit_xy=(0.6800, 1.0), entry_xy=(0.0, 0.8750), label_offset=(-60, 0))
-
-    d.save(os.path.join(OUT_DIR, "DFD_Level_2_P4_Content_Knowledge_Admin.drawio"))
-
-
-# ==================================================================================
-# 7. DFD MỨC 2 — TIẾN TRÌNH 5.0 (QUẢN TRỊ TÀI KHOẢN NỘI BỘ VÀ GIÁM SÁT HỆ THỐNG)
-#    STRICT BALANCING: EXACTLY 1 EXTERNAL IN, 1 EXTERNAL OUT (MATCHES LEVEL 1 P5)
-# ==================================================================================
-def build_level_2_p5():
-    d = StraightDrawioDiagram("dfd_2_p5", "DFD Mức 2 Tiến trình 5.0", width=1240, height=880)
-    d.add_title("SƠ ĐỒ DFD MỨC 2 — TIẾN TRÌNH 5.0 QUẢN TRỊ TÀI KHOẢN NỘI BỘ VÀ GIÁM SÁT HỆ THỐNG")
-
-    # Actors Left
-    d.add_actor("E3", "Quản trị viên", 40, 70, 160, 740)
-
-    # Sub-processes Center
-    d.add_process("P5_1", "<b>5.1</b><br/>Xác thực đăng nhập và<br/>quản lý phiên nội bộ", 390, 70, 250, 90)
-    d.add_process("P5_2", "<b>5.2</b><br/>Tạo và quản lý<br/>tài khoản nhân viên", 390, 225, 250, 90)
-    d.add_process("P5_3", "<b>5.3</b><br/>Truy vấn và lọc<br/>nhật ký thao tác", 390, 380, 250, 90)
-    d.add_process("P5_4", "<b>5.4</b><br/>Tổng hợp chỉ số sức khỏe<br/>và thống kê vận hành", 390, 560, 250, 140)
-
-    # Right: Data Stores
-    d.add_store("D1", "<b>D1</b> | Tài khoản &amp; Phiên nội bộ", 930, 70, 200, 90)
-    d.add_store("D6", "<b>D6</b> | Nhật ký &amp; Thống kê", 930, 225, 200, 120)
-
-    # --- 1. EXTERNAL FLOWS (EXACTLY 1 IN, 1 OUT - 100% BALANCED WITH LEVEL 1) ---
-    d.add_straight_h_arrow("f11", "E3", "P5_1", "Hồ sơ nhân viên mới &amp; bộ lọc giám sát", 95)
-    d.add_straight_h_arrow("f12", "P5_1", "E3", "Hồ sơ đã tạo, nhật ký &amp; báo cáo", 135)
-
-    # --- 2. INTERNAL BUSINESS FLOWS BETWEEN SUB-PROCESSES ---
-    # 5.1 dispatches user creation request to 5.2
-    d.add_orthogonal_stepped_arrow("int_51_52", "P5_1", "P5_2", "Yêu cầu cấp tài khoản nhân viên",
-                                  waypoints=[(390, 145), (340, 145), (340, 250), (390, 250)],
-                                  exit_xy=(0.0, 0.8333), entry_xy=(0.0, 0.2778))
-    # 5.1 dispatches audit filter request to 5.3
-    d.add_orthogonal_stepped_arrow("int_51_53", "P5_1", "P5_3", "Bộ lọc tra cứu kiểm toán",
-                                  waypoints=[(390, 155), (310, 155), (310, 405), (390, 405)],
-                                  exit_xy=(0.0, 0.9444), entry_xy=(0.0, 0.2778))
-    # 5.1 dispatches report request to 5.4
-    d.add_orthogonal_stepped_arrow("int_51_54", "P5_1", "P5_4", "Yêu cầu tổng hợp báo cáo",
-                                  waypoints=[(390, 160), (270, 160), (270, 590), (390, 590)],
-                                  exit_xy=(0.0, 1.0000), entry_xy=(0.0, 0.2143))
-    # 5.2 returns created profile to 5.1
-    d.add_orthogonal_stepped_arrow("int_52_51", "P5_2", "P5_1", "Hồ sơ nhân viên đã khởi tạo",
-                                  waypoints=[(640, 250), (710, 250), (710, 105), (640, 105)],
-                                  exit_xy=(1.0, 0.2778), entry_xy=(1.0, 0.3889))
-    # 5.3 returns audit log list to 5.1
-    d.add_orthogonal_stepped_arrow("int_53_51", "P5_3", "P5_1", "Danh sách nhật ký phân trang",
-                                  waypoints=[(640, 405), (730, 405), (730, 125), (640, 125)],
-                                  exit_xy=(1.0, 0.2778), entry_xy=(1.0, 0.6111))
-    # 5.4 returns monitoring report to 5.1
-    d.add_orthogonal_stepped_arrow("int_54_51", "P5_4", "P5_1", "Báo cáo thống kê &amp; sức khỏe",
-                                  waypoints=[(640, 590), (750, 590), (750, 145), (640, 145)],
-                                  exit_xy=(1.0, 0.2143), entry_xy=(1.0, 0.8333))
-
-    # --- 3. DATA STORE INTERACTIONS ---
-    d.add_straight_h_arrow("st_d1_p51", "D1", "P5_1", "Đối chiếu mật khẩu băm", 95)
-    d.add_straight_h_arrow("st_p51_d1", "P5_1", "D1", "Lưu refresh token phiên", 135)
-
-    d.add_orthogonal_stepped_arrow("st_p52_d1", "P5_2", "D1", "Lưu tài khoản mới",
-                                  waypoints=[(640, 270), (840, 270), (840, 150), (930, 150)],
-                                  exit_xy=(1.0, 0.5000), entry_xy=(0.0, 0.8889), label_offset=(0, -25))
-    d.add_straight_h_arrow("st_p52_d6", "P5_2", "D6", "Ghi log tạo tài khoản", 285)
-
-    d.add_orthogonal_stepped_arrow("st_d6_p53", "D6", "P5_3", "Đọc danh sách bản ghi nhật ký",
-                                  waypoints=[(930, 310), (800, 310), (800, 425), (640, 425)],
-                                  exit_xy=(0.0, 0.7083), entry_xy=(1.0, 0.5000))
-
-    d.add_orthogonal_stepped_arrow("st_d6_p54", "D6", "P5_4", "Đọc thống kê vận hành tập trung",
-                                  waypoints=[(930, 330), (770, 330), (770, 580), (640, 580)],
-                                  exit_xy=(0.0, 0.8750), entry_xy=(1.0, 0.1429))
-
-    d.add_orthogonal_stepped_arrow("st_d1_p54", "D1", "P5_4", "Đọc số liệu tài khoản & phiên nội bộ",
-        [(1130, 130), (1180, 130), (1180, 650), (640, 650)], (1, 60/90), (1, 90/140))
-    d.save(os.path.join(OUT_DIR, "DFD_Level_2_P5_Auth_Admin_Monitoring.drawio"))
-
-
-# ==================================================================================
-# 8. DFD MỨC 3 — TIẾN TRÌNH 4.2 (XỬ LÝ NỀN DỊCH VĂN BẢN VÀ TỔNG HỢP ÂM THANH)
-# ==================================================================================
-def build_level_3_p4_2():
-    d = StraightDrawioDiagram("dfd_3_p42", "DFD Mức 3 Tiến trình 4.2", width=1220, height=720)
-    d.add_title("SƠ ĐỒ DFD MỨC 3 — TIẾN TRÌNH 4.2 XỬ LÝ NỀN DỊCH VĂN BẢN VÀ TỔNG HỢP ÂM THANH")
-
-    # Sub-processes (Vertical Pipeline)
-    d.add_process("P4_2_1", "<b>4.2.1</b><br/>Nhận tác vụ chờ và<br/>cấp quyền giữ phiên xử lý", 400, 70, 260, 80)
-    d.add_process("P4_2_2", "<b>4.2.2</b><br/>Kiểm tra phiên bản nguồn<br/>và dịch văn bản đa ngôn ngữ", 400, 220, 260, 85)
-    d.add_process("P4_2_3", "<b>4.2.3</b><br/>Tổng hợp âm thanh WAV<br/>và kiểm tra định dạng tệp", 400, 380, 260, 85)
-    d.add_process("P4_2_4", "<b>4.2.4</b><br/>Lưu kho tệp media và<br/>công bố trạng thái hoàn tất", 400, 540, 260, 80)
-
-    # Vertical Pipeline Sequence (100% Straight Vertical)
-    d.add_straight_v_arrow("v_421_422", "P4_2_1", "P4_2_2", "Tác vụ đã khóa phiên &amp; văn bản gốc", 530)
-    d.add_straight_v_arrow("v_422_423", "P4_2_2", "P4_2_3", "Bản dịch đa ngôn ngữ cần kiểm tra WAV", 530)
-    d.add_straight_v_arrow("v_423_424", "P4_2_3", "P4_2_4", "Bản dịch &amp; tệp âm thanh WAV hợp lệ", 530)
-
-    d.add_process("P4_1_In", "<b>4.1</b><br/>Cập nhật điểm tham quan và<br/>khởi tạo tác vụ nội dung", 40, 70, 200, 80)
-    d.add_store("D3_Left", "<b>D3</b> | Điểm tham quan &amp; Media", 40, 220, 200, 80)
-    d.add_store("D3_Right", "<b>D3</b> | Điểm tham quan &amp; Media", 940, 540, 200, 80)
-    d.add_actor("E5", "Dịch vụ dịch và TTS", 940, 240, 200, 180)
-    d.add_straight_h_arrow("int_41_421", "P4_1_In", "P4_2_1", "Thông báo tác vụ dịch &amp; TTS mới tạo", 95)
-    d.add_orthogonal_stepped_arrow("st_d3_p421", "D3_Left", "P4_2_1", "Đọc tác vụ chờ &amp; văn bản gốc",
-        [(240, 260), (300, 260), (300, 130), (400, 130)], (1, .5), (0, .75))
-    d.add_straight_h_arrow("f15", "P4_2_2", "E5", "Văn bản gốc &amp; yêu cầu tạo giọng đọc", 260)
-    d.add_straight_h_arrow("f16", "E5", "P4_2_3", "Bản dịch đa ngôn ngữ &amp; tệp âm thanh WAV", 405)
-    d.add_straight_h_arrow("st_p424_d3", "P4_2_4", "D3_Right", "Lưu bản dịch, WAV &amp; hoàn tất", 580)
-
-    d.save(os.path.join(OUT_DIR, "DFD_Level_3_P4_2_Pipeline_Translation_TTS.drawio"))
-
-
-# ==================================================================================
-# 9. DFD MỨC 3 — TIẾN TRÌNH 3.4 (TỔNG HỢP CÂU TRẢ LỜI CÓ TRÍCH DẪN VÀ GHI NHẬT KÝ)
-# ==================================================================================
-def build_level_3_p3_4():
-    d = StraightDrawioDiagram("dfd_3_p34", "DFD Mức 3 Tiến trình 3.4", width=1220, height=720)
-    d.add_title("SƠ ĐỒ DFD MỨC 3 — TIẾN TRÌNH 3.4 TỔNG HỢP CÂU TRẢ LỜI CÓ TRÍCH DẪN VÀ GHI NHẬT KÝ")
-
-    # Inputs from Previous Steps Left
-    d.add_process("P3_2_In", "<b>3.2</b><br/>Chuẩn hóa truy vấn", 40, 70, 190, 60)
-    d.add_process("P3_3_In", "<b>3.3</b><br/>Truy hồi đoạn tương đồng", 40, 150, 190, 60)
-
-    # Sub-processes (Vertical Pipeline)
-    d.add_process("P3_4_1", "<b>3.4.1</b><br/>Đóng gói lời nhắc hệ thống<br/>kèm ngữ cảnh đoạn kiến thức", 400, 70, 260, 80)
-    d.add_process("P3_4_2", "<b>3.4.2</b><br/>Gọi mô hình ngôn ngữ<br/>sinh phản hồi theo ngữ cảnh", 400, 220, 260, 85)
-    d.add_process("P3_4_3", "<b>3.4.3</b><br/>Kiểm tra trích dẫn hợp lệ<br/>và lọc liên kết ngoài nguồn", 400, 380, 260, 85)
-    d.add_process("P3_4_4", "<b>3.4.4</b><br/>Lưu nhật ký hỏi đáp<br/>và trả kết quả cho khách", 400, 540, 260, 80)
-
-    # Vertical Pipeline Sequence (100% Straight Vertical)
-    d.add_straight_v_arrow("v_341_342", "P3_4_1", "P3_4_2", "Gói lời nhắc hoàn chỉnh", 530)
-    d.add_straight_v_arrow("v_342_343", "P3_4_2", "P3_4_3", "Phản hồi thô &amp; mã trích dẫn", 530)
-    d.add_straight_v_arrow("v_343_344", "P3_4_3", "P3_4_4", "Câu trả lời đã kiểm duyệt", 530)
-
-    # Inputs to 3.4.1
-    d.add_straight_h_arrow("int_32_341", "P3_2_In", "P3_4_1", "Câu hỏi hợp lệ &amp; ngôn ngữ", 100)
-    d.add_orthogonal_stepped_arrow("int_33_341", "P3_3_In", "P3_4_1", "Tập đoạn kiến thức tương đồng cao nhất",
-                                  waypoints=[(230, 180), (315, 180), (315, 130), (400, 130)],
-                                  exit_xy=(1.0, 0.5000), entry_xy=(0.0, 0.7500))
-
-    # LLM Interaction
-    d.add_actor("E6", "Dịch vụ embedding và LLM", 940, 220, 200, 85)
-    d.add_straight_h_arrow("f17", "P3_4_2", "E6", "Câu hỏi truy vấn &amp; ngữ cảnh trích dẫn", 245)
-    d.add_straight_h_arrow("f18", "E6", "P3_4_2", "Kết quả đối chiếu &amp; câu trả lời mô hình", 285)
-
-    # Final outputs
-    d.add_store("D6", "<b>D6</b> | Nhật ký &amp; Thống kê", 40, 540, 200, 80)
-    d.add_actor("E1", "Khách tham quan", 940, 540, 200, 80)
-
-    d.add_straight_h_arrow("f_p344_d6", "P3_4_4", "D6", "Ghi lịch sử hỏi đáp, câu hỏi &amp; trích dẫn", 580)
-    d.add_straight_h_arrow("f06", "P3_4_4", "E1", "Câu trả lời có trích dẫn nguồn", 580)
-
-    d.save(os.path.join(OUT_DIR, "DFD_Level_3_P3_4_RAG_Answer_Generation.drawio"))
-
+from dfd_business_model import ACTORS, STORES, PARENTS, PROCESSES, FAMILIES, EDGES, parent, level_three
+ROOT=Path(__file__).resolve().parents[1]
+OUT=ROOT/'docs/diagram/dfd'
+NAMES=['DFD_Level_0_Context','DFD_Level_1_System','DFD_Level_2_P1_Payment_Session','DFD_Level_2_P2_Visitor_Content_Audio','DFD_Level_2_P3_Chatbot_RAG','DFD_Level_2_P4_Content_Knowledge_Admin','DFD_Level_2_P5_Auth_Admin_Monitoring','DFD_Level_3_P4_2_Pipeline_Translation_TTS','DFD_Level_3_P3_4_RAG_Answer_Generation']
+def number(pid): return pid[1:].replace('_','.')+('.0' if '_' not in pid and pid!='P0' else '')
+def aggregate(edges,level):
+ groups=defaultdict(list)
+ for e in edges:
+  src,dst=e['source'],e['target']
+  if level==0:
+   if not e['family']:continue
+   src=src if src in ACTORS else 'P0';dst=dst if dst in ACTORS else 'P0'
+   key=(src,dst,e['family'])
+  else:
+   src,dst=parent(src),parent(dst)
+   if src==dst:continue
+   key=(src,dst,e['family'] or 'store')
+  groups[key].append(e)
+ result=[]
+ for (src,dst,family),items in groups.items():
+  if family in FAMILIES: label=FAMILIES[family]
+  else:
+   sid=src if src in STORES else dst
+   label=('Tra cứu ' if src==sid else 'Ghi/cập nhật ')+STORES[sid][0].lower()
+  result.append({'id':f'G{level}_{len(result)+1:03}','source':src,'target':dst,'label':label,
+   'family':family if family in FAMILIES else None,'ucs':sorted({u for e in items for u in e['ucs']}),
+   'components':[e['id'] for e in items], 'source_section':'; '.join(sorted({e['source_section'] for e in items}))})
+ return result
+
+def definitions(index):
+ if index==0:return {'P0':'Hệ thống thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn'},aggregate(EDGES,0),'MỨC 0 — NGỮ CẢNH HỆ THỐNG',list(range(1,19))
+ if index==1:return PARENTS,aggregate(EDGES,1),'MỨC 1 — CÁC NHÓM CHỨC NĂNG',list(range(1,19))
+ if index<7:
+  pid=f'P{index-1}'
+  nodes={k:v[0] for k,v in PROCESSES.items() if parent(k)==pid}
+  edges=[e for e in EDGES if parent(e['source'])==pid or parent(e['target'])==pid]
+  ucs=sorted({int(u[3:]) for e in edges for u in e['ucs']})
+  return nodes,edges,f'MỨC 2 — {number(pid)} {PARENTS[pid].upper()}',ucs
+ pid='P4_2' if index==7 else 'P3_4'
+ nodes,edges=level_three(pid)
+ return nodes,edges,f'MỨC 3 — {number(pid)} {PROCESSES[pid][0].upper()}',[13 if index==7 else 8]
+
+class Diagram:
+ def __init__(self,name,title):
+  self.name=name;self.root=ET.Element('root');ET.SubElement(self.root,'mxCell',id='0');ET.SubElement(self.root,'mxCell',id='1',parent='0');self.boxes={};self.width=1940;self.height=900
+  self.box('title',title,20,10,1900,35,'title','title')
+ def box(self,cid,label,x,y,w,h,kind,logical):
+  style='whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#17202A;strokeWidth=1.7;fontFamily=Arial;fontSize=13;align=center;verticalAlign=middle;'
+  if kind=='process':style+='rounded=1;arcSize=12;fontStyle=1;'
+  elif kind=='store':style+='shape=partialRectangle;left=1;right=0;top=1;bottom=1;fillColor=#F5F6F7;'
+  elif kind=='title':style+='strokeColor=none;fontSize=17;fontStyle=1;'
+  else:style+='rounded=0;fontStyle=1;'
+  c=ET.SubElement(self.root,'mxCell',id=cid,parent='1',vertex='1',style=style,value=label,logicalId=logical)
+  ET.SubElement(c,'mxGeometry',x=str(x),y=str(y),width=str(w),height=str(h),attrib={'as':'geometry'})
+  self.boxes[cid]=(x,y,w,h)
+ def arrow(self,e,src,dst,points,labelpoint):
+  def port(cid,p):
+   x,y,w,h=self.boxes[cid];return ((p[0]-x)/w,(p[1]-y)/h)
+  a,b=port(src,points[0]),port(dst,points[-1])
+  style=f'edgeStyle=none;rounded=0;html=1;strokeColor=#34495E;strokeWidth=1.3;endArrow=block;endFill=1;exitX={a[0]:.12f};exitY={a[1]:.12f};entryX={b[0]:.12f};entryY={b[1]:.12f};exitPerimeter=0;entryPerimeter=0;'
+  c=ET.SubElement(self.root,'mxCell',id=e['id'],parent='1',edge='1',source=src,target=dst,style=style,value='',flowLabel=e['label'],flowFamily=e.get('family') or '',components=','.join(e.get('components',[e['id']])),useCases=','.join(e['ucs']),basis=e['source_section'])
+  g=ET.SubElement(c,'mxGeometry',relative='1',attrib={'as':'geometry'})
+  arr=ET.SubElement(g,'Array',attrib={'as':'points'})
+  for x,y in points[1:-1]:ET.SubElement(arr,'mxPoint',x=str(x),y=str(y))
+  prefix=(e['family']+': ') if e.get('family') else ''
+  lines=textwrap.wrap(prefix+e['label'],width=43,break_long_words=False)
+  lab=ET.SubElement(self.root,'mxCell',id='label_'+e['id'],parent='1',vertex='1',style='text;html=1;whiteSpace=wrap;fillColor=#FFFFFF;strokeColor=none;fontFamily=Arial;fontSize=12;align=center;verticalAlign=middle;spacing=1;',value='<br/>'.join(html.escape(line) for line in lines),labelFor=e['id'])
+  h=max(21,len(lines)*16)
+  width=min(380,max(60,max(len(line) for line in lines)*6.6+12))
+  ET.SubElement(lab,'mxGeometry',x=str(labelpoint[0]-width/2),y=str(labelpoint[1]-h/2),width=str(width),height=str(h),attrib={'as':'geometry'})
+ def save(self):
+  mx=ET.Element('mxfile',host='app.diagrams.net',version='24.7.17')
+  d=ET.SubElement(mx,'diagram',id=self.name,name=self.name)
+  m=ET.SubElement(d,'mxGraphModel',page='1',pageWidth=str(self.width),pageHeight=str(self.height),grid='1',gridSize='10',math='0',shadow='0')
+  m.append(self.root);ET.indent(mx,space='  ')
+  OUT.mkdir(parents=True,exist_ok=True)
+  ET.ElementTree(mx).write(OUT/(self.name+'.drawio'),encoding='utf-8',xml_declaration=True)
+  print(f'Generated {self.name}: {len([e for e in self.root if e.get("edge")=="1"])} flows, {self.width}x{self.height}')
+
+def render(index):
+ # Source evidence is verified BEFORE laying out this diagram, not after all files.
+ from verify_lvl1_lvl2_balance import validate_business_sources
+ validate_business_sources()
+ nodes,edges,title,ucs=definitions(index)
+ d=Diagram(NAMES[index],'DFD '+title)
+ d.box('note','UC: '+', '.join(f'{n:02}' for n in ucs)+' | Kho cùng mã là cùng một kho; * = Could Have',20,47,1900,32,'title','note')
+ # Duplicate only external entities, stores, and outside-scope peer processes.
+ # Real subprocesses have one vertex each; their internal edges are routed below.
+ top=105;layouts={}
+ for pid,label in nodes.items():
+  incident=[e for e in edges if pid in (e['source'],e['target'])]
+  neighbors=defaultdict(list)
+  for e in incident:
+   other=e['target'] if e['source']==pid else e['source']
+   if other not in nodes:neighbors[other].append(e)
+  left=[(n,es) for n,es in neighbors.items() if n not in STORES]
+  right=[(n,es) for n,es in neighbors.items() if n in STORES]
+  if index==0:
+   left=[(n,es) for n,es in neighbors.items() if n in ('E1','E2','E3')]
+   right=[(n,es) for n,es in neighbors.items() if n not in ('E1','E2','E3')]
+  size=lambda pairs:sum(max(72,len(es)*44+20)+18 for n,es in pairs)
+  height=max(125,size(left)-18,size(right)-18)
+  d.box(pid,number(pid)+'\n\n'+label,800,top,300,height,'process',pid)
+  layouts[pid]=(top,height)
+  for side,pairs in [('left',left),('right',right)]:
+   y=top
+   for other,es in pairs:
+    h=max(72,len(es)*44+20);alias=other+'__'+pid
+    if other in ACTORS:kind='actor';name=ACTORS[other]
+    elif other in STORES:kind='store';name=other+' | '+STORES[other][0]
+    else:kind='process';name=number(other)+' | '+PROCESSES[other][0]+'\n(tham chiếu mức cha)'
+    x=30 if side=='left' else 1580
+    d.box(alias,name,x,y,300,h,kind,other)
+    for k,e in enumerate(es):
+     yy=y+20+(k+.5)*(h-40)/len(es)
+     if side=='left': a=(330,yy);b=(800,yy);lp=(565,yy)
+     else:a=(1100,yy);b=(1580,yy);lp=(1340,yy)
+     src,dst=(alias,pid) if e['source']==other else (pid,alias)
+     pts=[a,b] if src==alias and side=='left' or src==pid and side=='right' else [b,a]
+     d.arrow(e,src,dst,pts,lp)
+    y+=h+18
+  top+=height+125
+ # Internal data flows, independent of persistence/shared neighbors.
+ interior=[e for e in edges if e['source'] in nodes and e['target'] in nodes]
+ for i,e in enumerate(interior):
+  src,dst=e['source'],e['target'];sy,sh=layouts[src];ty,th=layouts[dst]
+  if list(nodes).index(dst)==list(nodes).index(src)+1:
+   x=945+(i%2)*35;pts=[(x,sy+sh),(x,ty)];lp=(x,sy+sh+(ty-sy-sh)/2)
+  else:
+   gutter=735+(i%5)*10;yy=sy+sh+30+(i%2)*28;end=ty+th-20
+   pts=[(850,sy+sh),(850,yy),(gutter,yy),(gutter,end),(800,end)];lp=(740,yy)
+  d.arrow(e,src,dst,pts,lp)
+ d.height=top-60
+ d.save()
+ return nodes,edges
 
 def main():
-    print("=== Generating 9 Strictly Balanced DFD Diagrams (100% Flow Conservation) ===")
-    build_level_0()
-    build_level_1()
-    build_level_2_p1()
-    build_level_2_p2()
-    build_level_2_p3()
-    build_level_2_p4()
-    build_level_2_p5()
-    build_level_3_p4_2()
-    build_level_3_p3_4()
-    print("=== Generation Completed ===")
-
-if __name__ == "__main__":
-    main()
+ parser=argparse.ArgumentParser();parser.add_argument('--only',type=int,choices=range(9));args=parser.parse_args()
+ for index in ([args.only] if args.only is not None else range(9)):render(index)
+ (OUT/'dfd_data_dictionary.json').write_text(json.dumps({'actors':ACTORS,'stores':STORES,'processes':PROCESSES,'families':FAMILIES,'flows':EDGES},ensure_ascii=False,indent=2),encoding='utf-8')
+if __name__=='__main__':main()

@@ -3,6 +3,7 @@ import sys
 import json
 import html
 import time
+import math
 import urllib.request
 import subprocess
 import xml.etree.ElementTree as ET
@@ -46,6 +47,9 @@ def render_diagram(name, drawio_path, out_png_path):
 
     win_w = max(pw + 100, 1800)
     win_h = max(ph + 100, 1200)
+    # Google Docs rejects raster images over its pixel limit. Render to a
+    # suitable resolution directly instead of silently cropping the diagram.
+    pixel_scale = min(2, math.sqrt(20_000_000 / (win_w * win_h)))
 
     with open(drawio_path, 'r', encoding='utf-8') as f:
         xml_content = f.read()
@@ -94,7 +98,7 @@ def render_diagram(name, drawio_path, out_png_path):
     cmd = [
         EDGE_BIN,
         "--headless=new",
-        "--force-device-scale-factor=2",
+        f"--force-device-scale-factor={pixel_scale:.3f}",
         f"--user-data-dir={user_data}",
         "--no-first-run",
         "--no-default-browser-check",
