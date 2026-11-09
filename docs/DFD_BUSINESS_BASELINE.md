@@ -47,4 +47,6 @@ Các ký hiệu kho/tác nhân có thể lặp để giảm đường giao nhau 
 
 Lệnh tái sinh: chạy kiểm tra nguồn, sinh Draw.io, xuất PNG, cập nhật bảng báo cáo, dựng mục 3.4 của Word. Chỉ đồng bộ Google Docs sau khi kiểm tra hình và tài liệu. Tệp `full_gdoc_sync.py` xuất manifest cho connector; không tự xóa hoặc nối nội dung vào cuối Google Docs.
 
+Để đọc ở cỡ trang báo cáo, chạy `build_readable_dfd_pages.py --render` trước khi dựng Word hoặc xuất manifest Google Docs. Các tệp Draw.io nhiều trang trong `docs/diagram/dfd/report/` và PNG trong `docs/diagram/export/dfd-report/` là những phần tiếp nối của cùng 9 hình, giữ nguyên từng luồng của bản nguồn. Khối cùng mã là cùng một phần tử; khối tham chiếu tiến trình được vẽ nét đứt. `verify_dfd_readability.py` kiểm tra đủ luồng, đúng hướng, mũi tên nằm dưới nhãn, tỷ lệ ảnh và cỡ chữ tối thiểu 10 pt sau khi chèn. Không ép toàn bộ sơ đồ dài vào một ảnh vừa trang.
+
 Schema được đối chiếu từ repository. Bộ DFD không khẳng định trạng thái migration của một database đang chạy và không thay đổi schema hoặc nghiệp vụ ứng dụng.

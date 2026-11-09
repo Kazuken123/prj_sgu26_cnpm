@@ -1,0 +1,1143 @@
+[
+  {
+    "figure": "Hình 3.38",
+    "name": "DFD_Level_0_Context",
+    "pages": [
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_0_Context_part_01.png",
+        "part": 1,
+        "total": 4,
+        "process": "P0",
+        "flows": [
+          "G0_001",
+          "G0_002",
+          "G0_009",
+          "G0_010",
+          "G0_011",
+          "G0_012",
+          "G0_007",
+          "G0_008",
+          "G0_013",
+          "G0_014",
+          "G0_015",
+          "G0_016"
+        ],
+        "width_units": 1040,
+        "height_units": 986,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 412.71353456669914,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_0_Context_part_02.png",
+        "part": 2,
+        "total": 4,
+        "process": "P0",
+        "flows": [
+          "G0_003",
+          "G0_004",
+          "G0_017",
+          "G0_018",
+          "G0_023",
+          "G0_024",
+          "G0_021",
+          "G0_022"
+        ],
+        "width_units": 1040,
+        "height_units": 986,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 412.71353456669914,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_0_Context_part_03.png",
+        "part": 3,
+        "total": 4,
+        "process": "P0",
+        "flows": [
+          "G0_005",
+          "G0_006",
+          "G0_019",
+          "G0_020",
+          "G0_025",
+          "G0_026"
+        ],
+        "width_units": 1040,
+        "height_units": 1046,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 451.3177766649975,
+        "min_font_pt": 10.73
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_0_Context_part_04.png",
+        "part": 4,
+        "total": 4,
+        "process": "P0",
+        "flows": [
+          "G0_027",
+          "G0_028"
+        ],
+        "width_units": 1040,
+        "height_units": 440,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 180.39298948422632,
+        "min_font_pt": 10.73
+      }
+    ]
+  },
+  {
+    "figure": "Hình 3.39",
+    "name": "DFD_Level_1_System",
+    "pages": [
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_1_System_part_01.png",
+        "part": 1,
+        "total": 10,
+        "process": "P1",
+        "flows": [
+          "G1_001",
+          "G1_002",
+          "G1_003",
+          "G1_004",
+          "G1_005",
+          "G1_006",
+          "G1_031",
+          "G1_032",
+          "G1_033",
+          "G1_036",
+          "G1_034",
+          "G1_037",
+          "G1_035"
+        ],
+        "width_units": 1040,
+        "height_units": 1036,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 434.44673807205453,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_1_System_part_02.png",
+        "part": 2,
+        "total": 10,
+        "process": "P1",
+        "flows": [
+          "G1_007",
+          "G1_008",
+          "G1_038",
+          "G1_039"
+        ],
+        "width_units": 1040,
+        "height_units": 468,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 187.5575462512171,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_1_System_part_03.png",
+        "part": 3,
+        "total": 10,
+        "process": "P2",
+        "flows": [
+          "G1_009",
+          "G1_010",
+          "G1_040",
+          "G1_041",
+          "G1_042",
+          "G1_043",
+          "G1_044",
+          "G1_045",
+          "G1_046"
+        ],
+        "width_units": 1040,
+        "height_units": 1018,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 426.6227848101266,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_1_System_part_04.png",
+        "part": 4,
+        "total": 10,
+        "process": "P2",
+        "flows": [
+          "G1_047"
+        ],
+        "width_units": 1040,
+        "height_units": 426,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 174.5710843373494,
+        "min_font_pt": 10.76
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_1_System_part_05.png",
+        "part": 5,
+        "total": 10,
+        "process": "P3",
+        "flows": [
+          "G1_011",
+          "G1_012",
+          "G1_013",
+          "G1_014",
+          "G1_015",
+          "G1_016",
+          "G1_048",
+          "G1_049",
+          "G1_050",
+          "G1_051",
+          "G1_052",
+          "G1_053"
+        ],
+        "width_units": 1040,
+        "height_units": 986,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 412.71353456669914,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_1_System_part_06.png",
+        "part": 6,
+        "total": 10,
+        "process": "P4",
+        "flows": [
+          "G1_017",
+          "G1_018",
+          "G1_019",
+          "G1_020",
+          "G1_021",
+          "G1_022",
+          "G1_054",
+          "G1_055",
+          "G1_056",
+          "G1_057",
+          "G1_060",
+          "G1_058",
+          "G1_065"
+        ],
+        "width_units": 1040,
+        "height_units": 1022,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 428.361441090555,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_1_System_part_07.png",
+        "part": 7,
+        "total": 10,
+        "process": "P4",
+        "flows": [
+          "G1_023",
+          "G1_024",
+          "G1_059",
+          "G1_061",
+          "G1_062",
+          "G1_063",
+          "G1_064",
+          "G1_066",
+          "G1_067"
+        ],
+        "width_units": 1040,
+        "height_units": 962,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 402.2815968841285,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_1_System_part_08.png",
+        "part": 8,
+        "total": 10,
+        "process": "P4",
+        "flows": [
+          "G1_068",
+          "G1_069"
+        ],
+        "width_units": 1040,
+        "height_units": 440,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 180.8457831325301,
+        "min_font_pt": 10.76
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_1_System_part_09.png",
+        "part": 9,
+        "total": 10,
+        "process": "P5",
+        "flows": [
+          "G1_025",
+          "G1_026",
+          "G1_027",
+          "G1_028",
+          "G1_029",
+          "G1_030",
+          "G1_070",
+          "G1_071",
+          "G1_072",
+          "G1_073",
+          "G1_074",
+          "G1_075",
+          "G1_076"
+        ],
+        "width_units": 1040,
+        "height_units": 1016,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 425.75345666991234,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_1_System_part_10.png",
+        "part": 10,
+        "total": 10,
+        "process": "P5",
+        "flows": [
+          "G1_077",
+          "G1_078",
+          "G1_079",
+          "G1_080",
+          "G1_081",
+          "G1_082"
+        ],
+        "width_units": 1040,
+        "height_units": 950,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 409.42409638554216,
+        "min_font_pt": 10.76
+      }
+    ]
+  },
+  {
+    "figure": "Hình 3.40",
+    "name": "DFD_Level_2_P1_Payment_Session",
+    "pages": [
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P1_Payment_Session_part_01.png",
+        "part": 1,
+        "total": 8,
+        "process": "P1_1",
+        "flows": [
+          "F01_01",
+          "F02_01",
+          "F07_01",
+          "F08_01",
+          "F13_01",
+          "F14_01",
+          "F21_01",
+          "S_01",
+          "S_02",
+          "S_03",
+          "S_06",
+          "S_04",
+          "S_07",
+          "S_05"
+        ],
+        "width_units": 1040,
+        "height_units": 1052,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 441.4013631937682,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P1_Payment_Session_part_02.png",
+        "part": 2,
+        "total": 8,
+        "process": "P1_1",
+        "flows": [
+          "F22_01",
+          "S_08"
+        ],
+        "width_units": 1040,
+        "height_units": 426,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 169.30165530671857,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P1_Payment_Session_part_03.png",
+        "part": 3,
+        "total": 8,
+        "process": "P1_2",
+        "flows": [
+          "F22_02",
+          "S_09",
+          "S_12",
+          "S_10",
+          "S_11"
+        ],
+        "width_units": 1040,
+        "height_units": 638,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 261.45043816942547,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P1_Payment_Session_part_04.png",
+        "part": 4,
+        "total": 8,
+        "process": "P1_3",
+        "flows": [
+          "F07_02",
+          "F08_02",
+          "F13_02",
+          "F14_02",
+          "S_13",
+          "S_14",
+          "S_15",
+          "S_19",
+          "S_16",
+          "S_18"
+        ],
+        "width_units": 1040,
+        "height_units": 924,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 385.76436222005844,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P1_Payment_Session_part_05.png",
+        "part": 5,
+        "total": 8,
+        "process": "P1_3",
+        "flows": [
+          "S_17",
+          "S_20",
+          "S_21"
+        ],
+        "width_units": 1040,
+        "height_units": 538,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 224.76867469879517,
+        "min_font_pt": 10.76
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P1_Payment_Session_part_06.png",
+        "part": 6,
+        "total": 8,
+        "process": "P1_4",
+        "flows": [
+          "F01_02",
+          "F02_02",
+          "S_22",
+          "S_25",
+          "S_23",
+          "S_24",
+          "S_26",
+          "S_27"
+        ],
+        "width_units": 1040,
+        "height_units": 896,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 373.59376825705937,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P1_Payment_Session_part_07.png",
+        "part": 7,
+        "total": 8,
+        "process": "P1_5",
+        "flows": [
+          "F07_03",
+          "F08_03",
+          "F13_03",
+          "F14_03",
+          "S_28",
+          "S_29",
+          "S_30",
+          "S_33",
+          "S_31",
+          "S_32",
+          "S_34"
+        ],
+        "width_units": 1040,
+        "height_units": 1008,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 422.27614410905545,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P1_Payment_Session_part_08.png",
+        "part": 8,
+        "total": 8,
+        "process": "P1_5",
+        "flows": [
+          "S_35"
+        ],
+        "width_units": 1040,
+        "height_units": 426,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 174.5710843373494,
+        "min_font_pt": 10.76
+      }
+    ]
+  },
+  {
+    "figure": "Hình 3.41",
+    "name": "DFD_Level_2_P2_Visitor_Content_Audio",
+    "pages": [
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P2_Visitor_Content_Audio_part_01.png",
+        "part": 1,
+        "total": 5,
+        "process": "P2_1",
+        "flows": [
+          "F03_01",
+          "F04_05",
+          "I_01",
+          "S_36",
+          "S_37",
+          "S_38"
+        ],
+        "width_units": 1040,
+        "height_units": 568,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 231.02395326192791,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P2_Visitor_Content_Audio_part_02.png",
+        "part": 2,
+        "total": 5,
+        "process": "P2_2",
+        "flows": [
+          "F04_01",
+          "I_02",
+          "I_03",
+          "I_04",
+          "S_39",
+          "S_40",
+          "S_41",
+          "S_42",
+          "S_43"
+        ],
+        "width_units": 1040,
+        "height_units": 824,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 342.2979552093476,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P2_Visitor_Content_Audio_part_03.png",
+        "part": 3,
+        "total": 5,
+        "process": "P2_3",
+        "flows": [
+          "F03_02",
+          "F04_02",
+          "I_05"
+        ],
+        "width_units": 1040,
+        "height_units": 554,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 232.17286432160805,
+        "min_font_pt": 10.77
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P2_Visitor_Content_Audio_part_04.png",
+        "part": 4,
+        "total": 5,
+        "process": "P2_4",
+        "flows": [
+          "F03_03",
+          "F04_03",
+          "S_44",
+          "S_45",
+          "S_46"
+        ],
+        "width_units": 1040,
+        "height_units": 552,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 224.0693281402142,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P2_Visitor_Content_Audio_part_05.png",
+        "part": 5,
+        "total": 5,
+        "process": "P2_5",
+        "flows": [
+          "F03_04",
+          "F04_04",
+          "I_06"
+        ],
+        "width_units": 1040,
+        "height_units": 568,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 238.45386934673365,
+        "min_font_pt": 10.77
+      }
+    ]
+  },
+  {
+    "figure": "Hình 3.42",
+    "name": "DFD_Level_2_P3_Chatbot_RAG",
+    "pages": [
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P3_Chatbot_RAG_part_01.png",
+        "part": 1,
+        "total": 4,
+        "process": "P3_1",
+        "flows": [
+          "F05_01",
+          "F06_01",
+          "I_07",
+          "I_08",
+          "S_47",
+          "S_48",
+          "S_49",
+          "S_50"
+        ],
+        "width_units": 1040,
+        "height_units": 742,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 306.6555014605648,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P3_Chatbot_RAG_part_02.png",
+        "part": 2,
+        "total": 4,
+        "process": "P3_2",
+        "flows": [
+          "F25_01",
+          "F26_01",
+          "I_09",
+          "I_10"
+        ],
+        "width_units": 1040,
+        "height_units": 666,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 282.42090452261306,
+        "min_font_pt": 10.77
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P3_Chatbot_RAG_part_03.png",
+        "part": 3,
+        "total": 4,
+        "process": "P3_3",
+        "flows": [
+          "I_11",
+          "S_51"
+        ],
+        "width_units": 1040,
+        "height_units": 426,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 169.30165530671857,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P3_Chatbot_RAG_part_04.png",
+        "part": 4,
+        "total": 4,
+        "process": "P3_4",
+        "flows": [
+          "F06_02",
+          "F27_01",
+          "F28_01",
+          "S_52"
+        ],
+        "width_units": 1040,
+        "height_units": 644,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 264.0584225900682,
+        "min_font_pt": 10.43
+      }
+    ]
+  },
+  {
+    "figure": "Hình 3.43",
+    "name": "DFD_Level_2_P4_Content_Knowledge_Admin",
+    "pages": [
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P4_Content_Knowledge_Admin_part_01.png",
+        "part": 1,
+        "total": 6,
+        "process": "P4_1",
+        "flows": [
+          "F09_01",
+          "F10_01",
+          "F15_01",
+          "F16_01",
+          "S_53",
+          "S_54",
+          "S_59",
+          "S_60",
+          "S_63",
+          "S_61"
+        ],
+        "width_units": 1040,
+        "height_units": 952,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 397.9349561830574,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P4_Content_Knowledge_Admin_part_02.png",
+        "part": 2,
+        "total": 6,
+        "process": "P4_1",
+        "flows": [
+          "S_62",
+          "S_64",
+          "S_65"
+        ],
+        "width_units": 1040,
+        "height_units": 568,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 238.2144578313253,
+        "min_font_pt": 10.76
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P4_Content_Knowledge_Admin_part_03.png",
+        "part": 3,
+        "total": 6,
+        "process": "P4_2",
+        "flows": [
+          "F23_01",
+          "F24_01",
+          "F23_02",
+          "F24_02",
+          "S_66",
+          "S_72",
+          "S_76",
+          "S_67",
+          "S_68",
+          "S_69"
+        ],
+        "width_units": 1040,
+        "height_units": 970,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 405.75890944498536,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P4_Content_Knowledge_Admin_part_04.png",
+        "part": 4,
+        "total": 6,
+        "process": "P4_2",
+        "flows": [
+          "S_73",
+          "S_70",
+          "S_75",
+          "S_71",
+          "S_74"
+        ],
+        "width_units": 1040,
+        "height_units": 766,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 326.95662650602407,
+        "min_font_pt": 10.76
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P4_Content_Knowledge_Admin_part_05.png",
+        "part": 5,
+        "total": 6,
+        "process": "P4_3",
+        "flows": [
+          "F09_02",
+          "F10_02",
+          "F15_02",
+          "F16_02",
+          "S_55",
+          "S_56",
+          "S_77",
+          "S_78",
+          "S_79",
+          "S_80"
+        ],
+        "width_units": 1040,
+        "height_units": 922,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 384.89503407984415,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P4_Content_Knowledge_Admin_part_06.png",
+        "part": 6,
+        "total": 6,
+        "process": "P4_4",
+        "flows": [
+          "F09_03",
+          "F10_03",
+          "F15_03",
+          "F16_03",
+          "F25_02",
+          "F26_02",
+          "S_57",
+          "S_58",
+          "S_81",
+          "S_82",
+          "S_83"
+        ],
+        "width_units": 1040,
+        "height_units": 1016,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 425.75345666991234,
+        "min_font_pt": 10.43
+      }
+    ]
+  },
+  {
+    "figure": "Hình 3.44",
+    "name": "DFD_Level_2_P5_Auth_Admin_Monitoring",
+    "pages": [
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P5_Auth_Admin_Monitoring_part_01.png",
+        "part": 1,
+        "total": 6,
+        "process": "P5_1",
+        "flows": [
+          "F11_01",
+          "F12_01",
+          "F17_01",
+          "F18_01",
+          "S_84",
+          "S_85",
+          "S_86",
+          "S_87"
+        ],
+        "width_units": 1040,
+        "height_units": 698,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 287.530282375852,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P5_Auth_Admin_Monitoring_part_02.png",
+        "part": 2,
+        "total": 6,
+        "process": "P5_2",
+        "flows": [
+          "F11_02",
+          "F12_02",
+          "F17_02",
+          "F18_02",
+          "S_88",
+          "S_89"
+        ],
+        "width_units": 1040,
+        "height_units": 638,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 261.45043816942547,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P5_Auth_Admin_Monitoring_part_03.png",
+        "part": 3,
+        "total": 6,
+        "process": "P5_3",
+        "flows": [
+          "F19_01",
+          "F20_01",
+          "S_90",
+          "S_96",
+          "S_91",
+          "S_97"
+        ],
+        "width_units": 1040,
+        "height_units": 696,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 286.66095423563775,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P5_Auth_Admin_Monitoring_part_04.png",
+        "part": 4,
+        "total": 6,
+        "process": "P5_4",
+        "flows": [
+          "F19_02",
+          "F20_02",
+          "S_92",
+          "S_93",
+          "S_98"
+        ],
+        "width_units": 1040,
+        "height_units": 566,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 230.1546251217137,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P5_Auth_Admin_Monitoring_part_05.png",
+        "part": 5,
+        "total": 6,
+        "process": "P5_5",
+        "flows": [
+          "F19_03",
+          "F20_03",
+          "S_94",
+          "S_95",
+          "S_99",
+          "S_100",
+          "S_101",
+          "S_102",
+          "S_103"
+        ],
+        "width_units": 1040,
+        "height_units": 1064,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 446.61733203505355,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_2_P5_Auth_Admin_Monitoring_part_06.png",
+        "part": 6,
+        "total": 6,
+        "process": "P5_5",
+        "flows": [
+          "S_104",
+          "S_105"
+        ],
+        "width_units": 1040,
+        "height_units": 468,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 193.39518072289155,
+        "min_font_pt": 10.76
+      }
+    ]
+  },
+  {
+    "figure": "Hình 3.45",
+    "name": "DFD_Level_3_P4_2_Pipeline_Translation_TTS",
+    "pages": [
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_3_P4_2_Pipeline_Translation_TTS_part_01.png",
+        "part": 1,
+        "total": 4,
+        "process": "P4_2_1",
+        "flows": [
+          "L3_P4_2_1",
+          "S_66",
+          "S_72",
+          "S_67",
+          "S_68"
+        ],
+        "width_units": 1040,
+        "height_units": 696,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 286.66095423563775,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_3_P4_2_Pipeline_Translation_TTS_part_02.png",
+        "part": 2,
+        "total": 4,
+        "process": "P4_2_2",
+        "flows": [
+          "F23_01",
+          "F24_01",
+          "L3_P4_2_2",
+          "L3_P4_2_4",
+          "S_69",
+          "S_73"
+        ],
+        "width_units": 1040,
+        "height_units": 696,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 286.66095423563775,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_3_P4_2_Pipeline_Translation_TTS_part_03.png",
+        "part": 3,
+        "total": 4,
+        "process": "P4_2_3",
+        "flows": [
+          "F23_02",
+          "F24_02",
+          "L3_P4_2_3",
+          "S_70",
+          "S_71",
+          "S_74"
+        ],
+        "width_units": 1040,
+        "height_units": 568,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 231.02395326192791,
+        "min_font_pt": 10.43
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_3_P4_2_Pipeline_Translation_TTS_part_04.png",
+        "part": 4,
+        "total": 4,
+        "process": "P4_2_4",
+        "flows": [
+          "S_75",
+          "S_76"
+        ],
+        "width_units": 1040,
+        "height_units": 454,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 187.12048192771084,
+        "min_font_pt": 10.76
+      }
+    ]
+  },
+  {
+    "figure": "Hình 3.46",
+    "name": "DFD_Level_3_P3_4_RAG_Answer_Generation",
+    "pages": [
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_3_P3_4_RAG_Answer_Generation_part_01.png",
+        "part": 1,
+        "total": 4,
+        "process": "P3_4_1",
+        "flows": [
+          "I_10",
+          "I_11",
+          "L3_P3_4_1"
+        ],
+        "width_units": 1040,
+        "height_units": 566,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 237.55658291457286,
+        "min_font_pt": 10.77
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_3_P3_4_RAG_Answer_Generation_part_02.png",
+        "part": 2,
+        "total": 4,
+        "process": "P3_4_2",
+        "flows": [
+          "F27_01",
+          "F28_01",
+          "L3_P3_4_2"
+        ],
+        "width_units": 1040,
+        "height_units": 598,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 251.9131658291457,
+        "min_font_pt": 10.77
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_3_P3_4_RAG_Answer_Generation_part_03.png",
+        "part": 3,
+        "total": 4,
+        "process": "P3_4_3",
+        "flows": [
+          "L3_P3_4_3"
+        ],
+        "width_units": 1040,
+        "height_units": 426,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 174.74653266331657,
+        "min_font_pt": 10.77
+      },
+      {
+        "image": "docs/diagram/export/dfd-report/DFD_Level_3_P3_4_RAG_Answer_Generation_part_04.png",
+        "part": 4,
+        "total": 4,
+        "process": "P3_4_4",
+        "flows": [
+          "F06_02",
+          "I_08",
+          "S_52"
+        ],
+        "width_units": 1040,
+        "height_units": 500,
+        "font_units": 24,
+        "width_pt": 446.4,
+        "max_height_pt": 504,
+        "height_pt": 201.4667964946446,
+        "min_font_pt": 10.43
+      }
+    ]
+  }
+]

@@ -1,6 +1,7 @@
 import os
 import sys
 import re
+import json
 import docx
 from PIL import Image
 from docx.shared import Pt, Inches, RGBColor
@@ -12,6 +13,7 @@ sys.stdout.reconfigure(encoding='utf-8')
 
 DOCX_PATH = "docs/CNPM_BAOCAO.docx"
 MD_PATH = "docs/DFD_Report_Section_3_4.md"
+REPORT_PAGES_PATH = "docs/diagram/dfd/report/dfd_report_pages.json"
 
 IMAGE_MAP = {
     'Hình 3.38': 'docs/diagram/export/DFD_Level_0_Context.png',
@@ -138,6 +140,10 @@ def main():
         
     doc = docx.Document(DOCX_PATH)
     body = doc._body._element
+    report_pages = {}
+    if os.path.exists(REPORT_PAGES_PATH):
+        with open(REPORT_PAGES_PATH, encoding='utf-8') as f:
+            report_pages = {item['figure']: item['pages'] for item in json.load(f)}
     
     # Verify all images exist
     for fig_id, path in IMAGE_MAP.items():
@@ -227,17 +233,22 @@ def main():
                 r.font.color.rgb = RGBColor(0, 0, 0)
         elif item_type == 'figure':
             caption_text, img_path = data
-            # 1. Insert image paragraph
-            p_img = anchor_p.insert_paragraph_before()
-            p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
-            p_img.paragraph_format.space_before = Pt(8)
-            p_img.paragraph_format.space_after = Pt(4)
-            p_img.paragraph_format.keep_with_next = True
-            run = p_img.add_run()
-            with Image.open(img_path) as image:
-                ratio = image.height / image.width
-            width = min(6.2, 7.0 / ratio)
-            run.add_picture(img_path, width=Inches(width))
+            fig_id = re.match(r'^(Hình 3\.\d+)', caption_text).group(1)
+            pages = report_pages.get(fig_id, [{'image': img_path}])
+            for page_index, page in enumerate(pages):
+                p_img = anchor_p.insert_paragraph_before()
+                p_img.alignment = WD_ALIGN_PARAGRAPH.CENTER
+                p_img.paragraph_format.space_before = Pt(6)
+                p_img.paragraph_format.space_after = Pt(6)
+                p_img.paragraph_format.keep_together = True
+                p_img.paragraph_format.keep_with_next = page_index == len(pages)-1
+                p_img.paragraph_format.line_spacing = 1
+                with Image.open(page['image']) as image:
+                    ratio = image.height / image.width
+                width = min(6.2, 7.0 / ratio)
+                if 'min_font_pt' in page:
+                    assert page['min_font_pt'] >= 10, page
+                p_img.add_run().add_picture(page['image'], width=Inches(width))
             
             # 2. Insert figure caption paragraph
             p_cap = anchor_p.insert_paragraph_before(caption_text)
@@ -289,7 +300,7 @@ def main():
             sp.paragraph_format.space_after = Pt(6)
             
     doc.save(DOCX_PATH)
-    print(f"Successfully rebuilt Section 3.4 in {DOCX_PATH} with 9 clean images and tables!")
+    print(f"Rebuilt Section 3.4 in {DOCX_PATH} with readable parts for all 9 DFD figures.")
 
 if __name__ == "__main__":
     main()
