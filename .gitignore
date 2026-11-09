@@ -13,3 +13,25 @@ dist/
 !.agents/skills/
 skills-lock.json
 repomix-output.xml
+
+# Python cache & artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Presentations, scripts & slide decks (Local-only, not part of codebase)
+generate_presentation*.py
+*.pptx
+cam_nang_thuyet_trinh*
+CAM_NANG_THUYET_TRINH*
+KICH_BAN_THUYET_TRINH*
+docs/Bao_Cao_Thuyet_Trinh*
+docs/cam_nang_thuyet_trinh*
+docs/CAM_NANG_THUYET_TRINH*
+docs/KICH_BAN_THUYET_TRINH*
+docs/slides_pdf_images/
+
+# Local scratch & planning files
+gratify.md
+PLAN.md
