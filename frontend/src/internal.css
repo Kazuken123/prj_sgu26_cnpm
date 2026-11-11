@@ -14,7 +14,7 @@
   --adm-warning: #9a5b07; --adm-warning-bg: #fff6e6; --adm-warning-border: #f4d79e;
   --adm-danger: #b42318; --adm-danger-hover: #912018; --adm-danger-bg: #fef1f0; --adm-danger-border: #f6c3be;
   --adm-info: #175cd3; --adm-info-bg: #eef4ff; --adm-info-border: #c3d6fb;
-  --adm-sidebar: #0f2a1e; --adm-sidebar-2: #163a2a; --adm-sidebar-text: #b9cdc1; --adm-sidebar-muted: #7f9a8b;
+  --adm-sidebar: #0f2a1e; --adm-sidebar-2: #1c4a35; --adm-sidebar-text: #e6f2ec; --adm-sidebar-muted: #9eb9ab;
   /* Typography */
   --adm-font: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --adm-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
@@ -36,7 +36,7 @@
 .internal-workspace h1, .internal-workspace h2, .internal-workspace h3, .internal-workspace h4 { font-family: var(--adm-font); letter-spacing: -.015em; color: var(--adm-text); }
 .internal-workspace ::selection { background: var(--adm-brand-100); color: var(--adm-brand-700); }
 .internal-workspace :focus-visible { outline: none; box-shadow: var(--adm-ring); border-radius: var(--adm-r-sm); }
-.internal-workspace a { color: var(--adm-brand); }
+:where(.internal-workspace) a { color: var(--adm-brand); }
 .internal-workspace button, .internal-workspace a { -webkit-tap-highlight-color: transparent; }
 .internal-workspace button { font-family: inherit; cursor: pointer; }
 .internal-workspace button:disabled { cursor: not-allowed; }
