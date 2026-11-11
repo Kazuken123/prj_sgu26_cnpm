@@ -224,14 +224,10 @@ npm run build       # Kiểm tra đóng gói bản phân phối Production
 ## Tài liệu báo cáo và Sơ đồ thiết kế
 
 - **Báo cáo đồ án hoàn chỉnh:** [`docs/CNPM_BAOCAO.docx`](docs/CNPM_BAOCAO.docx)
+- **Nhật ký phát triển & Các mốc hoàn thiện:** [`docs/NHAT_KY_PHAT_TRIEN.md`](docs/NHAT_KY_PHAT_TRIEN.md)
 - **Sơ đồ cơ sở dữ liệu (ERD):** [`docs/diagram/erd_diagram.drawio`](docs/diagram/erd_diagram.drawio)
 - **Sơ đồ thành phần (Component):** [`docs/diagram/component_diagram.drawio`](docs/diagram/component_diagram.drawio)
 - **Sơ đồ luồng dữ liệu (DFD Mức 0–3):** [`docs/diagram/dfd/`](docs/diagram/dfd/)
-- **Sơ đồ tuần tự (Sequence):** [`docs/diagram/sequence/`](docs/diagram/sequence/)
 - **Sơ đồ hoạt động (Activity):** [`docs/diagram/activity/`](docs/diagram/activity/)
 - **Sơ đồ ca sử dụng (Use Case):** [`docs/diagram/use case/`](docs/diagram/use%20case/)
-- **Tài liệu tích hợp & Thiết kế chuyên sâu:**
-  - [Tích hợp Front-end & Back-end](docs/FRONTEND_BACKEND_INTEGRATION.md)
-  - [Hệ thống thiết kế giao diện Quản trị (ADMIN UI)](docs/ADMIN_UI_DESIGN_SYSTEM.md)
-  - [Đặc tả cấp lại vé tham quan (UC-12)](docs/BACKEND_TOKEN_REISSUE_UC12.md)
-  - [Hướng dẫn dữ liệu thực nghiệm Thảo Cầm Viên](data/demo/README.md)
+- **Hướng dẫn dữ liệu thực nghiệm Thảo Cầm Viên:** [`data/demo/README.md`](data/demo/README.md)

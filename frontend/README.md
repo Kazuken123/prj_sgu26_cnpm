@@ -1,42 +1,32 @@
-# Hướng dẫn Cài đặt, Chạy và Kiểm thử Frontend Thảo Cầm Viên
+# Hướng dẫn Cài đặt, Chạy và Kiểm thử Frontend Thảo Cầm Viên Sài Gòn
 
-## Đồng bộ bản React với backend — 21/10/2026
+Tài liệu này hướng dẫn cách thiết lập, chạy thử nghiệm và kiểm thử mã nguồn giao diện người dùng (React 18 + TypeScript + Vite + Leaflet) của hệ thống tự động thuyết minh đa ngôn ngữ Thảo Cầm Viên Sài Gòn.
 
-Người tiếp tục thiết kế giao diện đọc [bàn giao UI/UX và các ràng buộc cần giữ](docs/HANDOFF_UI_UX_2026-10-21.md).
-
-Thực hiện cài đặt, build và test trong clone/bản sao **ngoài OneDrive**, không sao chép `.env` thật. Dùng `npm ci` để giữ đúng lockfile; không cần thêm dependency cho bản sửa tích hợp này.
-
-**Chạy chung một địa chỉ:** build frontend bằng `npm run build` trong `frontend`, sau đó chạy backend. Trình duyệt mở `/` hoặc `/demo/` trên cổng backend; các đường dẫn React hỗ trợ tải lại trực tiếp ở cả hai địa chỉ. Backend chỉ phục vụ `frontend/dist`, không công khai mã nguồn frontend. Chưa build thì truy cập HTML báo 503 `FRONTEND_NOT_BUILT`; API/health vẫn độc lập. Request `/` không yêu cầu HTML vẫn giữ thông báo API cũ.
-
-**Chạy bằng Docker:** Dockerfile build React trong stage riêng trước khi tạo image runtime. Dựng demo theo `data/demo/README.md`; không chạy lại init_db.sql trên DB đã có dữ liệu hoặc xóa volume. Không cần đưa `node_modules` hay `dist` vào Git.
-
-**Chạy Vite để phát triển:** nếu không đặt `VITE_API_BASE_URL`, frontend dùng origin hiện tại; dev server chuyển `/api` và `/health` tới `API_PROXY_TARGET`, mặc định `http://127.0.0.1:3000`. Đặt cổng 18080 khi dùng stack DRAFT-03. Biến `VITE_` là cấu hình công khai lúc build, tuyệt đối không chứa khóa ký webhook/API secret. Bản Docker mặc định dùng chung origin.
-
-**Kiểm thử:** `npm test` sử dụng TypeScript đã có trong lockfile qua loader tương thích Node 20/22; `npm run build` kiểm kiểu và build bằng Vite. CI chạy cả hai cho frontend. Test refresh/logout cũ được chuyển sang `frontend/test/auth-regression.test.js`; test HTTP phía backend kiểm build, đường dẫn, 404 và lỗi chưa build. Không loại bỏ kiểm tra bảo mật chỉ để CI xanh. Test API dùng fetch mock không thay cho nghiệm thu trình duyệt với DB thật.
-
-Demo ONLINE vẫn cần operator gửi kết quả bằng công cụ backend `mock:payment`; không có nút ký webhook trong frontend. Audio DRAFT-03 vẫn là âm thử một giây, không đọc kịch bản. Không coi bản sửa này là nghiệm thu GPS hoặc staging HTTPS.
-
-Tài liệu này hướng dẫn cách thiết lập, chạy thử nghiệm và kiểm thử mã nguồn giao diện hệ thống thuyết minh Thảo Cầm Viên Sài Gòn.
+---
 
 ## 1. Yêu cầu môi trường
 
-- CI dùng Node.js 20/22 với TypeScript loader; bản local đã kiểm tra trên Node.js 24.
-- Trình quản lý gói: npm phiên bản 10 trở lên.
-- Trình duyệt khuyến nghị: Google Chrome, Mozilla Firefox hoặc Microsoft Edge phiên bản mới.
-- Backend chạy Node trực tiếp mặc định ở cổng 3000; stack Docker DRAFT-03 dùng cổng 18080.
+- **Node.js:** Phiên bản 20 hoặc 22 trở lên (tương thích với TypeScript loader và pipeline CI).
+- **Trình quản lý gói:** `npm` phiên bản 10 trở lên.
+- **Trình duyệt khuyến nghị:** Google Chrome, Safari, Mozilla Firefox hoặc Microsoft Edge phiên bản mới.
+- **Máy chủ Back-end:** Mặc định chạy tại `http://127.0.0.1:3000`.
+
+---
 
 ## 2. Cài đặt các gói phụ thuộc
 
-Di chuyển vào thư mục frontend và chạy lệnh cài đặt:
+Di chuyển vào thư mục `frontend` và cài đặt theo đúng `package-lock.json`:
 
 ```bash
 cd frontend
 npm ci
 ```
 
+---
+
 ## 3. Cấu hình biến môi trường
 
-Sao chép tệp mẫu cấu hình môi trường:
+Sao chép tệp mẫu cấu hình môi trường (nếu cần tùy chỉnh cổng proxy khi phát triển):
 
 ```bash
 cp .env.example .env
@@ -49,121 +39,68 @@ VITE_API_BASE_URL=
 API_PROXY_TARGET=http://127.0.0.1:3000
 ```
 
-Vite chuyển `/api` và `/health` sang `API_PROXY_TARGET`. Với stack DRAFT-03, đổi giá trị này thành `http://127.0.0.1:18080`. Để trống `VITE_API_BASE_URL` để trình duyệt dùng cùng origin; chỉ đặt URL tuyệt đối khi chủ động triển khai API riêng và đã cấu hình CORS.
+- Khi chạy máy chủ phát triển Vite (`npm run dev`), các yêu cầu tới `/api` và `/health` được tự động chuyển tiếp sang `API_PROXY_TARGET`.
+- Để trống `VITE_API_BASE_URL` để trình duyệt mặc định gọi cùng nguồn gốc (*same-origin*) khi chạy chung qua Express tại `/demo/`.
 
-Để chạy chung với Express, chạy `npm run build` trong `frontend`, sau đó `npm start` trong `backend`. Mở `http://127.0.0.1:3000/demo/`. Express chỉ phục vụ `frontend/dist`; các trang con như `/demo/explore` tải lại được. Dockerfile cũng tự build React trước khi đóng gói backend. Xem [bản nối frontend/backend](../docs/FRONTEND_BACKEND_INTEGRATION.md).
+---
 
-## 4. Chạy ứng dụng ở môi trường phát triển
+## 4. Chạy ứng dụng
 
-Khởi động máy chủ giao diện phát triển:
+### Chế độ phát triển (Vite Dev Server)
 
 ```bash
 npm run dev
 ```
 
-Ứng dụng sẽ hoạt động tại địa chỉ:
+Giao diện phát triển hoạt động tại `http://127.0.0.1:5173`.
 
-```text
-http://127.0.0.1:5173
-```
+### Chạy tích hợp cùng Back-end Express
 
-Mở mục thông tin kết nối ở cuối trang chủ để kiểm tra `GET /health/ready`.
-
-## 5. Chạy bộ kiểm thử tự động
-
-Bộ kiểm thử được xây dựng bằng công cụ kiểm thử tích hợp của Node.js, không phụ thuộc vào framework ngoài:
-
-```bash
-npm test
-```
-
-Bản hợp nhất ngày 21/10/2026 có 66 ca đạt, gồm 9 suite và các ca hồi quy xác thực, kết nối bổ sung. Test API dùng mock fetch, không thay thế kiểm thử với MySQL/Redis và trình duyệt thật. Phạm vi gồm:
-- Kiểm thử quản lý phiên và bộ nhớ lưu trữ
-- Kiểm thử phân loại lỗi và xử lý mã lỗi
-- Kiểm thử luồng gọi API thanh toán trực tuyến
-- Kiểm thử hợp đồng gói dữ liệu thuyết minh
-- Kiểm thử tải tệp âm thanh có xác thực
-- Kiểm thử xác thực nội bộ nhân viên và quản trị viên
-- Kiểm thử quy trình thanh toán tiền mặt
-- Kiểm thử quản lý điểm tham quan và theo dõi tác vụ nội dung
-- Kiểm thử nghiệm thu tích hợp xuyên suốt các luồng nghiệp vụ
-
-## 6. Đóng gói cho môi trường triển khai
-
-Biên dịch mã nguồn TypeScript và đóng gói tài nguyên:
+Đóng gói bản phân phối tĩnh vào `frontend/dist`, sau đó khởi động Back-end Express:
 
 ```bash
 npm run build
+cd ../backend
+npm start
 ```
 
-Kết quả đóng gói sẽ được tạo trong thư mục `dist`.
+Mở trình duyệt tại `http://localhost:3000/demo/` (hỗ trợ tải lại trực tiếp mọi đường dẫn con của React Router).
 
-## 7. Cấu hình nguồn gốc CORS
+---
 
-Máy chủ backend cần cho phép các nguồn gốc sau để frontend gửi yêu cầu thành công:
-- `http://localhost:5173`
-- `http://127.0.0.1:5173`
-- `http://localhost:5500`
-- `http://127.0.0.1:5500`
+## 5. Chạy bộ kiểm thử tự động
 
-## 8. Cấu trúc thư mục mã nguồn
+Kiểm tra kiểu dữ liệu tĩnh TypeScript và chạy toàn bộ **215 bài kiểm thử tự động** (10 test suites):
+
+```bash
+npx tsc --noEmit
+npm test
+```
+
+Phạm vi kiểm thử bao phủ cả hai phân hệ:
+- **Phân hệ Du khách:** Quản lý phiên và lưu trữ token 24 giờ, thanh toán trực tuyến/tiền mặt (mã 6 chữ số), tải gói dữ liệu bundle 15 ngôn ngữ, bản đồ Leaflet 18 điểm tham quan, hình ảnh minh họa WebP, phát âm thanh tự động theo tọa độ GPS, tùy chỉnh lộ trình và hỏi đáp trợ lý RAG.
+- **Phân hệ Quản trị (`STAFF` / `ADMIN`):** Điều hướng theo vai trò, bảo vệ route nội bộ, quầy thu ngân tiền mặt, cấp lại mã vé (`UC-12`), quản trị POI/bản dịch/lộ trình/kho tri thức, tra cứu nhật ký kiểm toán (`UC-17`) và bảng giám sát – thống kê hiện diện (`UC-18`).
+
+---
+
+## 6. Cấu trúc thư mục mã nguồn
 
 ```text
 frontend/
-├── docs/
-│   ├── API_CONTRACT.md    Bảng đặc tả hợp đồng API và mã lỗi chi tiết
-│   └── DEMO_GUIDE.md      Kịch bản thực hiện demo các luồng chức năng
+├── public/                    # Tài nguyên tĩnh và bộ ảnh minh họa 18 POI chuẩn WebP
+├── scripts/                   # Trình nạp TypeScript phục vụ chạy kiểm thử trên Node.js
 ├── src/
-│   ├── api/
-│   │   ├── client.ts          Lớp gọi mạng Fetch cơ sở và xử lý lỗi ApiError
-│   │   ├── payment.ts         API thanh toán trực tuyến và phiên tham quan
-│   │   ├── content.ts         API lấy gói thuyết minh đa ngôn ngữ
-│   │   ├── media.ts           API tải tệp âm thanh có kiểm tra nguồn gốc
-│   │   ├── auth.ts            API xác thực và quản lý tài khoản nội bộ
-│   │   ├── cash.ts            API tạo và xử lý thanh toán tiền mặt
-│   │   ├── poi.ts             API quản lý điểm tham quan và cập nhật phiên bản
-│   │   ├── contentJob.ts      API theo dõi và thử lại tác vụ nội dung
-│   │   ├── guestStorage.ts    Quản lý lưu trữ phiên khách tham quan
-│   │   └── authStorage.ts     Quản lý lưu trữ phiên nhân viên nội bộ
-│   ├── pages/
-│   │   ├── HomePage.tsx               Trang chủ điều hướng và kiểm tra kết nối
-│   │   ├── PaymentPage.tsx            Trang thanh toán trực tuyến mô phỏng
-│   │   ├── ExplorePage.tsx            Trang khám phá điểm tham quan và nghe âm thanh
-│   │   ├── LoginPage.tsx              Trang đăng nhập tài khoản nội bộ
-│   │   ├── AccountPage.tsx            Trang thông tin tài khoản và đổi phiên làm việc
-│   │   ├── NewStaffPage.tsx           Trang quản trị viên tạo tài khoản nhân viên
-│   │   ├── InternalCashPage.tsx       Trang hỗ trợ thanh toán tiền mặt tại quầy
-│   │   ├── InternalPoisPage.tsx       Trang danh sách điểm tham quan nội bộ
-│   │   ├── InternalPoiDetailPage.tsx  Trang xem chi tiết thông tin điểm tham quan
-│   │   ├── InternalPoiEditPage.tsx    Trang tạo mới và chỉnh sửa điểm tham quan
-│   │   └── InternalJobsPage.tsx       Trang theo dõi và thử lại tác vụ nội dung
-│   ├── App.tsx                Điều hướng trang và thanh điều hướng chính
-│   └── main.tsx               Điểm khởi động ứng dụng React
-├── test/                      Các tệp kiểm thử tự động của từng chặng phát triển
-├── index.html                 Tệp HTML gốc nạp giao diện
-├── package.json               Khai báo gói phụ thuộc và lệnh chạy
-├── tsconfig.json              Cấu hình trình biên dịch TypeScript
-└── vite.config.ts             Cấu hình máy chủ phát triển Vite
+│   ├── api/                   # Lớp giao tiếp HTTP API và quản lý lưu trữ phiên (Guest / Staff)
+│   ├── components/            # Các thành phần giao diện Bản đồ, Trình phát Audio, Khung Chat, Admin UI
+│   ├── data/                  # Ánh xạ hình ảnh minh họa và thông tin nguồn ảnh các điểm tham quan
+│   ├── hooks/                 # Các React Hook tùy chỉnh (GPS, ngôn ngữ, cảnh báo thay đổi chưa lưu)
+│   ├── i18n/                  # Từ điển đa ngôn ngữ giao diện người dùng (15 ngôn ngữ)
+│   ├── pages/                 # Các trang giao diện Du khách và Quản trị nội bộ (/internal/*)
+│   ├── App.tsx                # Định tuyến ứng dụng (React Router)
+│   └── main.tsx               # Điểm khởi động ứng dụng React
+├── test/                      # Bộ 215 bài kiểm thử tự động Front-end
+├── index.html                 # Tệp HTML gốc
+├── package.json               # Khai báo phụ thuộc và kịch bản chạy
+├── tsconfig.json              # Cấu hình trình biên dịch TypeScript
+└── vite.config.ts             # Cấu hình đóng gói và proxy Vite
 ```
-
-## Phân hệ quản trị (ADMIN / STAFF)
-
-Toàn bộ giao diện `/internal/*` dùng hệ thống thiết kế riêng, tách khỏi giao diện khách — xem [`../docs/ADMIN_UI_DESIGN_SYSTEM.md`](../docs/ADMIN_UI_DESIGN_SYSTEM.md).
-
-| Thành phần | Vị trí |
-|---|---|
-| Sidebar, topbar, breadcrumb, tiêu đề tab | `src/components/InternalNavigation.tsx` |
-| Chặn quyền ADMIN / chuyển về đăng nhập | `src/components/InternalProtectedRoute.tsx` |
-| Thành phần dùng chung (Card, Badge, Field, Pagination, ConfirmDialog…) | `src/components/admin/AdminUI.tsx` |
-| Token màu, bố cục, responsive | `src/internal.css` (mọi quy tắc dưới `.internal-workspace` hoặc tiền tố admin) |
-| Cảnh báo rời trang khi còn thay đổi chưa lưu | `src/hooks/useUnsavedChangesGuard.ts` |
-| Cấp lại vé cho khách (UC-12) | `src/pages/InternalReissuePage.tsx`, `src/api/reissue.ts` |
-| Trang 404 nội bộ | `src/pages/InternalNotFoundPage.tsx` |
-
-Quy tắc khi sửa:
-
-- Không sửa trang/thành phần của khách để phục vụ admin; class dùng chung chỉ được re-skin dưới `.internal-workspace`.
-- Giữ nguyên route, API contract, nhãn và `id` mà test đang kiểm tra (ví dụ `business-day`, `payment-search`, class `ops-revenue`).
-- Thao tác không hoàn tác dùng `ConfirmDialog`; lỗi máy chủ hiển thị thông điệp và mã hỗ trợ, không thay số liệu lỗi bằng 0.
-
-Test riêng của phân hệ quản trị nằm trong `test/admin-*.test.js`, `test/reissue-*.test.js`, `test/internal-*.test.js`, `test/audit-quick-filter.test.js`, `test/cash-reissue-shortcut.test.js`, `test/login-caps-lock.test.js` và `test/unsaved-changes-guard.test.js`; chạy chung bằng `npm test`.

@@ -9,9 +9,12 @@ data/demo/additional-media/
 .DS_Store
 Thumbs.db
 dist/
-.agents/*
-!.agents/skills/
+.agents/
+.archify/
+skills/
 skills-lock.json
+AGENTS.md
+.repomixignore
 repomix-output.xml
 
 # Python cache & artifacts
