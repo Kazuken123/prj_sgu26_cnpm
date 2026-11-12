@@ -69,7 +69,7 @@
 
         </mxCell>
 
-        <mxCell id="a1" value="A1. Từ chối GPS: thông báo và hiển thị&#10;vị trí mặc định tại cổng chùa Linh Ứng" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="a1" value="A1. Từ chối GPS: thông báo và hiển thị&#10;vị trí mặc định tại cổng Thảo Cầm Viên" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
 
           <mxGeometry x="750" y="520" width="260" height="52" as="geometry" />
 
@@ -135,7 +135,7 @@
 
         </mxCell>
 
-        <mxCell id="e2" value="E2. Lỗi tải ảnh đại diện do mạng:&#10;hiển thị ảnh mặc định của chùa" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
+        <mxCell id="e2" value="E2. Lỗi tải ảnh đại diện do mạng:&#10;hiển thị ảnh mặc định của Thảo Cầm Viên" style="rounded=1;arcSize=18;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#475569;fontColor=#0f172a;fontFamily=Arial;fontSize=11;" vertex="1" parent="1">
 
           <mxGeometry x="750" y="1143" width="260" height="54" as="geometry" />
 

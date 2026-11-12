@@ -1,15 +1,12 @@
 <?xml version='1.0' encoding='utf-8'?>
 <mxfile host="app.diagrams.net" version="24.7.17">
   <diagram id="DFD_Level_0_Context" name="DFD_Level_0_Context">
-    <mxGraphModel page="1" pageWidth="1320" pageHeight="3758" grid="1" gridSize="10">
+    <mxGraphModel page="1" pageWidth="1320" pageHeight="3520" grid="1" gridSize="10">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
         <mxCell id="title" parent="1" vertex="1" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3.5;fontFamily=Arial;fontSize=28;fontStyle=1;align=center;verticalAlign=middle;spacing=8;strokeColor=none;fontSize=36;spacing=0;" value="DFD MỨC 0 — NGỮ CẢNH HỆ THỐNG" logicalId="title" kind="title">
           <mxGeometry as="geometry" x="20" y="12" width="1280" height="62" />
-        </mxCell>
-        <mxCell id="note" parent="1" vertex="1" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3.5;fontFamily=Arial;fontSize=28;fontStyle=1;align=center;verticalAlign=middle;spacing=8;strokeColor=none;spacing=0;" value="UC: 01, 02, 03, 04, 05, 06, 07, 08, 09, 10, 11, 12, 13, 14, 15, 16, 17, 18 | * = Could Have" logicalId="note" kind="text">
-          <mxGeometry as="geometry" x="20" y="82" width="1280" height="48" />
         </mxCell>
         <mxCell id="P0" parent="1" vertex="1" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3.5;fontFamily=Arial;fontSize=28;fontStyle=1;align=center;verticalAlign=middle;spacing=8;rounded=1;arcSize=10;" value="0&lt;br/&gt;&lt;br/&gt;Hệ thống thuyết&lt;br/&gt;minh đa ngôn&lt;br/&gt;ngữ Thảo Cầm&lt;br/&gt;Viên Sài Gòn" logicalId="P0" kind="process" primaryProcess="1">
           <mxGeometry as="geometry" x="490" y="160" width="260" height="3388" />
@@ -200,10 +197,7 @@
         <mxCell id="label_G0_026" parent="1" vertex="1" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3.5;fontFamily=Arial;fontSize=28;fontStyle=1;align=center;verticalAlign=middle;spacing=8;strokeColor=none;spacing=0;" value="F24: Bản dịch hoặc&lt;br/&gt;dữ liệu âm thanh&lt;br/&gt;WAV" logicalId="label" kind="text" labelFor="G0_026">
           <mxGeometry as="geometry" x="758" y="1304" width="292" height="116" />
         </mxCell>
-        <mxCell id="legend" parent="1" vertex="1" style="whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=3.5;fontFamily=Arial;fontSize=28;fontStyle=1;align=center;verticalAlign=middle;spacing=8;strokeColor=none;spacing=0;" value="Vòng tròn đánh số là đầu nối đến tiến trình cùng mã. Tác nhân và kho cùng mã là cùng một&lt;br/&gt;phần tử." logicalId="legend" kind="text">
-          <mxGeometry as="geometry" x="20" y="3628" width="1280" height="110" />
-        </mxCell>
-      </root>
+        </root>
     </mxGraphModel>
   </diagram>
 </mxfile>
