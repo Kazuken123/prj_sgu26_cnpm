@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="DeploymentDiagram" name="Deployment">
+    <mxGraphModel page="1" pageWidth="1760" pageHeight="960" grid="1" gridSize="10" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" parent="1" vertex="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Arial;fontSize=22;fontStyle=1;fontColor=#000000;" value="SƠ ĐỒ TRIỂN KHAI HỆ THỐNG (DEPLOYMENT DIAGRAM)">
+          <mxGeometry as="geometry" x="40" y="20" width="1680" height="38" />
+        </mxCell>
+
+        <!-- ==================== LEFT: CLIENT NODES ==================== -->
+        <mxCell id="node_visitor" parent="1" vertex="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.04;darkOpacity2=0.08;size=14;verticalAlign=top;align=center;spacingTop=8;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="&amp;laquo;device&amp;raquo;&lt;br/&gt;Thiết bị Khách tham quan (Smartphone / Tablet)">
+          <mxGeometry as="geometry" x="40" y="130" width="320" height="200" />
+        </mxCell>
+        <mxCell id="comp_visitor_web" parent="1" vertex="1" style="shape=component;align=center;spacingLeft=24;spacingRight=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.3;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;Trình duyệt Web (PWA)&lt;/b&gt;&lt;br/&gt;Bản đồ · GPS · Audio · Chatbot&lt;br/&gt;Bộ nhớ đệm (LocalStorage / Cache)">
+          <mxGeometry as="geometry" x="65" y="195" width="260" height="105" />
+        </mxCell>
+
+        <mxCell id="node_staff" parent="1" vertex="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.04;darkOpacity2=0.08;size=14;verticalAlign=top;align=center;spacingTop=8;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="&amp;laquo;device&amp;raquo;&lt;br/&gt;Thiết bị Nhân viên / Quản trị (PC / POS)">
+          <mxGeometry as="geometry" x="40" y="420" width="320" height="200" />
+        </mxCell>
+        <mxCell id="comp_staff_web" parent="1" vertex="1" style="shape=component;align=center;spacingLeft=24;spacingRight=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.3;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;Trình duyệt Quản trị (SPA)&lt;/b&gt;&lt;br/&gt;Bán vé quầy · Quản lý POI &amp; Tour&lt;br/&gt;Kho kiến thức · Dashboard giám sát">
+          <mxGeometry as="geometry" x="65" y="485" width="260" height="105" />
+        </mxCell>
+
+        <!-- ==================== CENTER: APPLICATION HOST NODE ==================== -->
+        <mxCell id="node_host" parent="1" vertex="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.04;darkOpacity2=0.08;size=16;verticalAlign=top;align=center;spacingTop=10;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.6;fontFamily=Arial;fontSize=14;fontStyle=1;fontColor=#000000;" value="&amp;laquo;executionEnvironment&amp;raquo;&lt;br/&gt;Môi trường Triển khai Ứng dụng (Docker Host / Render Cloud)">
+          <mxGeometry as="geometry" x="580" y="85" width="470" height="805" />
+        </mxCell>
+
+        <!-- Container 1: Express API & Worker -->
+        <mxCell id="node_backend" parent="1" vertex="1" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;align=center;spacingTop=8;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.4;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="&amp;laquo;container&amp;raquo;&lt;br/&gt;Back-end Service (Node.js 20 / Express)">
+          <mxGeometry as="geometry" x="615" y="155" width="390" height="445" />
+        </mxCell>
+        <mxCell id="comp_api" parent="1" vertex="1" style="shape=component;align=center;spacingLeft=24;spacingRight=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.3;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;REST API &amp; Web Server&lt;/b&gt;&lt;br/&gt;Kiến trúc 3 lớp: Router – Service – Store&lt;br/&gt;Xác thực JWT / Session Token &amp; Phục vụ tĩnh (/demo)">
+          <mxGeometry as="geometry" x="640" y="215" width="340" height="100" />
+        </mxCell>
+        <mxCell id="comp_worker" parent="1" vertex="1" style="shape=component;align=center;spacingLeft=24;spacingRight=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.3;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;Background Pipeline Worker&lt;/b&gt;&lt;br/&gt;Xử lý hàng đợi CONTENT_JOBS&lt;br/&gt;Đóng gói tri thức RAG (Chunking &amp; Embedding)">
+          <mxGeometry as="geometry" x="640" y="345" width="340" height="95" />
+        </mxCell>
+        <mxCell id="comp_adapter" parent="1" vertex="1" style="shape=component;align=center;spacingLeft=24;spacingRight=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.3;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;External Service Adapters&lt;/b&gt;&lt;br/&gt;Payment · Translate · TTS · Embedding &amp; LLM">
+          <mxGeometry as="geometry" x="640" y="470" width="340" height="100" />
+        </mxCell>
+
+        <!-- Container 2: Piper TTS Engine -->
+        <mxCell id="node_piper" parent="1" vertex="1" style="rounded=0;whiteSpace=wrap;html=1;verticalAlign=top;align=center;spacingTop=8;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.4;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="&amp;laquo;container&amp;raquo;&lt;br/&gt;Piper TTS Engine (Sidecar / Local Runtime)">
+          <mxGeometry as="geometry" x="615" y="655" width="390" height="200" />
+        </mxCell>
+        <mxCell id="comp_piper" parent="1" vertex="1" style="shape=component;align=center;spacingLeft=24;spacingRight=8;whiteSpace=wrap;html=1;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.3;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;Piper Neural TTS Service&lt;/b&gt;&lt;br/&gt;C++ Binary &amp; 15 mô hình giọng đọc ONNX&lt;br/&gt;Tổng hợp âm thanh định dạng WAV (22.050 Hz)">
+          <mxGeometry as="geometry" x="640" y="725" width="340" height="105" />
+        </mxCell>
+
+        <!-- ==================== RIGHT: DATA & EXTERNAL NODES ==================== -->
+        <!-- Node: MySQL Database -->
+        <mxCell id="node_mysql" parent="1" vertex="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.04;darkOpacity2=0.08;size=14;verticalAlign=top;align=center;spacingTop=8;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="&amp;laquo;database&amp;raquo;&lt;br/&gt;Cơ sở dữ liệu Quan hệ (MySQL 8.0 / MariaDB)">
+          <mxGeometry as="geometry" x="1290" y="85" width="420" height="165" />
+        </mxCell>
+        <mxCell id="comp_mysql" parent="1" vertex="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;Schema 16 Bảng Nghiệp vụ&lt;/b&gt;&lt;br/&gt;USERS · VISIT_SESSIONS · PAYMENTS · POIS&lt;br/&gt;POI_TRANSLATIONS · AUDIOS · CONTENT_JOBS · RAG">
+          <mxGeometry as="geometry" x="1315" y="155" width="360" height="75" />
+        </mxCell>
+
+        <!-- Node: Redis Cache -->
+        <mxCell id="node_redis" parent="1" vertex="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.04;darkOpacity2=0.08;size=14;verticalAlign=top;align=center;spacingTop=8;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="&amp;laquo;cache&amp;raquo;&lt;br/&gt;Bộ nhớ đệm (Redis 7 In-Memory)">
+          <mxGeometry as="geometry" x="1290" y="275" width="420" height="150" />
+        </mxCell>
+        <mxCell id="comp_redis" parent="1" vertex="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;Key-Value Ephemeral Store&lt;/b&gt;&lt;br/&gt;Claim Code (TTL) · Rate Limiting · Online Presence">
+          <mxGeometry as="geometry" x="1315" y="345" width="360" height="60" />
+        </mxCell>
+
+        <!-- Node: Media Storage -->
+        <mxCell id="node_storage" parent="1" vertex="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.04;darkOpacity2=0.08;size=14;verticalAlign=top;align=center;spacingTop=8;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="&amp;laquo;storage&amp;raquo;&lt;br/&gt;Kho lưu trữ Đa phương tiện (Persistent Volume)">
+          <mxGeometry as="geometry" x="1290" y="450" width="420" height="150" />
+        </mxCell>
+        <mxCell id="comp_storage" parent="1" vertex="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;Thư mục Media Tĩnh&lt;/b&gt;&lt;br/&gt;Tệp âm thanh thuyết minh (.wav) &amp; Hình ảnh POI">
+          <mxGeometry as="geometry" x="1315" y="520" width="360" height="60" />
+        </mxCell>
+
+        <!-- Node: External Cloud Services -->
+        <mxCell id="node_ext" parent="1" vertex="1" style="shape=cube;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;darkOpacity=0.04;darkOpacity2=0.08;size=14;verticalAlign=top;align=center;spacingTop=8;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="&amp;laquo;externalServices&amp;raquo;&lt;br/&gt;Các Dịch vụ Đám mây Bên ngoài">
+          <mxGeometry as="geometry" x="1290" y="625" width="420" height="265" />
+        </mxCell>
+        <mxCell id="comp_ext_pay" parent="1" vertex="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;Cổng Thanh toán Trực tuyến&lt;/b&gt;&lt;br/&gt;(VNPay / MoMo / Mock Webhook)">
+          <mxGeometry as="geometry" x="1315" y="690" width="360" height="52" />
+        </mxCell>
+        <mxCell id="comp_ext_trans" parent="1" vertex="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;Dịch vụ Dịch thuật Đa ngôn ngữ&lt;/b&gt;&lt;br/&gt;(Google Translate API)">
+          <mxGeometry as="geometry" x="1315" y="755" width="360" height="52" />
+        </mxCell>
+        <mxCell id="comp_ext_ai" parent="1" vertex="1" style="rounded=0;whiteSpace=wrap;html=1;align=center;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;fontFamily=Arial;fontSize=12;fontColor=#000000;" value="&lt;b&gt;Dịch vụ AI Embedding &amp; LLM&lt;/b&gt;&lt;br/&gt;(OpenAI / Google Gemini API)">
+          <mxGeometry as="geometry" x="1315" y="820" width="360" height="52" />
+        </mxCell>
+
+        <!-- ==================== COMMUNICATION LINKS ==================== -->
+        <!-- Visitor <-> Backend (Straight horizontal at y=245) -->
+        <mxCell id="link_visitor_be" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;startArrow=block;startFill=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=11;fontStyle=1;fontColor=#000000;labelBackgroundColor=#FFFFFF;" value="HTTPS / REST JSON&#xa;(Bearer Token · Audio)">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="360" y="245" />
+            <mxPoint as="targetPoint" x="615" y="245" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Staff <-> Backend -->
+        <mxCell id="link_staff_be" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;startArrow=block;startFill=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=11;fontStyle=1;fontColor=#000000;labelBackgroundColor=#FFFFFF;" value="HTTPS / REST JSON&#xa;(JWT Auth · RBAC)">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="360" y="530" />
+            <mxPoint as="targetPoint" x="615" y="295" />
+            <Array as="points">
+              <mxPoint x="470" y="530" />
+              <mxPoint x="470" y="295" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Backend <-> Piper TTS -->
+        <mxCell id="link_be_piper" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;startArrow=block;startFill=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=11;fontStyle=1;fontColor=#000000;labelBackgroundColor=#FFFFFF;" value="HTTP / CLI IPC (Tổng hợp WAV)">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="810" y="600" />
+            <mxPoint as="targetPoint" x="810" y="655" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Backend <-> MySQL (Straight horizontal at y=195) -->
+        <mxCell id="link_be_mysql" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;startArrow=block;startFill=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=11;fontStyle=1;fontColor=#000000;labelBackgroundColor=#FFFFFF;" value="TCP :3306&#xa;(MySQL Pool / Transaction)">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1005" y="195" />
+            <mxPoint as="targetPoint" x="1290" y="195" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Backend <-> Redis (Straight horizontal at y=365) -->
+        <mxCell id="link_be_redis" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;startArrow=block;startFill=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=11;fontStyle=1;fontColor=#000000;labelBackgroundColor=#FFFFFF;" value="TCP :6379&#xa;(RESP Protocol)">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1005" y="365" />
+            <mxPoint as="targetPoint" x="1290" y="365" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Backend <-> Storage (Straight horizontal at y=500) -->
+        <mxCell id="link_be_storage" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;startArrow=block;startFill=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=11;fontStyle=1;fontColor=#000000;labelBackgroundColor=#FFFFFF;" value="File I/O / Volume Mount&#xa;(Ghi &amp; Stream WAV)">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1005" y="500" />
+            <mxPoint as="targetPoint" x="1290" y="500" />
+          </mxGeometry>
+        </mxCell>
+
+        <!-- Backend <-> External Cloud Services -->
+        <mxCell id="link_be_ext" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;html=1;startArrow=block;startFill=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=11;fontStyle=1;fontColor=#000000;labelBackgroundColor=#FFFFFF;" value="HTTPS / TLS 1.3&#xa;(REST API &amp; Webhook)">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1005" y="555" />
+            <mxPoint as="targetPoint" x="1290" y="750" />
+            <Array as="points">
+              <mxPoint x="1150" y="555" />
+              <mxPoint x="1150" y="750" />
+            </Array>
+          </mxGeometry>
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

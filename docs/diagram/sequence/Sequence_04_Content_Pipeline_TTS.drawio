@@ -1,0 +1,346 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="SequenceDiagram" name="Sequence">
+    <mxGraphModel page="1" pageWidth="2550" pageHeight="1500" grid="1" gridSize="10" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+
+        <!-- Title -->
+        <mxCell id="title" parent="1" vertex="1" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Arial;fontSize=22;fontStyle=1;fontColor=#000000;" value="SƠ ĐỒ SEQUENCE 4: PIPELINE DỊCH ĐA NGỮ VÀ TỔNG HỢP GIỌNG NÓI PIPER TTS (UC-13, UC-15)">
+          <mxGeometry as="geometry" x="40" y="18" width="2470" height="38" />
+        </mxCell>
+        <!-- Actor staff -->
+        <mxCell id="actor_icon_staff" parent="1" vertex="1" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="">
+          <mxGeometry as="geometry" x="96" y="65" width="28" height="44" />
+        </mxCell>
+        <mxCell id="actor_lbl_staff" parent="1" vertex="1" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=center;verticalAlign=middle;whiteSpace=wrap;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="Nhân viên / Admin">
+          <mxGeometry as="geometry" x="35" y="112" width="150" height="22" />
+        </mxCell>
+        <mxCell id="part_staff" parent="1" edge="1" style="endArrow=none;dashed=1;html=1;dashPattern=5 4;strokeWidth=1.3;strokeColor=#000000;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="110" y="135" />
+            <mxPoint as="targetPoint" x="110" y="1445" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Participant spa -->
+        <mxCell id="part_spa" parent="1" vertex="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="Giao diện Quản trị
+(Admin SPA)">
+          <mxGeometry as="geometry" x="320" y="75" width="180" height="1370" />
+        </mxCell>
+        <!-- Participant router -->
+        <mxCell id="part_router" parent="1" vertex="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="PoiRouter &amp;
+PoiService">
+          <mxGeometry as="geometry" x="630" y="75" width="180" height="1370" />
+        </mxCell>
+        <!-- Participant db -->
+        <mxCell id="part_db" parent="1" vertex="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="ContentStore
+(MySQL Database)">
+          <mxGeometry as="geometry" x="950" y="75" width="180" height="1370" />
+        </mxCell>
+        <!-- Participant worker -->
+        <mxCell id="part_worker" parent="1" vertex="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="Background Worker
+(Pipeline Engine)">
+          <mxGeometry as="geometry" x="1280" y="75" width="180" height="1370" />
+        </mxCell>
+        <!-- Participant trans -->
+        <mxCell id="part_trans" parent="1" vertex="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="Dịch vụ Dịch
+(Translate API)">
+          <mxGeometry as="geometry" x="1600" y="75" width="180" height="1370" />
+        </mxCell>
+        <!-- Participant tts -->
+        <mxCell id="part_tts" parent="1" vertex="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="Piper TTS Engine
+(ONNX Models)">
+          <mxGeometry as="geometry" x="1920" y="75" width="180" height="1370" />
+        </mxCell>
+        <!-- Participant storage -->
+        <mxCell id="part_storage" parent="1" vertex="1" style="shape=umlLifeline;perimeter=lifelinePerimeter;whiteSpace=wrap;html=1;container=1;collapsible=0;recursiveResize=0;outlineConnect=0;size=46;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=13;fontStyle=1;fontColor=#000000;" value="Kho tệp
+(Media Storage)">
+          <mxGeometry as="geometry" x="2240" y="75" width="180" height="1370" />
+        </mxCell>
+        <!-- Fragment frag_1 (loop) -->
+        <mxCell id="frag_1" parent="1" vertex="1" style="shape=umlFrame;whiteSpace=wrap;html=1;width=60;height=24;boundedLbl=1;verticalAlign=middle;align=center;spacingLeft=2;spacingTop=2;fillColor=none;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;" value="loop">
+          <mxGeometry as="geometry" x="50" y="390" width="2360" height="800" />
+        </mxCell>
+        <!-- Fragment frag_2 (alt) -->
+        <mxCell id="frag_2" parent="1" vertex="1" style="shape=umlFrame;whiteSpace=wrap;html=1;width=60;height=24;boundedLbl=1;verticalAlign=middle;align=center;spacingLeft=2;spacingTop=2;fillColor=none;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;" value="alt">
+          <mxGeometry as="geometry" x="75" y="570" width="2310" height="600" />
+        </mxCell>
+        <mxCell id="frag_2_div_1" parent="1" edge="1" style="endArrow=none;dashed=1;html=1;dashPattern=6 4;strokeWidth=1.3;strokeColor=#000000;">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="75" y="1015" />
+            <mxPoint as="targetPoint" x="2385" y="1015" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Fragment frag_3 (opt) -->
+        <mxCell id="frag_3" parent="1" vertex="1" style="shape=umlFrame;whiteSpace=wrap;html=1;width=60;height=24;boundedLbl=1;verticalAlign=middle;align=center;spacingLeft=2;spacingTop=2;fillColor=none;strokeColor=#000000;strokeWidth=1.5;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;" value="opt">
+          <mxGeometry as="geometry" x="50" y="1215" width="1070" height="250" />
+        </mxCell>
+        <!-- Activation 1 on spa -->
+        <mxCell id="act_1" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="404" y="150" width="12" height="215" />
+        </mxCell>
+        <!-- Activation 2 on router -->
+        <mxCell id="act_2" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="714" y="185" width="12" height="140" />
+        </mxCell>
+        <!-- Activation 3 on db -->
+        <mxCell id="act_3" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="1034" y="225" width="12" height="50" />
+        </mxCell>
+        <!-- Activation 4 on worker -->
+        <mxCell id="act_4" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="1364" y="420" width="12" height="750" />
+        </mxCell>
+        <!-- Activation 5 on db -->
+        <mxCell id="act_5" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="1034" y="430" width="12" height="40" />
+        </mxCell>
+        <!-- Activation 6 on trans -->
+        <mxCell id="act_6" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="1684" y="505" width="12" height="40" />
+        </mxCell>
+        <!-- Activation 7 on db -->
+        <mxCell id="act_7" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="1034" y="615" width="12" height="35" />
+        </mxCell>
+        <!-- Activation 8 on tts -->
+        <mxCell id="act_8" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="2004" y="685" width="12" height="45" />
+        </mxCell>
+        <!-- Activation 9 on storage -->
+        <mxCell id="act_9" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="2324" y="765" width="12" height="40" />
+        </mxCell>
+        <!-- Activation 10 on db -->
+        <mxCell id="act_10" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="1034" y="840" width="12" height="40" />
+        </mxCell>
+        <!-- Activation 11 on db -->
+        <mxCell id="act_11" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="1034" y="1065" width="12" height="45" />
+        </mxCell>
+        <!-- Activation 12 on spa -->
+        <mxCell id="act_12" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="404" y="1235" width="12" height="210" />
+        </mxCell>
+        <!-- Activation 13 on router -->
+        <mxCell id="act_13" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="714" y="1275" width="12" height="130" />
+        </mxCell>
+        <!-- Activation 14 on db -->
+        <mxCell id="act_14" parent="1" vertex="1" style="html=1;points=[];perimeter=orthogonalPerimeter;outlineConnect=0;fillColor=#FFFFFF;strokeColor=#000000;strokeWidth=1.2;" value="">
+          <mxGeometry as="geometry" x="1034" y="1315" width="12" height="50" />
+        </mxCell>
+        <mxCell id="frag_1_guard" parent="1" vertex="1" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=left;verticalAlign=middle;whiteSpace=nowrap;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;spacingLeft=4;spacingRight=4;" value="[Với mỗi tác vụ PENDING trong hàng đợi CONTENT_JOBS (15 ngôn ngữ)]">
+          <mxGeometry as="geometry" x="118" y="393" width="460" height="20" />
+        </mxCell>
+        <mxCell id="frag_2_guard" parent="1" vertex="1" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=left;verticalAlign=middle;whiteSpace=nowrap;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;spacingLeft=4;spacingRight=4;" value="[Dịch văn bản thành công &amp; Tổng hợp âm thanh WAV thành công]">
+          <mxGeometry as="geometry" x="143" y="573" width="432" height="20" />
+        </mxCell>
+        <mxCell id="frag_2_div_1_guard" parent="1" vertex="1" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=left;verticalAlign=middle;whiteSpace=nowrap;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;spacingLeft=4;spacingRight=4;" value="[else: Lỗi dịch thuật hoặc lỗi tổng hợp âm thanh TTS]">
+          <mxGeometry as="geometry" x="89" y="1019" width="381.6" height="20" />
+        </mxCell>
+        <mxCell id="frag_3_guard" parent="1" vertex="1" style="text;html=1;strokeColor=none;fillColor=#FFFFFF;align=left;verticalAlign=middle;whiteSpace=nowrap;fontFamily=Arial;fontSize=12;fontStyle=1;fontColor=#000000;spacingLeft=4;spacingRight=4;" value="[Nhân viên yêu cầu xử lý lại (Retry) tác vụ FAILED trên giao diện]">
+          <mxGeometry as="geometry" x="118" y="1218" width="460" height="20" />
+        </mxCell>
+        <!-- Message 1 -->
+        <mxCell id="msg_1" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="1. Lưu POI tiếng Việt &amp; kích hoạt dịch đa ngữ">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="110" y="155" />
+            <mxPoint as="targetPoint" x="404" y="155" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 2 -->
+        <mxCell id="msg_2" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="2. POST /api/admin/pois/:id/translations/trigger">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="416" y="190" />
+            <mxPoint as="targetPoint" x="714" y="190" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 3 -->
+        <mxCell id="msg_3" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="3. Lưu POI, tạo jobs PENDING &amp; ghi AUDIT_LOGS">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="726" y="230" />
+            <mxPoint as="targetPoint" x="1034" y="230" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 4 -->
+        <mxCell id="msg_4" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="4. Danh sách jobIds đã khởi tạo">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1034" y="270" />
+            <mxPoint as="targetPoint" x="726" y="270" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 5 -->
+        <mxCell id="msg_5" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="5. HTTP 202 Accepted { status: &quot;QUEUED&quot; }">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="714" y="315" />
+            <mxPoint as="targetPoint" x="416" y="315" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 6 -->
+        <mxCell id="msg_6" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="6. Hiển thị trạng thái đang xử lý nền">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="404" y="355" />
+            <mxPoint as="targetPoint" x="110" y="355" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 7 -->
+        <mxCell id="msg_7" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="7. Claim tác vụ (PENDING -&gt; PROCESSING)">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1364" y="435" />
+            <mxPoint as="targetPoint" x="1046" y="435" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 8 -->
+        <mxCell id="msg_8" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="8. Chi tiết tác vụ &amp; văn bản tiếng Việt">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1046" y="470" />
+            <mxPoint as="targetPoint" x="1364" y="470" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 9 -->
+        <mxCell id="msg_9" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="9. Gửi văn bản tiếng Việt dịch sang ngôn ngữ đích">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1376" y="510" />
+            <mxPoint as="targetPoint" x="1684" y="510" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 10 -->
+        <mxCell id="msg_10" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="10. Kết quả phản hồi từ dịch vụ dịch">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1684" y="545" />
+            <mxPoint as="targetPoint" x="1376" y="545" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 11 -->
+        <mxCell id="msg_11" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="11. Lưu bản dịch POI_TRANSLATIONS (READY)">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1364" y="620" />
+            <mxPoint as="targetPoint" x="1046" y="620" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 12 -->
+        <mxCell id="msg_12" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="12. Xác nhận lưu bản dịch">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1046" y="650" />
+            <mxPoint as="targetPoint" x="1364" y="650" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 13 -->
+        <mxCell id="msg_13" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="13. Gọi Piper TTS synthesize(text, modelOnnx)">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1376" y="690" />
+            <mxPoint as="targetPoint" x="2004" y="690" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 14 -->
+        <mxCell id="msg_14" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="14. Luồng dữ liệu âm thanh WAV">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="2004" y="730" />
+            <mxPoint as="targetPoint" x="1376" y="730" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 15 -->
+        <mxCell id="msg_15" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="15. Ghi tệp âm thanh WAV vật lý vào kho tệp">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1376" y="770" />
+            <mxPoint as="targetPoint" x="2324" y="770" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 16 -->
+        <mxCell id="msg_16" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="16. Đường dẫn tệp đã lưu">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="2324" y="805" />
+            <mxPoint as="targetPoint" x="1376" y="805" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 17 -->
+        <mxCell id="msg_17" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="17. Ghi AUDIOS (READY) &amp; đổi job COMPLETED">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1364" y="845" />
+            <mxPoint as="targetPoint" x="1046" y="845" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 18 -->
+        <mxCell id="msg_18" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="18. Hoàn tất công bố nội dung &amp; audio">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1046" y="880" />
+            <mxPoint as="targetPoint" x="1364" y="880" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 19 -->
+        <mxCell id="msg_19" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="19. [Polling] Cập nhật tiến độ COMPLETED trên Dashboard">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1040" y="945" />
+            <mxPoint as="targetPoint" x="410" y="945" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 20 -->
+        <mxCell id="msg_20" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="20. Cập nhật job FAILED, lưu lỗi &amp; tăng retry_count">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1364" y="1070" />
+            <mxPoint as="targetPoint" x="1046" y="1070" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 21 -->
+        <mxCell id="msg_21" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="21. Đã ghi nhận lỗi tác vụ">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1046" y="1105" />
+            <mxPoint as="targetPoint" x="1364" y="1105" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 22 -->
+        <mxCell id="msg_22" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="22. [Polling] Hiển thị trạng thái FAILED kèm nguyên nhân">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1040" y="1150" />
+            <mxPoint as="targetPoint" x="410" y="1150" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 23 -->
+        <mxCell id="msg_23" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="23. Nhấn nút &quot;Thử lại (Retry)&quot; tác vụ lỗi">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="110" y="1250" />
+            <mxPoint as="targetPoint" x="404" y="1250" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 24 -->
+        <mxCell id="msg_24" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="24. POST /api/admin/content-jobs/:id/retry">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="416" y="1285" />
+            <mxPoint as="targetPoint" x="714" y="1285" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 25 -->
+        <mxCell id="msg_25" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="25. Đặt lại job PENDING &amp; ghi AUDIT_LOGS">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="726" y="1325" />
+            <mxPoint as="targetPoint" x="1034" y="1325" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 26 -->
+        <mxCell id="msg_26" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="26. Đã đưa lại vào hàng đợi">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="1034" y="1360" />
+            <mxPoint as="targetPoint" x="726" y="1360" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 27 -->
+        <mxCell id="msg_27" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;dashed=1;dashPattern=5 4;endArrow=open;endFill=0;strokeColor=#000000;strokeWidth=1.3;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="27. HTTP 200 OK { status: &quot;PENDING&quot; }">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="714" y="1400" />
+            <mxPoint as="targetPoint" x="416" y="1400" />
+          </mxGeometry>
+        </mxCell>
+        <!-- Message 28 -->
+        <mxCell id="msg_28" parent="1" edge="1" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeColor=#000000;strokeWidth=1.4;fontSize=11;fontFamily=Arial;fontColor=#000000;labelBackgroundColor=#FFFFFF;spacing=2;" value="28. Thông báo đã đưa lại vào hàng đợi">
+          <mxGeometry as="geometry" relative="1">
+            <mxPoint as="sourcePoint" x="404" y="1435" />
+            <mxPoint as="targetPoint" x="110" y="1435" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
